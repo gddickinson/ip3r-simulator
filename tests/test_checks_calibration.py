@@ -1,0 +1,205 @@
+"""Every findings check must be able to change its mind.
+
+For each registered check: copy the ip3r_genes tables it **declares** as
+sources into a temporary project, run it (it must give the same verdict as on
+the real project — which proves the source list is complete), then plant a
+change in one table and require the verdict to flip. A check whose verdict no
+planted input can flip asserts nothing (the PIEZO1 project's rule: calibrate a
+checking instrument before believing it).
+
+A new check without an entry in ``PLANTS`` fails
+``test_every_check_has_a_calibration``.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+import shutil
+from pathlib import Path
+
+import pytest
+
+from ip3r.analysis import checks as C
+from ip3r.analysis import checks_constraint
+from ip3r.config import GENES_DIR
+from ip3r.parameters import PARAMETERS
+from conftest import needs_genes, needs_structure
+
+
+# ------------------------------------------------------------ table editing
+
+def _edit(path: Path, fn) -> None:
+    """Rewrite a TSV row by row: ``fn(row) -> row``; rows are dicts."""
+    with open(path, newline="") as fh:
+        r = csv.DictReader(fh, delimiter="\t")
+        cols, rows = r.fieldnames, list(r)
+    rows = [fn(dict(x)) for x in rows]
+    with open(path, "w", newline="") as fh:
+        w = csv.DictWriter(fh, cols, delimiter="\t", lineterminator="\n")
+        w.writeheader()
+        w.writerows([x for x in rows if x is not None])
+
+
+def _set(where: dict, **new):
+    def fn(row):
+        if all(row.get(k) == v for k, v in where.items()):
+            row.update({k: str(v) for k, v in new.items()})
+        return row
+    return fn
+
+
+def _first(where: dict, **new):
+    done = []
+
+    def fn(row):
+        if not done and all(row.get(k) == v for k, v in where.items()):
+            row.update({k: str(v) for k, v in new.items()})
+            done.append(1)
+        return row
+    return fn
+
+
+def _json(path: Path, fn) -> None:
+    d = json.loads(path.read_text())
+    fn(d)
+    path.write_text(json.dumps(d))
+
+
+R = "results/"
+CON3 = R + "constraint/constraint_ITPR3_Q14573.tsv"
+CON1 = R + "constraint/constraint_ITPR1_Q14643.tsv"
+META = R + "s0_baseline/review_figures/structure_meta.json"
+
+
+def _gate_filter_boost(d: Path):
+    for g, a in (("ITPR1", "Q14643"), ("ITPR2", "Q14571"), ("ITPR3", "Q14573")):
+        _edit(d / f"results/constraint/constraint_{g}_{a}.tsv",
+              lambda r: r if r["element"] not in ("gate", "selectivity_filter")
+              else {**r, "deep_jsd": "0.99", "deep_frac_modal": "1.0"})
+
+
+PLANTS = {
+    "P5.element_means": lambda d: _edit(d / R / "constraint/constraint_by_element.tsv",
+                                        _set({"paralog": "ITPR1", "element": "MIR"}, mean_jsd=0.9)),
+    "P5.gate_filter_most_conserved": lambda d: _edit(
+        d / CON3, lambda r: {**r, "deep_jsd": "0.1", "deep_frac_modal": "0.1"}
+        if r["element"] == "gate" else r),
+    "P5.report_both_metrics": _gate_filter_boost,
+    "P5.luminal_loop_least": lambda d: _edit(
+        d / CON1, lambda r: {**r, "deep_jsd": "0.99"} if r["element"] == "luminal_loop" else r),
+    "P5.gate_identical": lambda d: _edit(
+        d / CON3, _first({"element": "gate"}, aa="W")),
+    "P5.variant_auc": lambda d: _edit(d / R / "constraint/variant_constraint_test.tsv",
+                                      _first({"gene": "ITPR1", "layer": "deep"}, auc=0.1)),
+    "P5.deep_ranks_third": lambda d: _edit(
+        d / R / "constraint/variants.tsv",
+        lambda r: {**r, "class_bucket": {"P/LP": "B/LB", "B/LB": "P/LP"}.get(
+            r["class_bucket"], r["class_bucket"])}),
+    "P5.vus_count": lambda d: _edit(d / R / "constraint/variants.tsv",
+                                    _first({"class_bucket": "VUS"}, class_bucket="other")),
+    "P5.omega_range": lambda d: _edit(d / R / "selection/omega_table.tsv",
+                                      _set({"job": "m0_ITPR1"}, omega=0.2)),
+    "P6.contacts_vs_core": lambda d: _edit(
+        d / R / "ligand_site/contact_test.tsv",
+        _set({"contact_set": "s0_contact", "background": "rest_of_core",
+              "paralog": "ITPR2", "layer": "deep"}, difference=0.5)),
+    "P2.sister_pair": lambda d: _edit(d / R / "phylogeny/membership_audit.tsv",
+                                      _first({"assigned_to": "ITPR1", "rule": "core"},
+                                             assigned_to="ITPR3")),
+    "P2.au_test": lambda d: _edit(d / R / "phylogeny/au_test.tsv",
+                                  _set({"tree": "H1_12"}, p_AU=0.3)),
+    "P2.teleost_itpr1": lambda d: _edit(d / R / "duplication/teleost_copies.tsv",
+                                        _set({"group": "teleost"}, ITPR1_copies=1)),
+    "P3.no_absent_cells": lambda d: _edit(d / R / "loss_dynamics/character_matrix.tsv",
+                                          _first({}, state="absent")),
+    "P3.dollo_zero": lambda d: _edit(d / R / "loss_counts/dollo_counts.tsv",
+                                     _set({"coding": "family", "is_base": "1"},
+                                          dollo_losses_max=1)),
+    "P3.false_negatives": lambda d: _edit(d / R / "methods/contiguity_cells.tsv",
+                                          _first({"control": "itpr_present",
+                                                  "false_negative": "0"}, false_negative=1)),
+    "P4.unreachable": lambda d: _edit(d / R / "methods/gene_recovery.tsv",
+                                      _first({"cell": "ITPR1", "gene_present": "1"},
+                                             recovery_channel="protein_db")),
+    "P1.absences": lambda d: _edit(d / R / "s23_scope/absence_at_genome.tsv",
+                                   _first({}, genomes_with_full_itpr=1)),
+    "LEDGER.claims": lambda d: _edit(d / "manuscript/claims_check.tsv",
+                                     _first({}, verdict="fail")),
+    "S0.c4_symmetry": lambda d: _json(d / META, lambda m: m.update(c4_residual_rmsd_A=0.5)),
+    "S0.selectivity_filter": lambda d: _json(d / META, lambda m: m.update(filter_min_radius_A=6.0)),
+    "S0.gate": lambda d: _json(d / META, lambda m: m.update(gate_lining_residues=["PHE2513"])),
+    "S0.pore_profile": lambda d: _edit(
+        d / R / "s0_baseline/review_figures/structure_pore.tsv",
+        lambda r: {**r, "min_heavy_atom_radius": str(float(r["min_heavy_atom_radius"]) + 1)}),
+    "S0.ip3_contacts": lambda d: _json(d / META, lambda m: m["ip3_contacts"][
+        "same_subunit"].__setitem__(0, "LYS266")),
+    "P6.shell_agreement": lambda d: _edit(
+        d / R / "ligand_site/shell_agreement.tsv",
+        lambda r: {**r, "n_contact_le_4.5A": "0"} if r["pdb_id"] == "8TKG" else r),
+    # The real verdict is a discrepancy; the flip is a looser cutoff that
+    # takes R503 in, run with the modified registry explicitly allowed.
+    "P6.contacts_heavy_atom": ("param", "ligand.contact_cutoff", 5.0),
+}
+
+
+def _copy_sources(check, dest: Path) -> None:
+    for rel in check.sources:
+        src_root = GENES_DIR / "results"
+        if rel.startswith("../"):
+            src_root, rel = GENES_DIR, rel[3:]
+        for p in sorted(src_root.glob(rel)):
+            target = dest / p.resolve().relative_to(GENES_DIR.resolve())
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(p, target)
+
+
+def test_every_check_has_a_calibration():
+    missing = [c.id for c in C.all_checks() if c.id not in PLANTS]
+    assert not missing, f"checks with no planted flip: {missing}"
+
+
+@needs_genes
+@pytest.mark.parametrize("check_id", sorted(PLANTS))
+def test_check_flips_on_planted_input(check_id, tmp_path, monkeypatch):
+    check = C.REGISTRY.get(check_id) or {c.id: c for c in C.all_checks()}[check_id]
+    if check.structures:
+        needs = needs_structure(*check.structures)
+        if needs.args[0]:
+            pytest.skip(needs.kwargs["reason"])
+    (tmp_path / "results").mkdir()
+    _copy_sources(check, tmp_path)
+    monkeypatch.setenv("IP3R_GENES_DIR", str(tmp_path))
+    checks_constraint.per_residue.cache_clear()
+    before = C.run_check(check).status
+    assert before in ("confirmed", "discrepancy"), \
+        f"{check_id} did not run on its declared sources: {C.run_check(check).outcome.detail}"
+    plant = PLANTS[check_id]
+    try:
+        if isinstance(plant, tuple):
+            PARAMETERS.set_value(plant[1], plant[2])
+            after = C.run_check(check, allow_modified=True).status
+        else:
+            plant(tmp_path)
+            checks_constraint.per_residue.cache_clear()
+            after = C.run_check(check).status
+    finally:
+        PARAMETERS.reset()
+        checks_constraint.per_residue.cache_clear()
+    assert after != before, f"{check_id}: planted change did not flip {before}"
+
+
+def test_missing_project_is_not_run(tmp_path, monkeypatch):
+    monkeypatch.setenv("IP3R_GENES_DIR", str(tmp_path / "nowhere"))
+    checks_constraint.per_residue.cache_clear()
+    out = C.run_check({c.id: c for c in C.all_checks()}["P5.vus_count"])
+    assert out.status == "not_run"
+
+
+def test_modified_registry_refuses(monkeypatch):
+    try:
+        PARAMETERS.set_value("check.stat_tol", 0.05)
+        out = C.run_check({c.id: c for c in C.all_checks()}["P5.vus_count"])
+        assert out.status == "not_run" and "parameters differ" in out.outcome.detail
+    finally:
+        PARAMETERS.reset()

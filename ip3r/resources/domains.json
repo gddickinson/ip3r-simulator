@@ -1,0 +1,226 @@
+{
+ "provenance": {
+  "genes_commit": "be01abf",
+  "sources": {
+   "constraint/domain_map.tsv": "e6ae09666d00d17f47d6e6127990c8dce8895579031c8809d6264a0e1ba58a82"
+  }
+ },
+ "paralogs": {
+  "ITPR1": [
+   {
+    "element": "nterm_trefoil",
+    "kind": "pfam",
+    "source": "InterPro PF08709",
+    "start": 5,
+    "end": 229
+   },
+   {
+    "element": "MIR",
+    "kind": "pfam",
+    "source": "InterPro PF02815",
+    "start": 233,
+    "end": 432
+   },
+   {
+    "element": "RIH_N",
+    "kind": "pfam",
+    "source": "InterPro PF01365",
+    "start": 474,
+    "end": 670
+   },
+   {
+    "element": "RIH_C",
+    "kind": "pfam",
+    "source": "InterPro PF01365",
+    "start": 1204,
+    "end": 1352
+   },
+   {
+    "element": "RIH_assoc",
+    "kind": "pfam",
+    "source": "InterPro PF08454",
+    "start": 1971,
+    "end": 2077
+   },
+   {
+    "element": "channel",
+    "kind": "pfam",
+    "source": "InterPro PF00520",
+    "start": 2363,
+    "end": 2608
+   },
+   {
+    "element": "selectivity_filter",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2553,
+    "end": 2559
+   },
+   {
+    "element": "gate",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2594,
+    "end": 2598
+   },
+   {
+    "element": "luminal_loop",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2481,
+    "end": 2531
+   },
+   {
+    "element": "ip3_contact_set",
+    "kind": "structural",
+    "source": "6DQN IP3 contacts <= 4.5 A",
+    "start": 265,
+    "end": 569
+   }
+  ],
+  "ITPR2": [
+   {
+    "element": "nterm_trefoil",
+    "kind": "pfam",
+    "source": "InterPro PF08709",
+    "start": 5,
+    "end": 227
+   },
+   {
+    "element": "MIR",
+    "kind": "pfam",
+    "source": "InterPro PF02815",
+    "start": 232,
+    "end": 431
+   },
+   {
+    "element": "RIH_N",
+    "kind": "pfam",
+    "source": "InterPro PF01365",
+    "start": 473,
+    "end": 670
+   },
+   {
+    "element": "RIH_C",
+    "kind": "pfam",
+    "source": "InterPro PF01365",
+    "start": 1194,
+    "end": 1344
+   },
+   {
+    "element": "RIH_assoc",
+    "kind": "pfam",
+    "source": "InterPro PF08454",
+    "start": 1915,
+    "end": 2021
+   },
+   {
+    "element": "channel",
+    "kind": "pfam",
+    "source": "InterPro PF00520",
+    "start": 2265,
+    "end": 2551
+   },
+   {
+    "element": "selectivity_filter",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2496,
+    "end": 2502
+   },
+   {
+    "element": "gate",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2537,
+    "end": 2541
+   },
+   {
+    "element": "luminal_loop",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2427,
+    "end": 2474
+   },
+   {
+    "element": "ip3_contact_set",
+    "kind": "structural",
+    "source": "6DQN IP3 contacts <= 4.5 A",
+    "start": 265,
+    "end": 569
+   }
+  ],
+  "ITPR3": [
+   {
+    "element": "nterm_trefoil",
+    "kind": "pfam",
+    "source": "InterPro PF08709",
+    "start": 3,
+    "end": 229
+   },
+   {
+    "element": "MIR",
+    "kind": "pfam",
+    "source": "InterPro PF02815",
+    "start": 234,
+    "end": 431
+   },
+   {
+    "element": "RIH_N",
+    "kind": "pfam",
+    "source": "InterPro PF01365",
+    "start": 474,
+    "end": 670
+   },
+   {
+    "element": "RIH_C",
+    "kind": "pfam",
+    "source": "InterPro PF01365",
+    "start": 1188,
+    "end": 1327
+   },
+   {
+    "element": "RIH_assoc",
+    "kind": "pfam",
+    "source": "InterPro PF08454",
+    "start": 1867,
+    "end": 1973
+   },
+   {
+    "element": "channel",
+    "kind": "pfam",
+    "source": "InterPro PF00520",
+    "start": 2240,
+    "end": 2527
+   },
+   {
+    "element": "selectivity_filter",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2472,
+    "end": 2478
+   },
+   {
+    "element": "gate",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2513,
+    "end": 2517
+   },
+   {
+    "element": "luminal_loop",
+    "kind": "structural",
+    "source": "6DQN 3.33 A",
+    "start": 2401,
+    "end": 2450
+   },
+   {
+    "element": "ip3_contact_set",
+    "kind": "structural",
+    "source": "6DQN IP3 contacts <= 4.5 A",
+    "start": 266,
+    "end": 569
+   }
+  ]
+ }
+}

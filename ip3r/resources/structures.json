@@ -1,0 +1,129 @@
+{
+ "provenance": {
+  "genes_commit": "be01abf",
+  "sources": {
+   "s0_baseline/review_figures/structure_meta.json": "edd7495327d7943aa010da6d89e829911fc116edbae0ffdae6b8d38110176805",
+   "structures/reference_selection.tsv": "e079c4c187983ab52086a1bf22bb9f63e929e0c23eb521a10b66f4ee282648ba",
+   "ligand_site/shell_agreement.tsv": "9c20b672f524606178aab4c24114cb2dc579cac8bc5078db4011532903cf26dc"
+  }
+ },
+ "structures": [
+  {
+   "pdb_id": "7LHF",
+   "paralog": "ITPR1",
+   "organism": "Rattus norvegicus",
+   "uniprot": "",
+   "resolution": 2.96,
+   "state": "apo",
+   "title": "Structure of full-length IP3R1 channel solubilized in LNMG & lipid in the apo-state",
+   "roles": [
+    "reference"
+   ],
+   "ip3_bound": false
+  },
+  {
+   "pdb_id": "9YKK",
+   "paralog": "ITPR2",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14571",
+   "resolution": 2.95,
+   "state": "apo",
+   "title": "Human type 2 IP3 receptor in apo state",
+   "roles": [
+    "reference"
+   ],
+   "ip3_bound": false
+  },
+  {
+   "pdb_id": "6DQJ",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.49,
+   "state": "apo",
+   "title": "Human type 3 1,4,5-inositol trisphosphate receptor in a ligand-free state",
+   "roles": [
+    "state_panel"
+   ],
+   "ip3_bound": false
+  },
+  {
+   "pdb_id": "6DQN",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.33,
+   "state": "IP3-bound",
+   "title": "human type-3 IP3 receptor, IP3-bound (class 1)",
+   "roles": [
+    "s0_measurement"
+   ],
+   "ip3_bound": true
+  },
+  {
+   "pdb_id": "7T3P",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.2,
+   "state": "preactivated",
+   "title": "IP3 and ATP bound type 3 IP3 receptor in the pre-active A state",
+   "roles": [
+    "state_panel"
+   ],
+   "ip3_bound": true
+  },
+  {
+   "pdb_id": "8TKF",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.2,
+   "state": "activated",
+   "title": "Human Type 3 IP3 Receptor - Activated State (+IP3/ATP/JD Ca2+)",
+   "roles": [
+    "state_panel"
+   ],
+   "ip3_bound": true
+  },
+  {
+   "pdb_id": "8TKG",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 2.5,
+   "state": "resting",
+   "title": "Human Type 3 IP3 Receptor - Resting State (+IP3/ATP)",
+   "roles": [
+    "reference"
+   ],
+   "ip3_bound": true
+  },
+  {
+   "pdb_id": "8TKH",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.5,
+   "state": "labile resting",
+   "title": "Human Type 3 IP3 Receptor - Labile Resting State 1 (+IP3/ATP)",
+   "roles": [
+    "state_panel"
+   ],
+   "ip3_bound": true
+  },
+  {
+   "pdb_id": "8TLA",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.2,
+   "state": "higher-order inhibited",
+   "title": "Human Type 3 IP3 Receptor - Higher-Order Inhibited State - Symmetry Mate 1",
+   "roles": [
+    "state_panel"
+   ],
+   "ip3_bound": true
+  }
+ ]
+}

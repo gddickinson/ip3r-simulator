@@ -1,0 +1,310 @@
+{
+ "provenance": {
+  "genes_commit": "be01abf",
+  "sources": {
+   "constraint/functional_sites.tsv": "ac746b059d7fc89d53f4da8abc2213934c50a264b9cb036712ba5281b099ae13"
+  }
+ },
+ "paralogs": {
+  "ITPR1": [
+   {
+    "site_class": "ip3_contact",
+    "resi": 265,
+    "aa": "R",
+    "source_resi": 266,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 267,
+    "aa": "T",
+    "source_resi": 268,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 268,
+    "aa": "G",
+    "source_resi": 269,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 269,
+    "aa": "R",
+    "source_resi": 270,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 504,
+    "aa": "R",
+    "source_resi": 503,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 508,
+    "aa": "K",
+    "source_resi": 507,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 511,
+    "aa": "R",
+    "source_resi": 510,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 567,
+    "aa": "Y",
+    "source_resi": 567,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 568,
+    "aa": "R",
+    "source_resi": 568,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 569,
+    "aa": "K",
+    "source_resi": 569,
+    "transferred": true
+   },
+   {
+    "site_class": "filter_lining",
+    "resi": 2553,
+    "aa": "S",
+    "source_resi": 2472,
+    "transferred": true
+   },
+   {
+    "site_class": "filter_lining",
+    "resi": 2554,
+    "aa": "G",
+    "source_resi": 2473,
+    "transferred": true
+   },
+   {
+    "site_class": "gate_lining",
+    "resi": 2594,
+    "aa": "F",
+    "source_resi": 2513,
+    "transferred": true
+   },
+   {
+    "site_class": "gate_lining",
+    "resi": 2598,
+    "aa": "I",
+    "source_resi": 2517,
+    "transferred": true
+   }
+  ],
+  "ITPR2": [
+   {
+    "site_class": "ip3_contact",
+    "resi": 265,
+    "aa": "R",
+    "source_resi": 266,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 267,
+    "aa": "T",
+    "source_resi": 268,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 268,
+    "aa": "L",
+    "source_resi": 269,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 269,
+    "aa": "R",
+    "source_resi": 270,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 503,
+    "aa": "R",
+    "source_resi": 503,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 507,
+    "aa": "K",
+    "source_resi": 507,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 510,
+    "aa": "R",
+    "source_resi": 510,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 567,
+    "aa": "Y",
+    "source_resi": 567,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 568,
+    "aa": "R",
+    "source_resi": 568,
+    "transferred": true
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 569,
+    "aa": "K",
+    "source_resi": 569,
+    "transferred": true
+   },
+   {
+    "site_class": "filter_lining",
+    "resi": 2496,
+    "aa": "N",
+    "source_resi": 2472,
+    "transferred": true
+   },
+   {
+    "site_class": "filter_lining",
+    "resi": 2497,
+    "aa": "G",
+    "source_resi": 2473,
+    "transferred": true
+   },
+   {
+    "site_class": "gate_lining",
+    "resi": 2537,
+    "aa": "F",
+    "source_resi": 2513,
+    "transferred": true
+   },
+   {
+    "site_class": "gate_lining",
+    "resi": 2541,
+    "aa": "I",
+    "source_resi": 2517,
+    "transferred": true
+   }
+  ],
+  "ITPR3": [
+   {
+    "site_class": "ip3_contact",
+    "resi": 266,
+    "aa": "R",
+    "source_resi": 266,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 268,
+    "aa": "T",
+    "source_resi": 268,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 269,
+    "aa": "L",
+    "source_resi": 269,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 270,
+    "aa": "R",
+    "source_resi": 270,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 503,
+    "aa": "R",
+    "source_resi": 503,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 507,
+    "aa": "K",
+    "source_resi": 507,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 510,
+    "aa": "R",
+    "source_resi": 510,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 567,
+    "aa": "Y",
+    "source_resi": 567,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 568,
+    "aa": "R",
+    "source_resi": 568,
+    "transferred": false
+   },
+   {
+    "site_class": "ip3_contact",
+    "resi": 569,
+    "aa": "K",
+    "source_resi": 569,
+    "transferred": false
+   },
+   {
+    "site_class": "filter_lining",
+    "resi": 2472,
+    "aa": "N",
+    "source_resi": 2472,
+    "transferred": false
+   },
+   {
+    "site_class": "filter_lining",
+    "resi": 2473,
+    "aa": "G",
+    "source_resi": 2473,
+    "transferred": false
+   },
+   {
+    "site_class": "gate_lining",
+    "resi": 2513,
+    "aa": "F",
+    "source_resi": 2513,
+    "transferred": false
+   },
+   {
+    "site_class": "gate_lining",
+    "resi": 2517,
+    "aa": "I",
+    "source_resi": 2517,
+    "transferred": false
+   }
+  ]
+ }
+}

@@ -1,0 +1,214 @@
+"""Command line: ``python -m ip3r <command>``.
+
+Everything the GUI computes is available headless, which is what makes it
+testable and scriptable:
+
+    python -m ip3r                  # the GUI (same as `gui`)
+    python -m ip3r fetch            # download every registry structure
+    python -m ip3r info 6DQN        # measure a deposit (axis, pore, IP3 sites)
+    python -m ip3r checks           # re-derive the ip3r_genes findings
+    python -m ip3r states           # pore of every ITPR3 gating state
+    python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
+    python -m ip3r gating           # the bell curve at several IP3 levels
+    python -m ip3r oscillate --ip3 0.5 [--window]
+    python -m ip3r puffs --ip3 0.2
+    python -m ip3r params           # every registered number and its source
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+__all__ = ["main"]
+
+_ICON = {"confirmed": "✓", "discrepancy": "✗", "not_run": "·", "error": "!"}
+
+
+def _info(args) -> int:
+    from .io import loader
+    from .structure.channel import measure_channel
+    loader.ALLOW_FETCH = args.fetch
+    s = measure_channel(loader.load(args.pdb))
+    num = s.numbering
+    print(f"{s.name}: subunit rotation {s.superposition_angle:.2f}°, C4 residual "
+          f"{s.c4_residual:.3f} Å, axes differ by {s.axis_disagreement_deg:.3f}°")
+    print(f"  numbering: {num.paralog + f' ({num.identity:.1%})' if num else 'no human paralog'}"
+          + (f"; mismatch segments {list(num.mismatch_segments)}" if num and num.mismatch_segments else ""))
+    print(f"  pore-domain span z {s.span[0]:.1f}..{s.span[1]:.1f} Å ({s.span_source})")
+    for c in s.constrictions.values():
+        print(f"  {c.name:6s} r = {c.radius:.2f} Å at z = {c.z:+.1f} Å: {', '.join(c.residues)}")
+    for k, v in s.ip3_contacts.items():
+        print(f"  IP3 on {k}: {', '.join(f'{a}{b}' for a, b in v['same_subunit'])}"
+              + (f"; cross-subunit {v['other_subunit']}" if v["other_subunit"] else ""))
+    return 0
+
+
+def _checks(args) -> int:
+    from .analysis.checks import run_checks
+    from .io import loader
+    loader.ALLOW_FETCH = args.fetch
+    results = run_checks(ids=set(args.id) if args.id else None, paper=args.paper,
+                         progress=lambda i, n, c: print(f"  [{i + 1}/{n}] {c.id}",
+                                                        file=sys.stderr, end="\r"))
+    print(" " * 60, file=sys.stderr, end="\r")
+    counts: dict[str, int] = {}
+    for r in results:
+        counts[r.status] = counts.get(r.status, 0) + 1
+        print(f"{_ICON[r.status]} {r.status:11s} {r.check.id:32s} [{r.check.kind}]")
+        if args.verbose or r.status != "confirmed":
+            print(f"      published: {r.outcome.published}")
+            print(f"      found:     {r.outcome.found or r.outcome.detail}")
+    print("\n" + ", ".join(f"{v} {k}" for k, v in sorted(counts.items())))
+    if args.json:
+        Path(args.json).write_text(json.dumps([{
+            "id": r.check.id, "paper": r.check.paper, "kind": r.check.kind,
+            "claim": r.check.claim, "status": r.status,
+            "published": r.outcome.published, "found": r.outcome.found,
+            "detail": r.outcome.detail} for r in results], indent=1))
+    if args.figures:
+        _figures(results, Path(args.figures))
+    if counts.get("error"):
+        return 2
+    return 1 if args.strict and counts.get("discrepancy") else 0
+
+
+def _figures(results, out: Path) -> None:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from .analysis import exhibits
+    out.mkdir(parents=True, exist_ok=True)
+    for r in results:
+        fig, ax = plt.subplots(figsize=(5, 3.2))
+        if exhibits.draw(ax, r.check.id, r.outcome):
+            fig.tight_layout()
+            fig.savefig(out / f"{r.check.id}.png", dpi=150)
+        plt.close(fig)
+
+
+def _modes(args) -> int:
+    from .io import loader
+    from .physics.anm import ANM, tetramer_sites
+    from .structure.symmetry import tetramer_frame
+    loader.ALLOW_FETCH = args.fetch
+    st = loader.load(args.pdb)
+    fr = tetramer_frame(st)
+    coords, res = tetramer_sites(st, fr)
+    anm = ANM(coords, axis=fr.axis)
+    ms = anm.label_symmetry(anm.calc_modes(args.n))
+    print(f"{st.name}: {len(coords)} sites, {len(res)} per subunit")
+    for i in range(ms.n_modes):
+        print(f"  mode {i + 1:3d}  λ = {ms.eigenvalues[i]:.4e}  {ms.symmetry[i]:5s} "
+              f"χ = {ms.character[i]:+.3f}")
+    return 0
+
+
+def _states(args) -> int:
+    from .io import loader
+    from .structure.states import state_panel
+    loader.ALLOW_FETCH = args.fetch
+    print(f"{'PDB':5s} {'state':24s} {'res':>5s} {'IP3':>4s} {'gate r':>7s} {'filter r':>8s}  gate lining")
+    for r in state_panel(args.paralog):
+        g = r.summary.constrictions.get("gate")
+        print(f"{r.pdb_id:5s} {r.state:24s} {r.resolution:5.2f} {'yes' if r.ip3_bound else 'no':>4s} "
+              f"{r.radius('gate'):7.2f} {r.radius('filter'):8.2f}  {', '.join(g.residues) if g else ''}")
+    return 0
+
+
+def _gating(args) -> int:
+    from .physics.gating import bell_peak, hill_fit_left_flank
+    for p in args.ip3:
+        c, po = bell_peak(p)
+        print(f"IP3 {p:6.2f} µM: peak P_open {po:.4f} at Ca2+ {c:.3f} µM; "
+              f"half-activation {hill_fit_left_flank(p):.3f} µM")
+    return 0
+
+
+def _oscillate(args) -> int:
+    from .physics.calcium import oscillation_metrics, oscillation_window, simulate
+    if args.window:
+        lo, hi, _ = oscillation_window()
+        print(f"Ca2+ oscillates for IP3 in [{lo:.2f}, {hi:.2f}] µM (grid 0.01)")
+        return 0
+    m = oscillation_metrics(simulate(args.ip3, t_end=args.t_end))
+    print(json.dumps(m, indent=1))
+    return 0
+
+
+def _puffs(args) -> int:
+    from .physics.puffs import PuffParams, coupling_effect
+    pp = PuffParams()
+    if args.coupling is not None:
+        pp.ca_per_open = args.coupling
+    print(json.dumps(coupling_effect(args.ip3, args.duration, args.seed, pp), indent=1))
+    return 0
+
+
+def _params(args) -> int:
+    from .parameters import PARAMETERS
+    for r in PARAMETERS.provenance_rows():
+        print(f"{r['key']:28s} {r['value']:>10g} {r['unit']:10s} {r['kind']:10s} {r['citation']}")
+    return 0
+
+
+def _fetch(args) -> int:
+    from .io.fetch import fetch_all
+    status = fetch_all(args.pdb or None)
+    bad = {k: v for k, v in status.items() if v != "ok"}
+    print(f"{len(status) - len(bad)} of {len(status)} structures present")
+    return 1 if bad else 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if not argv or argv[0] == "gui" or argv[0].startswith("--"):
+        from .ui.app import main as gui
+        return gui(argv[1:] if argv and argv[0] == "gui" else argv)
+    ap = argparse.ArgumentParser(prog="python -m ip3r")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("fetch")
+    p.add_argument("pdb", nargs="*")
+    p.set_defaults(fn=_fetch)
+    p = sub.add_parser("info")
+    p.add_argument("pdb")
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_info)
+    p = sub.add_parser("checks")
+    p.add_argument("--paper")
+    p.add_argument("--id", action="append")
+    p.add_argument("--fetch", action="store_true", help="download missing structures")
+    p.add_argument("--json")
+    p.add_argument("--figures", help="write exhibit PNGs to this directory")
+    p.add_argument("--strict", action="store_true", help="exit 1 on any discrepancy")
+    p.add_argument("-v", "--verbose", action="store_true")
+    p.set_defaults(fn=_checks)
+    p = sub.add_parser("states")
+    p.add_argument("--paralog", default="ITPR3")
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_states)
+    p = sub.add_parser("modes")
+    p.add_argument("pdb")
+    p.add_argument("-n", type=int, default=None)
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_modes)
+    p = sub.add_parser("gating")
+    p.add_argument("--ip3", type=float, nargs="+", default=[0.1, 0.3, 1.0, 10.0])
+    p.set_defaults(fn=_gating)
+    p = sub.add_parser("oscillate")
+    p.add_argument("--ip3", type=float, default=0.5)
+    p.add_argument("--t-end", type=float, default=200.0)
+    p.add_argument("--window", action="store_true")
+    p.set_defaults(fn=_oscillate)
+    p = sub.add_parser("puffs")
+    p.add_argument("--ip3", type=float, default=0.2)
+    p.add_argument("--coupling", type=float, default=None)
+    p.add_argument("--duration", type=float, default=20.0)
+    p.add_argument("--seed", type=int, default=0)
+    p.set_defaults(fn=_puffs)
+    p = sub.add_parser("params")
+    p.set_defaults(fn=_params)
+    args = ap.parse_args(argv)
+    return args.fn(args)

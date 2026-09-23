@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ip3r-simulator"
+version = "0.1.0"
+description = "IP3 receptor structural simulator: 3-D viewer, elastic-network modes, gating and Ca2+ dynamics, and a re-derivation of the ip3r_genes findings"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["IP3 receptor", "ITPR", "calcium signalling", "ion channel",
+            "elastic network model", "cryo-EM"]
+
+# The engine runs headless; the GUI extra adds the viewer.
+dependencies = ["numpy>=1.26", "scipy>=1.11", "matplotlib>=3.8"]
+
+[project.optional-dependencies]
+gui = ["PyQt6>=6.6", "moderngl>=5.10"]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+all = ["ip3r-simulator[gui,dev]"]
+
+[project.scripts]
+ip3r = "ip3r.cli:main"
+
+[project.urls]
+Repository = "https://github.com/gddickinson/ip3r-simulator"
+
+[tool.setuptools.packages.find]
+include = ["ip3r*"]
+
+[tool.setuptools.package-data]
+"ip3r.resources" = ["*.json"]
+"ip3r.render.shaders" = ["*.vert", "*.frag"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E501", "E731", "B905"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]

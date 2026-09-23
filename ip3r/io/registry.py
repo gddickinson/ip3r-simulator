@@ -1,0 +1,62 @@
+"""The structure registry: which depositions the application knows about.
+
+Read from ``resources/structures.json``, which ``scripts/sync_genes.py``
+builds from ``ip3r_genes`` — 6DQN from S0's measurement record, the ITPR
+references and state panel S11 selected by seven stated rules, and the six
+IP3-bound entries S22 measured ligand shells in. None of it is typed here.
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field
+from functools import lru_cache
+from pathlib import Path
+
+from ..config import RESOURCE_DIR, STRUCTURE_DIR
+
+__all__ = ["StructureEntry", "load_registry", "get_entry", "local_path"]
+
+
+@dataclass(frozen=True)
+class StructureEntry:
+    pdb_id: str
+    paralog: str
+    organism: str
+    uniprot: str
+    resolution: float
+    state: str
+    title: str
+    roles: tuple = field(default_factory=tuple)
+    ip3_bound: bool = False
+
+    @property
+    def label(self) -> str:
+        return (f"{self.pdb_id} — {self.paralog} "
+                f"({self.organism.split()[0][0]}. {self.organism.split()[-1]}), "
+                f"{self.state}, {self.resolution:g} Å")
+
+    @property
+    def human(self) -> bool:
+        return self.organism == "Homo sapiens"
+
+
+@lru_cache(maxsize=1)
+def load_registry() -> tuple[StructureEntry, ...]:
+    path = RESOURCE_DIR / "structures.json"
+    raw = json.loads(path.read_text())["structures"]
+    return tuple(StructureEntry(
+        pdb_id=e["pdb_id"], paralog=e["paralog"], organism=e["organism"],
+        uniprot=e.get("uniprot", ""), resolution=float(e["resolution"]),
+        state=e["state"], title=e["title"], roles=tuple(e.get("roles", ())),
+        ip3_bound=bool(e.get("ip3_bound"))) for e in raw)
+
+
+def get_entry(pdb_id: str) -> StructureEntry | None:
+    pdb_id = pdb_id.upper()
+    return next((e for e in load_registry() if e.pdb_id == pdb_id), None)
+
+
+def local_path(pdb_id: str, directory: Path | None = None) -> Path:
+    """Where a fetched mmCIF for ``pdb_id`` lives (it may not exist yet)."""
+    return (directory or STRUCTURE_DIR) / f"{pdb_id.upper()}.cif.gz"

@@ -1,0 +1,177 @@
+"""Every number a calculation in ``ip3r`` depends on, with its provenance.
+
+Validated and written to ``ip3r/resources/parameters.json`` by
+``build_parameters.py``. Consumed at call time as ``_P.value("key")``.
+
+Kinds: ``physical`` (a property of the world), ``empirical`` (a fitted model
+constant), ``method`` (an algorithmic choice) and ``convention``.
+
+The gating constants are the De Young-Keizer set as reduced by Li & Rinzel.
+Dissociation constants are ``d_i = b_i / a_i``; the reduced model needs
+``d1, d2, d3, d5`` and ``a2``, and the stochastic subunit model also needs the
+on-rates ``a1`` and ``a5`` of the fast IP3 and activating-Ca2+ sites.
+"""
+
+def _p(key, name, value, unit, kind, category, citation, description,
+       source_note="", minimum=None, maximum=None):
+    return {"key": key, "name": name, "value": value, "unit": unit,
+            "kind": kind, "category": category, "citation": citation,
+            "description": description, "source_note": source_note,
+            "minimum": minimum, "maximum": maximum}
+
+
+_DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
+        "unchanged by Li & Rinzel 1994")
+
+P = [
+    # ---------------------------------------------------------- gating (DYK)
+    _p("gating.a1", "IP3 on-rate a1", 400.0, "1/(uM s)", "empirical",
+       "gating", "deyoung1992", "Binding rate of IP3 to its site on one "
+       "subunit.", _DYK, 1.0, 1e4),
+    _p("gating.a2", "Inhibitory Ca2+ on-rate a2", 0.2, "1/(uM s)", "empirical",
+       "gating", "deyoung1992", "Binding rate of Ca2+ to the slow inhibitory "
+       "site; sets the time scale of inactivation (Li-Rinzel h gate).",
+       _DYK, 0.01, 10.0),
+    _p("gating.a5", "Activating Ca2+ on-rate a5", 20.0, "1/(uM s)",
+       "empirical", "gating", "deyoung1992", "Binding rate of Ca2+ to the "
+       "fast activating site.", _DYK, 0.1, 1e3),
+    _p("gating.d1", "IP3 dissociation constant d1", 0.13, "uM", "empirical",
+       "gating", "deyoung1992", "IP3 site affinity when the inhibitory site "
+       "is empty.", _DYK, 0.001, 10.0),
+    _p("gating.d2", "Inhibitory Ca2+ dissociation constant d2", 1.049, "uM",
+       "empirical", "gating", "deyoung1992", "Inhibitory-site affinity with "
+       "IP3 bound.", _DYK, 0.01, 100.0),
+    _p("gating.d3", "IP3 dissociation constant d3", 0.9434, "uM", "empirical",
+       "gating", "deyoung1992", "IP3 site affinity when the inhibitory site "
+       "is occupied.", _DYK, 0.001, 100.0),
+    _p("gating.d5", "Activating Ca2+ dissociation constant d5", 0.08234, "uM",
+       "empirical", "gating", "deyoung1992", "Activating-site affinity.",
+       _DYK, 0.001, 10.0),
+    _p("gating.subunits_required", "Active subunits to open", 3.0, "",
+       "empirical", "gating", "li1994", "A channel conducts when this many "
+       "of its four subunits are in the active state. The deterministic "
+       "Li-Rinzel flux uses the cube of the subunit activity, i.e. three.",
+       "Li & Rinzel 1994 (the cubic exponent); Shuai & Jung 2002 use the same "
+       "3-of-4 rule for single stochastic channels", 1.0, 4.0),
+
+    # ------------------------------------------------------- cell (Li-Rinzel)
+    _p("cell.v1", "Maximal channel flux rate v1", 6.0, "1/s", "empirical",
+       "cell", "deyoung1992", "Rate constant of IP3R-mediated release.",
+       _DYK, 0.0, 100.0),
+    _p("cell.v2", "ER leak rate v2", 0.11, "1/s", "empirical", "cell",
+       "deyoung1992", "Passive leak from the ER.", _DYK, 0.0, 10.0),
+    _p("cell.v3", "SERCA maximal rate v3", 0.9, "uM/s", "empirical", "cell",
+       "deyoung1992", "Maximal SERCA uptake.", _DYK, 0.0, 100.0),
+    _p("cell.k3", "SERCA half-activation k3", 0.1, "uM", "empirical", "cell",
+       "deyoung1992", "Ca2+ at half-maximal SERCA uptake (Hill 2).", _DYK,
+       0.001, 10.0),
+    _p("cell.c0", "Total cell Ca2+ c0", 2.0, "uM", "empirical", "cell",
+       "deyoung1992", "Total free Ca2+ referred to the cytosolic volume; "
+       "conserved in the closed-cell model.", _DYK, 0.1, 100.0),
+    _p("cell.c1", "ER/cytosol volume ratio c1", 0.185, "", "empirical",
+       "cell", "deyoung1992", "Ratio of ER to cytosolic volume.", _DYK,
+       0.01, 10.0),
+
+    # -------------------------------------------------------- puffs (method)
+    _p("puff.n_channels", "Channels per cluster", 20.0, "", "method", "puff",
+       "method_choice", "Number of IP3Rs in the simulated cluster.",
+       "Order-of-magnitude choice: Smith & Parker 2009 resolve puffs made of "
+       "a few to a few tens of channel openings; the cluster modelled here "
+       "is a teaching default, not a measurement", 1.0, 200.0),
+    _p("puff.ca_rest", "Resting cytosolic Ca2+", 0.1, "uM", "convention",
+       "puff", "convention", "Background Ca2+ each channel sees when no "
+       "channel in the cluster is open.",
+       "The customary 100 nM resting level; the same value is the lower "
+       "bound of the Li-Rinzel oscillation in its own figures", 0.0, 10.0),
+    _p("puff.ca_per_open", "Cluster Ca2+ per open channel", 1.0, "uM",
+       "method", "puff", "method_choice", "Mean-field increment of the Ca2+ "
+       "every channel in the cluster sees for each open channel — the "
+       "coupling that turns a blip into a puff.",
+       "A mean-field simplification of Swillens et al. 1999, who show that "
+       "puffs need inter-channel Ca2+ coupling; 1 uM per channel was chosen "
+       "from a scan (0-2 uM at 0.05-0.2 uM IP3) as the value that most raises "
+       "the Fano factor of simultaneous openings. The local nanodomain at an "
+       "open pore is far higher and is not modelled", 0.0,
+       20.0),
+    _p("puff.dt", "Puff simulation time step", 0.2e-3, "s", "method", "puff",
+       "method_choice", "Fixed step of the stochastic gate simulation.",
+       "Chosen so the fastest transition probability per step (a1 x IP3 or "
+       "a5 x cluster Ca2+) stays below about 0.1 at the default parameters",
+       1e-6, 1e-2),
+
+    # ------------------------------------------------------------ ANM
+    _p("anm.cutoff", "ANM contact cutoff", 15.0, "A", "method", "anm",
+       "atilgan2001", "C-alpha pairs closer than this are joined by a "
+       "spring.", "Atilgan et al. 2001 use 13-15 A; the upper end keeps a "
+       "coarse-grained tetramer connected", 6.0, 30.0),
+    _p("anm.gamma", "ANM spring constant", 1.0, "arb.", "convention", "anm",
+       "convention", "Uniform stiffness scale; only eigenvalue ratios are "
+       "reported.", "Eigenvalues are arbitrary without a B-factor fit", 1e-3,
+       1e3),
+    _p("anm.d0", "ANM distance scale d0", 7.5, "A", "method", "anm",
+       "yang2009", "Distance scale of the inverse-square spring weighting.",
+       "Yang et al. 2009 parameter-free ANM weighting", 1.0, 20.0),
+    _p("anm.n_modes", "Modes computed", 20.0, "", "method", "anm",
+       "method_choice", "Non-trivial normal modes kept.",
+       "Enough to cover the collective motions; more only costs time", 1.0,
+       200.0),
+    _p("anm.stride", "C-alpha stride", 3.0, "", "method", "anm",
+       "method_choice", "Keep every n-th C-alpha of each subunit.",
+       "A full tetramer is ~9,000 C-alphas; a stride of 3 keeps the "
+       "shift-invert solve interactive while the low modes, which are "
+       "collective by construction, are insensitive to it", 1.0, 10.0),
+    _p("anm.symmetry_tolerance", "C4 character tolerance", 0.15, "",
+       "method", "anm", "method_choice", "How close to an ideal character "
+       "(+1, -1, 0) a mode must be to receive an irrep label.",
+       "Coarse-grained deposits are not perfectly symmetric; beyond this "
+       "the mode is reported as mixed rather than forced into a label",
+       0.01, 0.5),
+
+    # ------------------------------------------------------ structure geometry
+    _p("pore.step", "Pore profile step", 0.5, "A", "method", "pore",
+       "ip3r_genes", "Axial sampling interval of the pore profile.",
+       "The value ip3r_genes S0 used, so the two profiles share a grid", 0.1,
+       5.0),
+    _p("pore.slab", "Pore profile half-slab", 1.5, "A", "method", "pore",
+       "ip3r_genes", "Half-thickness of the slab in which the minimum "
+       "heavy-atom distance to the axis is taken.",
+       "The value ip3r_genes S0 used for structure_pore.tsv", 0.25, 5.0),
+    _p("pore.lining_slab", "Lining-residue half-slab", 2.0, "A", "method",
+       "pore", "ip3r_genes", "Half-thickness of the slab searched for the "
+       "residues forming a constriction.", "As ip3r_genes S0", 0.5, 6.0),
+    _p("pore.lining_tol", "Lining-residue radial tolerance", 1.2, "A",
+       "method", "pore", "ip3r_genes", "Atoms within this distance of the "
+       "minimum radius count as lining the constriction.", "As ip3r_genes S0",
+       0.1, 5.0),
+    _p("ligand.contact_cutoff", "Ligand contact cutoff", 4.5, "A",
+       "convention", "ligand", "ip3r_genes", "Heavy-atom distance at which a "
+       "residue counts as an IP3 contact.",
+       "The cutoff ip3r_genes S0 and S22 used for the ten measured contacts",
+       2.5, 8.0),
+    _p("numbering.min_identity", "Numbering-check identity", 0.95, "",
+       "method", "structure", "ip3r_genes", "Fraction of residues a "
+       "structure must share, by number, with a reference sequence to be "
+       "declared in that reference's numbering.",
+       "The rule ip3r_genes S24 (D64) applied before painting variants on "
+       "structures; strict, because an offset still aligns most residues "
+       "with something", 0.5, 1.0),
+
+    _p("constraint.min_occupancy", "Minimum column occupancy", 0.5, "",
+       "method", "constraint", "ip3r_genes", "A conservation score is used "
+       "only where at least this fraction of (weighted) sequences have a "
+       "residue in the column.", "S17's MIN_OCCUPANCY, so re-derived AUCs are "
+       "computed on the positions S17 scored", 0.0, 1.0),
+
+    # ------------------------------------------------------ check tolerances
+    _p("check.length_tol", "Geometry agreement tolerance", 0.05, "A",
+       "method", "checks", "method_choice", "Largest difference in a "
+       "radius, residual or distance that still counts as reproducing the "
+       "published value.", "The published values are quoted to 0.01 A; "
+       "0.05 A allows for rounding and axis-fit differences and nothing "
+       "else", 0.0, 1.0),
+    _p("check.stat_tol", "Statistic agreement tolerance", 0.002, "",
+       "method", "checks", "method_choice", "Largest difference in a "
+       "re-derived AUC, mean or fraction that still counts as agreement.",
+       "Published tables round to four decimals; 0.002 allows for rounding "
+       "and tie-handling differences", 0.0, 0.1),
+]
