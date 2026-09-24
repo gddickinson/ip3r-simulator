@@ -86,6 +86,54 @@ is not symmetric: the lowest A mode of 8TKF points back only weakly (0.17).
 Other pairs overlap less: 6DQJ → 8TKF reaches 0.32 over 20 modes, and
 8TKH → 8TKF 0.16.
 
+## Unresolved stretches, filled from AlphaFold
+
+`structure/graft.py` places an AlphaFold DB model's residues where a deposit
+has none. This is the PIEZO1 simulator's local-anchor method, applied to every
+stretch separately. Each stretch is placed by a Kabsch fit of the prediction's
+Cα onto the deposit's on up to `graft.anchor_window` residues each side
+(`graft.min_anchor` per side, or twice that on a terminus's one side). An
+anchor must be resolved, must not be a backbone+CB stub, and must be the same
+amino acid in both models at that number. On 6DQN this skips 8 stretches per
+subunit inside or beside its unregistered 1434–1546 segment, rather than
+fitting them to a segment of unknown register.
+
+**Which model.** The model is chosen by identity by number against the
+variant-painting bar (`numbering.min_identity`). AlphaFold DB (queried
+2026-09-24) holds canonical ITPR3 (`AF-Q14573-F1`), ITPR1 isoform 4 only, rat
+ITPR1 isoform 8 only, and a 181-residue ITPR2 isoform. The seven ITPR3
+deposits match at 99.1–100 %. 9YKK (17.7 % at best) and 7LHF (22.1 %) are
+refused.
+
+**Per fill.** The anchor RMSD. The Cα distance across each seam, which is
+3.80 Å for a real peptide. The mean pLDDT and the fraction ≥ 70. The residues
+with a heavy atom within `graft.clash_distance` of any deposited heavy atom,
+own seam neighbours excepted and other subunits included. On 8TKG (gaps
+only): 56 stretches and 1,592 residues, mean pLDDT 38. 12 of 224 seams are
+broken, mostly at 1558–1585, where the anchors themselves disagree (5.3 Å).
+108 filled residues clash with the deposit.
+
+**Calibration** (`structure/graft_calibration.py`). A stretch that another
+ITPR3 deposit leaves unresolved, but the host resolves entirely, is cut out
+of the host, filled by the same route, and scored against the host's own Cα.
+Two baselines use no prediction: a straight line between the flanks, and the
+prediction superposed on the whole chain. Over 16 stretches in 8TKG and 15
+in 8TKF, the fill lands at a median 1.46 Å, against 5.59 Å for the line and
+10.5 Å for the global fit. It beats the line in 28 of 31. pLDDT predicts the
+error (Spearman −0.79). The seams of these true fills reach 5.42 Å (90th
+percentile 4.74 Å). The first tolerance, 4.5 Å, failed 9 of those 62 seams,
+so `graft.join_tolerance` is 5.5 Å.
+
+**The calibration's limit.** The tested stretches have pLDDT 53–77 and are
+4–10 residues long. The real gaps are mostly longer and below pLDDT 50, and
+there the calibration says nothing. A fill there is a picture of where a
+chain of that length could run, not a structure.
+
+**Nothing measures on it.** The fill is a separate structure drawn beside the
+deposit. The pore, the modes, the transition and the checks all see the
+deposit only. `FilledModel.place` re-fits every stretch on its anchors in
+any coordinates, so a fill follows a morph frame without being part of it.
+
 ## Gating (De Young & Keizer 1992; Li & Rinzel 1994)
 
 Per subunit: an IP3 site, a fast activating Ca²⁺ site and a slow inhibitory

@@ -168,6 +168,24 @@ is a stratification, not a call.
 
 ![Variants and the VUS stratification](docs/img/gui_variants.png)
 
+**See what the map leaves out, as a prediction.** Representation →
+Completeness adds the AlphaFold model's residues where a deposit has none.
+"+ AlphaFold gaps" fills the internal stretches, each fitted on resolved
+residues on both sides. "+ gaps and ends" also adds the termini, which have
+one side to fit on. The fill is drawn in AlphaFold's own pLDDT colours
+whatever the deposit is coloured by. Each seam is a bond from the deposit to
+the fill: pale where it closes, red where it does not. The fill follows a
+morph or mode frame. It is only drawn: every measurement in the application
+still runs on the deposit. The model is chosen by measuring which downloaded
+prediction is in the deposit's numbering. AlphaFold DB holds only isoforms
+for ITPR1 and ITPR2, so 7LHF and 9YKK are refused and the panel shows why.
+On 8TKG, 1,592 residues are filled over the four subunits, at a mean pLDDT
+of 38. AlphaFold is least sure exactly where the map is empty. Filling 16
+stretches that 8TKG does resolve (but another deposit does not) lands at a
+median 1.1 Å, against 5.5 Å for a straight line (`python -m ip3r graft 8TKG --calibrate`).
+
+![AlphaFold fills with their seams](docs/img/gui_alphafold.png)
+
 ## The checks, as of Round 5
 
 44 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
@@ -255,6 +273,7 @@ python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
+python -m ip3r graft 8TKG --calibrate   # AlphaFold fills, seams, and how good they are
 python -m ip3r gating | oscillate --window | puffs --ip3 0.2
 python -m ip3r puffs --model park-drive | puffs --scan   # the two receptors
 make help

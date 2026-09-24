@@ -23,6 +23,7 @@ from ..io.registry import get_entry
 from ..structure.channel import measure_channel
 from .channel_panel import ChannelPanel
 from .dynamics_panel import DynamicsPanel
+from .fill_controller import FillController
 from .findings_panel import FindingsPanel
 from .genomes_panel import GenomesPanel
 from .gl_widget import ViewportWidget
@@ -112,6 +113,7 @@ class MainWindow(QMainWindow):
         sp.load_requested.connect(self.load_structure)
         sp.style_changed.connect(self.restyle)
         sp.sites_toggled.connect(lambda *_: self._apply_sites())
+        self.fills = FillController(self.scene, sp, self.statusBar().showMessage)
         self.channel.pore_toggled.connect(self.scene.show_pore)
         self.channel.states_requested.connect(self._compare_states)
         self.channel.unitary_requested.connect(self._unitary_states)
@@ -208,6 +210,7 @@ class MainWindow(QMainWindow):
         self.transition.set_start(st.name, summary.numbering.paralog
                                   if summary.numbering else None)
         self._apply_sites()
+        self.fills.loaded(st)
         self.variants.follow(summary.numbering.paralog if summary.numbering else None)
         self.statusBar().showMessage(
             f"{st.name} loaded — numbering "

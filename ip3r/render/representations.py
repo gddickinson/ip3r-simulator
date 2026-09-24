@@ -55,6 +55,7 @@ class ColorBy(str, Enum):
     VALUE = "value"                   # an arbitrary per-atom scalar
     DISPLACEMENT = "displacement"     # between two states, fixed scale
     LIGAND_SHELL = "ligand_shell"     # all-atom distance to own IP3, S22's shells
+    PLDDT = "plddt"                   # AlphaFold confidence bands (fills only)
     UNIFORM = "uniform"
 
 
@@ -68,6 +69,7 @@ COLOR_LABELS = {ColorBy.ELEMENT_DOMAIN: "Functional element",
                 ColorBy.VALUE: "Mode amplitude",
                 ColorBy.DISPLACEMENT: "Displacement (Transition tab)",
                 ColorBy.LIGAND_SHELL: "Distance to IP3 (S22 shells)",
+                ColorBy.PLDDT: "AlphaFold pLDDT",
                 ColorBy.UNIFORM: "Uniform"}
 
 SS_COLORS = np.array([[0.55, 0.58, 0.66], [0.94, 0.42, 0.42],
@@ -157,6 +159,8 @@ class MolecularView:
             if self.ligand_distance is None:
                 self.ligand_distance = atom_ligand_distance(st)
             return colormaps.shell_colors(self.ligand_distance)
+        if cb is ColorBy.PLDDT:
+            return colormaps.plddt_colors(st.b_factor)
         if cb is ColorBy.SECONDARY:
             out = np.tile(SS_COLORS[0], (st.n_atoms, 1))
             for tr in self.traces:

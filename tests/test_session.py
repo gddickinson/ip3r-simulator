@@ -36,7 +36,7 @@ def test_holds_the_view_and_its_inputs_only():
     """A new field is a decision: a result stored here would go stale."""
     assert {f.name for f in fields(Session)} == {
         "structure", "n_atoms", "style", "color_by", "layer", "show_ligands",
-        "visible_chains", "sites", "show_pore", "tab", "camera_rotation",
+        "visible_chains", "sites", "show_pore", "completeness", "tab", "camera_rotation",
         "camera_pivot", "camera_distance", "camera_pan", "orthographic",
         "transition", "parameters", "notes", "format_version",
         "software_version", "saved_at"}

@@ -16,6 +16,7 @@ from ..physics.anm import ANM, atom_displacements, tetramer_sites
 from ..render import colormaps
 from ..render.representations import MolecularView, Style
 from ..render.variant_spheres import variant_spheres
+from .fill_overlay import FillOverlay
 
 __all__ = ["SceneController", "matrix_to_quat"]
 
@@ -45,6 +46,14 @@ class SceneController:
         self._disp = None
         self._variants: tuple | None = None       # (paralog, buckets, layer)
         self._variant_atoms = np.zeros(0, int)
+        self._fill: FillOverlay | None = None
+
+    @property
+    def fill(self) -> FillOverlay:
+        """The AlphaFold fill overlay (created once the scene exists)."""
+        if self._fill is None:
+            self._fill = FillOverlay(self.scene, self.viewport)
+        return self._fill
 
     def attach(self) -> None:
         """Called once the GL context exists."""
@@ -61,6 +70,7 @@ class SceneController:
             self.view.clear()
         self.scene.remove("pore")
         self.scene.remove("variants")
+        self.fill.clear()
         self._variants, self._variant_atoms = None, np.zeros(0, int)
         self.structure, self.summary, self.modes = st, summary, None
         paralog = summary.numbering.paralog if summary.numbering else None
@@ -80,6 +90,7 @@ class SceneController:
             if self._variants is not None:
                 self.show_variants(*self._variants)
         self.view.rebuild()
+        self.fill.restyle(self.view.style, self.view.visible_chains)
         self.viewport.update()
 
     # --------------------------------------------------------------- camera
@@ -187,10 +198,21 @@ class SceneController:
         return f"{n_res} variant residues drawn on {n_ch} subunits ({len(idx)} spheres)"
 
     def move_overlays(self, xyz: np.ndarray) -> None:
-        """Follow a morph or mode frame: the variant spheres ride their Cα."""
+        """Follow a morph or mode frame: the variant spheres ride their Cα, and
+        each AlphaFold fill is re-fitted on its own anchors."""
         batch = self.scene.get("variants")
         if batch is not None and len(self._variant_atoms):
             batch.update_centers(np.asarray(xyz, np.float32)[self._variant_atoms])
+        self.fill.move(xyz)
+
+    def show_fill(self, model) -> None:
+        """Draw an AlphaFold fill (None clears) on the coordinates now shown."""
+        if model is None or self.view is None:
+            self.fill.clear()
+        else:
+            self.fill.show(model, self.view.structure.xyz, self.view.style,
+                           self.view.visible_chains)
+        self.viewport.update()
 
     def describe_atom(self, i: int) -> str:
         if i < 0 or self.structure is None:
@@ -227,6 +249,7 @@ class SceneController:
                                         modes.mode(index, amplitude))
         if self.view.style is Style.CARTOON:
             self.view.style = Style.TUBE           # a cartoon per frame is too slow
+            self.fill.restyle(Style.TUBE, self.view.visible_chains)
         state = {"t": 0.0}
 
         def tick(dt):

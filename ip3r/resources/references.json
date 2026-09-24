@@ -216,6 +216,22 @@
    "title": "Access resistance of a small circular pore",
    "journal": "J Gen Physiol 66:531-532",
    "doi": "10.1085/jgp.66.4.531"
+  },
+  {
+   "key": "jumper2021",
+   "authors": "Jumper J, Evans R, Pritzel A, et al.",
+   "year": 2021,
+   "title": "Highly accurate protein structure prediction with AlphaFold",
+   "journal": "Nature 596:583-589",
+   "doi": "10.1038/s41586-021-03819-2"
+  },
+  {
+   "key": "varadi2022",
+   "authors": "Varadi M, Anyango S, Deshpande M, et al.",
+   "year": 2022,
+   "title": "AlphaFold Protein Structure Database: massively expanding the structural coverage of protein-sequence space with high-accuracy models",
+   "journal": "Nucleic Acids Res 50:D439-D444",
+   "doi": "10.1093/nar/gkab1061"
   }
  ]
 }

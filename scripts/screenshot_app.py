@@ -334,6 +334,50 @@ def main() -> int:
                         "not in human ITPR1" not in v.status.text():
                     raise RuntimeError("variants drawn on a deposit in another numbering")
                 v.draw.setChecked(False)
+                win.structure_panel.set_completeness("gaps")   # AlphaFold fills
+            elif s == 18:
+                fc, sc = win.fills, win.scene
+                if fc.model is None:
+                    if fc.message:
+                        raise RuntimeError(fc.message)
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                m = fc.model
+                if m.prediction != "AF-Q14573-F1" or len(m.fills) != 56 or m.skipped:
+                    raise RuntimeError(f"8TKG fill: {m.summary()}")
+                fv, seams = sc.fill.view, sc.scene.get("seams")
+                visible = sc.view.visible_chains or set(sc.structure.chains)
+                n_seams = sum(len(f.seam_fill) for f in m.fills if f.stretch.chain in visible)
+                if fv is None or seams is None or seams.count != n_seams:
+                    raise RuntimeError(f"fill or seams not drawn ({n_seams} seams expected)")
+                if abs(fv.structure.xyz - m.atoms.xyz).max() < 0.5:
+                    raise RuntimeError("the fill sits at the deposit, not the morph frame")
+                if "AlphaFold fill" not in win.structure_panel.legend.text():
+                    raise RuntimeError("no pLDDT legend with a fill drawn")
+                held = win.sessions.capture().completeness
+                if held != "gaps":
+                    raise RuntimeError(f"session holds completeness {held!r}")
+                sp = win.structure_panel
+                sp.style.setCurrentIndex(sp.style.findData(Style.CARTOON))
+                sp.color.setCurrentIndex(sp.color.findText("Uniform"))   # fill stands out
+                win.tabs.setCurrentWidget(win.channel)
+                app.processEvents()
+                win.grab().save(str(out / "gui_alphafold.png"))
+                win.viewport.grabFramebuffer().save(str(out / "viewport_alphafold.png"))
+                win.transition.slider.setValue(0)
+                if abs(fv.structure.xyz - m.atoms.xyz).max() > 0.05:
+                    raise RuntimeError("at frame 0 the fill is not where it was built")
+                win.structure_panel.select("7LHF")      # a numbering no model is in
+            elif s == 19:
+                fc = win.fills
+                if win.scene.structure is None or win.scene.structure.name != "7LHF" \
+                        or not fc.message:
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                if not fc.message.startswith("not filled") or fc.model is not None \
+                        or win.scene.scene.get("fill:ribbon") is not None:
+                    raise RuntimeError(f"7LHF was filled: {fc.message}")
+                win.structure_panel.set_completeness("none")
             else:
                 print("screenshots written to", out)
                 return app.quit()

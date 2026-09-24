@@ -54,6 +54,7 @@ class SessionController:
                             else sorted(chains)),
             sites=[k for k, b in sp.site_boxes.items() if b.isChecked()],
             show_pore=win.channel.show_pore.isChecked(),
+            completeness=sp.current_completeness(),
             tab=win.tabs.tabText(win.tabs.currentIndex()),
             parameters=PARAMETERS.overrides())
         if cam is not None:
@@ -165,7 +166,8 @@ class SessionController:
                               f"{s.n_atoms:,}: the file changed; check the camera")
         combos = [(sp.style, _enum(Style, s.style), "style"),
                   (sp.color, _enum(ColorBy, s.color_by), "colour"),
-                  (sp.layer, s.layer or None, "layer")]
+                  (sp.layer, s.layer or None, "layer"),
+                  (sp.completeness, s.completeness, "completeness")]
         boxes = [sp.ligands, *sp.chain_boxes.values(), *sp.site_boxes.values()]
         for w in [c for c, _, _ in combos] + boxes:
             w.blockSignals(True)
@@ -193,6 +195,8 @@ class SessionController:
         win.channel.show_pore.setChecked(s.show_pore)
         win.channel.show_pore.blockSignals(False)
         win.scene.show_pore(s.show_pore)
+        sp._update_legend()
+        win.fills.request(sp.current_completeness())
         self._set_camera(s)
         for i in range(win.tabs.count()):
             if win.tabs.tabText(i) == s.tab:

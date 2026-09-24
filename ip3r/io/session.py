@@ -50,6 +50,9 @@ class Session:
     visible_chains: list[str] = field(default_factory=list)
     sites: list[str] = field(default_factory=list)
     show_pore: bool = False
+    #: The Completeness choice (``structure.graft.FILL_MODES`` key): which
+    #: AlphaFold fill is drawn. The choice only; the fill is rebuilt on restore.
+    completeness: str = "none"
     tab: str = ""
 
     #: Camera: unit quaternion (w, x, y, z), pivot, distance, pan (Å).

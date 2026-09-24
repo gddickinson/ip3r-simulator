@@ -17,8 +17,9 @@ from ..core.modules import MODULES_KEY
 from ..io.loader import is_local
 from ..parameters import PARAMETERS as _P
 from ..io.registry import load_registry
-from ..render.colormaps import SHELL_COLORS
+from ..render.colormaps import PLDDT_COLORS, SEAM_COLORS, SHELL_COLORS
 from ..render.representations import COLOR_LABELS, STYLE_LABELS, ColorBy, Style
+from ..structure.graft import FILL_MODES
 from ..structure.shells import SHELLS
 
 __all__ = ["StructurePanel"]
@@ -33,6 +34,7 @@ class StructurePanel(QWidget):
     load_requested = pyqtSignal(str)            # pdb id
     style_changed = pyqtSignal()
     sites_toggled = pyqtSignal(str, bool)       # site class, on
+    completeness_changed = pyqtSignal(str)      # a FILL_MODES key
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -62,7 +64,7 @@ class StructurePanel(QWidget):
             self.style.addItem(STYLE_LABELS[s], s)
         self.color = QComboBox()
         for c in ColorBy:
-            if c is not ColorBy.VALUE:
+            if c not in (ColorBy.VALUE, ColorBy.PLDDT):
                 self.color.addItem(COLOR_LABELS[c], c)
         self.layer = QComboBox()
         for key, label in LAYER_LABELS.items():
@@ -77,6 +79,17 @@ class StructurePanel(QWidget):
         for w in (self.style, self.color, self.layer):
             w.currentIndexChanged.connect(self._restyle)
         self.ligands.toggled.connect(lambda _: self.style_changed.emit())
+        self.completeness = QComboBox()
+        for key, label, tip in FILL_MODES:
+            self.completeness.addItem(label, key)
+            self.completeness.setItemData(self.completeness.count() - 1, tip,
+                                          Qt.ItemDataRole.ToolTipRole)
+        self.completeness.currentIndexChanged.connect(self._completeness)
+        form.addRow("Completeness", self.completeness)
+        self.fill_info = QLabel("")
+        self.fill_info.setWordWrap(True)
+        self.fill_info.setTextFormat(Qt.TextFormat.RichText)
+        form.addRow(self.fill_info)
         lay.addWidget(box)
 
         box = QGroupBox("Subunits")
@@ -168,12 +181,46 @@ class StructurePanel(QWidget):
     def set_info(self, html: str) -> None:
         self.info.setText(html)
 
+    # --------------------------------------------------------- completeness
+
+    def current_completeness(self) -> str:
+        return self.completeness.currentData()
+
+    def set_completeness(self, key: str) -> None:
+        i = self.completeness.findData(key)
+        if i >= 0:
+            self.completeness.setCurrentIndex(i)
+
+    def _completeness(self) -> None:
+        self._update_legend()
+        self.completeness_changed.emit(self.current_completeness())
+
+    def set_fill_info(self, html: str) -> None:
+        self.fill_info.setText(html)
+
+    def _fill_legend(self) -> str:
+        if self.current_completeness() == "none":
+            return ""
+        edges = [_P.value(k) for k in ("display.plddt_low", "graft.plddt_confident",
+                                       "display.plddt_very_high")]
+        names = [f"&lt; {edges[0]:g}", f"{edges[0]:g}-{edges[1]:g}",
+                 f"{edges[1]:g}-{edges[2]:g}", f"&ge; {edges[2]:g}"]
+        rows = " ".join(f"{_swatch(c)} {n}" for c, n in zip(PLDDT_COLORS, names))
+        tol = _P.value("graft.join_tolerance")
+        return (f"<br><b>AlphaFold fill</b>, pLDDT: {rows}<br>"
+                f"{_swatch(SEAM_COLORS[True])} seam closes (≤ {tol:g} Å) "
+                f"{_swatch(SEAM_COLORS[False])} seam broken")
+
     def _restyle(self) -> None:
         self.layer.setEnabled(self.current_color() is ColorBy.CONSERVATION)
         self._update_legend()
         self.style_changed.emit()
 
     def _update_legend(self) -> None:
+        self._colour_legend()
+        self.legend.setText(self.legend.text() + self._fill_legend())
+
+    def _colour_legend(self) -> None:
         if self.current_color() is ColorBy.ELEMENT_DOMAIN:
             rows = [f"{_swatch(ELEMENT_COLORS[k])} {ELEMENT_LABELS[k]}"
                     for k in ELEMENT_ORDER]

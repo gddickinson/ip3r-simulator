@@ -1749,6 +1749,97 @@
    "source_note": "Close-packed hydrated K+ is about 8 M, so 10 M is where a continuum of point ions has certainly stopped describing a solution (as PIEZO1)",
    "minimum": 0.1,
    "maximum": 100.0
+  },
+  {
+   "key": "graft.anchor_window",
+   "name": "Anchor window",
+   "value": 6,
+   "unit": "residues",
+   "kind": "method",
+   "category": "graft",
+   "citation": "method_choice",
+   "description": "Residues searched on each side of an unresolved stretch for anchors: resolved in the deposit, not a backbone+CB stub, and the same amino acid in the prediction.",
+   "source_note": "Short enough that the fit is local to the seam (PIEZO1's blade fit went from 19 A globally to 2.4 A locally), long enough to hold two helical turns",
+   "minimum": 2,
+   "maximum": 50
+  },
+  {
+   "key": "graft.min_anchor",
+   "name": "Minimum anchors per side",
+   "value": 3,
+   "unit": "residues",
+   "kind": "method",
+   "category": "graft",
+   "citation": "method_choice",
+   "description": "An internal stretch is filled only with at least this many anchors on each side; a terminus, which has one side, needs twice as many there.",
+   "source_note": "Three points fix a rigid-body placement; fewer on one side lets the fill pivot about the other",
+   "minimum": 1,
+   "maximum": 20
+  },
+  {
+   "key": "graft.join_tolerance",
+   "name": "Seam join tolerance",
+   "value": 5.5,
+   "unit": "A",
+   "kind": "method",
+   "category": "graft",
+   "citation": "measured_here",
+   "description": "A seam joins if the placed fill's end C-alpha lies within this distance of the deposit's flanking C-alpha; otherwise the seam is drawn and reported as broken.",
+   "source_note": "A trans peptide spans 3.80 A. Hiding 31 stretches that 8TKG/8TKF resolve and filling them (structure/graft_calibration.py) gave seams up to 5.42 A (90th percentile 4.74) for fills of median 1.5 A RMSD; the first value, 4.5 A, failed 9 of those 62 true seams",
+   "minimum": 3.0,
+   "maximum": 20.0
+  },
+  {
+   "key": "graft.clash_distance",
+   "name": "Clash distance",
+   "value": 2.2,
+   "unit": "A",
+   "kind": "method",
+   "category": "graft",
+   "citation": "method_choice",
+   "description": "A filled residue clashes if any of its heavy atoms is closer than this to a deposited heavy atom (the residues flanking its own seams excluded).",
+   "source_note": "Well inside any non-bonded heavy-atom contact (>= ~3 A); only interpenetration counts",
+   "minimum": 1.0,
+   "maximum": 4.0
+  },
+  {
+   "key": "graft.plddt_confident",
+   "name": "pLDDT confident",
+   "value": 70.0,
+   "unit": "",
+   "kind": "convention",
+   "category": "graft",
+   "citation": "jumper2021",
+   "description": "A predicted residue is 'confident' at or above this pLDDT; a fill's confident fraction is reported.",
+   "source_note": "AlphaFold DB's four pLDDT bands (very low < 50 <= low < 70 <= confident < 90 <= very high), as defined in Jumper 2021 and used on every AlphaFold DB entry page",
+   "minimum": 0.0,
+   "maximum": 100.0
+  },
+  {
+   "key": "display.plddt_low",
+   "name": "pLDDT low / very low edge",
+   "value": 50.0,
+   "unit": "",
+   "kind": "convention",
+   "category": "graft",
+   "citation": "varadi2022",
+   "description": "pLDDT below this is drawn in the very-low colour.",
+   "source_note": "AlphaFold DB's four pLDDT bands (very low < 50 <= low < 70 <= confident < 90 <= very high), as defined in Jumper 2021 and used on every AlphaFold DB entry page",
+   "minimum": 0.0,
+   "maximum": 100.0
+  },
+  {
+   "key": "display.plddt_very_high",
+   "name": "pLDDT very-high edge",
+   "value": 90.0,
+   "unit": "",
+   "kind": "convention",
+   "category": "graft",
+   "citation": "varadi2022",
+   "description": "pLDDT at or above this is drawn in the very-high colour.",
+   "source_note": "AlphaFold DB's four pLDDT bands (very low < 50 <= low < 70 <= confident < 90 <= very high), as defined in Jumper 2021 and used on every AlphaFold DB entry page",
+   "minimum": 0.0,
+   "maximum": 100.0
   }
  ]
 }

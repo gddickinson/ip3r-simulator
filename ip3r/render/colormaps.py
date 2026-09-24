@@ -20,7 +20,8 @@ from ..core.structure import Structure
 __all__ = ["CHAIN_PALETTE", "MISSING", "chain_colors", "element_colors",
            "ramp", "constraint_colors", "bfactor_colors", "value_colors",
            "uniform_color", "CONSERVATION_RANGE", "displacement_colors",
-           "SHELL_COLORS", "shell_colors"]
+           "SHELL_COLORS", "shell_colors", "PLDDT_COLORS", "plddt_colors",
+           "SEAM_COLORS"]
 
 #: Four subunits, four distinguishable hues.
 CHAIN_PALETTE = np.array([
@@ -126,3 +127,25 @@ def shell_colors(distance: np.ndarray) -> np.ndarray:
 
 def uniform_color(st: Structure, rgb=(0.55, 0.62, 0.75)) -> np.ndarray:
     return np.tile(np.asarray(rgb, np.float32), (st.n_atoms, 1))
+
+
+#: AlphaFold DB's own pLDDT colours, very low -> very high, so a fill reads
+#: the way the model's entry page does. Band edges are registered.
+PLDDT_COLORS = np.array([(1.00, 0.49, 0.27), (1.00, 0.86, 0.07),
+                         (0.40, 0.80, 0.95), (0.00, 0.33, 0.84)], np.float32)
+
+#: A seam that closes, and one that does not (``graft.join_tolerance``).
+SEAM_COLORS = {True: np.array((0.92, 0.92, 0.95), np.float32),
+               False: np.array((1.00, 0.15, 0.15), np.float32)}
+
+
+def plddt_colors(values: np.ndarray) -> np.ndarray:
+    """Per atom: its pLDDT band on the fixed AlphaFold scale; NaN is grey."""
+    from ..parameters import PARAMETERS as _P
+    v = np.asarray(values, float)
+    out = np.tile(MISSING, (len(v), 1)).astype(np.float32)
+    edges = (-np.inf, _P.value("display.plddt_low"), _P.value("graft.plddt_confident"),
+             _P.value("display.plddt_very_high"), np.inf)
+    for rgb, lo, hi in zip(PLDDT_COLORS, edges[:-1], edges[1:]):
+        out[(v >= lo) & (v < hi)] = rgb
+    return out

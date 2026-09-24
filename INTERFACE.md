@@ -34,7 +34,7 @@ headless (CLI, tests, notebooks).
 |---|---|
 | `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC`, `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
 | `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file; `subscribe` for change listeners — caches of parameter-dependent results and the GUI banner; `matches` (editor filter), `write_overrides`/`read_overrides`, `replace` (whole set, one notification); `references()` for tooltips). Ported from PIEZO1. |
-| `cli.py` | `python -m ip3r <fetch|info|checks|states|unitary|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
+| `cli.py` | `python -m ip3r <fetch|info|graft|checks|states|unitary|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
 | `__main__.py` | entry point |
 
 ## `ip3r/io/`
@@ -45,7 +45,8 @@ headless (CLI, tests, notebooks).
 | `registry.py` | `StructureEntry`, `load_registry()`, `get_entry()`, `local_path()` — the 9 curated depositions from `resources/structures.json` |
 | `fetch.py` | `fetch_structure()`, `fetch_all()`, `is_valid()` — RCSB `.cif.gz` into `ref/structures`; `IP3R_STRUCTURE_MIRROR` copies from a local mirror (e.g. the ip3r_genes data root) |
 | `loader.py` | `load(pdb_id)` memoised; `ALLOW_FETCH` switch (off by default; the GUI and `--fetch` turn it on); `StructureUnavailable` |
-| `session.py` | `Session` (the view: deposit, style, colour, layer, subunits, sites, pore, camera, tab, transition spec, and the parameter overrides it was saved under — never coordinates or results), `from_dict` refuses a wrong type or newer format by name, `save_session`/`load_session`, `parameter_differences` |
+| `predictions.py` | AlphaFold DB models into `ref/alphafold` (`fetch_prediction` discovers entry + version from the API; `ACCESSIONS`, `UNAVAILABLE` with why), `local_predictions`, `load_prediction` (memoised; pLDDT in `b_factor`) |
+| `session.py` | `Session` (the view: deposit, style, colour, layer, subunits, sites, pore, completeness, camera, tab, transition spec, and the parameter overrides it was saved under — never coordinates or results), `from_dict` refuses a wrong type or newer format by name, `save_session`/`load_session`, `parameter_differences` |
 
 ## `ip3r/core/`
 
@@ -69,6 +70,8 @@ headless (CLI, tests, notebooks).
 | `channel.py` | `measure_channel(st)` → `ChannelSummary` (axis two ways, residual, numbering, span, profile, constrictions, IP3 contacts) — shared by GUI, CLI and checks |
 | `transition.py` | `prepare_transition(start, end, fit)` → `Transition` (residue-matched basis: unstubbed, sequence-matching, all 8 chains; cyclic subunit correspondence; end superposed onto the start *as deposited*; `residue_distance`, `element_means`), `atom_site_index` (own residue, else nearest site in space), `displaced_coords`, `atom_displacement` (NaN off basis), `TransitionUnavailable` |
 | `morph.py` | `morph(start, end, method)` → `MorphTrajectory` (`restrained` / `linear`, `bond_error`, `nearest`), `peptide_pairs`, `NOTE` (the "interpolation, not trajectory" sentence) |
+| `graft.py` | AlphaFold fills: `prediction_for(st)` (the model in the deposit's numbering, else `GraftRefusal`), `unresolved` → `Stretch` (gap / n_term / c_term), `fill_stretches`, `fill_structure(st, mode)` → `FilledModel` (predicted atoms only; `Fill` per stretch: anchor RMSD, seam distances, pLDDT, clashes; `Skip` with reason; `place(xyz)` re-fits to new coordinates; `seam_segments`), `FILL_MODES`, `placed_ca` |
+| `graft_calibration.py` | `calibrate(host, others, pred)` → `Trial`s: stretches others miss, hidden in the host, filled, scored vs a straight line and a global fit; `candidate_stretches`, `hide`, `trial` |
 | `states.py` | `state_panel(paralog)` → `StateRow`s: every human deposit measured the same way (the gating transition at the pore) |
 
 ## `ip3r/physics/` — simulation
@@ -124,9 +127,9 @@ headless (CLI, tests, notebooks).
 `shaders/` — ported unchanged from PIEZO1 (impostor spheres/cylinders,
 cartoon sweeps, trackball camera). `colormaps.py` — chain, element, fixed
 conservation ramp (0.50–0.95 JSD; grey = not scored), fixed displacement ramp
-(0–25 Å), `SHELL_COLORS`/`shell_colors` (S22's four shells, grey beyond). `representations.py` —
+(0–25 Å), `SHELL_COLORS`/`shell_colors` (S22's four shells, grey beyond), `PLDDT_COLORS`/`plddt_colors` (AlphaFold's fixed bands), `SEAM_COLORS`. `representations.py` —
 `variant_spheres.py` — `variant_spheres(st, gene, classes, layer, chain_mask)` (Cα of each variant residue on every visible subunit; most decisive class wins; VUS by stratum from the resources), `resource_stratification`, `variant_classes`. `MolecularView` (styles × `ColorBy`, highlight (uniform or per-atom `highlight_rgb`), chain filter, `update_coords`
-for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_SHELL` from `structure.shells`).
+for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_SHELL` from `structure.shells`; `ColorBy.PLDDT` for fills only).
 
 ## `ip3r/ui/` (PyQt6)
 
@@ -134,9 +137,11 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 |---|---|
 | `app.py` | `main()` — surface format, theme, window, initial load (or `--session FILE`) |
 | `main_window.py` | layout and wiring; menus (File: open/save session); loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer, `CHECK_RANGE` to the Range tab |
-| `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, `show_variants` (sphere batch, refused in another numbering), `move_overlays` (spheres follow morph/mode frames), side/top views, mode animation |
+| `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, `show_fill` (the `FillOverlay`), `show_variants` (sphere batch, refused in another numbering), `move_overlays` (spheres follow morph/mode frames), side/top views, mode animation |
+| `fill_overlay.py` | `FillOverlay`: the AlphaFold fill as its own `MolecularView` (`fill:*`, always pLDDT) plus seam bonds (`seams`, red when broken); `move` re-places it on a morph/mode frame |
+| `fill_controller.py` | `FillController`: the Completeness selector — builds on a worker, latest request wins, rebuilt on every load, refusal shown in the panel; `fill_html` |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
-| `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
+| `structure_panel.py` | deposition list, style, colour, layer, Completeness (+ fill summary and pLDDT/seam legend), subunits, measured sites, legend |
 | `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, ITPR3 state comparison, `show_unitary` (conductance per state vs the measured values; `unitary_rows` for the smoke test) |
 | `modes_panel.py` | ANM table with irreps and κ, animation controls |
 | `transition_panel.py` | Transition tab: end state, fit, method, 8TKG→8TKF preset, frame slider/play, displacement colouring, element and overlap plots |
@@ -164,14 +169,14 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 
 | File | Purpose |
 |---|---|
-| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants; `parameter_table_perm.py`, permeation and wall charge), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
+| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants; `parameter_table_perm.py`, permeation and wall charge; `parameter_table_graft.py`, AlphaFold fills), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
 | `sync_genes.py` | import resources from ip3r_genes; `--check` reports drift |
 | `screenshot_app.py` | scripted GUI smoke test + README screenshots (ends by saving a session, loading elsewhere, restoring, and comparing every field) |
 | `create_env.sh` | the `ip3r_sim` conda env |
 
 ## `tests/`
 
-Transition (`test_transition` synthetic calibrations; `test_transition_real`
+Fills (`test_graft` — a rigidly moved chain fills exactly and follows the deposit, a one-off numbering / stubbed flanks / a bent loop / a clashing neighbour each caught, 8TKG's 56 stretches, 9YKK/7LHF refused, fills beat a straight line on 16 hidden stretches), transition (`test_transition` synthetic calibrations; `test_transition_real`
 — the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), VUS strata (`test_vus_strata` — the rule by hand, ties, a residue in two classes, the resource route = S17's table, one sphere per subunit), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters` — listeners fire once per effective change, import is replace-not-merge and refuses a bad file untouched, a memoised measurement made under an edit is dropped on reset,

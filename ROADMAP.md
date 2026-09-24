@@ -5,8 +5,9 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 5, item 4** (AlphaFold models for the unresolved stretches),
-unless an emergent item is preferred.
+**Next:** Round 5 is complete. Pick from the emergent items; the strongest
+candidates are the gate radius along the morph (Round 2) and the salt-bridge
+neutralisation before any charged conductance (Round 4).
 
 ## Destination
 
@@ -229,7 +230,35 @@ Emergent (not scheduled):
   - [ ] Per-paralog: ITPR2's P/LP median is one position's score. Draw the
     thresholds' uncertainty (bootstrap the medians) so a stratum near a
     median is shown as such.
-- [ ] AlphaFold models for the unresolved stretches, seams shown.
+- [x] AlphaFold models for the unresolved stretches, seams shown
+  (Representation → Completeness; `python -m ip3r graft`). Each stretch is
+  placed by a local Cα fit on sequence-matched, unstubbed anchors either side
+  (a terminus on one side, only when asked). It is drawn as its own
+  pLDDT-coloured layer, and each seam is a bond, red when broken. The fill
+  follows morph frames. No measurement runs on it. The model is chosen by
+  identity by number: the 7 ITPR3 deposits match `AF-Q14573-F1` at
+  99.1–100 %. AlphaFold DB has only isoforms for ITPR1/2, so 7LHF (22 %) and
+  9YKK (18 %) are refused. On 8TKG: 56 stretches, 1,592 residues, mean pLDDT
+  38; 12 of 224 seams broken; 108 residues clash. Calibration: 31 stretches
+  that another deposit misses but 8TKG/8TKF resolve were hidden and filled.
+  Median 1.46 Å, against 5.59 Å for a straight line and 10.5 Å for a global
+  fit. The fill beats the line 28/31, and pLDDT predicts the error (ρ −0.79).
+  The join tolerance was moved from 4.5 to 5.5 Å because true seams reached
+  5.42 Å. The smoke test caught a fill drawn at the deposit instead of the
+  morph frame on its first run.
+  Emergent:
+  - [ ] The calibration covers pLDDT 53–77 and 4–10 residues. The real gaps
+    are mostly longer and below 50. A test on long stretches (hide a
+    resolved 30–60-residue loop) would say whether a long fill is worth
+    drawing at all.
+  - [ ] 7LHF could be filled from rat isoform 8 through an alignment rather
+    than by number (`core.pairwise`), with the isoform's missing splice
+    segments left unfilled and said so.
+  - [ ] Fills on neighbouring subunits are not checked against each other,
+    only against the deposit.
+  - [ ] The Completeness choice is in a session; the transition spec does not
+    say whether the fill was drawn while the frame was saved (it is simply
+    rebuilt).
 
 ## Deliberately not doing
 

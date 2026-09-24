@@ -728,3 +728,55 @@ both unchanged.
 and no check verdict changed.
 
 **Next:** Round 5, item 4 (AlphaFold models for the unresolved stretches).
+
+
+## 2026-09-24 — Round 5.4: AlphaFold models for the unresolved stretches, seams shown
+
+**What.** Representation → Completeness draws an AlphaFold model's residues
+where a deposit has none. New modules: `io/predictions.py` (AlphaFold DB
+download, with entry and version discovered from the API),
+`structure/graft.py` (the fill), `structure/graft_calibration.py` (how good
+a fill is), `ui/fill_overlay.py` and `ui/fill_controller.py`. There is a
+`graft` CLI command, `fetch` also downloads the models, and there are 7 new
+registered parameters and 2 references (Jumper 2021, Varadi 2022). A session
+gains a `completeness` field (the choice, not the fill). There are 12 new
+tests (242 → 254) and two smoke steps.
+
+**What AlphaFold DB actually holds** (the first thing measured). Canonical
+ITPR3; ITPR1 isoform 4 only; rat ITPR1 isoform 8 only; for ITPR2 a
+181-residue isoform. So the model is never matched by name. It is chosen by
+identity by number against the variant-painting bar. All seven ITPR3
+deposits match at 99.1–100 %. 7LHF (22.1 %) and 9YKK (17.7 %) are refused,
+with every model's identity in the message.
+
+**Method: port of PIEZO1's local-anchor graft, per stretch.** Anchors must be
+resolved, unstubbed and the same amino acid in both models. That makes 6DQN
+skip 8 stretches per subunit around its unregistered 1434–1546 segment
+instead of fitting them to it. A terminus is extrapolated and filled only in
+"+ gaps and ends". The fill is a *separate* structure. Nothing measures on
+it, and `place()` re-fits it on its anchors in any coordinates, so it follows
+morph and mode frames.
+
+**Calibration, and the parameter it moved.** Stretches that another ITPR3
+deposit leaves unresolved, but 8TKG or 8TKF resolves, were hidden, filled and
+scored. Over 31, the median was 1.46 Å against 5.59 Å for a straight line
+and 10.5 Å for a whole-chain fit. The fill beats the line 28/31, and pLDDT
+tracks error (ρ −0.79). The true seams reached 5.42 Å, so the first join
+tolerance (4.5 Å) would have called 9 of 62 correct seams broken. It is now
+5.5 Å, cited as measured here. The honest limit: those stretches sit at
+pLDDT 53–77, while 8TKG's real gaps average pLDDT 38. The calibration does
+not reach them, and the docs say so.
+
+**Found by the smoke test.** On its first run the fill for a deposit showing
+morph frame 5 was drawn at the deposited coordinates, because `show()` did
+not place it. Fixed; the step now requires the fill to move with the frame
+and to return to its built position at frame 0. A hidden number was also
+removed before it shipped: a minimum chain length (`anchor_window × 10`) was
+replaced by the rule already in use, that a chain must itself be in the
+prediction's numbering.
+
+**Not changed.** `make sync-check` was clean; no `ip3r_genes` table moved,
+and no check verdict changed (46 checks: 44 confirmed, 2 discrepancies).
+
+**Next:** Round 5 is complete. The emergent items are listed in `ROADMAP.md`.
+
