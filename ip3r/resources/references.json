@@ -82,6 +82,22 @@
    "doi": "10.1016/S0006-3495(01)76033-X"
   },
   {
+   "key": "bruschweiler1995",
+   "authors": "Br\u00fcschweiler R",
+   "year": 1995,
+   "title": "Collective protein dynamics and nuclear spin relaxation",
+   "journal": "J Chem Phys 102:3396-3403",
+   "doi": "10.1063/1.469213"
+  },
+  {
+   "key": "tama2001",
+   "authors": "Tama F, Sanejouand YH",
+   "year": 2001,
+   "title": "Conformational change of proteins arising from normal mode calculations",
+   "journal": "Protein Eng 14:1-6",
+   "doi": "10.1093/protein/14.1.1"
+  },
+  {
    "key": "yang2009",
    "authors": "Yang L, Song G, Jernigan RL",
    "year": 2009,

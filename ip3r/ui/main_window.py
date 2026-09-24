@@ -28,6 +28,8 @@ from .modes_panel import ModesPanel
 from .params_dialog import ParametersDialog
 from .scene_controller import SceneController
 from .structure_panel import StructurePanel
+from .transition_controller import TransitionController, build_transition
+from .transition_panel import TransitionPanel
 from .variants_panel import VariantsPanel
 from .workers import run_async
 
@@ -48,17 +50,21 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.viewport)
         self.scene = SceneController(self.viewport)
         self._pending_check: str | None = None
+        self._pending_transition: tuple | None = None
+        self.morph = TransitionController(self.scene)
 
         self.structure_panel = StructurePanel()
         self._dock("Structure", self.structure_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
         self.channel = ChannelPanel()
         self.modes = ModesPanel()
+        self.transition = TransitionPanel()
         self.dynamics = DynamicsPanel()
         self.findings = FindingsPanel()
         self.variants = VariantsPanel()
         tabs = QTabWidget()
         for w, name in ((self.findings, "Findings"), (self.channel, "Channel"),
-                        (self.modes, "Modes"), (self.dynamics, "Dynamics"),
+                        (self.modes, "Modes"), (self.transition, "Transition"),
+                        (self.dynamics, "Dynamics"),
                         (self.variants, "Variants")):
             tabs.addTab(w, name)
         self._dock("Analysis", tabs, Qt.DockWidgetArea.RightDockWidgetArea, scroll=False)
@@ -70,8 +76,15 @@ class MainWindow(QMainWindow):
         self.channel.pore_toggled.connect(self.scene.show_pore)
         self.channel.states_requested.connect(self._compare_states)
         self.modes.compute_requested.connect(self.compute_modes)
-        self.modes.animate_requested.connect(self.scene.animate_mode)
+        self.modes.animate_requested.connect(self._animate_mode)
         self.modes.stop_requested.connect(self.scene.stop_animation)
+        tp = self.transition
+        tp.build_requested.connect(self.build_transition)
+        tp.preset_requested.connect(self._transition_preset)
+        tp.frame_requested.connect(self.morph.show_frame)
+        tp.play_requested.connect(lambda: self.morph.play(on_frame=tp.follow))
+        tp.stop_requested.connect(self.morph.stop)
+        tp.paint_toggled.connect(self._paint_displacement)
         self.findings.show_structure.connect(self._show_check)
         self.variants.highlight_residue.connect(self._highlight_variant)
         self.viewport.atom_picked.connect(self._picked)
@@ -138,7 +151,10 @@ class MainWindow(QMainWindow):
             f"{st.n_atoms:,} atoms, {st.n_residues:,} residues, chains "
             f"{', '.join(st.chains)}")
         self.channel.show_summary(summary)
+        self.morph.reset()
         self.scene.set_structure(st, summary, self._style_kwargs())
+        self.transition.set_start(st.name, summary.numbering.paralog
+                                  if summary.numbering else None)
         self._apply_sites()
         self.statusBar().showMessage(
             f"{st.name} loaded — numbering "
@@ -147,6 +163,9 @@ class MainWindow(QMainWindow):
         if self._pending_check:
             self._apply_check(self._pending_check)
             self._pending_check = None
+        if self._pending_transition and self._pending_transition[0] == st.name:
+            self.build_transition(*self._pending_transition[1:])
+        self._pending_transition = None
 
     def _style_kwargs(self) -> dict:
         sp = self.structure_panel
@@ -172,6 +191,48 @@ class MainWindow(QMainWindow):
                   on_done=lambda out: self.modes.show_modes(*out),
                   on_error=lambda e: (self.modes.set_busy(""), QMessageBox.warning(
                       self, "Modes failed", e), self.modes.clear()))
+
+    def _animate_mode(self, index: int, amplitude: float) -> None:
+        if self.morph.result is not None:
+            self.morph.show_frame(0)
+            self.transition.follow(0)
+        self.scene.animate_mode(index, amplitude)
+
+    def build_transition(self, end_id: str, fit: str = "pore",
+                         method: str = "restrained") -> None:
+        st = self.scene.structure
+        if st is None or not end_id:
+            return
+        loader.ALLOW_FETCH = True
+        self.morph.reset()
+        self.transition.set_busy(f"building {st.name} → {end_id} (morph and "
+                                 "elastic network)…")
+        run_async(build_transition, st, end_id, fit, method,
+                  on_done=self._transition_built, on_error=self.transition.failed)
+
+    def _transition_built(self, result) -> None:
+        try:
+            self.morph.install(result)
+        except ValueError as exc:
+            return self.transition.failed(str(exc))
+        self.transition.show_result(result)
+        if self.transition.paint.isChecked():
+            self._paint_displacement(True)
+
+    def _transition_preset(self, start: str, end: str) -> None:
+        tp = self.transition
+        args = (end, tp.fit.currentData(), tp.method.currentData())
+        if self.scene.structure is not None and self.scene.structure.name == start:
+            self.build_transition(*args)
+        else:
+            self._pending_transition = (start, *args)
+            self.structure_panel.select(start)
+
+    def _paint_displacement(self, on: bool) -> None:
+        from ..render.representations import ColorBy
+        sp = self.structure_panel
+        target = ColorBy.DISPLACEMENT if on else ColorBy.ELEMENT_DOMAIN
+        sp.color.setCurrentIndex(sp.color.findData(target))
 
     def _compare_states(self) -> None:
         from ..structure.states import state_panel

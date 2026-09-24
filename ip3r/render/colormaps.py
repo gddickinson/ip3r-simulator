@@ -19,7 +19,7 @@ from ..core.structure import Structure
 
 __all__ = ["CHAIN_PALETTE", "MISSING", "chain_colors", "element_colors",
            "ramp", "constraint_colors", "bfactor_colors", "value_colors",
-           "uniform_color", "CONSERVATION_RANGE"]
+           "uniform_color", "CONSERVATION_RANGE", "displacement_colors"]
 
 #: Four subunits, four distinguishable hues.
 CHAIN_PALETTE = np.array([
@@ -94,6 +94,13 @@ def value_colors(values: np.ndarray) -> np.ndarray:
         return np.tile(MISSING, (len(v), 1))
     lo, hi = np.percentile(v[ok], [2, 98])
     return ramp((v - lo) / max(hi - lo, 1e-9))
+
+
+def displacement_colors(values: np.ndarray) -> np.ndarray:
+    """Displacement between two states on a fixed 0..``display.displacement_max``
+    scale; NaN (not measured) is grey."""
+    from ..parameters import PARAMETERS as _P
+    return ramp(np.asarray(values, float) / _P.value("display.displacement_max"))
 
 
 def uniform_color(st: Structure, rgb=(0.55, 0.62, 0.75)) -> np.ndarray:

@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QFormLayout, QGroupBox,
 
 from ..core.annotations import ELEMENT_COLORS, ELEMENT_LABELS, ELEMENT_ORDER, LAYER_LABELS
 from ..io.loader import is_local
+from ..parameters import PARAMETERS as _P
 from ..io.registry import load_registry
 from ..render.representations import COLOR_LABELS, STYLE_LABELS, ColorBy, Style
 
@@ -177,5 +178,13 @@ class StructurePanel(QWidget):
                 "JSD on a fixed 0.50-0.95 scale: <span style='color:#3b4cc0'>■</span> "
                 "variable → <span style='color:#b40426'>■</span> conserved; "
                 "<span style='color:#6b6d75'>■</span> not scored (never the low end).")
+        elif self.current_color() is ColorBy.DISPLACEMENT:
+            top = _P.value("display.displacement_max")
+            self.legend.setText(
+                f"C-alpha displacement between two states on a fixed 0-{top:g} Å "
+                "scale: <span style='color:#3b4cc0'>■</span> still → "
+                "<span style='color:#b40426'>■</span> moves most; "
+                "<span style='color:#6b6d75'>■</span> not measured (outside the "
+                "common basis, or no transition built — use the Transition tab).")
         else:
             self.legend.setText("")

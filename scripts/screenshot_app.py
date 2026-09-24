@@ -83,6 +83,21 @@ def main() -> int:
                     return QTimer.singleShot(1000, step)
                 win.findings.tree.setCurrentItem(win.findings._items["S0.pore_profile"])
                 win.grab().save(str(out / "gui_findings.png"))
+                tabs = win.transition.parentWidget().parentWidget()
+                tabs.setCurrentWidget(win.transition)
+                win.transition.preset.click()           # loads 8TKG, builds -> 8TKF
+            elif s == 7:
+                if win.transition.result is None:
+                    if win.transition.status.text().startswith("not built"):
+                        raise RuntimeError(win.transition.status.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(1000, step)
+                win.transition.paint.setChecked(True)
+                win.transition.slider.setValue(win.transition.slider.maximum())
+                drawn = win.scene.view.structure.xyz
+                if abs(drawn - win.scene.structure.xyz).max() < 1.0:
+                    raise RuntimeError("the morph end frame did not move the model")
+                win.grab().save(str(out / "gui_transition.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

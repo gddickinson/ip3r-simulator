@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 2.**
+**Next: Round 3.**
 
 ## Destination
 
@@ -28,15 +28,28 @@ that opens, Ca²⁺ out.
 - [x] GUI: structure, channel (with ITPR3 state comparison), modes, dynamics,
   findings, variants; scripted smoke test.
 
-## Round 2 — gating transition on the structure
+## Round 2 — gating transition on the structure  [x]
 
-- [ ] Morph between two states of the same paralog (8TKG resting → 8TKF
-  activated), residue-matched, with the interpolation labelled as such in
-  the UI (PIEZO1's `structure/morph.py` is the reference implementation).
-- [ ] Overlap of each ANM mode with the observed 8TKG → 8TKF displacement:
-  does the lowest A mode point towards opening? (Report cumulative overlap;
-  a null here is a result.)
-- [ ] Per-residue displacement between states, painted on the structure.
+- [x] Morph between two states of the same paralog (8TKG resting → 8TKF
+  activated), residue-matched (2,194 residues × 4 subunits), restrained
+  (worst Cα–Cα error 0.00 Å vs 2.7 Å linear), labelled as an interpolation.
+  Drawn end = deposited 8TKF as a shape to < 0.001 Å (tested).
+- [x] Overlap of each ANM mode with the observed displacement. Lowest
+  collective A mode of 8TKG: 0.415 (null 0.021); 20 modes 0.638 (null
+  0.048); robust over strides 1–4. From the 8TKF end: lowest A mode 0.17.
+  Needed a collectivity guard: at stride 4 the naive "lowest A mode" was a
+  weakly attached fragment (κ 0.01).
+- [x] Per-residue displacement painted on a fixed 0–25 Å scale: RIH_N 22 Å,
+  MIR 19 Å, pore domain 2.5 Å, filter 0.8 Å (pore fit).
+
+Emergent (not scheduled):
+- [ ] Where do the stride-3 local modes (#11–15 of 8TKG, κ ≤ 0.11) come
+  from — which sites are weakly attached, and should the network bridge
+  them (e.g. a sequence-neighbour spring) rather than just flag them?
+- [ ] The gate radius along the morph is not measured: side chains ride
+  their Cα rigidly, so a profile of intermediate frames would be wrong at
+  exactly the gate. Needs side-chain interpolation (or a rotamer-free
+  backbone-only pore measure) first.
 
 ## Round 3 — more of the publication, on the structure
 

@@ -30,7 +30,7 @@ from ..core.annotations import reference_sequence
 from ..core.structure import AA3TO1, Structure
 from ..parameters import PARAMETERS as _P
 
-__all__ = ["NumberingCheck", "check_numbering", "best_numbering"]
+__all__ = ["NumberingCheck", "check_numbering", "best_numbering", "chain_residues"]
 
 
 _BACKBONE_CB = {"N", "CA", "C", "O", "OXT", "CB"}
@@ -55,7 +55,7 @@ class NumberingCheck:
         return self.identity >= _P.value("numbering.min_identity")
 
 
-def _chain_residues(st: Structure, chain: str) -> dict[int, tuple[str, bool]]:
+def chain_residues(st: Structure, chain: str) -> dict[int, tuple[str, bool]]:
     """``resnum -> (one-letter, stubbed)`` for the protein residues of a chain."""
     m = (st.chain == chain) & st.mask_protein() & ~st.hetero & (st.element != "H")
     atoms: dict[int, set] = {}
@@ -83,7 +83,7 @@ def _segments(bad: list[int], min_len: int = 5) -> tuple:
 def check_numbering(st: Structure, paralog: str, chain: str | None = None) -> NumberingCheck:
     chain = chain or max(st.chains, key=lambda c: int((st.mask_ca() & (st.chain == c)).sum()))
     seq = reference_sequence(paralog)
-    res = _chain_residues(st, chain)
+    res = chain_residues(st, chain)
     inside = {r: v for r, v in res.items() if 1 <= r <= len(seq)}
     bad = sorted(r for r, (aa, _) in inside.items() if aa != seq[r - 1])
     scored = {r: aa for r, (aa, stub) in inside.items() if not stub}

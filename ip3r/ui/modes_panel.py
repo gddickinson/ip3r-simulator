@@ -39,7 +39,9 @@ class ModesPanel(QWidget):
         note = QLabel("Anisotropic network model over C-alpha atoms (every "
                       "residue all four subunits resolve, strided). Modes are "
                       "directions of collective motion with relative "
-                      "stiffness; amplitudes and time scales are illustrative.")
+                      "stiffness; amplitudes and time scales are illustrative. "
+                      "κ is the fraction of sites a mode moves (Brüschweiler "
+                      "1995); low-κ modes are network artefacts.")
         note.setWordWrap(True)
         lay.addWidget(note)
         row = QHBoxLayout()
@@ -49,8 +51,8 @@ class ModesPanel(QWidget):
         self.status = QLabel("")
         row.addWidget(self.status, 1)
         lay.addLayout(row)
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["#", "eigenvalue", "irrep", "χ(C4)"])
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["#", "eigenvalue", "irrep", "χ(C4)", "κ"])
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.itemSelectionChanged.connect(self._selected)
@@ -81,11 +83,14 @@ class ModesPanel(QWidget):
         self.modes = modes
         self.compute.setEnabled(True)
         a = modes.first("A")
-        self.status.setText(meta + (f"; lowest A mode is #{a + 1}" if a is not None else ""))
+        self.status.setText(meta + (f"; lowest collective A mode is #{a + 1}"
+                                    if a is not None else ""))
+        kappa = modes.collectivity()
         self.table.setRowCount(modes.n_modes)
         for i in range(modes.n_modes):
             for j, text in enumerate((str(i + 1), f"{modes.eigenvalues[i]:.3e}",
-                                      modes.symmetry[i], f"{modes.character[i]:+.3f}")):
+                                      modes.symmetry[i], f"{modes.character[i]:+.3f}",
+                                      f"{kappa[i]:.2f}")):
                 item = QTableWidgetItem(text)
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.table.setItem(i, j, item)
@@ -97,7 +102,11 @@ class ModesPanel(QWidget):
         if not rows or self.modes is None:
             return
         i = rows[0].row()
-        self.explain.setText(f"Mode {i + 1}: {IRREP_TEXT.get(self.modes.symmetry[i], '')}.")
+        local = "" if self.modes.is_collective()[i] else (
+            " Collectivity κ is below threshold: a weakly attached fragment "
+            "of the network, not a collective motion.")
+        self.explain.setText(f"Mode {i + 1}: {IRREP_TEXT.get(self.modes.symmetry[i], '')}."
+                             + local)
         self.animate_requested.emit(i, float(self.amp.value()))
 
     def clear(self) -> None:

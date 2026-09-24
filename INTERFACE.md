@@ -33,7 +33,7 @@ headless (CLI, tests, notebooks).
 |---|---|
 | `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC`, `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
 | `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file). Ported from PIEZO1. |
-| `cli.py` | `python -m ip3r <fetch|info|checks|states|modes|gating|oscillate|puffs|params>`; no argument launches the GUI |
+| `cli.py` | `python -m ip3r <fetch|info|checks|states|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
 | `__main__.py` | entry point |
 
 ## `ip3r/io/`
@@ -62,13 +62,16 @@ headless (CLI, tests, notebooks).
 | `ligand.py` | `ligand_sites` (IP3 copies, subunit by proximity), `contacts` (≤ cutoff, own vs other subunit), `residue_distances` (S22 shells; `heavy_only=False` = S22's all-atom rule) |
 | `numbering.py` | `check_numbering`, `best_numbering` — S24's rule, stubbed (backbone+CB) residues excluded, mismatch segments reported |
 | `channel.py` | `measure_channel(st)` → `ChannelSummary` (axis two ways, residual, numbering, span, profile, constrictions, IP3 contacts) — shared by GUI, CLI and checks |
+| `transition.py` | `prepare_transition(start, end, fit)` → `Transition` (residue-matched basis: unstubbed, sequence-matching, all 8 chains; cyclic subunit correspondence; end superposed onto the start *as deposited*; `residue_distance`, `element_means`), `atom_site_index` (own residue, else nearest site in space), `displaced_coords`, `atom_displacement` (NaN off basis), `TransitionUnavailable` |
+| `morph.py` | `morph(start, end, method)` → `MorphTrajectory` (`restrained` / `linear`, `bond_error`, `nearest`), `peptide_pairs`, `NOTE` (the "interpolation, not trajectory" sentence) |
 | `states.py` | `state_panel(paralog)` → `StateRow`s: every human deposit measured the same way (the gating transition at the pore) |
 
 ## `ip3r/physics/` — simulation
 
 | File | Key names |
 |---|---|
-| `anm.py` | `build_hessian` (inverse-square springs), `ANM.calc_modes` (drops 6 × components), `ANM.label_symmetry` (C4 irreps A/B/E), `ModeSet`, `tetramer_sites`, `atom_displacements` |
+| `anm.py` | `build_hessian` (inverse-square springs), `ANM.calc_modes` (drops 6 × components), `ANM.label_symmetry` (C4 irreps A/B/E), `apply_generator`, `ModeSet` (`collectivity` κ, `is_collective`, `first(irrep)` skips local artefacts), `tetramer_sites`, `atom_displacements` |
+| `transition_modes.py` | `transition_overlap(tr, reference)` → `TransitionOverlap` (overlap, cumulative, symmetry-matched null, irrep fractions, `report()`), `remove_rigid_body`, `irrep_fractions`, `null_cumulative` |
 | `gating.py` | De Young–Keizer / Li–Rinzel: `m_inf`, `n_inf`, `q2`, `h_inf`, `tau_h`, `open_probability`, `bell_peak`, `hill_fit_left_flank`, `GatingParams` |
 | `calcium.py` | closed-cell Li–Rinzel: `simulate` → `Trace`, `fluxes`, `oscillation_metrics` (sustained only), `oscillation_window` (0.36–0.63 µM measured), `steady_state`, `CellParams` |
 | `puffs.py` | stochastic DYK cluster: `simulate_cluster` → `PuffTrace`, `detect_events`, `fano`, `coupling_effect`, `PuffParams` |
@@ -90,9 +93,10 @@ headless (CLI, tests, notebooks).
 `camera.py`, `primitives.py`, `scene.py`, `spline.py`, `geometry_builders.py`,
 `shaders/` — ported unchanged from PIEZO1 (impostor spheres/cylinders,
 cartoon sweeps, trackball camera). `colormaps.py` — chain, element, fixed
-conservation ramp (0.50–0.95 JSD; grey = not scored). `representations.py` —
+conservation ramp (0.50–0.95 JSD; grey = not scored), fixed displacement ramp
+(0–25 Å). `representations.py` —
 `MolecularView` (styles × `ColorBy`, highlight, chain filter, `update_coords`
-for animation).
+for animation; `ColorBy.DISPLACEMENT` from a built transition).
 
 ## `ip3r/ui/` (PyQt6)
 
@@ -104,7 +108,9 @@ for animation).
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
 | `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, ITPR3 state comparison |
-| `modes_panel.py` | ANM table with irreps, animation controls |
+| `modes_panel.py` | ANM table with irreps and κ, animation controls |
+| `transition_panel.py` | Transition tab: end state, fit, method, 8TKG→8TKF preset, frame slider/play, displacement colouring, element and overlap plots |
+| `transition_controller.py` | `build_transition` (worker), `TransitionController` (install, `coords_at`, `show_frame`, `play`, `reset` — path built from the displayed structure) |
 | `dynamics_panel.py` | Gating (bell), Oscillations (+ window scan), Puffs (coupled vs uncoupled) |
 | `findings_panel.py` | checks by paper, run on a worker, claim/method/verdict, exhibit, show on structure |
 | `variants_panel.py` | S17 variants per paralog/class; highlight only in matching numbering |
@@ -128,7 +134,8 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 
 ## `tests/`
 
-Physics (`test_anm`, `test_gating`, `test_calcium`, `test_puffs`), geometry
+Transition (`test_transition` synthetic calibrations; `test_transition_real`
+— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_calcium`, `test_puffs`), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats`, `test_newick`), provenance (`test_parameters`,
 `test_resources`), rules (`test_sizes`), CLI, and

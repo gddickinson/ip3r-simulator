@@ -40,6 +40,52 @@ stimuli — IP3 at all four sites, a four-fold pore opening — couple at first
 order only to A modes. Modes give directions and relative stiffness, not
 amplitudes or time scales; the animation is illustrative.
 
+**Collectivity.** A mode's κ (Brüschweiler 1995) is the fraction of sites
+that effectively move. In coarse networks, weakly attached fragments give
+near-zero-eigenvalue modes with κ ≤ 0.11; collective modes have κ ≥ 0.27.
+Modes below `anm.min_collectivity` (0.2) are reported as artefacts and are
+never called "the lowest A mode". At stride 4 on 8TKG the naive lowest A
+mode was such a fragment, with κ 0.01 and overlap 0.008.
+
+## Two states: transition, morph, overlap
+
+`structure/transition.py` reduces two deposits of one paralog to a common
+basis. Both deposits must be in that paralog's human numbering. A residue
+enters the basis only if it is resolved on all eight chains, is not stubbed,
+and has the amino acid the reference gives at that number. Subunits are
+ordered right-handed about each deposit's cytosol-up axis. All four cyclic
+correspondences are tried; for a C4 pair they fit identically. The end is
+superposed onto the start *as deposited*, so the path can be drawn over what
+is on screen. `structure/morph.py` interpolates linearly, then restores
+peptide Cα–Cα distances (the PIEZO1 method). Side chains ride their Cα.
+
+`physics/transition_modes.py` scores the elastic network of one state against
+the observed move (overlap = |cos|, Tama & Sanejouand 2001). It removes the
+rigid-body part exactly, so the result does not depend on the fit. It splits
+the move into C4 isotypic components, and compares each overlap with a
+random direction **of the same irrep make-up**.
+
+8TKG → 8TKF (stride 3, pore fit), measured 2026-09-23:
+
+| quantity | value |
+|---|---|
+| basis | 2,194 residues × 4 subunits |
+| RMSD, pore fit / overall | 3.14 / 16.11 Å |
+| mean displacement: RIH_N, MIR, RIH_C | 22.0, 19.0, 16.9 Å |
+| mean displacement: channel, gate, filter | 2.5, 3.4, 0.8 Å |
+| A-symmetric share of the move | 100.0 % (C4 imposed in the maps) |
+| lowest collective A mode (#5), overlap | 0.415 (null 0.021) |
+| cumulative, 20 modes | 0.638 (null 0.048) |
+| same, network of 8TKF scoring the reverse | lowest A 0.169; 20 modes 0.708 |
+
+Across strides 1–4 the lowest collective A mode overlaps at 0.39–0.49 and
+20 modes at 0.61–0.67. At stride 5 the network falls apart (0.03, at the
+null). The 8TKG network therefore points towards activation, and one A mode
+carries two-thirds of what 20 modes capture. From the other end the picture
+is not symmetric: the lowest A mode of 8TKF points back only weakly (0.17).
+Other pairs overlap less: 6DQJ → 8TKF reaches 0.32 over 20 modes, and
+8TKH → 8TKF 0.16.
+
 ## Gating (De Young & Keizer 1992; Li & Rinzel 1994)
 
 Per subunit: an IP3 site, a fast activating Ca²⁺ site and a slow inhibitory

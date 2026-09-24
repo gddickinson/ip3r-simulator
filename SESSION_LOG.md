@@ -56,3 +56,60 @@ own repository, easy to continue in later sessions.
 
 **Next:** ROADMAP Round 2 (the resting → activated transition on the
 structure, and whether the lowest A mode points towards it).
+
+## 2026-09-23 — Session 2: Round 2, the resting → activated transition
+
+**Sync.** Both repos were up to date and `make sync-check` was clean, so no
+verdicts moved (24 confirmed, 2 discrepancies, unchanged).
+
+**Built.**
+- `structure/transition.py`: a residue-matched basis for two deposits of one
+  paralog. It requires both deposits in human numbering (7LHF is refused), and
+  keeps only unstubbed, sequence-matching residues resolved on all eight
+  chains. The end is superposed onto the start *as deposited*, so the path
+  can be drawn over what is on screen (the PIEZO1 36 Å lesson). Off-basis
+  atoms (IP3, lipids) ride the nearest site in space.
+- `structure/morph.py`: ported from PIEZO1 for C4, with restrained and
+  linear methods. The modal method was not ported; here the ANM *scores*
+  the move instead of driving it.
+- `physics/transition_modes.py`: overlap, cumulative overlap, exact
+  rigid-body removal (makes the result fit-independent; tested), C4 isotypic
+  split, and a null for a random direction of the same irrep make-up.
+- `ModeSet.collectivity` (Brüschweiler κ). `first(irrep)` now skips local
+  artefacts. The Modes tab shows κ.
+- Transition tab (preset 8TKG → 8TKF, slider/play, fixed-scale displacement
+  colouring, element and overlap plots), plus a `transition` CLI command.
+- 6 new parameters and 2 new references (DOIs checked against Crossref).
+  Tests: 79 → 95.
+
+**Measured (8TKG → 8TKF, pore fit, stride 3).**
+- RMSD 3.14 Å on the pore domain, 16.11 Å overall. The cytosolic RIH_N and
+  MIR domains move 22 and 19 Å on average; the channel moves 2.5 Å and the
+  filter 0.8 Å.
+- The lowest collective A mode (#5) has overlap 0.415, against a null of
+  0.021; 20 modes reach 0.638 (null 0.048). The resting network points
+  towards activation. From the 8TKF end the lowest A mode reaches only 0.17.
+- The displacement is 100.0 % A-symmetric. That is inherited from
+  C4-imposed maps, and the docs say so.
+
+**Where I was wrong first.**
+- The null was a random direction in all 3N−6 dimensions. Because the move
+  is purely A, the right null is a random A direction; it is now
+  symmetry-matched.
+- **The lowest-A-mode overlap was not robust**: 0.42 at stride 3 but 0.008
+  at stride 4. The cause was a weakly attached network fragment (κ 0.01,
+  near-zero eigenvalue) taking the "lowest A" slot. κ separates artefacts
+  (≤ 0.11) from collective modes (≥ 0.27), so the threshold was set at 0.2.
+  With that guard the result holds over strides 1–4 (0.39–0.49). At stride 5
+  the network fails outright: it reaches only 0.03, at the null, and the
+  report shows that.
+- Registered the colour-scale top at 20 Å with a note claiming it was above
+  the 95th percentile, but the measured 95th percentile is 24.1 Å. The top
+  is now 25 Å and the note carries the measured values.
+- Two of my own synthetic tests were wrong (an arbitrary chord threshold;
+  expecting a random A field to have no rigid part, when z-translation and
+  z-rotation are themselves A). The code was right in both cases.
+
+**Next:** Round 3. Two emergent items were added to ROADMAP: the source of the
+stride-3 local modes, and why the gate radius along the morph is not yet
+measurable.

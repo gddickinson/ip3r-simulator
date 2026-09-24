@@ -127,6 +127,56 @@ P = [
        "the mode is reported as mixed rather than forced into a label",
        0.01, 0.5),
 
+    _p("anm.min_collectivity", "Collective-mode threshold", 0.2, "",
+       "method", "anm", "bruschweiler1995", "Modes whose collectivity "
+       "(Bruschweiler's kappa, the fraction of sites effectively moving) is "
+       "below this are reported as local network artefacts, not collective "
+       "motions.",
+       "The measure is Bruschweiler 1995; the threshold is ours. On the 8TKG "
+       "network at strides 1-5 every mode is either <= 0.11 (weakly attached "
+       "fragments, near-zero eigenvalues) or >= 0.27; 0.2 sits in that gap. "
+       "At stride 4 the 'lowest A mode' was such a fragment (kappa 0.01, "
+       "overlap 0.008) while the collective one below it had 0.49", 0.0,
+       1.0),
+
+    # ------------------------------------------------- transition and morph
+    _p("transition.min_residues", "Minimum common residues", 50.0, "",
+       "method", "transition", "method_choice", "Fewer residues common to "
+       "both deposits than this and no transition is built.",
+       "A sanity floor, not a tuning knob: two deposits of one paralog share "
+       "thousands (8TKG/8TKF: 2,198 per subunit); fewer than 50 means the "
+       "wrong pair or the wrong numbering", 4.0, 1000.0),
+    _p("transition.tie_tolerance", "Subunit correspondence tie", 0.05, "A",
+       "method", "transition", "method_choice", "Cyclic subunit "
+       "correspondences whose fit RMSD is within this of the best are "
+       "treated as equally good; the tie goes to the deposited chain labels.",
+       "A C4-symmetric pair fits every cyclic relabelling to within "
+       "~0.01 A (8TKG->8TKF: 14.18 A for all four); 0.05 A is above that "
+       "and far below any real mismatch", 0.0, 1.0),
+    _p("morph.n_frames", "Morph frames", 30.0, "", "method", "morph",
+       "method_choice", "Solved frames between the two endpoints.",
+       "As the PIEZO1 simulator: smooth playback; more only costs time", 2.0,
+       200.0),
+    _p("morph.iterations", "Morph restraint iterations", 60.0, "", "method",
+       "morph", "method_choice", "SHAKE-style passes restoring peptide "
+       "C-alpha-C-alpha distances per frame.",
+       "As the PIEZO1 simulator; the reported bond error shows whether it "
+       "was enough", 0.0, 1000.0),
+    _p("morph.max_bond", "Peptide bond cut", 6.0, "A", "method", "morph",
+       "method_choice", "Consecutive basis C-alphas farther apart than this "
+       "in either endpoint are a chain break, not a bond, and are not "
+       "restrained.",
+       "A trans peptide C-alpha-C-alpha distance is 3.8 A; 6 A admits "
+       "coordinate error and excludes any gap of one missing residue or "
+       "more", 4.0, 10.0),
+    _p("display.displacement_max", "Displacement colour scale top", 25.0,
+       "A", "convention", "display", "convention", "Per-residue displacement "
+       "at which the fixed displacement ramp saturates.",
+       "Fixed, never auto-ranged, so two transitions painted with it can be "
+       "compared; 8TKG->8TKF fitted on the pore domain has a 95th "
+       "percentile of 24.1 A and a maximum of 30.6 A, so only the most "
+       "mobile few per cent of the cytosolic assembly saturate", 1.0, 100.0),
+
     # ------------------------------------------------------ structure geometry
     _p("pore.step", "Pore profile step", 0.5, "A", "method", "pore",
        "ip3r_genes", "Axial sampling interval of the pore profile.",

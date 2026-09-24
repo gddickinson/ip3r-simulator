@@ -9,6 +9,7 @@ testable and scriptable:
     python -m ip3r checks           # re-derive the ip3r_genes findings
     python -m ip3r states           # pore of every ITPR3 gating state
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
+    python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
     python -m ip3r gating           # the bell curve at several IP3 levels
     python -m ip3r oscillate --ip3 0.5 [--window]
     python -m ip3r puffs --ip3 0.2
@@ -106,6 +107,31 @@ def _modes(args) -> int:
     return 0
 
 
+def _transition(args) -> int:
+    from .io import loader
+    from .physics.transition_modes import transition_overlap
+    from .structure.morph import morph
+    from .structure.transition import prepare_transition
+    loader.ALLOW_FETCH = args.fetch
+    tr = prepare_transition(loader.load(args.start), loader.load(args.end), args.fit)
+    print(f"fit on {tr.fit}: {tr.meta['n_fit_sites']} sites, RMSD {tr.fit_rmsd:.2f} Å; "
+          f"subunits {''.join(tr.chains_start)} -> {''.join(tr.chains_end)}"
+          + ("" if tr.meta["correspondence_determined"] else
+             " (all cyclic correspondences fit alike: C4-symmetric pair)"))
+    print("mean residue displacement by element (Å):")
+    for name, d in sorted(tr.element_means().items(), key=lambda kv: -kv[1]):
+        print(f"  {name:20s} {d:6.2f}")
+    m = morph(tr.start, tr.end, args.method)
+    print(f"morph: {m.summary()}")
+    ov = transition_overlap(tr, args.reference, stride=args.stride, n_modes=args.n)
+    print("\n".join(ov.report()))
+    kappa = ov.modes.collectivity()
+    for i in range(ov.modes.n_modes):
+        print(f"  mode {i + 1:3d} {ov.modes.symmetry[i]:5s} κ {kappa[i]:.2f}  overlap {ov.overlap[i]:.3f}"
+              f"  cumulative {ov.cumulative[i]:.3f}  (null {ov.null_cumulative[i]:.3f})")
+    return 0
+
+
 def _states(args) -> int:
     from .io import loader
     from .structure.states import state_panel
@@ -194,6 +220,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("-n", type=int, default=None)
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_modes)
+    p = sub.add_parser("transition", help="two states of one paralog: "
+                       "displacement, morph and ANM overlap")
+    p.add_argument("start", nargs="?", default="8TKG")
+    p.add_argument("end", nargs="?", default="8TKF")
+    p.add_argument("--fit", choices=("pore", "global"), default="pore")
+    p.add_argument("--method", choices=("restrained", "linear"), default="restrained")
+    p.add_argument("--reference", choices=("start", "end"), default="start",
+                   help="whose elastic network is solved")
+    p.add_argument("--stride", type=int, default=None)
+    p.add_argument("-n", type=int, default=None)
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_transition)
     p = sub.add_parser("gating")
     p.add_argument("--ip3", type=float, nargs="+", default=[0.1, 0.3, 1.0, 10.0])
     p.set_defaults(fn=_gating)

@@ -47,6 +47,22 @@ modes, each labelled by its C4 irreducible representation: **A** (all four
 subunits alike — the only kind that can couple to IP3 binding at all four
 sites and to a symmetric pore opening), **B**, or the degenerate **E** pair.
 
+**Watch it open.** The Transition tab (and `python -m ip3r transition`)
+puts two states of one paralog on a residue-matched basis — 2,194 residues
+on each of the four subunits of resting 8TKG and activated 8TKF — superposes
+them on the pore domain, and morphs between them with peptide Cα–Cα
+distances restrained (an interpolation, labelled as one). Each residue is
+coloured by how far it moves, on a fixed 0–25 Å scale: the cytosolic RIH
+and MIR domains move 17–22 Å on average, while the pore domain moves 2.5 Å
+and the filter 0.8 Å. The tab then asks whether the resting
+state's elastic network points towards the activated one. It does: the lowest
+collective A mode overlaps the observed displacement at 0.42, where a
+random direction of the same symmetry scores 0.02. Twenty modes capture
+0.64, against 0.05 at random. The displacement is 100 % A-symmetric, but
+that is inherited from C4-imposed reconstruction and is not a finding.
+
+![The transition tab](docs/img/gui_transition.png)
+
 **Gate it.** The De Young–Keizer receptor as reduced by Li & Rinzel: the
 bell-shaped Ca²⁺ dependence of open probability, IP3 relieving Ca²⁺
 inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
@@ -130,6 +146,7 @@ python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
+python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
 python -m ip3r gating | oscillate --window | puffs --ip3 0.2
 make help
 ```
@@ -154,5 +171,6 @@ De Young & Keizer 1992 (PNAS 89:9895); Li & Rinzel 1994 (J Theor Biol
 & Foskett 1998 (PNAS 95:15821); Swillens et al. 1999 (PNAS 96:13750); Shuai &
 Jung 2002 (Biophys J 83:87); Smith & Parker 2009 (PNAS 106:6404); Paknejad &
 Hite 2018 (NSMB 25:660); Atilgan et al. 2001 (Biophys J 80:505); Yang, Song &
-Jernigan 2009 (PNAS 106:12347); Kabsch 1976 (Acta Cryst A32:922); Hanley &
+Jernigan 2009 (PNAS 106:12347); Tama & Sanejouand 2001 (Protein Eng 14:1);
+Brüschweiler 1995 (J Chem Phys 102:3396); Kabsch 1976 (Acta Cryst A32:922); Hanley &
 McNeil 1982 (Radiology 143:29). Full entries: `ip3r/resources/references.json`.

@@ -52,6 +52,7 @@ class ColorBy(str, Enum):
     BFACTOR = "bfactor"
     ATOM = "atom"
     VALUE = "value"                   # an arbitrary per-atom scalar
+    DISPLACEMENT = "displacement"     # between two states, fixed scale
     UNIFORM = "uniform"
 
 
@@ -62,7 +63,9 @@ COLOR_LABELS = {ColorBy.ELEMENT_DOMAIN: "Functional element",
                 ColorBy.CHAIN: "Subunit", ColorBy.CONSERVATION: "Conservation (JSD)",
                 ColorBy.SECONDARY: "Secondary structure",
                 ColorBy.BFACTOR: "B-factor / pLDDT", ColorBy.ATOM: "Atom type",
-                ColorBy.VALUE: "Mode amplitude", ColorBy.UNIFORM: "Uniform"}
+                ColorBy.VALUE: "Mode amplitude",
+                ColorBy.DISPLACEMENT: "Displacement (Transition tab)",
+                ColorBy.UNIFORM: "Uniform"}
 
 SS_COLORS = np.array([[0.55, 0.58, 0.66], [0.94, 0.42, 0.42],
                       [0.98, 0.82, 0.35]], dtype=np.float32)
@@ -91,6 +94,7 @@ class MolecularView:
     show_ligands: bool = True
     show_hydrogens: bool = False
     values: np.ndarray | None = None
+    displacement: np.ndarray | None = None    # per atom, Å; NaN = not measured
     highlight: np.ndarray | None = None       # per-atom bool, drawn as balls
     highlight_color: tuple = (1.0, 0.85, 0.2)
     visible_chains: frozenset | None = None
@@ -140,6 +144,10 @@ class MolecularView:
             return st.element_colors()
         if cb is ColorBy.VALUE and self.values is not None:
             return colormaps.value_colors(self.values)
+        if cb is ColorBy.DISPLACEMENT:
+            if self.displacement is None:
+                return np.tile(colormaps.MISSING, (st.n_atoms, 1))
+            return colormaps.displacement_colors(self.displacement)
         if cb is ColorBy.SECONDARY:
             out = np.tile(SS_COLORS[0], (st.n_atoms, 1))
             for tr in self.traces:

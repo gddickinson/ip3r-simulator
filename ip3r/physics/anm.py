@@ -35,7 +35,7 @@ from ..parameters import PARAMETERS as _P
 from ..structure.symmetry import Frame, rotation_matrix, subunit_ca
 
 __all__ = ["build_hessian", "ModeSet", "ANM", "tetramer_sites", "atom_displacements",
-           "IRREP_CHARACTERS"]
+           "IRREP_CHARACTERS", "apply_generator"]
 
 #: Character of each C4 irrep under the 90° generator.
 IRREP_CHARACTERS = {"A": 1.0, "B": -1.0, "E": 0.0}
@@ -111,10 +111,28 @@ class ModeSet:
         flat = flat / np.linalg.norm(flat, axis=1, keepdims=True)
         return np.abs(flat @ (d / np.linalg.norm(d)))
 
-    def first(self, irrep: str) -> int | None:
+    def collectivity(self) -> np.ndarray:
+        """Brüschweiler's kappa per mode: the fraction of sites that move.
+
+        ``exp(-sum u2 ln u2) / N`` with ``u2`` each site's normalised squared
+        amplitude — 1 when every site moves equally, 1/N for one site.
+        """
+        u2 = np.einsum("mij,mij->mi", self.vectors, self.vectors)
+        u2 = u2 / u2.sum(1, keepdims=True)
+        ent = -np.sum(np.where(u2 > 0, u2 * np.log(np.where(u2 > 0, u2, 1.0)), 0.0), 1)
+        return np.exp(ent) / self.vectors.shape[1]
+
+    def is_collective(self) -> np.ndarray:
+        return self.collectivity() >= _P.value("anm.min_collectivity")
+
+    def first(self, irrep: str, collective: bool = True) -> int | None:
+        """Lowest mode of ``irrep``; by default skipping local network artefacts."""
         if self.symmetry is None:
             return None
-        hits = np.flatnonzero(self.symmetry == irrep)
+        ok = self.symmetry == irrep
+        if collective:
+            ok &= self.is_collective()
+        hits = np.flatnonzero(ok)
         return int(hits[0]) if len(hits) else None
 
 
@@ -131,6 +149,19 @@ def tetramer_sites(st: Structure, frame: Frame, stride: int | None = None
     shared = shared[::max(stride, 1)]
     coords = np.vstack([[ca[c][r] for r in shared] for c in frame.chains])
     return coords, np.asarray(shared)
+
+
+def apply_generator(field: np.ndarray, axis: np.ndarray | None, n: int = 4,
+                    power: int = 1) -> np.ndarray:
+    """The C_n generator applied ``power`` times to a per-site vector field.
+
+    Moves subunit block k onto block k+1 and turns each vector by 360°/n
+    about ``axis`` (blocks must be in right-handed order about it).
+    """
+    axis = np.array([0.0, 0.0, 1.0]) if axis is None else axis
+    rot = rotation_matrix(axis, 2 * np.pi * power / n)
+    per = len(field) // n
+    return np.roll(field.reshape(n, per, 3), power, axis=0).reshape(-1, 3) @ rot.T
 
 
 @dataclass
@@ -176,14 +207,10 @@ class ANM:
         their sum, which is why E is identified by |chi| < tolerance.
         """
         tol = _P.value("anm.symmetry_tolerance") if tolerance is None else tolerance
-        n = self.n_subunits
-        per = len(self.coords) // n
-        axis = self.axis if self.axis is not None else np.array([0.0, 0.0, 1.0])
-        rot = rotation_matrix(axis, 2 * np.pi / n)
         chars = np.empty(modes.n_modes)
         for m in range(modes.n_modes):
             u = modes.vectors[m]
-            su = np.roll(u.reshape(n, per, 3), 1, axis=0).reshape(-1, 3) @ rot.T
+            su = apply_generator(u, self.axis, self.n_subunits)
             chars[m] = float(np.sum(u * su) / np.sum(u * u))
         labels = np.full(modes.n_modes, "mixed", dtype="U5")
         for name, chi in IRREP_CHARACTERS.items():
