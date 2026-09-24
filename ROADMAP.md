@@ -5,8 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 5, item 3** (variants as spheres; VUS by conservation layer),
-unless an emergent Round 4 item is preferred.
+**Next: Round 5, item 4** (AlphaFold models for the unresolved stretches),
+unless an emergent item is preferred.
 
 ## Destination
 
@@ -212,8 +212,23 @@ Emergent (not scheduled):
   Emergent:
   - [ ] Mode animation and Dynamics-panel settings (IP3, coupling, model) are
     not in a session. Add them if a saved view turns out to need them.
-- [ ] Variants painted as spheres on all four subunits with class colours;
-  ClinVar VUS stratified by conservation layer.
+- [x] Variants as spheres on every visible subunit, in class colours
+  (Variants tab, "Draw on structure"; refused on a deposit in another
+  numbering). The spheres follow a morph frame. With a layer chosen, each VUS
+  is placed against its gene's labelled medians (Paper 5 §8) and takes its
+  stratum's colour. New rederived check `P5.vus_stratification`: all 12
+  gene × layer rows of `vus_stratification.tsv`, every count, median and
+  fraction, rebuilt from `variants.tsv` and the per-residue tables. On the
+  family layer, 10/6/11 % of VUS reach the P/LP median and 16/36/52 % sit at
+  or below the B/LB median. The table includes the curated UniProt P/LP
+  records, which the AUC test excludes; run ClinVar-only it is identical. The
+  viewer's resource route reproduces the table too (tested). 46 checks: 44
+  confirmed, 2 discrepancies. The earlier "46 checks" was a miscount of 45.
+  Emergent:
+  - [ ] The variants view (class, layer, drawn) is not in a session.
+  - [ ] Per-paralog: ITPR2's P/LP median is one position's score. Draw the
+    thresholds' uncertainty (bootstrap the medians) so a stratum near a
+    median is shown as such.
 - [ ] AlphaFold models for the unresolved stretches, seams shown.
 
 ## Deliberately not doing

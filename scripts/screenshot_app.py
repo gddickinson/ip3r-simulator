@@ -304,6 +304,36 @@ def main() -> int:
                 win.grab().save(str(out / "gui_session.png"))
                 from ip3r.parameters import PARAMETERS
                 PARAMETERS.reset()
+            elif s == 17:                            # variants, on the restored view
+                v = win.variants
+                win.tabs.setCurrentWidget(v)
+                if v.paralog.currentText() != "ITPR3":
+                    raise RuntimeError("the Variants tab did not follow the ITPR3 deposit")
+                v.bucket.setCurrentText("all")
+                v.layer.setCurrentIndex(v.layer.findData("family"))
+                v.draw.setChecked(True)
+                batch = win.scene.scene.get("variants")
+                st, view = win.scene.structure, win.scene.view
+                idx = win.scene._variant_atoms
+                if batch is None or batch.count == 0:
+                    raise RuntimeError("no variant spheres drawn")
+                shown = set(st.chain[idx])
+                if shown != set(view.visible_chains or st.chains):
+                    raise RuntimeError(f"spheres on chains {sorted(shown)}, "
+                                       f"not the visible {sorted(view.visible_chains)}")
+                if abs(view.structure.xyz[idx] - st.xyz[idx]).max() < 0.1:
+                    raise RuntimeError("spheres at the deposit, not the morph frame")
+                strata = {row for row in range(v.table.rowCount())
+                          if v.table.item(row, 6).text()}
+                if not strata:
+                    raise RuntimeError("no VUS stratum in the table with a layer chosen")
+                app.processEvents()
+                win.grab().save(str(out / "gui_variants.png"))
+                v.paralog.setCurrentText("ITPR1")       # wrong numbering: must refuse
+                if win.scene.scene.get("variants") is not None or \
+                        "not in human ITPR1" not in v.status.text():
+                    raise RuntimeError("variants drawn on a deposit in another numbering")
+                v.draw.setChecked(False)
             else:
                 print("screenshots written to", out)
                 return app.quit()

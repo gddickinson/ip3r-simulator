@@ -381,6 +381,30 @@ paper's numbers from those rows:
   three records of 2,366–2,858 aa are UniProt-flagged fragments. That was
   the checker's error.
 
+## Paper 5 §8: the VUS stratification
+
+`analysis/vus_strata.py` rebuilds S17's rule from its description. For one
+gene on one layer, each class (P/LP, B/LB, VUS) is scored once per
+**position**. A residue scores only at occupancy ≥
+`constraint.min_occupancy` (0.5). On the deep layer that is the same set as
+the `deep_reliable` flag: the two agree at every residue of all three
+paralogs. A residue carrying alleles of two classes counts in both. The
+thresholds are the labelled sets' own medians. A VUS at or above the P/LP
+median is pathogenic-like, and one at or below the B/LB median is
+benign-like; ties count. `P5.vus_stratification` rebuilds all 12 rows of
+`vus_stratification.tsv` from `variants.tsv` and the per-residue tables, and
+every field agrees.
+
+The stratification takes every source, so the 13 curated UniProt P/LP
+records are in its P/LP median. The classifier test (`P5.variant_auc`) is
+ClinVar only. Run ClinVar-only, the table is unchanged: every curated record
+sits at a position ClinVar already labels P/LP, or at one no layer scores. So
+the difference in rules changes no number here.
+
+The viewer computes the same stratification from the committed resources
+(`constraint.json`, `variants.json`), and a test proves that it reproduces
+S17's table.
+
 ## What the findings checks establish
 
 | kind | what agreement means |

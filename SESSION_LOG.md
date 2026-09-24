@@ -679,3 +679,52 @@ smoke test checks the list selection.
 and no check verdict changed.
 
 **Next:** Round 5, item 3 (variants as spheres; VUS by conservation layer).
+
+
+## 2026-09-24 — Round 5.3: variants as spheres; VUS by conservation layer
+
+**What.** The Variants tab can draw the S17 harvest on the structure. "Draw
+on structure" puts one sphere per variant residue on the Cα of every visible
+subunit, in class colours. Where a residue carries alleles of several
+classes, the most decisive class wins. With a layer chosen under "VUS by
+layer", each VUS is placed against its own gene's labelled medians (Paper 5
+§8). The table gains a stratum column, a strip plot shows the three classes
+and both medians on a fixed 0–1 axis, and the VUS spheres take the stratum
+colour (unscored = grey). The tab now follows the deposit's paralog on load.
+New modules: `analysis/vus_strata.py` (the rule, headless),
+`analysis/vus_figure.py`, `analysis/checks_variants.py` and
+`render/variant_spheres.py`. There are 6 new tests (236 → 242) and one smoke
+step.
+
+**The check.** `P5.vus_stratification` (rederived) rebuilds all 12 rows of
+`vus_stratification.tsv` from `variants.tsv` and the per-residue tables,
+using a rule written from S17's description: positions not alleles, the
+occupancy floor, and ties counting. Every field agrees. The planted relabel
+of one ITPR3 P/LP variant in `variants.tsv` flips it, which proves the rows
+are recomputed and not just read.
+
+**Two things checked because they could have been checker bugs, and were
+not.** (1) Our `constraint.json` masks the deep layer by `deep_reliable`,
+but S17's stratification masks by occupancy ≥ 0.5. The two agree at every
+residue of all three paralogs, so the viewer (which uses the resource) and
+the check (which uses the tables) give the same numbers, and a test pins
+this. (2) The stratification takes every source, so the 13 curated UniProt
+P/LP records are in its P/LP median, while the AUC test is ClinVar only. Run
+ClinVar-only, the table is identical, so the inconsistency moves no number.
+This is recorded in `docs/SCIENCE.md` and is not a discrepancy.
+
+**The spheres follow the view, not the deposit.** The first version placed
+them at deposited coordinates, which is wrong mid-morph. The smoke test runs
+on the restored 8TKG→8TKF session at frame 5 with chain D hidden. It
+requires the spheres on exactly the visible chains (930 spheres, 3 subunits)
+and displaced from the deposit, and it requires a refusal when the tab is
+switched to ITPR1.
+
+**Record corrected.** HEAD had 45 registered checks, not the 46 the Round 3
+(Paper 1) entry stated. The count is now 46: 44 confirmed, 2 discrepancies,
+both unchanged.
+
+**Not changed.** `make sync-check` was clean; no `ip3r_genes` table moved,
+and no check verdict changed.
+
+**Next:** Round 5, item 4 (AlphaFold models for the unresolved stretches).

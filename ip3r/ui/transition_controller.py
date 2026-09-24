@@ -82,7 +82,9 @@ class TransitionController:
         self.frame = int(np.clip(i, 0, n - 1))
         if self.scene.view.style is Style.CARTOON and self.frame:
             self.scene.view.style = Style.TUBE       # a cartoon per frame is too slow
-        self.scene.view.update_coords(self.coords_at(self.frame))
+        xyz = self.coords_at(self.frame)
+        self.scene.view.update_coords(xyz)
+        self.scene.move_overlays(xyz)
         self.viewport.update()
 
     def play(self, on_frame=None) -> None:
@@ -117,4 +119,5 @@ class TransitionController:
         if view is not None and had:
             view.displacement = None
             view.update_coords(self.scene.structure.xyz)
+            self.scene.move_overlays(self.scene.structure.xyz)
             self.viewport.update()

@@ -186,6 +186,11 @@ PLANTS = {
             r["class_bucket"], r["class_bucket"])}),
     "P5.vus_count": lambda d: _edit(d / R / "constraint/variants.tsv",
                                     _first({"class_bucket": "VUS"}, class_bucket="other")),
+    # An input, not the published table: proves the rows are rebuilt.
+    "P5.vus_stratification": lambda d: _edit(
+        d / R / "constraint/variants.tsv",
+        _first({"gene": "ITPR3", "class_bucket": "P/LP", "source": "clinvar"},
+               class_bucket="B/LB")),
     "P5.omega_range": lambda d: _edit(d / R / "selection/omega_table.tsv",
                                       _set({"job": "m0_ITPR1"}, omega=0.2)),
     "P6.contacts_vs_core": lambda d: _edit(

@@ -112,7 +112,12 @@ def _range(name):
     return draw
 
 
-EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
+def _vus(ax, d):
+    from .vus_figure import draw_fractions
+    draw_fractions(ax, d)
+
+
+EXHIBITS = {"P5.vus_stratification": _vus, "S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
             "P6.loop_reverses": _modules, "P6.shell_trend": _shell_trend,

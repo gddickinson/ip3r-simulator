@@ -154,7 +154,21 @@ or expand the prokaryotes. Clicking a row lists its genome-level absences.
 
 ![Paper 1's range](docs/img/gui_range.png)
 
-## The checks, as of Round 3
+**See the variants, and where the uncertain ones sit.** The Variants tab lists
+the S17 harvest for one paralog and class. "Draw on structure" puts a sphere
+on every variant residue of that class on all visible subunits: P/LP red,
+B/LB blue, conflicting violet, VUS amber. It draws only on a deposit in that
+paralog's human numbering; on any other it says why and draws nothing. Choose
+a layer under "VUS by layer" and each VUS is placed against its own gene's
+labelled medians on that layer, as in Paper 5 §8. A VUS at or above the P/LP
+median is *pathogenic-like* (pale red), one at or below the B/LB median is
+*benign-like* (pale blue), and an unscored one is grey. The table gains a
+stratum column and the plot shows the three classes with both medians. This
+is a stratification, not a call.
+
+![Variants and the VUS stratification](docs/img/gui_variants.png)
+
+## The checks, as of Round 5
 
 44 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
@@ -188,6 +202,7 @@ touches a published paper's headline:
 | `P5.variant_auc` | rederived | confirmed | all AUCs and position counts |
 | `P5.deep_ranks_third` | rederived | confirmed | family 0.872 > vert 0.854 > deep 0.758 > shallow 0.684 |
 | `P5.vus_count` | rederived | confirmed | 1,546 |
+| `P5.vus_stratification` | rederived | confirmed | all 12 gene × layer rows, every count, median and fraction; ClinVar-only gives the same table |
 | `P5.omega_range` | read | confirmed | ω 0.024, 0.043, 0.042 |
 | `P6.contacts_vs_core` | rederived | confirmed | +0.069, +0.092, +0.073 |
 | `P6.module_map` | rederived | confirmed | all nine module spans identical |

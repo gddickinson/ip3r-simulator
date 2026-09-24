@@ -113,6 +113,9 @@ headless (CLI, tests, notebooks).
 | `range_table.py` | Paper 1's S20/S23 rows: `load_proteomes` → `Proteome` (clade from taxonomy.tsv), `clade_rows` → `CladeRow`, `count_at(rank, name)`, `taxon_calls` (from the 6 assignment tables), `absence_targets` (S23 rule G3, `range.absence_min_proteomes`), `genome_absences` → `GenomeAbsence` (rebuilt from manifest + control ledger + copies + copy ledger; `CONTROLLED`), `copy_numbers`, `substantial_table` (relaxed hits at the registered bar; `LINEAGES`), `load_range` → `Range` (`absences_in(clade)`) |
 | `range_figure.py` | `draw_range(ax, clades, absences)` — clade bars on a fixed 0–1 scale, supergroup colours (`GROUP_COLORS`), prokaryotes collapsed, genome absences crossed; exhibits `draw_presence`, `draw_relaxed`, `draw_absences`, `draw_copies`, `draw_chase` |
 | `checks_range.py` | `P1.presence_range`, `P1.kingdom_absences`, `P1.relaxed_controls`, `P1.absence_targets`, `P1.absences`, `P1.copy_number`, `P1.record_chase` (all rederived) |
+| `vus_strata.py` | Paper 5 §8: `stratify(rows, score, gene, layer, sources=)` → `Stratification` (per-position scores per class, both medians, `strata`, `row()` = S17's fields), `stratum_of`, `STRATA`, `CLASS_COLORS`/`STRATUM_COLORS` |
+| `vus_figure.py` | `draw_fractions` (the check's exhibit: VUS shares per gene × layer, fixed 0–1), `draw_strip` (one gene, one layer: classes and medians) |
+| `checks_variants.py` | `P5.vus_stratification` (every row of vus_stratification.tsv rebuilt; also ClinVar-only), `table_score` |
 | `exhibits.py` | `draw(ax, check_id, outcome)` — figures from a check's own numbers |
 
 ## `ip3r/render/` (moderngl, OpenGL 4.1)
@@ -122,7 +125,7 @@ headless (CLI, tests, notebooks).
 cartoon sweeps, trackball camera). `colormaps.py` — chain, element, fixed
 conservation ramp (0.50–0.95 JSD; grey = not scored), fixed displacement ramp
 (0–25 Å), `SHELL_COLORS`/`shell_colors` (S22's four shells, grey beyond). `representations.py` —
-`MolecularView` (styles × `ColorBy`, highlight (uniform or per-atom `highlight_rgb`), chain filter, `update_coords`
+`variant_spheres.py` — `variant_spheres(st, gene, classes, layer, chain_mask)` (Cα of each variant residue on every visible subunit; most decisive class wins; VUS by stratum from the resources), `resource_stratification`, `variant_classes`. `MolecularView` (styles × `ColorBy`, highlight (uniform or per-atom `highlight_rgb`), chain filter, `update_coords`
 for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_SHELL` from `structure.shells`).
 
 ## `ip3r/ui/` (PyQt6)
@@ -131,7 +134,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 |---|---|
 | `app.py` | `main()` — surface format, theme, window, initial load (or `--session FILE`) |
 | `main_window.py` | layout and wiring; menus (File: open/save session); loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer, `CHECK_RANGE` to the Range tab |
-| `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, side/top views, mode animation |
+| `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, `show_variants` (sphere batch, refused in another numbering), `move_overlays` (spheres follow morph/mode frames), side/top views, mode animation |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
 | `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, ITPR3 state comparison, `show_unitary` (conductance per state vs the measured values; `unitary_rows` for the smoke test) |
@@ -144,7 +147,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `tree_panel.py` | Tree tab: `draw_tree` on a toolbar canvas, tip labels / support toggles, "Vertebrates" zoom, click names a tip; loaded on a worker when first shown |
 | `genomes_panel.py` | Genomes tab: `draw_grid` with layer / sort / class / above-bar controls, click names a genome; loaded on a worker when first shown; `show_layer` (from a check's "Show") |
 | `range_panel.py` | Range tab: `draw_range` with min-proteomes / collapse-prokaryotes / genome-absence controls, click lists a clade's genome absences; loaded on a worker when first shown |
-| `variants_panel.py` | S17 variants per paralog/class; highlight only in matching numbering |
+| `variants_panel.py` | S17 variants per paralog/class; "Draw on structure" (spheres, `draw_requested`), "VUS by layer" (stratum column, `draw_strip` plot, stratum colours); `follow(paralog)` on load; drawn only in matching numbering |
 | `params_dialog.py` | `ParametersDialog`: the registry editor (filter, modified-only, edit with clamp report, reset selected/all, import/export in the `IP3R_PARAMETERS` format; `edit(key, text)` for the smoke test) |
 | `params_banner.py` | `ParametersBanner`: the amber "parameters modified" strip, driven by the registry's listeners; hosted in a full-width toolbar (`MainWindow.params_strip`) |
 | `session_controller.py` | `SessionController`: File → Save/Open session, `--session`; `capture`, `save_to`, `apply(session, parameters=)` (asks when the saved parameter set differs; applying re-measures), finished from `loaded` and `transition_built` because both the load and the morph run on workers; a restore is dropped if another deposit arrives first |
@@ -171,7 +174,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
 — the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
-(`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters` — listeners fire once per effective change, import is replace-not-merge and refuses a bad file untouched, a memoised measurement made under an edit is dropped on reset,
+(`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), VUS strata (`test_vus_strata` — the rule by hand, ties, a residue in two classes, the resource route = S17's table, one sphere per subunit), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters` — listeners fire once per effective change, import is replace-not-merge and refuses a bad file untouched, a memoised measurement made under an edit is dropped on reset,
 `test_resources`), sessions (`test_session` — round trip, the field set pinned so a result cannot ride along, malformed files refused by name, `replace` semantics), rules (`test_sizes`), CLI, and
 **`test_checks_calibration.py`** — every check flipped by a planted input
 (`PLANTS`), sources proven complete, `not_run` without data, refusal under

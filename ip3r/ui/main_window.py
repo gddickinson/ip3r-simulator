@@ -130,6 +130,7 @@ class MainWindow(QMainWindow):
                                   | frozenset(CHECK_GENOMES) | CHECK_RANGE)
         tabs.currentChanged.connect(self._tab_shown)
         self.variants.highlight_residue.connect(self._highlight_variant)
+        self.variants.draw_requested.connect(self._draw_variants)
         self.viewport.atom_picked.connect(self._picked)
         self.viewport.scene_ready.connect(lambda _: self.scene.attach())
         self.viewport.status.connect(self.statusBar().showMessage)
@@ -207,6 +208,7 @@ class MainWindow(QMainWindow):
         self.transition.set_start(st.name, summary.numbering.paralog
                                   if summary.numbering else None)
         self._apply_sites()
+        self.variants.follow(summary.numbering.paralog if summary.numbering else None)
         self.statusBar().showMessage(
             f"{st.name} loaded — numbering "
             f"{summary.numbering.paralog if summary.numbering else 'none'}; "
@@ -348,6 +350,11 @@ class MainWindow(QMainWindow):
     def _highlight_variant(self, paralog: str, resi: int) -> None:
         msg = self.scene.highlight_residue(paralog, resi)
         self.variants.report(msg)
+
+    def _draw_variants(self, paralog: str, classes: tuple, layer) -> None:
+        msg = self.scene.show_variants(paralog, classes, layer)
+        if msg:
+            self.variants.report(msg)
 
     def _picked(self, index: int) -> None:
         self.statusBar().showMessage(self.scene.describe_atom(index))

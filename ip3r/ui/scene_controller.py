@@ -15,6 +15,7 @@ from ..core.modules import MODULE_COLORS, MODULES_KEY, modules
 from ..physics.anm import ANM, atom_displacements, tetramer_sites
 from ..render import colormaps
 from ..render.representations import MolecularView, Style
+from ..render.variant_spheres import variant_spheres
 
 __all__ = ["SceneController", "matrix_to_quat"]
 
@@ -42,6 +43,8 @@ class SceneController:
         self._sites: list[str] = []
         self._base_xyz = None
         self._disp = None
+        self._variants: tuple | None = None       # (paralog, buckets, layer)
+        self._variant_atoms = np.zeros(0, int)
 
     def attach(self) -> None:
         """Called once the GL context exists."""
@@ -57,6 +60,8 @@ class SceneController:
         if self.view is not None:
             self.view.clear()
         self.scene.remove("pore")
+        self.scene.remove("variants")
+        self._variants, self._variant_atoms = None, np.zeros(0, int)
         self.structure, self.summary, self.modes = st, summary, None
         paralog = summary.numbering.paralog if summary.numbering else None
         self.view = MolecularView(self.scene, st, name="model", paralog=paralog, **style)
@@ -72,6 +77,8 @@ class SceneController:
             setattr(self.view, k, v)
         if chains_changed:
             self.view._build_traces()
+            if self._variants is not None:
+                self.show_variants(*self._variants)
         self.view.rebuild()
         self.viewport.update()
 
@@ -154,6 +161,37 @@ class SceneController:
         self.viewport.update()
         return f"{paralog} {resi}: highlighted on {len(set(self.structure.chain[mask]))} subunits"
 
+    def show_variants(self, paralog: str, buckets, layer: str | None = None) -> str:
+        """Variant spheres on every visible subunit; ``buckets`` empty clears."""
+        self.scene.remove("variants")
+        self._variants, self._variant_atoms = None, np.zeros(0, int)
+        if self.view is None or not buckets:
+            self.viewport.update()
+            return "" if self.view is not None else "load a structure first"
+        if self.view.paralog != paralog:
+            self.viewport.update()
+            return (f"{self.structure.name} is not in human {paralog} numbering "
+                    f"(it is in {self.view.paralog or 'no human'} numbering); "
+                    "no variant drawn rather than drawn on the wrong residue")
+        st = self.structure
+        idx, radius, rgb, labels = variant_spheres(
+            st, paralog, tuple(buckets), layer, self.view._chain_ok())
+        self._variants, self._variant_atoms = (paralog, tuple(buckets), layer), idx
+        batch = self.scene.spheres("variants")
+        # The view's coordinates, not the deposit's: a morph or mode frame may be up.
+        batch.upload(self.view.structure.xyz[idx], radius, rgb,
+                     np.zeros(len(idx), np.float32))
+        self.viewport.update()
+        n_res = len(set(st.res_seq[idx].tolist()))
+        n_ch = len(set(st.chain[idx].tolist()))
+        return f"{n_res} variant residues drawn on {n_ch} subunits ({len(idx)} spheres)"
+
+    def move_overlays(self, xyz: np.ndarray) -> None:
+        """Follow a morph or mode frame: the variant spheres ride their Cα."""
+        batch = self.scene.get("variants")
+        if batch is not None and len(self._variant_atoms):
+            batch.update_centers(np.asarray(xyz, np.float32)[self._variant_atoms])
+
     def describe_atom(self, i: int) -> str:
         if i < 0 or self.structure is None:
             return ""
@@ -193,7 +231,9 @@ class SceneController:
 
         def tick(dt):
             state["t"] += dt
-            self.view.update_coords(self._base_xyz + np.sin(2.0 * state["t"]) * self._disp)
+            xyz = self._base_xyz + np.sin(2.0 * state["t"]) * self._disp
+            self.view.update_coords(xyz)
+            self.move_overlays(xyz)
             return True
         self.viewport.add_animation(tick)
 
@@ -201,5 +241,6 @@ class SceneController:
         self.viewport.clear_animations()
         if self._base_xyz is not None and self.view is not None:
             self.view.update_coords(self._base_xyz)
+            self.move_overlays(self._base_xyz)
             self.viewport.update()
         self._base_xyz = None
