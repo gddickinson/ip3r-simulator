@@ -41,6 +41,9 @@ CHECK_SITES = {"S0.ip3_contacts": "ip3_contact", "S0.selectivity_filter": "filte
                "S0.gate": "gate_lining", "P6.shell_agreement": "ip3_contact",
                "P6.contacts_heavy_atom": "ip3_contact", "P6.module_map": MODULES_KEY,
                "P6.module_contrast": MODULES_KEY, "P6.loop_reverses": MODULES_KEY}
+#: Checks whose "Show on structure" is a colouring rather than a site set.
+CHECK_COLOURS = {k: "ligand_shell" for k in ("P6.shell_distances", "P6.shell_constraint",
+                                             "P6.shell_trend", "P6.no_contact_step")}
 
 
 class MainWindow(QMainWindow):
@@ -263,6 +266,10 @@ class MainWindow(QMainWindow):
             b.setChecked(k == site)
         if check_id == "S0.pore_profile":
             self.channel.show_pore.setChecked(True)
+        if check_id in CHECK_COLOURS:
+            from ..render.representations import ColorBy
+            sp = self.structure_panel
+            sp.color.setCurrentIndex(sp.color.findData(ColorBy(CHECK_COLOURS[check_id])))
 
     def _highlight_variant(self, paralog: str, resi: int) -> None:
         msg = self.scene.highlight_residue(paralog, resi)

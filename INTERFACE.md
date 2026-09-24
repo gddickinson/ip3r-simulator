@@ -52,6 +52,7 @@ headless (CLI, tests, notebooks).
 | `structure.py` | `Structure` — structure-of-arrays container, masks, residue index (ported) |
 | `annotations.py` | per paralog: `reference_sequence`, `elements` (Pfam + 6DQN structural elements), `residue_elements` (one element per residue, specific wins), `element_of/element_array`, `functional_sites` (10 IP3 contacts, filter/gate lining), `residue_constraint/constraint_at` (S17 JSD, 4 layers), `variants`; colour/label tables |
 | `modules.py` | Paper 6's modules rebuilt from sites + domains: `module(paralog, definition)` (`contact_span`, `channel_minus_luminal`, `channel_all`) → `Module`, `modules()` (the primary pair, disjoint), `ModuleRefusal`, `MODULE_COLORS`, `MODULES_KEY` (the GUI's site toggle) |
+| `pairwise.py` | `align` (Gotoh affine-gap global, BLOSUM62, end gaps free; gap costs `align.*`), `transfer_map`, `paralog_transfer(src, dst)` (memoised) — carries residue numbers between paralogs independently of S17's MAFFT |
 | `genes_data.py` | live read-only access to `ip3r_genes/results`: `read_tsv`, `read_json`, `read_text`, `available`; raises `GenesDataMissing` (→ check `not_run`) |
 
 ## `ip3r/structure/` — measurement
@@ -61,6 +62,7 @@ headless (CLI, tests, notebooks).
 | `symmetry.py` | `kabsch`, `rotation_matrix`, `rotation_axis_angle`, `axis_by_superposition` (our method), `axis_by_centroids` (S0's), `tetramer_frame` → `Frame` (z on the axis, cytosol +z, chains right-handed), `c4_residual` |
 | `pore.py` | `pore_profile` (`r_min` = S0's quantity; `r_free` = less vdW), `tm_span`, `find_constrictions` (filter = luminal min, gate = cytosolic min), `lining_residues`; `include_hetero` reproduces S0 |
 | `ligand.py` | `ligand_sites` (IP3 copies, subunit by proximity), `contacts` (≤ cutoff, own vs other subunit), `residue_distances` (S22 shells; `heavy_only=False` = S22's all-atom rule) |
+| `shells.py` | S22's ligand shells: `shell_edges`/`shell_of` (registered edges, half-open), `chain_distances` (own-subunit IP3, all atoms), `deposit_distances`, `consensus_shells` → `ShellResidue` (median over deposits), `atom_ligand_distance` (per atom, for painting) |
 | `numbering.py` | `check_numbering`, `best_numbering` — S24's rule, stubbed (backbone+CB) residues excluded, mismatch segments reported |
 | `channel.py` | `measure_channel(st)` → `ChannelSummary` (axis two ways, residual, numbering, span, profile, constrictions, IP3 contacts) — shared by GUI, CLI and checks |
 | `transition.py` | `prepare_transition(start, end, fit)` → `Transition` (residue-matched basis: unstubbed, sequence-matching, all 8 chains; cyclic subunit correspondence; end superposed onto the start *as deposited*; `residue_distance`, `element_means`), `atom_site_index` (own residue, else nearest site in space), `displaced_coords`, `atom_displacement` (NaN off basis), `TransitionUnavailable` |
@@ -86,8 +88,10 @@ headless (CLI, tests, notebooks).
 | `checks_constraint.py` | `P5.*` (element means, rankings, gate identity, variant AUCs under S17's position rules, deep-ranks-third, VUS count, ω) and `P6.contacts_vs_core` |
 | `checks_evolution.py` | `P1.absences`, `P2.sister_pair` (own Newick reader), `P2.au_test`, `P2.teleost_itpr1`, `P3.*`, `P4.unreachable`, `LEDGER.claims` |
 | `checks_modules.py` | `P6.module_map`, `P6.module_contrast`, `P6.loop_reverses` |
+| `checks_shells.py` | `P6.shell_distances` (recomputed), `P6.shell_constraint`, `P6.shell_trend`, `P6.no_contact_step` |
+| `shell_constraint.py` | `measured_shells` (the 6-deposit pocket), `pocket(gene)` → `Pocket` (carried by own alignment, joined to deep JSD), `shell_rows`, `trend`, `contact_step`, `clear_caches` |
 | `module_contrast.py` | `read_alignment`, `reference_columns` (own residue → column map, refused on a sequence mismatch), `tip_identities`, `paired_contrast` → `PairedContrast`, `clear_caches` |
-| `stats.py` | `auc` (Mann-Whitney, ties ½), `rank_average`, `mean_by_group`, `sign_test` (exact), `signed_rank_test` (normal approx., tie-corrected) |
+| `stats.py` | `auc` (Mann-Whitney, ties ½), `rank_average`, `mean_by_group`, `sign_test` (exact), `signed_rank_test` (normal approx., tie-corrected), `mann_whitney_greater` (one-sided, tie + continuity corrected), `spearman` (t-distribution p) |
 | `newick.py` | `parse`, `leaves`, `mrca`, `smallest_clade_containing` |
 | `exhibits.py` | `draw(ax, check_id, outcome)` — figures from a check's own numbers |
 
@@ -97,16 +101,16 @@ headless (CLI, tests, notebooks).
 `shaders/` — ported unchanged from PIEZO1 (impostor spheres/cylinders,
 cartoon sweeps, trackball camera). `colormaps.py` — chain, element, fixed
 conservation ramp (0.50–0.95 JSD; grey = not scored), fixed displacement ramp
-(0–25 Å). `representations.py` —
+(0–25 Å), `SHELL_COLORS`/`shell_colors` (S22's four shells, grey beyond). `representations.py` —
 `MolecularView` (styles × `ColorBy`, highlight (uniform or per-atom `highlight_rgb`), chain filter, `update_coords`
-for animation; `ColorBy.DISPLACEMENT` from a built transition).
+for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_SHELL` from `structure.shells`).
 
 ## `ip3r/ui/` (PyQt6)
 
 | File | Purpose |
 |---|---|
 | `app.py` | `main()` — surface format, theme, window, initial load |
-| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights |
+| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks) |
 | `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, side/top views, mode animation |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
@@ -140,7 +144,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
 — the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_calcium`, `test_puffs`), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
-(`test_stats`, `test_newick`), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
+(`test_stats`, `test_newick`), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
 `test_resources`), rules (`test_sizes`), CLI, and
 **`test_checks_calibration.py`** — every check flipped by a planted input
 (`PLANTS`), sources proven complete, `not_run` without data, refusal under

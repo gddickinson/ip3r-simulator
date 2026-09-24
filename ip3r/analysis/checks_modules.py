@@ -24,7 +24,6 @@ MAP = "ligand_site/module_map.tsv"
 CONTRAST = "ligand_site/module_contrast.tsv"
 ALIGNMENTS = tuple(alignment_path(p) for p in PARALOGS)
 CORE = "contact_span"
-ALPHA = 0.05
 
 
 def _published(pore_def: str) -> dict[str, dict]:
@@ -103,7 +102,8 @@ def module_map():
           "rederived", (CONTRAST,) + ALIGNMENTS)
 def module_contrast():
     ok, lines, data = _compare("channel_minus_luminal")
-    sig = {g: d["p"] < ALPHA for g, d in data.items()}
+    alpha = _P.value("check.alpha")
+    sig = {g: d["p"] < alpha for g, d in data.items()}
     claim = (sig["ITPR1"] and sig["ITPR3"] and not sig["ITPR2"]
              and data["ITPR1"]["mean_difference"] < 0
              and data["ITPR3"]["mean_difference"] < 0)
@@ -123,7 +123,8 @@ def module_contrast():
 def loop_reverses():
     ok, lines, data = _compare("channel_all")
     lead = [d["mean_difference"] for d in data.values()]
-    claim = all(x > 0 and d["p"] < ALPHA for x, d in zip(lead, data.values()))
+    alpha = _P.value("check.alpha")
+    claim = all(x > 0 and d["p"] < alpha for x, d in zip(lead, data.values()))
     if not claim:
         lines.append("the core does not lead in all three")
     return agree(ok and claim, "core > pore in all three with the loop in",

@@ -204,6 +204,29 @@ P = [
        "paired core-vs-pore test.", "S22's MIN_MODULE_COVERAGE; a tip "
        "truncated at one end would otherwise enter as an extreme divergence "
        "in that module", 0.0, 1.0),
+    _p("ligand.shell_second_edge", "Second-shell outer edge", 8.0, "A",
+       "convention", "ligand", "ip3r_genes", "All-atom distance to IP3 "
+       "separating the second ligand shell from the third (the first shell "
+       "is ligand.contact_cutoff).", "S22's SHELL_EDGES: equal 3.5 A steps "
+       "out from the 4.5 A contact cutoff", 4.5, 15.0),
+    _p("ligand.shell_third_edge", "Third-shell outer edge", 11.5, "A",
+       "convention", "ligand", "ip3r_genes", "All-atom distance to IP3 "
+       "separating the third ligand shell from the fourth.",
+       "S22's SHELL_EDGES", 4.5, 15.0),
+    _p("ligand.shell_radius", "Ligand-shell search radius", 15.0, "A",
+       "convention", "ligand", "ip3r_genes", "Residues farther than this "
+       "from IP3 belong to no shell (absent, not an open last bin).",
+       "S22's SEARCH_RADIUS_A: past 15 A no side chain of the binding core "
+       "reaches the ligand", 8.0, 30.0),
+    _p("align.gap_open", "Gap-open cost", 10.0, "BLOSUM62 units",
+       "method", "structure", "rice2000", "Cost of opening a gap in the "
+       "pairwise alignment that carries residue numbers between paralogs.",
+       "EMBOSS needle's default with BLOSUM62 [henikoff1992]; the recursion "
+       "is Gotoh's [gotoh1982]", 1.0, 30.0),
+    _p("align.gap_extend", "Gap-extend cost", 0.5, "BLOSUM62 units",
+       "method", "structure", "rice2000", "Cost of each further residue of "
+       "a gap in the paralog-transfer alignment.",
+       "EMBOSS needle's default", 0.0, 5.0),
     _p("numbering.min_identity", "Numbering-check identity", 0.95, "",
        "method", "structure", "ip3r_genes", "Fraction of residues a "
        "structure must share, by number, with a reference sequence to be "
@@ -225,6 +248,11 @@ P = [
        "published value.", "The published values are quoted to 0.01 A; "
        "0.05 A allows for rounding and axis-fit differences and nothing "
        "else", 0.0, 1.0),
+    _p("check.alpha", "Significance level", 0.05, "",
+       "convention", "checks", "convention", "Level at which a check reads "
+       "a published or re-derived p (or q) as significant when testing the "
+       "pattern the prose states.", "The level ip3r_genes' prose uses "
+       "throughout", 0.0, 1.0),
     _p("check.log_p_tol", "P-value agreement tolerance", 0.02, "decades",
        "method", "checks", "method_choice", "Largest difference in log10 "
        "of a re-derived and a published p-value that still counts as "

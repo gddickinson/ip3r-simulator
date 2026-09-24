@@ -23,6 +23,7 @@ import numpy as np
 
 from ..core.annotations import constraint_at
 from ..core.structure import Structure
+from ..structure.shells import atom_ligand_distance
 from . import colormaps
 from .geometry_builders import Mesh, build_cartoon, build_tube
 from .scene import Scene
@@ -53,6 +54,7 @@ class ColorBy(str, Enum):
     ATOM = "atom"
     VALUE = "value"                   # an arbitrary per-atom scalar
     DISPLACEMENT = "displacement"     # between two states, fixed scale
+    LIGAND_SHELL = "ligand_shell"     # all-atom distance to own IP3, S22's shells
     UNIFORM = "uniform"
 
 
@@ -65,6 +67,7 @@ COLOR_LABELS = {ColorBy.ELEMENT_DOMAIN: "Functional element",
                 ColorBy.BFACTOR: "B-factor / pLDDT", ColorBy.ATOM: "Atom type",
                 ColorBy.VALUE: "Mode amplitude",
                 ColorBy.DISPLACEMENT: "Displacement (Transition tab)",
+                ColorBy.LIGAND_SHELL: "Distance to IP3 (S22 shells)",
                 ColorBy.UNIFORM: "Uniform"}
 
 SS_COLORS = np.array([[0.55, 0.58, 0.66], [0.94, 0.42, 0.42],
@@ -95,6 +98,7 @@ class MolecularView:
     show_hydrogens: bool = False
     values: np.ndarray | None = None
     displacement: np.ndarray | None = None    # per atom, Å; NaN = not measured
+    ligand_distance: np.ndarray | None = None  # per atom, Å; filled on first use
     highlight: np.ndarray | None = None       # per-atom bool, drawn as balls
     highlight_color: tuple = (1.0, 0.85, 0.2)
     highlight_rgb: np.ndarray | None = None   # per-atom colours; overrides the above
@@ -149,6 +153,10 @@ class MolecularView:
             if self.displacement is None:
                 return np.tile(colormaps.MISSING, (st.n_atoms, 1))
             return colormaps.displacement_colors(self.displacement)
+        if cb is ColorBy.LIGAND_SHELL:
+            if self.ligand_distance is None:
+                self.ligand_distance = atom_ligand_distance(st)
+            return colormaps.shell_colors(self.ligand_distance)
         if cb is ColorBy.SECONDARY:
             out = np.tile(SS_COLORS[0], (st.n_atoms, 1))
             for tr in self.traces:

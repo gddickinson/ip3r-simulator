@@ -13,7 +13,7 @@ import math
 import numpy as np
 
 __all__ = ["auc", "rank_average", "mean_by_group", "sign_test",
-           "signed_rank_test"]
+           "signed_rank_test", "mann_whitney_greater", "spearman"]
 
 
 def rank_average(values: np.ndarray) -> np.ndarray:
@@ -95,3 +95,48 @@ def signed_rank_test(diffs) -> dict:
     z = (w_plus - mean) / math.sqrt(var)
     return {"n": n, "w_plus": w_plus, "z": z,
             "p": math.erfc(abs(z) / math.sqrt(2.0))}
+
+
+def mann_whitney_greater(a, b) -> dict:
+    """One-sided Mann-Whitney U: is ``a`` stochastically greater than ``b``?
+
+    Normal approximation with the tie correction and a 0.5 continuity
+    correction — the large-sample form, used when both groups hold at least
+    ten values (NaN below that). NaN values are dropped.
+    """
+    a = np.asarray(a, float)
+    b = np.asarray(b, float)
+    a, b = a[np.isfinite(a)], b[np.isfinite(b)]
+    n1, n2 = len(a), len(b)
+    if min(n1, n2) < 10:
+        return {"u": float("nan"), "z": float("nan"), "p": float("nan")}
+    ranks = rank_average(np.concatenate([a, b]))
+    u = float(ranks[:n1].sum() - n1 * (n1 + 1) / 2.0)
+    n = n1 + n2
+    _, t = np.unique(np.concatenate([a, b]), return_counts=True)
+    var = n1 * n2 / 12.0 * ((n + 1) - float((t ** 3 - t).sum()) / (n * (n - 1)))
+    z = (u - n1 * n2 / 2.0 - 0.5) / math.sqrt(var)
+    return {"u": u, "z": z, "p": 0.5 * math.erfc(z / math.sqrt(2.0))}
+
+
+def spearman(x, y) -> dict:
+    """Spearman's rho (Pearson on average ranks) with a two-sided p from
+    Student's t on n − 2 degrees of freedom. Pairs with a NaN are dropped;
+    fewer than four pairs give NaN."""
+    from scipy.special import stdtr
+    x = np.asarray(x, float)
+    y = np.asarray(y, float)
+    ok = np.isfinite(x) & np.isfinite(y)
+    x, y = x[ok], y[ok]
+    n = len(x)
+    if n < 4:
+        return {"rho": float("nan"), "p": float("nan"), "n": n}
+    rx, ry = rank_average(x) - (n + 1) / 2.0, rank_average(y) - (n + 1) / 2.0
+    den = math.sqrt(float((rx ** 2).sum() * (ry ** 2).sum()))
+    if den == 0:
+        return {"rho": float("nan"), "p": float("nan"), "n": n}
+    rho = float((rx * ry).sum() / den)
+    if abs(rho) >= 1.0:
+        return {"rho": rho, "p": 0.0, "n": n}
+    t = rho * math.sqrt((n - 2) / (1.0 - rho * rho))
+    return {"rho": rho, "p": float(2.0 * stdtr(n - 2, -abs(t))), "n": n}

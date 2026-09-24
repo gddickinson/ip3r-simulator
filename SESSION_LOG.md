@@ -167,3 +167,59 @@ a rule, and is not rebuilt here. `P6.module_map` skips it, saying so.
 
 **Next:** Round 3, item 2 (ligand shells: conservation against all-atom
 distance to IP3).
+
+## 2026-09-23 — Session 4: Round 3, item 2 — ligand shells
+
+**Sync.** Both repos were up to date and `make sync-check` was clean, so no
+verdicts moved.
+
+**Built.**
+- `structure/shells.py` implements S22's rule on this project's reader: the
+  all-atom distance to the IP3 on the residue's own subunit, the best over
+  the subunits, and the median over the six depositions. Shell edges are
+  registered parameters, and the first edge is the existing contact cutoff.
+- `core/pairwise.py` is a Gotoh affine-gap aligner (BLOSUM62, end gaps
+  free, vectorised by row, 0.12 s for ITPR3 × ITPR1). It is needed because
+  S22 carried the pocket to ITPR1/2 through S17's MAFFT transfer, and
+  reusing that transfer would not have been an independent route. It is
+  calibrated against a cell-by-cell three-state DP on 24 random cases, and
+  the traceback's alignment re-scores to the reported score. A second test:
+  ITPR3's ten contacts land on ITPR1's ten.
+- `analysis/shell_constraint.py` and `checks_shells.py` add four checks.
+  `stats` gains `mann_whitney_greater` and `spearman`, both calibrated
+  against scipy in the tests.
+- New parameters: `ligand.shell_second_edge`/`shell_third_edge`/
+  `shell_radius`, `align.gap_open`/`gap_extend` (EMBOSS needle's; three new
+  references), and `check.alpha`. `checks_modules` also used a literal 0.05,
+  and now reads the parameter.
+- GUI: a "Distance to IP3 (S22 shells)" colouring, with four discrete
+  colours sampled from the fixed ramp and grey beyond 15 Å or where a
+  subunit has no IP3. The distance is measured on the displayed coordinates,
+  so it is valid in any numbering (rat 7LHF has no IP3 and comes out grey).
+  "Show on structure" for the shell checks switches to this colouring. The
+  exhibits plot JSD against distance (trend) and the per-shell means. The
+  smoke test asserts at least 4 shell colours plus grey. Tests: 112 → 137.
+
+**Measured.** Everything S22 publishes about the shells reproduces: the
+pocket residue by residue, all 12 per-shell rows (n, means, medians, modal
+fraction, whole-protein mean, p), and the three trends (ρ −0.175 / −0.436 /
+−0.168). The new result concerns *where* conservation drops: in all three
+paralogs the largest fall between adjacent shells is at 11.5 Å
+(third→fourth: 0.023 / 0.045 / 0.019). Across 4.5 Å the change is
+−0.007 / +0.003 / +0.002. So the "no step at 4.5 Å" claim holds, and more
+strongly than a non-significant test of 12 against 14 residues could show
+alone. The paper's FEL result puts its drop after the second shell, not the
+third. That is a difference between two instruments, recorded in ROADMAP,
+not a discrepancy with the paper.
+
+**Where I was wrong first.**
+- My first detail text for `P6.no_contact_step` stated "largest at 11.5 Å"
+  as fixed prose. A verdict text must not assert a result, so it was
+  removed; the found line reports the drop from the data.
+- The first shell screenshot showed only one legend row. The panel was
+  correct; the grab ran before Qt's deferred layout. The smoke test now
+  processes events first.
+- A stray `cat >` in a shell command waited on stdin and stalled one run.
+  No project effect.
+
+**Next:** Round 3, item 3 (Paper 2 tree viewer).

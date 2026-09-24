@@ -1,6 +1,7 @@
 """Calibrate the statistics on inputs whose answer is known exactly."""
 
 import numpy as np
+import pytest
 
 from ip3r.analysis.stats import (auc, mean_by_group, rank_average, sign_test,
                                  signed_rank_test)
@@ -71,3 +72,29 @@ def test_signed_rank_matches_exact_null_variance():
 
 def test_signed_rank_too_few_is_nan():
     assert np.isnan(signed_rank_test([1, 2, -3])["p"])
+
+
+def test_mann_whitney_greater_matches_scipy_asymptotic():
+    from scipy.stats import mannwhitneyu
+    from ip3r.analysis.stats import mann_whitney_greater
+    rng = np.random.default_rng(5)
+    for n1, n2 in ((12, 2700), (14, 40), (59, 300)):
+        a = np.round(rng.normal(0.1, 1, n1), 1)        # rounded: plenty of ties
+        b = np.round(rng.normal(0.0, 1, n2), 1)
+        ref = mannwhitneyu(a, b, alternative="greater", method="asymptotic").pvalue
+        assert mann_whitney_greater(a, b)["p"] == pytest.approx(ref, rel=1e-9)
+    assert np.isnan(mann_whitney_greater([1.0] * 5, [0.0] * 50)["p"])
+
+
+def test_spearman_matches_scipy():
+    from scipy.stats import spearmanr
+    from ip3r.analysis.stats import spearman
+    rng = np.random.default_rng(6)
+    x = rng.uniform(0, 15, 125)
+    y = np.round(-0.01 * x + rng.normal(0, 0.1, 125), 2)
+    ref = spearmanr(x, y)
+    got = spearman(x, y)
+    assert got["rho"] == pytest.approx(ref.statistic, abs=1e-12)
+    assert got["p"] == pytest.approx(ref.pvalue, rel=1e-9)
+    assert got["n"] == 125
+    assert spearman([1, 2, 3, 4], [4, 3, 2, 1])["rho"] == -1.0

@@ -134,6 +134,35 @@ counts, means, sign counts and p-values follow by independent code, and the
 reversal with the loop counted in is real. It says nothing about the
 alignments themselves.
 
+## Paper 6: ligand shells
+
+For each residue, the distance is the minimum all-atom distance to the IP3 on
+its own subunit, with hydrogens included as in S22's reader. Per deposit it
+is the best over the four subunits, and the consensus is the median over the
+six IP3-bound ITPR3 depositions. Shells are half-open: [0, 4.5), [4.5, 8),
+[8, 11.5) and [11.5, 15) Å. Residues beyond 15 Å belong to no shell.
+
+S22 carried the pocket to ITPR1/ITPR2 with a MAFFT pairwise alignment. Here
+it is carried with a separate alignment: Gotoh's affine-gap global
+alignment, BLOSUM62, gap open 10 and extend 0.5 (EMBOSS needle's defaults),
+end gaps free (`core/pairwise.py`). All 250 transferred positions agree with
+S22's. Conservation is S17's per-residue deep JSD. Each shell is tested
+against every scored residue with a one-sided Mann–Whitney (normal
+approximation, tie and continuity corrections). The trend is Spearman's ρ
+with a t-distribution p.
+
+"No step at 4.5 Å" is prose, not a table, so it is tested two ways:
+
+1. The contact shell does not beat the second (one-sided Mann–Whitney).
+   With 12 and 14 residues this test is weak on its own.
+2. The contact boundary does not carry the largest drop in mean JSD
+   between adjacent shells.
+
+It holds both ways in all three paralogs. The largest drop is at the 11.5 Å
+boundary (third → fourth) everywhere. Note that the FEL purifying fraction
+(the paper's §8) falls after the *second* shell instead, so the two
+instruments put the drop in different places.
+
 ## What the findings checks establish
 
 | kind | what agreement means |

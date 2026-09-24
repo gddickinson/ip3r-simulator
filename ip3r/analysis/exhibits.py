@@ -71,10 +71,32 @@ def _modules(ax, d):
     ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
 
 
+def _shell_trend(ax, d):
+    for i, (gene, v) in enumerate(sorted(d["trend"].items())):
+        ax.scatter(v["distance"], v["jsd"], s=7, alpha=0.7, color=_C[i],
+                   label=f"{gene} (ρ {v['rho']:+.2f})")
+        ax.axhline(v["protein"], color=_C[i], lw=0.7, ls="--", alpha=0.6)
+    for e in d["edges"]:
+        ax.axvline(e, color="#8a8f99", lw=0.7, ls=":")
+    ax.set_xlabel("all-atom distance to IP3, median of six depositions (Å)")
+    ax.set_ylabel("deep-layer conservation (JSD)")
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
+
+
+def _shell_means(ax, d):
+    names = ("contact", "second", "third", "fourth")
+    for i, (gene, v) in enumerate(sorted(d["shells"].items())):
+        ax.plot(names, [v[k] for k in names], marker="o", color=_C[i], label=gene)
+        ax.axhline(v["protein"], color=_C[i], lw=0.7, ls="--", alpha=0.6)
+    ax.set_ylabel("mean JSD per shell (dashed: whole protein)")
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
+
+
 EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
-            "P6.loop_reverses": _modules}
+            "P6.loop_reverses": _modules, "P6.shell_trend": _shell_trend,
+            "P6.shell_constraint": _shell_means}
 
 
 def has_exhibit(check_id: str, outcome) -> bool:

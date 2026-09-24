@@ -69,7 +69,7 @@ inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
 IP3), and stochastic clusters in which Ca²⁺ coupling turns independent blips
 into cooperative openings.
 
-**Check the publication.** The Findings tab re-derives 29 results from the
+**Check the publication.** The Findings tab re-derives 33 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
 do not share, `rederived` from the publication's input tables with this
@@ -83,9 +83,17 @@ in green and the pore module less the luminal loop in magenta.
 
 ![Paper 6's modules on 6DQN](docs/img/gui_modules.png)
 
+**Colour by distance to IP3.** "Distance to IP3 (S22 shells)" paints every
+residue by its all-atom distance to the IP3 bound on its own subunit, in
+S22's four shells (contact < 4.5 Å, then 8, 11.5 and 15 Å). Residues beyond
+15 Å, and subunits with no IP3, are grey. The shell checks' exhibit plots
+conservation against that distance for all three paralogs.
+
+![Ligand shells and conservation against distance](docs/img/gui_shells.png)
+
 ## The checks, as of Round 3
 
-27 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+31 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts
@@ -122,6 +130,10 @@ touches a published paper's headline:
 | `P6.module_map` | rederived | confirmed | all nine module spans identical |
 | `P6.module_contrast` | rederived | confirmed | core − pore −0.0239 / −0.0005 / −0.0199; ITPR2 p = 0.134 |
 | `P6.loop_reverses` | rederived | confirmed | loop counted as pore: +0.055 / +0.044 / +0.056 |
+| `P6.shell_distances` | recomputed | confirmed | 125 residues, 12/14/40/59 per shell, medians to 2×10⁻⁵ Å |
+| `P6.shell_constraint` | rederived | confirmed | all 12 shell means above the protein; every field identical |
+| `P6.shell_trend` | rederived | confirmed | ρ −0.175 / −0.436 / −0.168; significant in ITPR2 only |
+| `P6.no_contact_step` | rederived | confirmed | 4.5 Å drop −0.007 / +0.003 / +0.002; largest drop at 11.5 Å in all three |
 | `P2.sister_pair` | rederived | confirmed | ITPR2 + ITPR3 |
 | `P2.au_test` | read | confirmed | only H3_23 retained (p_AU 0.48) |
 | `P2.teleost_itpr1` | rederived | confirmed | ≥ 2 copies: ITPR1 87 %, ITPR2 4 %, ITPR3 2 % |

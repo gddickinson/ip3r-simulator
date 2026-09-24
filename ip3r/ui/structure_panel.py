@@ -17,7 +17,9 @@ from ..core.modules import MODULES_KEY
 from ..io.loader import is_local
 from ..parameters import PARAMETERS as _P
 from ..io.registry import load_registry
+from ..render.colormaps import SHELL_COLORS
 from ..render.representations import COLOR_LABELS, STYLE_LABELS, ColorBy, Style
+from ..structure.shells import SHELLS
 
 __all__ = ["StructurePanel"]
 
@@ -189,5 +191,19 @@ class StructurePanel(QWidget):
                 "<span style='color:#b40426'>■</span> moves most; "
                 "<span style='color:#6b6d75'>■</span> not measured (outside the "
                 "common basis, or no transition built — use the Transition tab).")
+        elif self.current_color() is ColorBy.LIGAND_SHELL:
+            edges = [_P.value(k) for k in ("ligand.contact_cutoff",
+                                           "ligand.shell_second_edge",
+                                           "ligand.shell_third_edge",
+                                           "ligand.shell_radius")]
+            lo, rows = 0.0, []
+            for rgb, name, hi in zip(SHELL_COLORS, SHELLS, edges):
+                rows.append(f"{_swatch(rgb)} {name} ({lo:g}-{hi:g} Å)")
+                lo = hi
+            self.legend.setText(
+                "All-atom distance of each residue to the IP3 on its own "
+                "subunit:<br>" + "<br>".join(rows)
+                + f"<br><span style='color:#6b6d75'>■</span> beyond {lo:g} Å, "
+                "or no IP3 bound on that subunit.")
         else:
             self.legend.setText("")

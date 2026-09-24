@@ -19,7 +19,8 @@ from ..core.structure import Structure
 
 __all__ = ["CHAIN_PALETTE", "MISSING", "chain_colors", "element_colors",
            "ramp", "constraint_colors", "bfactor_colors", "value_colors",
-           "uniform_color", "CONSERVATION_RANGE", "displacement_colors"]
+           "uniform_color", "CONSERVATION_RANGE", "displacement_colors",
+           "SHELL_COLORS", "shell_colors"]
 
 #: Four subunits, four distinguishable hues.
 CHAIN_PALETTE = np.array([
@@ -101,6 +102,26 @@ def displacement_colors(values: np.ndarray) -> np.ndarray:
     scale; NaN (not measured) is grey."""
     from ..parameters import PARAMETERS as _P
     return ramp(np.asarray(values, float) / _P.value("display.displacement_max"))
+
+
+#: S22's four ligand shells, nearest hottest; the fixed ramp sampled at four
+#: points so the colours are the conservation ramp's own.
+SHELL_COLORS = ramp(np.array([1.0, 0.8, 0.62, 0.3]))
+
+
+def shell_colors(distance: np.ndarray) -> np.ndarray:
+    """Per atom: the colour of its ligand shell (edges from the registry);
+    NaN or beyond the search radius is grey."""
+    from ..parameters import PARAMETERS as _P
+    d = np.asarray(distance, float)
+    out = np.tile(MISSING, (len(d), 1)).astype(np.float32)
+    lo = 0.0
+    for rgb, key in zip(SHELL_COLORS, ("ligand.contact_cutoff", "ligand.shell_second_edge",
+                                       "ligand.shell_third_edge", "ligand.shell_radius")):
+        hi = _P.value(key)
+        out[(d >= lo) & (d < hi)] = rgb
+        lo = hi
+    return out
 
 
 def uniform_color(st: Structure, rgb=(0.55, 0.62, 0.75)) -> np.ndarray:

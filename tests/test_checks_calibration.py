@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 from ip3r.analysis import checks as C
-from ip3r.analysis import checks_constraint, module_contrast
+from ip3r.analysis import checks_constraint, module_contrast, shell_constraint
 from ip3r.config import GENES_DIR
 from ip3r.parameters import PARAMETERS
 from conftest import needs_genes, needs_structure
@@ -103,6 +103,13 @@ def _pore_to_reference(d: Path, gene: str) -> None:
     p.write_text("\n".join(out) + "\n")
 
 
+def _contact_shell_conserved(d: Path) -> None:
+    """Every contact-shell residue of ITPR3 made invariant: a step at 4.5 Å."""
+    contact = {str(r.resi) for r in shell_constraint.measured_shells()
+               if r.shell == "contact"}
+    _edit(d / CON3, lambda r: {**r, "deep_jsd": "0.99"} if r["resi"] in contact else r)
+
+
 PLANTS = {
     "P5.element_means": lambda d: _edit(d / R / "constraint/constraint_by_element.tsv",
                                         _set({"paralog": "ITPR1", "element": "MIR"}, mean_jsd=0.9)),
@@ -175,12 +182,23 @@ PLANTS = {
     # The real verdict is a discrepancy; the flip is a looser cutoff that
     # takes R503 in, run with the modified registry explicitly allowed.
     "P6.contacts_heavy_atom": ("param", "ligand.contact_cutoff", 5.0),
+    "P6.shell_distances": lambda d: _edit(d / R / "ligand_site/ligand_shells.tsv",
+                                          _first({"shell": "third"}, shell="second")),
+    "P6.shell_constraint": lambda d: _edit(d / R / "ligand_site/shell_constraint.tsv",
+                                           _set({"paralog": "ITPR2", "shell": "fourth"},
+                                                mean_jsd=0.70)),
+    # the pattern: ITPR1's trend made significant in the published table
+    "P6.shell_trend": lambda d: _edit(d / R / "ligand_site/shell_trend.tsv",
+                                      _set({"paralog": "ITPR1"}, p_distance_vs_jsd=0.001)),
+    # an input plant: no published table states the step, so make one
+    "P6.no_contact_step": _contact_shell_conserved,
 }
 
 
 def _clear_caches() -> None:
     checks_constraint.per_residue.cache_clear()
     module_contrast.clear_caches()
+    shell_constraint.clear_caches()
 
 
 def _copy_sources(check, dest: Path) -> None:

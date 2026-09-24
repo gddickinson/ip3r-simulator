@@ -53,6 +53,13 @@ Emergent (not scheduled):
 
 ## Round 3 — more of the publication, on the structure
 
+Emergent (not scheduled):
+- [ ] The JSD falls most at 11.5 Å, but the FEL purifying fraction falls
+  after the second shell (S22 §8). Is that the instruments or the residues?
+  Re-derive the §8 shell FEL table and compare residue by residue.
+- [ ] "Show on structure" for the shells frames the whole tetramer, so the
+  pocket is small on screen. Add a camera preset centred on one IP3 site.
+
 - [x] Paper 6 module contrast, re-derived from the deep alignments with this
   project's own column map, modules and statistics. Every published number
   reproduces: 260/246/262 tips, core − pore −0.0239/−0.0005/−0.0199,
@@ -60,9 +67,15 @@ Emergent (not scheduled):
   counted as pore, the answer reverses in all three paralogs (+0.055/+0.044/+0.056).
   3 checks (29 total: 27 confirmed, 2 discrepancies, unchanged). Modules
   drawn as Cα traces from "Show on structure".
-- [ ] Ligand shells: colour residues by all-atom distance to IP3 (S22's
-  shells) and plot conservation against distance (the "no step at 4.5 Å"
-  result).
+- [x] Ligand shells. The pocket is recomputed from the six IP3-bound
+  depositions: 125 residues, 12/14/40/59 per shell, every shell identical,
+  medians to 2×10⁻⁵ Å. It is carried to ITPR1/2 by an own Gotoh/BLOSUM62
+  alignment, and all 250 positions agree with S22's MAFFT transfer. Every
+  shell_constraint and shell_trend field reproduces. "No step at 4.5 Å"
+  holds: the contact shell does not beat the second (p 0.70/0.31/0.39), and
+  the largest drop between shells is at 11.5 Å in all three paralogs.
+  4 checks (33 total: 31 confirmed, 2 discrepancies, unchanged). Residues are
+  painted by shell; the exhibit plots JSD against distance.
 - [ ] Paper 2: a tree viewer for `rooted.nwk` with the paralog clades boxed
   and the cyclostome tips marked.
 - [ ] Paper 3/4: a genome × paralog grid of the character matrix and the

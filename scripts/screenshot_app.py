@@ -92,6 +92,16 @@ def main() -> int:
                 if len(cols) < 2:
                     raise RuntimeError(f"module highlight drew {len(cols)} colour(s), not 2")
                 win.grab().save(str(out / "gui_modules.png"))
+                win.findings.tree.setCurrentItem(win.findings._items["P6.shell_trend"])
+                win.findings.show_btn.click()
+                view = win.scene.view
+                if view.color_by.value != "ligand_shell":
+                    raise RuntimeError(f"shell check painted by {view.color_by}")
+                n = len({tuple(c) for c in view.atom_colors()})
+                if n < 5:
+                    raise RuntimeError(f"ligand shells drew {n} colours, not 4 + grey")
+                app.processEvents()                     # let the legend re-lay out
+                win.grab().save(str(out / "gui_shells.png"))
                 tabs = win.transition.parentWidget().parentWidget()
                 tabs.setCurrentWidget(win.transition)
                 win.transition.preset.click()           # loads 8TKG, builds -> 8TKF
