@@ -114,7 +114,7 @@ def _superpose(mobile, target, sel):
     r, t = kabsch(mobile[sel], target[sel])
     moved = mobile @ r.T + t
     rms = lambda m: float(np.sqrt(((moved[m] - target[m]) ** 2).sum(1).mean()))
-    return moved, rms(sel), rms(np.ones(len(target), bool))
+    return moved, rms(sel), rms(np.ones(len(target), bool)), (r, t)
 
 
 def prepare_transition(st_start: Structure, st_end: Structure,
@@ -144,11 +144,11 @@ def prepare_transition(st_start: Structure, st_end: Structure,
     for shift in range(n):
         order = fb.chains[shift:] + fb.chains[:shift]
         end = np.vstack([[ca_b[c][r] for r in residues] for c in order])
-        moved, fit_rms, rms = _superpose(end, start, sel)
+        moved, fit_rms, rms, rt = _superpose(end, start, sel)
         relabelled = sum(a != b for a, b in zip(fa.chains, order))
-        trials.append((fit_rms, relabelled, order, moved, rms))
+        trials.append((fit_rms, relabelled, order, moved, rms, rt))
     best_rms = min(t[0] for t in trials)
-    fit_rms, _, order, moved, rms = min(
+    fit_rms, _, order, moved, rms, rt = min(
         (t for t in trials if t[0] <= best_rms + tol), key=lambda t: t[1])
 
     excluded = {c: len(set(ca_a[c]) - set(residues)) for c in fa.chains}
@@ -159,6 +159,7 @@ def prepare_transition(st_start: Structure, st_end: Structure,
                                check_numbering(st_end, paralog).identity),
         "start_residues_outside_basis": excluded,
         "n_fit_sites": int(sel.sum()),
+        "end_transform": rt,    # (R, t): end deposit xyz @ R.T + t = this frame
     }
     return Transition(st_start.name, st_end.name, paralog, residues, list(fa.chains),
                       list(order), start, moved, fit, fit_rms, rms, fa, meta)

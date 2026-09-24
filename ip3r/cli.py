@@ -126,6 +126,8 @@ def _transition(args) -> int:
         print(f"  {name:20s} {d:6.2f}")
     m = morph(tr.start, tr.end, args.method)
     print(f"morph: {m.summary()}")
+    if args.gate:
+        _gate_table(loader.load(args.start), loader.load(args.end), tr, m)
     ov = transition_overlap(tr, args.reference, stride=args.stride, n_modes=args.n)
     print("\n".join(ov.report()))
     kappa = ov.modes.collectivity()
@@ -133,6 +135,18 @@ def _transition(args) -> int:
         print(f"  mode {i + 1:3d} {ov.modes.symmetry[i]:5s} κ {kappa[i]:.2f}  overlap {ov.overlap[i]:.3f}"
               f"  cumulative {ov.cumulative[i]:.3f}  (null {ov.null_cumulative[i]:.3f})")
     return 0
+
+
+def _gate_table(st_start, st_end, tr, m) -> None:
+    from .structure.morph_pore import atom_path, gate_path
+    g = gate_path(atom_path(st_start, st_end, tr), tr, m)
+    print(f"gate along the morph ({g.meta['n_atoms']:,} heavy atoms matched, "
+          f"{g.meta['unmatched']} unmatched): half-way at fraction {g.half_open():.2f}, "
+          f"overshoot {g.overshoot():.2f} Å")
+    print(f"  {'t':>4s} {'gate':>6s} {'rigid':>6s} {'filter':>6s} {'chord':>6s}  lining")
+    for i in range(len(g.fraction)):
+        print(f"  {g.fraction[i]:4.2f} {g.gate[i]:6.2f} {g.rigid_gate[i]:6.2f} "
+              f"{g.filter[i]:6.2f} {g.lining_error[i]:6.2f}  {' '.join(g.lining[i])}")
 
 
 def _states(args) -> int:
@@ -359,6 +373,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="whose elastic network is solved")
     p.add_argument("--stride", type=int, default=None)
     p.add_argument("-n", type=int, default=None)
+    p.add_argument("--gate", action="store_true",
+                   help="also measure the gate on every frame (atoms interpolated)")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_transition)
     p = sub.add_parser("gating")

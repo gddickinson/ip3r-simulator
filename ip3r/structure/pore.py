@@ -26,8 +26,9 @@ from ..core.structure import Structure
 from ..parameters import PARAMETERS as _P
 from .symmetry import Frame, subunit_ca
 
-__all__ = ["PoreProfile", "Constriction", "pore_profile", "tm_span",
-           "find_constrictions", "lining_residues"]
+__all__ = ["PoreProfile", "Constriction", "pore_profile", "radial_profile",
+           "tm_span", "find_constrictions", "constriction_indices",
+           "lining_residues", "PROFILE_MARGIN", "GATE_MARGIN"]
 
 
 @dataclass
@@ -74,11 +75,21 @@ def tm_span(st: Structure, frame: Frame, residues: tuple[int, int]) -> tuple[flo
 def pore_profile(st: Structure, frame: Frame, z0: float, z1: float,
                  step: float | None = None, slab: float | None = None,
                  include_hetero: bool = False) -> PoreProfile:
+    m = _heavy(st, include_hetero)
+    return radial_profile(frame.to_frame(st.xyz[m]), st.vdw_radii()[m], z0, z1,
+                          step, slab, include_hetero=include_hetero)
+
+
+def radial_profile(f: np.ndarray, vdw: np.ndarray, z0: float, z1: float,
+                   step: float | None = None, slab: float | None = None,
+                   **meta) -> PoreProfile:
+    """The profile of atoms already in frame coordinates (``f``, Å).
+
+    :func:`pore_profile` for a deposit; the morph's gate path
+    (:mod:`ip3r.structure.morph_pore`) calls it on interpolated atoms.
+    """
     step = _P.value("pore.step") if step is None else step
     slab = _P.value("pore.slab") if slab is None else slab
-    m = _heavy(st, include_hetero)
-    f = frame.to_frame(st.xyz[m])
-    vdw = st.vdw_radii()[m]
     r = np.hypot(f[:, 0], f[:, 1])
     z = f[:, 2]
     order = np.argsort(z)
@@ -95,8 +106,7 @@ def pore_profile(st: Structure, frame: Frame, z0: float, z1: float,
         rmin.append(float(r[idx].min()))
         rfree.append(float((r[idx] - vdw[idx]).min()))
     return PoreProfile(np.array(zs), np.array(rmin), np.array(rfree),
-                       meta={"step": step, "slab": slab, "z0": z0, "z1": z1,
-                             "include_hetero": include_hetero})
+                       meta={"step": step, "slab": slab, "z0": z0, "z1": z1, **meta})
 
 
 def lining_residues(st: Structure, frame: Frame, z: float, radius: float,
@@ -113,25 +123,39 @@ def lining_residues(st: Structure, frame: Frame, z: float, radius: float,
     return sorted(labels, key=lambda s: (int("".join(c for c in s if c.isdigit())), s))
 
 
+PROFILE_MARGIN = 12.0   # Å profiled beyond each end of the span (S0)
+GATE_MARGIN = 6.0       # Å past the cytosolic end the gate is sought (S0)
+
+
+def constriction_indices(profile: PoreProfile,
+                         span: tuple[float, float]) -> dict[str, int]:
+    """Profile index of the filter (narrowest luminal point) and the gate
+    (narrowest cytosolic point, up to ``GATE_MARGIN`` past the span)."""
+    lo, hi = span
+    mid = 0.5 * (lo + hi)
+    out = {}
+    for name, sel in (("filter", profile.z < mid),
+                      ("gate", (profile.z >= mid) & (profile.z <= hi + GATE_MARGIN))):
+        if sel.any():
+            out[name] = int(np.flatnonzero(sel)[np.argmin(profile.r_min[sel])])
+    return out
+
+
 def find_constrictions(st: Structure, frame: Frame, span: tuple[float, float],
                        profile: PoreProfile | None = None,
                        include_hetero: bool = False) -> dict[str, Constriction]:
     """Filter (narrowest luminal point) and gate (narrowest cytosolic point).
 
-    ``span`` is the pore-domain axial extent; the profile is taken 12 Å beyond
-    each end and the gate searched up to 6 Å past the cytosolic end — S0's
-    windows, so the same constriction is found.
+    ``span`` is the pore-domain axial extent; the profile is taken
+    ``PROFILE_MARGIN`` beyond each end and the gate searched up to
+    ``GATE_MARGIN`` past the cytosolic end — S0's windows, so the same
+    constriction is found.
     """
     lo, hi = span
-    prof = profile or pore_profile(st, frame, lo - 12.0, hi + 12.0,
+    prof = profile or pore_profile(st, frame, lo - PROFILE_MARGIN, hi + PROFILE_MARGIN,
                                    include_hetero=include_hetero)
-    mid = 0.5 * (lo + hi)
     out = {}
-    for name, sel in (("filter", prof.z < mid),
-                      ("gate", (prof.z >= mid) & (prof.z <= hi + 6.0))):
-        if not sel.any():
-            continue
-        i = np.flatnonzero(sel)[np.argmin(prof.r_min[sel])]
+    for name, i in constriction_indices(prof, span).items():
         out[name] = Constriction(name, float(prof.z[i]), float(prof.r_min[i]),
                                  lining_residues(st, frame, float(prof.z[i]),
                                                  float(prof.r_min[i]),

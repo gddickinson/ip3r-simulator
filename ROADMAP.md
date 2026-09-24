@@ -54,10 +54,14 @@ Emergent (not scheduled):
 - [ ] Where do the stride-3 local modes (#11–15 of 8TKG, κ ≤ 0.11) come
   from — which sites are weakly attached, and should the network bridge
   them (e.g. a sequence-neighbour spring) rather than just flag them?
-- [ ] The gate radius along the morph is not measured: side chains ride
-  their Cα rigidly, so a profile of intermediate frames would be wrong at
-  exactly the gate. Needs side-chain interpolation (or a rotamer-free
-  backbone-only pore measure) first.
+- [x] The gate radius along the morph (`structure/morph_pore.py`): every
+  heavy atom both deposits resolve interpolated (Cα offset, 70,952 atoms,
+  none unmatched), axis re-found per frame. Endpoint frames measure as the
+  deposits (8TKG 2.73 Å F2513, 8TKF 5.85 Å N2510; 9R8O 3.32, 9HEO 5.05);
+  rigid side chains end 0.69 Å short on ITPR3, 0.19 Å long on RyR1. Gate
+  opens monotonically, half-way at 0.42 (ITPR3) / 0.44 (RyR1); in ITPR3
+  the constriction hands over from I2517 to N2510 at t ≈ 0.7. Lining
+  side-chain chord ≤ 0.23 Å. The viewer now draws the interpolated atoms.
 
 ## Round 3 — more of the publication, on the structure
 

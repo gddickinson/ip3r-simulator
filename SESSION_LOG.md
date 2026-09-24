@@ -1145,3 +1145,58 @@ the verdicts are unchanged.
 **Next:** the user supplies Meissner 1997 (K_Mg,A without ATP) and Ríos
 et al. 1993 (the V-channel model). Without them, the next open item is
 Round 2's gate radius along the morph.
+
+
+## 2026-09-24 — Round 2: the gate along the morph
+
+**Why this item.** Meissner 1997 and Ríos et al. 1993 have still not been
+supplied, so this session took the logged fallback: Round 2's unmeasured
+gate radius along the morph.
+
+**The problem.** `displaced_coords` carries each side chain rigidly with its
+Cα. So the last frame of 8TKG → 8TKF was 8TKF's backbone lined by 8TKG's
+rotamers, and any pore profile of a morph frame was wrong at exactly the
+gate.
+
+**What.**
+- `structure/morph_pore.py`:
+  - `atom_path` matches every heavy atom of the basis residues by chain,
+    residue and name, and carries the end through the transition's own
+    superposition (now kept as `meta["end_transform"]`). Each atom's offset
+    from its Cα is interpolated linearly while the Cα follows the morph, so
+    both ends are the deposits atom for atom.
+  - `gate_path` re-finds the axis and the pore-domain span on every frame
+    and applies the deposit rule. It measures both ways: interpolated and
+    rigid.
+  - `offset_error` is the chord a swinging side chain takes. It is up to
+    3.9 Å over all atoms, but ≤ 0.23 Å on the gate's lining.
+- `pore.py`: `radial_profile` and `constriction_indices` were factored out
+  of `pore_profile` and `find_constrictions` (S0's windows are now named
+  constants), so the morph uses the same rule rather than a copy.
+- Viewer: `coords_at` now draws the interpolated atoms. The Transition tab
+  plots gate, rigid gate and filter along the path beside the overlap plot
+  (`PlotCanvas.span_row`), and the frame label shows the gate.
+- CLI: `transition --gate`.
+- Tests: `test_morph_pore` (7). The smoke test also asserts the gate
+  opens from < 3 to > 5.5 Å.
+
+**Measured.**
+
+| | start gate | end gate | rigid at end | half-way |
+|---|---|---|---|---|
+| ITPR3 8TKG → 8TKF | 2.73 Å (F2513) | 5.85 Å (N2510) | 5.16 Å | 0.42 |
+| RyR1 9R8O → 9HEO | 3.32 Å (I4937) | 5.05 Å (Q4933) | 5.24 Å | 0.44 |
+
+- Endpoint frames equal the deposits' own measurements (protein only).
+- There is no overshoot.
+- In ITPR3 the constriction moves 7 Å down, from I2517 to N2510, at
+  t ≈ 0.7.
+- The shortcut gets RyR1's end gate wrong in the other direction (too
+  wide), so it has no consistent bias.
+- The half-way point is a property of a linear path, not of gating order.
+  `docs/SCIENCE.md` says so.
+
+**Not changed.** Sync was clean, and no check or verdict moved.
+
+**Next:** still the PDFs (Meissner 1997, Ríos 1993). Without them, the next
+item is Round 2's stride-3 local modes.

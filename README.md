@@ -51,7 +51,10 @@ sites and to a symmetric pore opening), **B**, or the degenerate **E** pair.
 puts two states of one paralog on a residue-matched basis — 2,194 residues
 on each of the four subunits of resting 8TKG and activated 8TKF — superposes
 them on the pore domain, and morphs between them with peptide Cα–Cα
-distances restrained (an interpolation, labelled as one). Each residue is
+distances restrained (an interpolation, labelled as one). Side chains are
+interpolated too, atom by atom, so the last frame is 8TKF itself and the gate
+plotted along the path (2.73 → 5.85 Å, half-way at 0.42) is the gate on
+screen; the rigid-side-chain shortcut, drawn dashed, ends 0.7 Å short. Each residue is
 coloured by how far it moves, on a fixed 0–25 Å scale: the cytosolic RIH
 and MIR domains move 17–22 Å on average, while the pore domain moves 2.5 Å
 and the filter 0.8 Å. The tab then asks whether the resting
@@ -333,7 +336,7 @@ python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
 python -m ip3r spark-mg [--scan] [--ratio]  # Mg2+ ends a triggered spark
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
-python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
+python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame)
 python -m ip3r graft 8TKG --calibrate   # AlphaFold fills, seams, and how good they are
 python -m ip3r gating | oscillate --window | puffs --ip3 0.2
 python -m ip3r puffs --model park-drive | puffs --scan   # the two receptors

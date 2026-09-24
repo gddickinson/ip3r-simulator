@@ -35,16 +35,29 @@ class PlotCanvas(FigureCanvasQTAgg):
         self.figure.clear()
         axes = self.figure.subplots(rows, cols, squeeze=False)
         for ax in axes.ravel():
-            ax.set_facecolor(_BG)
-            for sp in ax.spines.values():
-                sp.set_color("#4a505c")
-            ax.tick_params(colors=_FG, labelsize=8)
-            ax.xaxis.label.set_color(_FG)
-            ax.yaxis.label.set_color(_FG)
-            ax.title.set_color(_FG)
-            ax.title.set_fontsize(9)
+            self.style(ax)
         self.axes = axes
         return axes[0, 0] if rows == cols == 1 else axes
+
+    def span_row(self, axes_row):
+        """Replace a row of axes by one styled axis spanning it."""
+        gs = axes_row[0].get_subplotspec()
+        spec = gs.get_gridspec()[gs.rowspan.start, :]
+        for ax in axes_row:
+            ax.remove()
+        return self.style(self.figure.add_subplot(spec))
+
+    @staticmethod
+    def style(ax):
+        ax.set_facecolor(_BG)
+        for sp in ax.spines.values():
+            sp.set_color("#4a505c")
+        ax.tick_params(colors=_FG, labelsize=8)
+        ax.xaxis.label.set_color(_FG)
+        ax.yaxis.label.set_color(_FG)
+        ax.title.set_color(_FG)
+        ax.title.set_fontsize(9)
+        return ax
 
     def legend(self, ax, **kw):
         leg = ax.legend(fontsize=7, frameon=False, **kw)

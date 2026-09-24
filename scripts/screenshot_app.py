@@ -133,6 +133,10 @@ def main() -> int:
                 drawn = win.scene.view.structure.xyz
                 if abs(drawn - win.scene.structure.xyz).max() < 1.0:
                     raise RuntimeError("the morph end frame did not move the model")
+                g = win.transition.result.gate
+                if not (g.gate[0] < 3.0 < 5.5 < g.gate[-1]) or "gate" not in \
+                        win.transition.frame_label.text():
+                    raise RuntimeError(f"gate along the morph: {g.gate[[0, -1]]}")
                 win.grab().save(str(out / "gui_transition.png"))
                 win.findings.tree.setCurrentItem(
                     win.findings._items["P2.cyclostome_lineages"])

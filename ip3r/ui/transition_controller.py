@@ -3,7 +3,10 @@
 The path is built from **the structure already displayed** — its own
 C-alphas are frame 0 — so the drawn start is the deposit exactly and the
 drawn end puts every basis C-alpha on the superposed end deposit exactly
-(:func:`ip3r.structure.transition.displaced_coords`). The PIEZO1 simulator
+(:func:`ip3r.structure.transition.displaced_coords`). Every heavy atom
+both deposits resolve is then interpolated to its own end position
+(:mod:`ip3r.structure.morph_pore`), so the drawn end is the end deposit's
+side chains too, and the gate drawn is the gate measured. The PIEZO1 simulator
 learned this the hard way: a path built in one frame and drawn in another
 landed 36 Å from its own endpoint while every interpolation test passed.
 
@@ -21,6 +24,7 @@ from ..io import loader
 from ..physics.transition_modes import TransitionOverlap, transition_overlap
 from ..render.representations import Style
 from ..structure.morph import MorphTrajectory, morph
+from ..structure.morph_pore import AtomPath, GatePath, atom_path, gate_path
 from ..structure.transition import (Transition, atom_displacement, atom_site_index,
                                     displaced_coords, prepare_transition)
 
@@ -34,15 +38,20 @@ class TransitionResult:
     overlap: TransitionOverlap
     site_index: np.ndarray          # per atom of the start deposit
     displacement: np.ndarray        # per atom, Å; NaN off the basis
+    atoms: AtomPath                 # heavy atoms matched in both deposits
+    gate: GatePath                  # the pore measured on every frame
 
 
 def build_transition(start, end_id: str, fit: str, method: str) -> TransitionResult:
     """Everything slow, for a worker thread. ``start`` is the displayed Structure."""
-    tr = prepare_transition(start, loader.load(end_id), fit)
+    end = loader.load(end_id)
+    tr = prepare_transition(start, end, fit)
     traj = morph(tr.start, tr.end, method)
     idx = atom_site_index(start, tr)
+    atoms = atom_path(start, end, tr)
     return TransitionResult(tr, traj, transition_overlap(tr, "start"), idx,
-                            atom_displacement(start, tr, idx))
+                            atom_displacement(start, tr, idx), atoms,
+                            gate_path(atoms, tr, traj))
 
 
 class TransitionController:
@@ -70,8 +79,10 @@ class TransitionController:
         """Atom coordinates drawn at frame ``i`` — the single expression both
         the picture and the tests go through."""
         r = self.result
-        return displaced_coords(self.scene.structure.xyz, r.trajectory.frames, i,
-                                r.site_index)
+        frames = r.trajectory.frames
+        xyz = displaced_coords(self.scene.structure.xyz, frames, i, r.site_index)
+        xyz[r.atoms.index] = r.atoms.coords(frames[i], i / (len(frames) - 1))
+        return xyz
 
     def show_frame(self, i: int, stop: bool = True) -> None:
         if self.result is None or self.scene.view is None:

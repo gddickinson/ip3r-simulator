@@ -57,7 +57,27 @@ ordered right-handed about each deposit's cytosol-up axis. All four cyclic
 correspondences are tried; for a C4 pair they fit identically. The end is
 superposed onto the start *as deposited*, so the path can be drawn over what
 is on screen. `structure/morph.py` interpolates linearly, then restores
-peptide Cα–Cα distances (the PIEZO1 method). Side chains ride their Cα.
+peptide Cα–Cα distances (the PIEZO1 method).
+
+`structure/morph_pore.py` then interpolates every heavy atom both deposits
+resolve (matched by chain, residue and atom name; 70,952 for 8TKG → 8TKF,
+none unmatched). The atom's offset from its own Cα is interpolated linearly
+while the Cα follows the morph, so frame 0 is the start deposit and the last
+frame the superposed end deposit, atom for atom. The axis is re-found on
+every frame and the gate located by the deposit rule, so the endpoint frames
+measure exactly as the deposits do (8TKG 2.73 Å at F2513, 8TKF 5.85 Å at
+N2510; 9R8O 3.32 Å at I4937, 9HEO 5.05 Å at Q4933). Side chains riding their
+Cα rigidly — the viewer's shortcut until then — end 8TKF's path at 5.16 Å:
+8TKF's backbone lined by 8TKG's rotamers, 0.69 Å short of 8TKF. On RyR1 the
+shortcut errs the other way (5.24 Å against 5.05 Å).
+
+Along the path the gate opens monotonically (no overshoot) and is half-way
+at fraction 0.42 (ITPR3) and 0.44 (RyR1). In ITPR3 the constriction moves:
+I2517 lines it from t ≈ 0.07 to 0.69, and N2510, 7 Å further down, from
+0.72. Everything between the ends is an interpolation, so the half-way point
+is a property of the path, not a statement about the gating order. A
+swinging side chain takes a chord; `lining_error` reports the worst
+shortening of an atom–Cα distance among the gate's lining atoms per frame.
 
 `physics/transition_modes.py` scores the elastic network of one state against
 the observed move (overlap = |cos|, Tama & Sanejouand 2001). It removes the

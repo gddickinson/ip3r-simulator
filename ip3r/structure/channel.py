@@ -22,7 +22,8 @@ from ..core.annotations import elements
 from ..core.structure import Structure
 from .ligand import contacts, ligand_sites
 from .numbering import NumberingCheck, best_numbering
-from .pore import Constriction, PoreProfile, find_constrictions, pore_profile, tm_span
+from .pore import (PROFILE_MARGIN, Constriction, PoreProfile, find_constrictions,
+                   pore_profile, tm_span)
 from .symmetry import (Frame, axis_by_centroids, axis_by_superposition,
                        c4_residual, subunit_ca, tetramer_frame)
 
@@ -77,7 +78,7 @@ def measure_channel(st: Structure, include_hetero: bool = True) -> ChannelSummar
         source = "geometric (no human numbering fits)"
         notes.append("numbering matches no human paralog; residue-keyed "
                      "annotation is not painted on this deposit")
-    profile = pore_profile(st, frame, span[0] - 12.0, span[1] + 12.0,
+    profile = pore_profile(st, frame, span[0] - PROFILE_MARGIN, span[1] + PROFILE_MARGIN,
                            include_hetero=include_hetero)
     cons = find_constrictions(st, frame, span, profile, include_hetero)
     ip3 = {}

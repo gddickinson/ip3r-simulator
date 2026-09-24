@@ -6,9 +6,12 @@ curated panel's ``morph_start``/``morph_end`` roles), build, then scrub or play 
 receptor by how far each residue moved, and read how well the elastic
 network of the start state predicts the move.
 
-Everything shown says what it is: the morph is an interpolation, side chains
-ride their C-alpha rigidly, and the overlap is printed beside the value a
-random direction of the same symmetry would get.
+Everything shown says what it is: the morph is an interpolation (side
+chains too: each atom both deposits resolve is interpolated to its end
+position, so the gate plotted along the path is the gate drawn, and the
+rigid-side-chain gate beside it shows what the shortcut would have said),
+and the overlap is printed beside the value a random direction of the same
+symmetry would get.
 """
 
 from __future__ import annotations
@@ -53,9 +56,9 @@ class TransitionPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         lay = QVBoxLayout(self)
-        note = QLabel(NOTE + " C-alphas follow the path; side chains and "
-                      "ligands ride their C-alpha rigidly, so only the C-alpha "
-                      "trace at the far end is the end deposit.")
+        note = QLabel(NOTE + " C-alphas follow the path, and every atom both "
+                      "deposits resolve is interpolated to its end position; "
+                      "ligands and unmatched atoms ride their C-alpha rigidly.")
         note.setWordWrap(True)
         lay.addWidget(note)
 
@@ -94,6 +97,8 @@ class TransitionPanel(QWidget):
         self.slider.setEnabled(False)
         self.slider.valueChanged.connect(self._slid)
         self.frame_label = QLabel("")
+        self.frame_label.setMinimumWidth(
+            self.frame_label.fontMetrics().horizontalAdvance("29/29 (start) gate 5.85 Å") + 8)
         self.play = QPushButton("Play")
         self.play.clicked.connect(self.play_requested.emit)
         self.stop = QPushButton("Stop")
@@ -112,6 +117,7 @@ class TransitionPanel(QWidget):
         self.report.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         lay.addWidget(self.report)
         self.result = None
+        self._marker = None
         self._following = False
         self.set_enabled_controls(False)
 
@@ -172,7 +178,7 @@ class TransitionPanel(QWidget):
         self._frame_text(0)
         self.set_enabled_controls(True)
         self.report.setText("<br>".join(ov.report()))
-        self._plot(tr, ov)
+        self._plot(tr, ov, result.gate)
 
     def follow(self, i: int) -> None:
         """Move the slider with playback without requesting a frame."""
@@ -188,6 +194,7 @@ class TransitionPanel(QWidget):
         self.frame_label.setText("")
         self.paint.setChecked(False)
         self.set_enabled_controls(False)
+        self._marker = None
         self.canvas.reset(2, 1)
         self.canvas.draw_idle()
 
@@ -195,16 +202,25 @@ class TransitionPanel(QWidget):
 
     def _frame_text(self, i: int) -> None:
         n = self.slider.maximum()
+        gate = ""
+        if self.result is not None and n:
+            g = self.result.gate
+            gate = f" gate {g.gate[i]:.2f} Å"
+            if self._marker is not None:
+                self._marker.set_xdata([g.fraction[i]])
+                self.canvas.draw_idle()
         self.frame_label.setText(f"{i}/{n}" + (" (start)" if i == 0 else
-                                               " (end)" if i == n else ""))
+                                               " (end)" if i == n else "") + gate)
 
     def _slid(self, i: int) -> None:
         self._frame_text(i)
         if not self._following:
             self.frame_requested.emit(i)
 
-    def _plot(self, tr, ov) -> None:
-        ax1, ax2 = self.canvas.reset(2, 1)[:, 0]
+    def _plot(self, tr, ov, gate) -> None:
+        axes = self.canvas.reset(2, 2)
+        ax1 = self.canvas.span_row(axes[0])
+        ax2, ax3 = axes[1]
         means = sorted(tr.element_means().items(), key=lambda kv: kv[1])
         ax1.barh([ELEMENT_LABELS.get(k, k) for k, _ in means], [v for _, v in means],
                  color=PALETTE[0])
@@ -226,8 +242,22 @@ class TransitionPanel(QWidget):
         ax2.set_xlim(0.4, len(k) + 0.6)
         ax2.set_xticks(k[::2] if len(k) > 12 else k)
         ax2.set_ylim(0, 1)
-        ax2.set_xlabel(f"ANM mode of {ov.reference} (hatched: local network artefact)")
+        ax2.set_xlabel(f"ANM mode of {ov.reference} (hatched: local artefact)")
         ax2.set_ylabel("overlap |cos|")
-        ax2.set_title(f"does the {ov.reference} network point towards {tr.end_id}?")
-        self.canvas.legend(ax2, loc="upper left", ncol=3)
+        ax2.set_title(f"{ov.reference} network → {tr.end_id}?")
+        self.canvas.legend(ax2, loc="upper left", ncol=2)
+        self._plot_gate(ax3, tr, gate)
         self.canvas.draw_now()
+
+    def _plot_gate(self, ax, tr, g) -> None:
+        ax.plot(g.fraction, g.gate, color=PALETTE[0], lw=1.6,
+                label="gate, interpolated")
+        ax.plot(g.fraction, g.rigid_gate, color=PALETTE[0], lw=1, ls="--",
+                label="gate, rigid side chains")
+        ax.plot(g.fraction, g.filter, color=PALETTE[2], lw=1.2, label="filter")
+        self._marker = ax.axvline(g.fraction[self.slider.value()], color="#d7dbe3", lw=0.8)
+        ax.set_xlim(0, 1)
+        ax.set_xlabel(f"path fraction; gate half-way at {g.half_open():.2f}")
+        ax.set_ylabel("radius r_min (Å)")
+        ax.set_title("the pore along the morph")
+        self.canvas.legend(ax, loc="lower right", ncol=1)
