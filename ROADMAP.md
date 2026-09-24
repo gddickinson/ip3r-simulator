@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 4, item 2** (puff model with low resting activity).
+**Next: Round 4, item 3** (unitary current from the pore profile).
 
 ## Destination
 
@@ -143,9 +143,25 @@ Emergent (not scheduled):
   Emergent: the model has no kinetics. A kinetic scheme fitted to the same
   data (e.g. Siekmann's park/drive, the next item) would let the Mak
   receptor drive the cell and puff models.
-- [ ] A puff model with low resting activity (e.g. a Siekmann-type park/drive
-  scheme) so blips and puffs separate cleanly; the DYK cluster gives only
-  modest clustering (Fano ~1.4).
+- [x] Park/drive puff model (Siekmann 2012 + Cao 2013 gating variables;
+  41 constants read from the authors' code, Cao 2014 Text S1), in the same
+  mean-field cluster as DYK and read with one ruler (`puff_compare`). Over
+  30 s at 0.2 µM IP3, the DYK cluster reaches half its channels (10/20) in
+  ≤ 1 event at every coupling from 0 to 2 µM. Park/drive does so 10–17 times
+  at 0.09–0.32 µM (Fano 2.8 vs DYK ≤ 1.32), with a valley in the event-size
+  distribution. Seeds 1–3 at 0.1 µM: 12–14 against 0–1. Resting open
+  fraction is 1.7 % against 5.2 %. The split step reproduces the clamped
+  stationary P_open to 0.2 %, and a 5 ms step is caught (10.5 %).
+  Emergent:
+  - [ ] Park/drive's stationary bell is not in the Gating panel beside DYK
+    and Mak (`park_drive.bell_at` exists; at 0.2 µM IP3 it peaks at 0.32
+    near 0.70 µM Ca²⁺).
+  - [ ] The cluster Ca²⁺ is instantaneous mean-field. Cao integrate a
+    microdomain ODE with fluo-4, which is what their inter-puff-interval and
+    puff-shape results rest on. Adding it would let the app reproduce their
+    IPI distribution and the amplitude-vs-N saturation.
+  - [ ] Above ~0.5 µM coupling, park/drive sits at a sustained 9 % open
+    rather than puffing. Is that the missing store depletion, or the model?
 - [ ] Unitary current from the pore profile (1-D drift–diffusion, as PIEZO1's
   `physics/permeation.py`), compared across the state panel.
 

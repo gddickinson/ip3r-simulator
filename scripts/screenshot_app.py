@@ -188,6 +188,24 @@ def main() -> int:
                     raise RuntimeError(f"Mak gating drew: {gt.text.text()[:120]}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_gating_mak.png"))
+                pz = win.dynamics.puffs
+                pz.parent().parent().setCurrentWidget(pz)
+                pz.model.setCurrentIndex(pz.model.findData("park-drive"))
+                if abs(pz.coupling.value() - 0.1) > 1e-9:
+                    raise RuntimeError(f"park/drive coupling {pz.coupling.value()}")
+                pz.duration.setValue(5.0)
+                pz.run()
+            elif s == 11:
+                pz = win.dynamics.puffs
+                if pz.result is None:
+                    if not pz.text.text().startswith("Simulating"):
+                        raise RuntimeError(pz.text.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                if pz.result["coupled"]["fano"] <= pz.result["uncoupled"]["fano"]:
+                    raise RuntimeError(f"park/drive puffs drew {pz.result}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_puffs_pd.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

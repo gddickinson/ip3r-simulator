@@ -8,8 +8,9 @@ Three views of IP3R gating, from one molecule to one cell:
   Only the Mak model leaves the left flank (activation) where it is.
 * **Oscillations** — the closed-cell model at a chosen IP3; a scan finds the
   IP3 window in which Ca2+ oscillates with no oscillating input.
-* **Puffs** — a stochastic cluster of receptors, with and without the Ca2+
-  coupling that lets one opening recruit the next.
+* **Puffs** (``puffs_panel``) — a stochastic cluster of De Young-Keizer or
+  park/drive receptors, with and without the Ca2+ coupling that lets one
+  opening recruit the next.
 
 Every constant comes from the parameter registry; the plots say which model
 drew them.
@@ -18,7 +19,6 @@ drew them.
 from __future__ import annotations
 
 import numpy as np
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QComboBox, QDoubleSpinBox, QFormLayout, QHBoxLayout, QLabel,
                              QPushButton, QTabWidget, QVBoxLayout, QWidget)
 
@@ -26,8 +26,8 @@ from ..physics.calcium import oscillation_metrics, oscillation_window, simulate
 from ..parameters import PARAMETERS as _P
 from ..physics import gating_mak as mk
 from ..physics.gating import bell_at, h_inf, open_probability
-from ..physics.puffs import PuffParams, fano, simulate_cluster
 from .plot_canvas import PALETTE, PlotCanvas
+from .puffs_panel import PuffsPanel
 from .workers import run_async
 
 __all__ = ["DynamicsPanel"]
@@ -182,59 +182,6 @@ class _Oscillation(QWidget):
                           "(grid 0.01 µM; damped spirals excluded).")
 
 
-class _Puffs(QWidget):
-    def __init__(self):
-        super().__init__()
-        lay = QVBoxLayout(self)
-        form = QFormLayout()
-        pp = PuffParams()
-        self.p = _spin(0.2, 0.0, 5.0, 0.05, " µM")
-        self.n = _spin(pp.n_channels, 1, 200, 1, " channels", 0)
-        self.coupling = _spin(pp.ca_per_open, 0.0, 20.0, 0.1, " µM / open channel")
-        self.duration = _spin(10.0, 1.0, 60.0, 1.0, " s", 0)
-        for label, w in (("IP3", self.p), ("Cluster size", self.n),
-                         ("Ca²⁺ coupling", self.coupling), ("Duration", self.duration)):
-            form.addRow(label, w)
-        lay.addLayout(form)
-        run = QPushButton("Simulate cluster (coupled vs uncoupled, same seed)")
-        run.clicked.connect(self.run)
-        lay.addWidget(run)
-        self.canvas = PlotCanvas(self, height=3.4, rows=2)
-        lay.addWidget(self.canvas, 1)
-        self.text = QLabel()
-        self.text.setWordWrap(True)
-        self.text.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        lay.addWidget(self.text)
-
-    def _params(self, coupling):
-        pp = PuffParams()
-        pp.n_channels, pp.ca_per_open = self.n.value(), coupling
-        return pp
-
-    def run(self):
-        self.text.setText("Simulating…")
-        p, d = self.p.value(), self.duration.value()
-        run_async(lambda: [simulate_cluster(p, d, 0, self._params(c))
-                           for c in (self.coupling.value(), 0.0)],
-                  on_done=self._show, on_error=self.text.setText)
-
-    def _show(self, traces):
-        axes = self.canvas.reset(2, 1)
-        for ax, tr, label in zip(axes[:, 0], traces, ("coupled", "uncoupled")):
-            ax.step(tr.t, tr.n_open, where="post", lw=0.6,
-                    color=PALETTE[0 if label == "coupled" else 1])
-            ax.set_ylabel("open")
-            ax.set_title(f"{label}: Fano {fano(tr):.2f}, max {tr.n_open.max()} "
-                         f"of {int(tr.params.n_channels)} open at once")
-        axes[-1, 0].set_xlabel("time (s)")
-        self.canvas.draw_now()
-        self.text.setText(
-            "Fano factor = variance / mean of the number open at once: ~1 when "
-            "channels gate independently, above 1 when one opening recruits "
-            "others through Ca²⁺-induced Ca²⁺ release. The DYK constants give a "
-            "high resting activity, so puffs here are modest (see ROADMAP).")
-
-
 class DynamicsPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -243,5 +190,6 @@ class DynamicsPanel(QWidget):
         self.gating = _Gating()
         tabs.addTab(self.gating, "Gating")
         tabs.addTab(_Oscillation(), "Oscillations")
-        tabs.addTab(_Puffs(), "Puffs")
+        self.puffs = PuffsPanel()
+        tabs.addTab(self.puffs, "Puffs")
         lay.addWidget(tabs)

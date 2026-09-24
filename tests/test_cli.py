@@ -19,3 +19,8 @@ def test_transition(capsys):
     assert main(["transition", "8TKG", "8TKF"]) == 0
     out = capsys.readouterr().out
     assert "lowest collective A mode" in out and "random direction" in out
+
+
+def test_puffs_park_drive(capsys):
+    assert main(["puffs", "--model", "park-drive", "--duration", "1"]) == 0
+    assert '"large_share"' in capsys.readouterr().out

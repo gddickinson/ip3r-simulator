@@ -80,7 +80,10 @@ headless (CLI, tests, notebooks).
 | `gating_mak.py` | Mak et al. 1998 Hill-type steady state: `MakParams`, `k_inh` (Eq. 2), `open_probability` (Eq. 1), `bell_at`, `compare_flanks` (both models, one ruler) |
 | `bell.py` | model-agnostic bell measurement: `measure_bell(f)` → `Bell` (peak, half-activation, half-inhibition, `width_decades`), `flank_shifts` |
 | `calcium.py` | closed-cell Li–Rinzel: `simulate` → `Trace`, `fluxes`, `oscillation_metrics` (sustained only), `oscillation_window` (0.36–0.63 µM measured), `steady_state`, `CellParams` |
-| `puffs.py` | stochastic DYK cluster: `simulate_cluster` → `PuffTrace`, `detect_events`, `fano`, `coupling_effect`, `PuffParams` |
+| `puffs.py` | stochastic DYK cluster: `simulate_cluster` → `PuffTrace` (`n_open` snapshot per `puff.record_dt` bin, `n_peak` most open within it, `peaks`), `detect_events` (on peaks), `fano`, `PuffParams` |
+| `park_drive.py` | Siekmann/Cao park/drive receptor: `ParkDriveParams` (the 41 `pd.*` constants), `ip3_functions`, `gate_inf`, `mode_rates`, `constant_generator`, `stationary` (detailed balance), `open_probability`, `park_fraction`, `drive_open_probability`, `bell_at`; `STATES`/`OPEN`/`PARK` |
+| `puffs_pd.py` | park/drive cluster: `simulate_cluster_pd` (split step: exact `expm` within modes, then mode switch; gate equilibria tabulated per number open; `clamp_ca` for the single-channel condition), `ParkDrivePuffParams` |
+| `puff_compare.py` | one ruler for both clusters: `MODELS`, `MODEL_LABELS`, `params_for`, `simulate`, `event_sizes`, `recruitment` (Fano, open fraction, blips / multi / large ≥ half the cluster, rate), `coupling_effect(model=)`, `scan_couplings`, `coupling_scan` |
 
 ## `ip3r/analysis/` — the findings checks
 
@@ -130,7 +133,8 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `modes_panel.py` | ANM table with irreps and κ, animation controls |
 | `transition_panel.py` | Transition tab: end state, fit, method, 8TKG→8TKF preset, frame slider/play, displacement colouring, element and overlap plots |
 | `transition_controller.py` | `build_transition` (worker), `TransitionController` (install, `coords_at`, `show_frame`, `play`, `reset` — path built from the displayed structure) |
-| `dynamics_panel.py` | Gating (bell; model: DYK or Mak 1998, with the flank comparison), Oscillations (+ window scan), Puffs (coupled vs uncoupled) |
+| `dynamics_panel.py` | Gating (bell; model: DYK or Mak 1998, with the flank comparison), Oscillations (+ window scan), and the Puffs sub-tab |
+| `puffs_panel.py` | `PuffsPanel`: receptor (DYK / park-drive), coupled vs uncoupled traces, event-size histogram, "Scan coupling (both receptors)"; `result` for the smoke test |
 | `findings_panel.py` | checks by paper, run on a worker, claim/method/verdict, exhibit, show on structure (`showable`: residue-keyed checks drawn on the displayed structure) |
 | `tree_panel.py` | Tree tab: `draw_tree` on a toolbar canvas, tip labels / support toggles, "Vertebrates" zoom, click names a tip; loaded on a worker when first shown |
 | `genomes_panel.py` | Genomes tab: `draw_grid` with layer / sort / class / above-bar controls, click names a genome; loaded on a worker when first shown; `show_layer` (from a check's "Show") |
@@ -149,7 +153,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 
 | File | Purpose |
 |---|---|
-| `parameter_table.py`, `reference_table.py`, `build_parameters.py` | the registry and its provenance gate |
+| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
 | `sync_genes.py` | import resources from ip3r_genes; `--check` reports drift |
 | `screenshot_app.py` | scripted GUI smoke test + README screenshots |
 | `create_env.sh` | the `ip3r_sim` conda env |
@@ -157,7 +161,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 ## `tests/`
 
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
-— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`), geometry
+— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
 `test_resources`), rules (`test_sizes`), CLI, and

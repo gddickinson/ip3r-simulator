@@ -455,3 +455,82 @@ Eq. 1's form was confirmed separately: a single denominator 1 + a + b.
 counted as new. The README said 39; it now says 45. No verdict moved.
 
 **Next:** Round 4, item 2 (a puff model with low resting activity).
+
+## 2026-09-24 — Session 9: Round 4, item 2 — park/drive puffs
+
+**What.**
+- `physics/park_drive.py` implements the Siekmann et al. 2012 six-state
+  IP3R-1 model with the gating variables of Cao et al. 2013.
+  `stationary` uses detailed balance on the tree, and the test proves it
+  equals the null space of the full generator.
+- `physics/puffs_pd.py` is the same mean-field cluster as `puffs`, with the
+  receptor swapped. An open receptor also sees its own mouth (+120 µM), as
+  in Cao's scheme.
+- `physics/puff_compare.py` is one ruler for both clusters:
+  - `recruitment` gives the Fano factor, the open fraction, and blip /
+    multi-channel / half-cluster events;
+  - `coupling_scan` runs both receptors over the same couplings.
+  `coupling_effect` moved here from `puffs`, with a `model` argument.
+- Both simulators now record, per 1 ms bin (`puff.record_dt`), the snapshot
+  and the most open at once. Events are read from the peak. The DYK
+  snapshots are unchanged, so its Fano numbers are too.
+- `ui/puffs_panel.py` (moved out of `dynamics_panel.py`) has a receptor
+  choice, an event-size histogram and "Scan coupling". The CLI gained
+  `puffs --model park-drive` and `puffs --scan`. The smoke test drives
+  park/drive and writes `docs/img/gui_puffs_pd.png`.
+- 48 new parameters (41 `pd.*`, 7 `puff.*`) and three references. The park/
+  drive entries live in `scripts/parameter_table_pd.py`, and
+  `scripts/param_entry.py` holds the shared constructor. Tests: 178 → 201.
+
+**Why.** The DYK cluster could only say "coupling raises the Fano factor
+a little". The roadmap asked for a receptor whose resting activity is low
+enough that blips and puffs separate. The comparison is built so that only
+the receptor differs: same cluster, coupling scheme, seed and ruler.
+
+**Where the constants came from.** The rates are in Cao 2013's Table S1,
+behind PMC's browser challenge, so they were not reachable. Cao et al. 2014
+(PLoS Comput Biol, open access) publishes its model code as Text S1, and
+every constant was read from that code. Cao 2013's main text was read for
+the equations. Its Eq. 10 writes λ_h42 as a Ca²⁺ switch with V = 100 s⁻¹,
+while the 2014 code switches on the open state at 20 s⁻¹ with 0.5 s⁻¹
+recovery. The code's values are used and the difference is in the source
+notes. The main text says "λh24" where Eq. 10 defines λh42, a typo in the
+paper. Two sanity checks against the text pass: the drive-mode P_open is
+0.701 ("around 70 %"), and q54/q45 is 303 ("∼300 times").
+
+**Measured** (30 s, 0.2 µM IP3, seed 0; large = peak ≥ 10 of 20):
+
+| coupling | DYK Fano | DYK large | PD Fano | PD large |
+|---|---|---|---|---|
+| 0 | 0.93 | 0 | 0.98 | 0 |
+| 0.09 | 1.32 | 1 | 2.79 | 10 |
+| 0.17 | 1.21 | 0 | 2.78 | 17 |
+| 0.32 | 1.14 | 0 | 2.23 | 16 |
+| 1.08 | 1.25 | 1 | 1.60 | 6 |
+| 2.00 | 1.19 | 1 | 1.61 | 7 |
+
+- On seeds 1–3 at 0.1 µM coupling, park/drive has 12, 12 and 14 large
+  events; DYK has 0–1 at 0.1 and 0 at its own 1 µM.
+- Uncoupled open fraction: DYK 5.2 %, park/drive 1.7 %. The stationary
+  formulas give 1.6 % against 1.1 %, so the stochastic DYK subunit cluster
+  runs well above its own Li–Rinzel steady state.
+- The event-size histogram at 0.17 µM has a trough at 6–7 channels and a
+  second mode at 8–11. DYK's decays monotonically at every coupling.
+- The park/drive coupling (0.1 µM) was chosen by the rule that chose DYK's
+  1 µM (maximum Fano). Cao's microdomain gives ≈ 0.11 µM per open channel.
+
+**The instrument, calibrated.** The first "must fail" case I wrote (a 2 ms
+step) did not fail. The split step is more accurate than I assumed. Measured
+against the clamped stationary P_open at 0.5 µM Ca²⁺, the error is 0.2 % at
+0.1 ms, 1.6 % at 0.5 ms, 4.5 % at 2 ms and 10.5 % at 5 ms. The test now
+uses 400 channels and a 3 % tolerance, and the must-fail case uses 5 ms.
+
+**Incidental.** `mak1998` was declared twice in `reference_table.py`
+(Session 8). Nothing checked reference keys for duplicates; the build now
+does.
+
+**Not changed.** No `ip3r_genes` table moved (`make sync-check` clean). The
+45 checks are untouched.
+
+**Next:** Round 4, item 3 (unitary current from the pore profile).
+

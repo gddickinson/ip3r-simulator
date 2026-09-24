@@ -75,6 +75,19 @@ them 2.8× and 2.0× (`python -m ip3r gating --model mak`).
 
 ![The Mak 1998 gating model](docs/img/gui_gating_mak.png)
 
+The Puffs panel can fill the same cluster with park/drive receptors
+(Siekmann et al. 2012, with the gating variables of Cao et al. 2013; every
+constant read from the authors' code). Nearly all of these are parked at
+rest, so the cluster stays quiet until one receptor enters drive mode. Then
+its Ca²⁺ pulls the others in. Both receptors are measured with one ruler.
+Over 30 s at 0.2 µM IP3, the De Young–Keizer cluster reaches half its
+channels in at most 1 event at any coupling from 0 to 2 µM per open channel.
+The park/drive cluster does so 10–17 times at 0.09–0.32 µM (Fano 2.8, against
+≤ 1.32), and its event sizes split into blips and puffs with a valley
+between (`python -m ip3r puffs --scan`).
+
+![Park/drive puffs](docs/img/gui_puffs_pd.png)
+
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
@@ -216,6 +229,7 @@ python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
 python -m ip3r gating | oscillate --window | puffs --ip3 0.2
+python -m ip3r puffs --model park-drive | puffs --scan   # the two receptors
 make help
 ```
 
@@ -237,7 +251,9 @@ lines. What is next is in [`ROADMAP.md`](ROADMAP.md).
 De Young & Keizer 1992 (PNAS 89:9895); Li & Rinzel 1994 (J Theor Biol
 166:461); Bezprozvanny, Watras & Ehrlich 1991 (Nature 351:751); Mak, McBride
 & Foskett 1998 (PNAS 95:15821); Swillens et al. 1999 (PNAS 96:13750); Shuai &
-Jung 2002 (Biophys J 83:87); Smith & Parker 2009 (PNAS 106:6404); Paknejad &
+Jung 2002 (Biophys J 83:87); Siekmann et al. 2012 (Biophys J 103:658); Cao et
+al. 2013 (Biophys J 105:1133); Cao et al. 2014 (PLoS Comput Biol
+10:e1003783); Smith & Parker 2009 (PNAS 106:6404); Paknejad &
 Hite 2018 (NSMB 25:660); Atilgan et al. 2001 (Biophys J 80:505); Yang, Song &
 Jernigan 2009 (PNAS 106:12347); Tama & Sanejouand 2001 (Protein Eng 14:1);
 Brüschweiler 1995 (J Chem Phys 102:3396); Kabsch 1976 (Acta Cryst A32:922); Hanley &

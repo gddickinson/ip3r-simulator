@@ -112,7 +112,8 @@ P_max 0.81, K_act 0.21 µM, H_act 1.9, H_inh 3.9, K_∞ 52 µM, K_IP3 50 nM and
 H_IP3 4 were each read from the paper (PMC28128) before they were
 registered. "Kinh being the only IP3-concentration-sensitive parameter" is
 the model's content. It describes steady-state data only, with no
-inhibition kinetics, so it cannot drive the cell or puff models.
+inhibition kinetics, so it cannot drive the cell or puff models (the
+park/drive receptor, below, is the kinetic model used for puffs).
 
 Both models are measured with one ruler (`physics.bell`): the Ca²⁺ at half
 the bell's own peak on each flank. From 33 nM (the lowest IP3 at which the
@@ -139,11 +140,61 @@ conserved. Measured here by simulation: sustained oscillations for IP3 in
 
 ## Puffs
 
-N receptors × 4 subunits × 3 two-state sites flipping with the DYK rates on
-a fixed step (Shuai & Jung 2002), coupled through a mean-field cluster Ca²⁺
-(Swillens et al. 1999). The measured signature of coupling is the Fano
-factor of simultaneous openings (~1 independent; 1.43 coupled at 0.2 µM).
-DYK's resting activity is high (n∞(0.1 µM) = 0.55), so puffs are modest.
+**The DYK cluster** (`physics/puffs.py`). N receptors × 4 subunits × 3
+two-state sites, flipping with the DYK rates on a fixed step (Shuai & Jung
+2002). The receptors are coupled through a mean-field cluster Ca²⁺
+(Swillens et al. 1999): every receptor sees `ca_rest + ca_per_open ×
+(number open)`.
+
+**The park/drive cluster** (`physics/park_drive.py`, `physics/puffs_pd.py`).
+The same cluster with the receptor swapped for Siekmann et al.'s (2012)
+six-state IP3R-1 model, with Cao et al.'s (2013) gating variables. A drive
+mode (C1, C2, C3, O6) is open 70 % of the time; a park mode (C4, O5) is
+almost never open. Ca²⁺ and IP3 act only on the switch between modes:
+
+    q24 = a24 + V24 (1 − m24 h24),   q42 = a42 + V42 m42 h42,
+    dG/dt = λ_G (G∞(c) − G)
+
+`h42` recovers at 0.5 s⁻¹ while the channel is closed and falls at 20 s⁻¹
+while it is open. An open receptor sees its own mouth (`c + 120 µM`), which
+is Cao's two-concentration scheme. All 41 constants were read from the
+authors' code (Cao et al. 2014, Text S1). The 2013 paper's Table S1 was not
+reachable. Its printed IP3 dependences are registered as `base + amp × Hill`;
+a test proves the two forms equal. Integration splits each 0.1 ms step: the
+constant-rate transitions are taken exactly (`expm(Q dt)`), then the mode
+switch and the gating variables are updated. Against the stationary
+distribution at clamped Ca²⁺, the error is 0.2 % at 0.1 ms and 10.5 % at 5
+ms. The test uses 3 % and has a case (5 ms) that must fail.
+
+**One ruler** (`physics/puff_compare.py`). Both simulators record, per 1 ms
+bin, the number open at the bin's start (for the Fano factor) and the most
+open at once in the bin (for events). An event is a run of bins with any
+channel open, and its size is its peak. The *recruitment* statistic counts
+the events that reach half the cluster (10 of 20).
+
+Measured over 30 s at 0.2 µM IP3, seed 0, both receptors at the same couplings:
+
+| coupling (µM per open) | DYK Fano | DYK ≥10 | PD Fano | PD ≥10 |
+|---|---|---|---|---|
+| 0 | 0.93 | 0 | 0.98 | 0 |
+| 0.09 | 1.32 | 1 | 2.79 | 10 |
+| 0.17 | 1.21 | 0 | 2.78 | 17 |
+| 0.32 | 1.14 | 0 | 2.23 | 16 |
+| 1.08 | 1.25 | 1 | 1.60 | 6 |
+
+The result holds on seeds 1–3: at 0.1 µM, park/drive has 12–14 half-cluster
+events and DYK 0–1. Uncoupled, 5.2 % of DYK channels are open at a time,
+against 1.7 % for park/drive. Park/drive's many "blips" are mostly brief
+(0.3 ms) park-mode flickers.
+
+The park/drive coupling (`puff.pd_ca_per_open` = 0.1 µM) was chosen by the
+rule that chose DYK's 1 µM: the value that most raises the Fano factor.
+Cao's own microdomain gives about 0.11 µM per open channel.
+
+**Limitations.** The cluster Ca²⁺ is mean-field and instantaneous (Cao
+integrates a microdomain ODE with fluo-4), and the store is never depleted.
+Above about 0.5 µM coupling, the park/drive cluster settles into sustained
+partial activity (9 % open) rather than discrete puffs.
 
 ## Paper 6: the module contrast
 

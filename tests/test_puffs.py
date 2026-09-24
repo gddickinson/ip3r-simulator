@@ -1,6 +1,7 @@
 import numpy as np
 
-from ip3r.physics.puffs import PuffParams, coupling_effect, detect_events, simulate_cluster
+from ip3r.physics.puff_compare import coupling_effect
+from ip3r.physics.puffs import PuffParams, detect_events, simulate_cluster
 
 
 def test_no_ip3_no_openings():
@@ -24,3 +25,11 @@ def test_event_detection():
                    PuffParams(), 0.2)
     ev = detect_events(tr)
     assert [e["peak_open"] for e in ev] == [3, 1]
+    # with per-bin peaks, a bin whose snapshot is 0 still counts
+    tr.n_peak = np.array([0, 1, 3, 2, 1, 0])
+    assert [e["peak_open"] for e in detect_events(tr)] == [3]
+
+
+def test_peak_bounds_snapshot():
+    tr = simulate_cluster(0.2, duration=2.0)
+    assert np.all(tr.n_peak >= tr.n_open)

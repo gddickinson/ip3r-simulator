@@ -12,13 +12,8 @@ Dissociation constants are ``d_i = b_i / a_i``; the reduced model needs
 on-rates ``a1`` and ``a5`` of the fast IP3 and activating-Ca2+ sites.
 """
 
-def _p(key, name, value, unit, kind, category, citation, description,
-       source_note="", minimum=None, maximum=None):
-    return {"key": key, "name": name, "value": value, "unit": unit,
-            "kind": kind, "category": category, "citation": citation,
-            "description": description, "source_note": source_note,
-            "minimum": minimum, "maximum": maximum}
-
+from param_entry import entry as _p
+from parameter_table_pd import PD
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -354,3 +349,5 @@ P = [
        "identity must hold over.", "ip3r_genes S20 chase threshold "
        "contaminant_qcov (results/s20_sweep/verdict_summary.json)", 0.0, 1.0),
 ]
+
+P += PD

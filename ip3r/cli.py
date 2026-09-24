@@ -12,7 +12,7 @@ testable and scriptable:
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
     python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)
     python -m ip3r oscillate --ip3 0.5 [--window]
-    python -m ip3r puffs --ip3 0.2
+    python -m ip3r puffs --ip3 0.2 [--model park-drive] [--scan]
     python -m ip3r params           # every registered number and its source
 """
 
@@ -170,11 +170,22 @@ def _oscillate(args) -> int:
 
 
 def _puffs(args) -> int:
-    from .physics.puffs import PuffParams, coupling_effect
-    pp = PuffParams()
-    if args.coupling is not None:
-        pp.ca_per_open = args.coupling
-    print(json.dumps(coupling_effect(args.ip3, args.duration, args.seed, pp), indent=1))
+    from .physics import puff_compare as pc
+    if args.scan:
+        rows = pc.coupling_scan(args.ip3, args.duration, args.seed)
+        print(f"IP3 {args.ip3} µM, {args.duration:g} s, seed {args.seed}; "
+              f"large = peak ≥ {rows[pc.MODELS[0]][0]['large_at']} channels")
+        print(f"{'model':11s} {'µM/open':>8s} {'Fano':>5s} {'open':>6s} "
+              f"{'blips':>6s} {'multi':>6s} {'large':>6s} {'/s':>5s}")
+        for model, scan in rows.items():
+            for r in scan:
+                print(f"{model:11s} {r['coupling']:8.3f} {r['fano']:5.2f} "
+                      f"{r['open_fraction']:6.3f} {r['blips']:6d} {r['multi']:6d} "
+                      f"{r['large']:6d} {r['large_per_s']:5.2f}")
+        return 0
+    pp = pc.params_for(args.model, args.coupling)
+    print(json.dumps(pc.coupling_effect(args.ip3, args.duration, args.seed, pp,
+                                        model=args.model), indent=1))
     return 0
 
 
@@ -249,6 +260,9 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("puffs")
     p.add_argument("--ip3", type=float, default=0.2)
     p.add_argument("--coupling", type=float, default=None)
+    p.add_argument("--model", choices=["dyk", "park-drive"], default="dyk")
+    p.add_argument("--scan", action="store_true",
+                   help="both receptors over the registered coupling scan")
     p.add_argument("--duration", type=float, default=20.0)
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(fn=_puffs)

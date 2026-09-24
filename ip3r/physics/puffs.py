@@ -19,8 +19,8 @@ x (number open)`` — a mean-field stand-in for the Ca2+ that open neighbours
 deliver. That is the whole mechanism of a puff (Swillens et al. 1999): with
 the coupling at zero, openings are independent *blips*; with it on, one
 opening recruits others by Ca2+-induced Ca2+ release until the slow
-inhibitory sites shut the cluster down. :func:`coupling_effect` measures
-exactly that contrast.
+inhibitory sites shut the cluster down. ``puff_compare.coupling_effect``
+measures exactly that contrast.
 
 **What it measures, and a limitation.** The signature of coupling is the
 Fano factor (variance / mean) of the number of channels open at once: 1 for
@@ -28,8 +28,8 @@ independent channels (Poisson-like), above 1 when one opening recruits
 others. With the DYK constants the activating site is already half occupied
 at resting Ca2+ (``n_inf(0.1) = 0.55``), so the resting open probability is
 high and puffs are modest (Fano ~1.4 at 0.2 µM IP3, against ~1.0 uncoupled).
-Models with a lower resting activity produce sharper puffs; that is a
-roadmap item, not something to tune this one into.
+The park/drive receptor (``puffs_pd``) is the contrast, and
+``puff_compare`` measures both clusters with one ruler.
 
 The simulation is seeded and reproducible: the same seed gives the same
 trace.
@@ -45,7 +45,7 @@ from ..parameters import PARAMETERS as _P
 from .gating import GatingParams, q2
 
 __all__ = ["PuffParams", "PuffTrace", "simulate_cluster", "detect_events",
-           "fano", "coupling_effect"]
+           "fano"]
 
 
 def _v(key: str):
@@ -58,6 +58,7 @@ class PuffParams:
     ca_rest: float = _v("puff.ca_rest")
     ca_per_open: float = _v("puff.ca_per_open")
     dt: float = _v("puff.dt")
+    record_dt: float = _v("puff.record_dt")
     a1: float = _v("gating.a1")
     a5: float = _v("gating.a5")
     gating: GatingParams = field(default_factory=GatingParams)
@@ -66,10 +67,15 @@ class PuffParams:
 @dataclass
 class PuffTrace:
     t: np.ndarray            # s
-    n_open: np.ndarray       # open channels per step
+    n_open: np.ndarray       # open channels at the start of each bin
     ca: np.ndarray           # cluster Ca2+ seen by every channel, µM
-    params: PuffParams
+    params: object           # the simulator's parameter set
     p: float
+    n_peak: np.ndarray | None = None   # most open at once within each bin
+
+    @property
+    def peaks(self) -> np.ndarray:
+        return self.n_open if self.n_peak is None else self.n_peak
 
 
 def _flip(state: np.ndarray, p_on: np.ndarray | float, p_off: np.ndarray | float,
@@ -79,9 +85,11 @@ def _flip(state: np.ndarray, p_on: np.ndarray | float, p_off: np.ndarray | float
 
 
 def simulate_cluster(p: float, duration: float = 20.0, seed: int = 0,
-                     pp: PuffParams | None = None, record_every: int = 5) -> PuffTrace:
-    """Simulate a cluster at IP3 ``p`` (µM) for ``duration`` seconds."""
+                     pp: PuffParams | None = None) -> PuffTrace:
+    """Simulate a cluster at IP3 ``p`` (µM) for ``duration`` seconds,
+    recorded every ``record_dt``."""
     pp = pp or PuffParams()
+    record_every = max(1, int(round(pp.record_dt / pp.dt)))
     g = pp.gating
     rng = np.random.default_rng(seed)
     n = int(round(pp.n_channels))
@@ -98,6 +106,7 @@ def simulate_cluster(p: float, duration: float = 20.0, seed: int = 0,
     t_out = np.empty(n_rec)
     open_out = np.empty(n_rec, dtype=np.int32)
     ca_out = np.empty(n_rec)
+    peak_out = np.zeros(n_rec, dtype=np.int32)
     # Transition probabilities that do not depend on Ca2+ are fixed.
     ip3_on = pp.a1 * p * dt
     ip3_off = pp.a1 * g.d1 * dt
@@ -111,25 +120,28 @@ def simulate_cluster(p: float, duration: float = 20.0, seed: int = 0,
         if step % record_every == 0:
             t_out[k], open_out[k], ca_out[k] = step * dt, n_open, c
             k += 1
+        peak_out[k - 1] = max(peak_out[k - 1], n_open)
         ip3 = _flip(ip3, ip3_on, ip3_off, rng)
         act = _flip(act, pp.a5 * c * dt, act_off, rng)
         inh = _flip(inh, g.a2 * c * dt, inh_off, rng)
-    return PuffTrace(t_out[:k], open_out[:k], ca_out[:k], pp, p)
+    return PuffTrace(t_out[:k], open_out[:k], ca_out[:k], pp, p, peak_out[:k])
 
 
 def detect_events(tr: PuffTrace, min_open: int = 1) -> list[dict]:
-    """Contiguous runs with at least ``min_open`` channels open.
+    """Contiguous runs of bins with at least ``min_open`` channels open at
+    some moment in the bin.
 
     Each event reports start, duration and the peak number of channels open
     at once — a blip peaks at one, a puff at several.
     """
-    on = tr.n_open >= min_open
+    peaks = tr.peaks
+    on = peaks >= min_open
     edges = np.flatnonzero(np.diff(np.concatenate([[0], on.astype(int), [0]])))
     events = []
     for a, b in zip(edges[::2], edges[1::2]):
         events.append({"start": float(tr.t[a]),
                        "duration": float(tr.t[min(b, len(tr.t) - 1)] - tr.t[a]),
-                       "peak_open": int(tr.n_open[a:b].max())})
+                       "peak_open": int(peaks[a:b].max())})
     return events
 
 
@@ -137,22 +149,3 @@ def fano(tr: PuffTrace) -> float:
     """Variance / mean of the number of channels open at once."""
     m = float(tr.n_open.mean())
     return float(tr.n_open.var() / m) if m > 0 else float("nan")
-
-
-def coupling_effect(p: float = 0.2, duration: float = 20.0, seed: int = 0,
-                    pp: PuffParams | None = None) -> dict:
-    """Clustering of openings with Ca2+ coupling on versus off, same seed.
-
-    The measured statement of the puff mechanism: coupling should raise the
-    Fano factor above the ~1 of independent channels and widen the largest
-    simultaneous opening.
-    """
-    base = pp or PuffParams()
-    out = {}
-    for label, cpo in (("coupled", base.ca_per_open), ("uncoupled", 0.0)):
-        trial = PuffParams(**{**base.__dict__, "ca_per_open": cpo})
-        tr = simulate_cluster(p, duration, seed, trial)
-        ev = detect_events(tr)
-        out[label] = {"fano": fano(tr), "mean_open": float(tr.n_open.mean()),
-                      "max_open": int(tr.n_open.max()), "n_events": len(ev)}
-    return out

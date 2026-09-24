@@ -45,7 +45,8 @@ from reference_table import REFERENCES  # noqa: E402
 def validate(entries: list[dict]) -> list[str]:
     """Every entry must be complete and every citation must resolve."""
     refs = {e["key"] for e in REFERENCES}
-    problems = []
+    problems = [f"reference {k}: duplicate" for k in sorted(refs)
+                if sum(e["key"] == k for e in REFERENCES) > 1]
     seen = set()
     for entry in entries:
         key = entry.get("key", "<missing>")

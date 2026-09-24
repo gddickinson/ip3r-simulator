@@ -34,12 +34,23 @@ REFERENCES = [
               "calcium-gated channels from endoplasmic reticulum of "
               "cerebellum",
      "journal": "Nature 351:751-754", "doi": "10.1038/351751a0"},
-    {"key": "mak1998", "authors": "Mak DO, McBride S, Foskett JK", "year": 1998,
-     "title": "Inositol 1,4,5-trisphosphate activation of inositol "
-              "trisphosphate receptor Ca2+ channel by ligand tuning of Ca2+ "
-              "inhibition",
-     "journal": "Proc Natl Acad Sci USA 95:15821-15825",
-     "doi": "10.1073/pnas.95.26.15821"},
+    {"key": "siekmann2012",
+     "authors": "Siekmann I, Wagner LE, Yule DI, Crampin EJ, Sneyd J",
+     "year": 2012,
+     "title": "A kinetic model for type I and II IP3R accounting for mode "
+              "changes",
+     "journal": "Biophys J 103:658-668", "doi": "10.1016/j.bpj.2012.07.016"},
+    {"key": "cao2013", "authors": "Cao P, Donovan G, Falcke M, Sneyd J",
+     "year": 2013,
+     "title": "A stochastic model of calcium puffs based on single-channel "
+              "data",
+     "journal": "Biophys J 105:1133-1142", "doi": "10.1016/j.bpj.2013.07.034"},
+    {"key": "cao2014",
+     "authors": "Cao P, Tan X, Donovan G, Sanderson MJ, Sneyd J", "year": 2014,
+     "title": "A deterministic model predicts the properties of stochastic "
+              "calcium oscillations in airway smooth muscle cells",
+     "journal": "PLoS Comput Biol 10:e1003783 (Text S1: model code)",
+     "doi": "10.1371/journal.pcbi.1003783"},
     {"key": "shuai2002", "authors": "Shuai JW, Jung P", "year": 2002,
      "title": "Stochastic properties of Ca2+ release of inositol "
               "1,4,5-trisphosphate receptor clusters",
