@@ -149,10 +149,11 @@ P = [
        "method_choice", "Non-trivial normal modes kept.",
        "Enough to cover the collective motions; more only costs time", 1.0,
        200.0),
-    _p("anm.stride", "C-alpha stride", 3.0, "", "method", "anm",
+    _p("anm.stride", "C-alpha stride", 2.0, "", "method", "anm",
        "method_choice", "Keep every n-th C-alpha of each subunit.",
-       "A full tetramer is ~9,000 C-alphas; a stride of 3 keeps the "
-       "shift-invert solve under a second (stride 1: 7.8 s). Not free: "
+       "A full tetramer is ~9,000 C-alphas; stride 2 solves in 1.2 s "
+       "(stride 1: 7.8 s; 3: 0.4 s) and was chosen 2026-09-24 because "
+       "it is the coarsest with no local modes on 8TKG. Not free: "
        "against stride 1 on 8TKG the RMSIP of 20 modes is 0.97 at stride 2, "
        "0.89 at 3 and 0.77 at 4, because striding leaves a few pieces "
        "(8TKG residue 86, after unresolved 77-85) hanging on too few "

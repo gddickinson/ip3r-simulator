@@ -58,17 +58,18 @@ screen; the rigid-side-chain shortcut, drawn dashed, ends 0.7 Å short. Each res
 coloured by how far it moves, on a fixed 0–25 Å scale: the cytosolic RIH
 and MIR domains move 17–22 Å on average, while the pore domain moves 2.5 Å
 and the filter 0.8 Å. The tab then asks whether the resting
-state's elastic network points towards the activated one. It does: the lowest
-collective A mode overlaps the observed displacement at 0.42, where a
-random direction of the same symmetry scores 0.02. Twenty modes capture
-0.64, against 0.05 at random. The single mode's 0.42 is a choice of the
-15 Å cutoff: from 12 to 21.6 Å it falls from 0.48 to 0.24, while the three
-lowest A modes together hold at 0.66–0.68 (`transition --cutoff-scan`), so
-the claim is the A subspace, not one mode. The displacement is 100 %
+state's elastic network points towards the activated one. It does: the
+collective A modes together overlap the observed displacement at 0.67,
+where a random direction of the same symmetry scores 0.04 over all 20 modes.
+No single mode is the answer. The lowest A mode (#5) gives 0.39 and #10
+gives 0.50, and how the move splits among them depends on the 15 Å cutoff
+(from 12 to 21.6 Å the lowest falls 0.48 → 0.24 while the A modes together
+hold at 0.66–0.68; `transition --cutoff-scan`). The displacement is 100 %
 A-symmetric, but that is inherited from C4-imposed reconstruction and is not
-a finding. Low-collectivity modes are named where they sit: on 8TKG at
-stride 3 all five are one flap, residue 86 after the unresolved 77–85 loop
-(the Modes tab and the report say so).
+a finding. The network keeps every second Cα: at every third, the strand
+after the unresolved 77–85 loop (residue 86) hangs on too few springs and
+produces five spurious local modes. Any low-collectivity mode that remains is
+named where it sits (the Modes tab and the report say so).
 
 ![The transition tab](docs/img/gui_transition.png)
 

@@ -414,13 +414,13 @@
   {
    "key": "anm.stride",
    "name": "C-alpha stride",
-   "value": 3.0,
+   "value": 2.0,
    "unit": "",
    "kind": "method",
    "category": "anm",
    "citation": "method_choice",
    "description": "Keep every n-th C-alpha of each subunit.",
-   "source_note": "A full tetramer is ~9,000 C-alphas; a stride of 3 keeps the shift-invert solve under a second (stride 1: 7.8 s). Not free: against stride 1 on 8TKG the RMSIP of 20 modes is 0.97 at stride 2, 0.89 at 3 and 0.77 at 4, because striding leaves a few pieces (8TKG residue 86, after unresolved 77-85) hanging on too few springs; their local modes take slots (network_checks)",
+   "source_note": "A full tetramer is ~9,000 C-alphas; stride 2 solves in 1.2 s (stride 1: 7.8 s; 3: 0.4 s) and was chosen 2026-09-24 because it is the coarsest with no local modes on 8TKG. Not free: against stride 1 on 8TKG the RMSIP of 20 modes is 0.97 at stride 2, 0.89 at 3 and 0.77 at 4, because striding leaves a few pieces (8TKG residue 86, after unresolved 77-85) hanging on too few springs; their local modes take slots (network_checks)",
    "minimum": 1.0,
    "maximum": 10.0
   },

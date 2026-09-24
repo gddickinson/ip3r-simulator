@@ -106,7 +106,7 @@ rigid-body part exactly, so the result does not depend on the fit. It splits
 the move into C4 isotypic components, and compares each overlap with a
 random direction **of the same irrep make-up**.
 
-8TKG → 8TKF (stride 3, pore fit), measured 2026-09-23:
+8TKG → 8TKF (stride 2, the default since 2026-09-24; pore fit):
 
 | quantity | value |
 |---|---|
@@ -115,16 +115,18 @@ random direction **of the same irrep make-up**.
 | mean displacement: RIH_N, MIR, RIH_C | 22.0, 19.0, 16.9 Å |
 | mean displacement: channel, gate, filter | 2.5, 3.4, 0.8 Å |
 | A-symmetric share of the move | 100.0 % (C4 imposed in the maps) |
-| lowest collective A mode (#5), overlap | 0.415 (null 0.021) |
-| cumulative, 20 modes | 0.638 (null 0.048) |
-| same, network of 8TKF scoring the reverse | lowest A 0.169; 20 modes 0.708 |
+| collective A modes together (5) | 0.669 |
+| lowest collective A mode (#5); best single (#10) | 0.390 (null 0.017); 0.498 |
+| cumulative, 20 modes | 0.670 (null 0.039) |
+| same, network of 8TKF scoring the reverse | lowest A 0.195; 20 modes 0.585 |
 
-Across strides 1–4 the lowest collective A mode overlaps at 0.39–0.49 and
-20 modes at 0.61–0.67. At stride 5 the network falls apart (0.03, at the
+At stride 3 (the default until 2026-09-24) the lowest A mode gave 0.415 and
+20 modes 0.638. Across strides 1–4 the lowest collective A mode overlaps at
+0.39–0.49 and 20 modes at 0.61–0.67. At stride 5 the network falls apart (0.03, at the
 null). The 8TKG network therefore points towards activation. From the other
 end the picture is not symmetric: the lowest A mode of 8TKF points back only
-weakly (0.17). Other pairs overlap less: 6DQJ → 8TKF reaches 0.32 over 20
-modes, and 8TKH → 8TKF 0.16.
+weakly (0.20). Other pairs overlap less: 6DQJ → 8TKF reaches 0.36 over 20
+modes, and 8TKH → 8TKF 0.14 (stride 2).
 
 **The single mode is a cutoff choice; the A subspace is the result**
 (`network_checks.cutoff_scan`, `transition --cutoff-scan`, measured

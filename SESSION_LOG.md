@@ -1257,7 +1257,7 @@ among the first 10 together give 0.51 / 0.66 / 0.67 / 0.67 / 0.67 / 0.68.
 
 **Not changed.** Defaults (cutoff 15 Å, stride 3, κ 0.2) are unchanged.
 Sync was clean. No check or verdict moved. `make test` gave 326 passed
-before the new tests (334 with them), lint and sizes were clean, and
+(the new tests included), lint and sizes were clean, and
 `make screenshots` passed.
 
 **Next:** the PDFs have now been supplied (`pdfs/meissner_1997.pdf`,
@@ -1265,3 +1265,31 @@ before the new tests (334 with them), lint and sizes were clean, and
 emergent items: pin K_Mg,A from Meissner 1997, then the V-channel
 trigger from Ríos 1993. The user's Mendeley library
 (`~/Documents/Mendeley Desktop`) has about 2,100 more PDFs.
+
+## 2026-09-24 (3) — default stride 2
+
+**Why.** The user decided the open question from the last entry: the
+network keeps every second Cα (`anm.stride` 3 → 2).
+
+**What changed.** Only the parameter (and its source note). At stride 2,
+8TKG has no local modes. The solve takes 1.2 s on a worker, against 0.4 s
+before. RMSIP of 20 modes against stride 1 is 0.97, against 0.89 at stride 3.
+RyR1 9R8O still has one local set (#10–13, residue 1988 after the
+unresolved 1984–1987), which the report names.
+
+**The headline at the new default (8TKG → 8TKF).**
+- Collective A modes together: 0.669.
+- Lowest collective A mode (#5): 0.390 (null 0.017).
+- The best single mode is now #10 at 0.498, not #5, which is more evidence
+  that the result is the subspace.
+- Twenty modes: 0.670 (null 0.039).
+- The reverse direction (8TKF network): lowest A 0.195, 20 modes 0.585.
+- Other pairs: 6DQJ → 8TKF 0.36, 8TKH → 8TKF 0.14.
+- README and SCIENCE.md now quote these. The stride-3 values are kept as
+  history.
+
+**Checks.** 326 passed, lint was clean, and `make screenshots` passed. No
+findings check uses the ANM, so no verdict moved.
+
+**Next:** unchanged. K_Mg,A from Meissner 1997, then the V-channel trigger
+from Ríos 1993.

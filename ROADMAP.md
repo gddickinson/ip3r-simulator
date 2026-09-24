@@ -11,8 +11,8 @@ block) it takes 17.5–49.5 ms, against 6.3 ms measured. The two readings
 of the activation-site affinity bracket that range. The next steps are to
 read Meissner et al. 1997 (JBC, the same [³H]ryanodine assay as Murayama,
 with Mg²⁺; now in `pdfs/meissner_1997.pdf`, and Ríos 1993 in `pdfs/rios_1993.pdf`) to pin K_Mg,A in Murayama's condition, and to simulate the V channels
-as the trigger. Other strong candidates: the A-subspace headline and the
-default stride (Round 2, emergent) and the continuum's conductance
+as the trigger. Other strong candidates: the A-subspace headline in the
+Transition tab (Round 2, emergent) and the continuum's conductance
 shortfall (Rounds 4 and 6.1).
 
 ## Destination
@@ -62,10 +62,11 @@ Emergent (not scheduled):
   cutoff choice. At stride 1 it falls 0.48 → 0.24 over 12–21.6 Å while the
   three lowest A modes together hold at 0.66–0.68 (`--cutoff-scan`).
   RyR1's lowest A (0.12) is flat in the cutoff.
-- [ ] Report the A-subspace overlap as the headline in the Transition tab
-  (it is in the text report now) and decide whether the default stride
-  should be 2 (1.2 s, no local modes on 8TKG, RMSIP20 0.97) — the GUI runs
-  it on a worker, but RyR1 has local modes at stride 2 too.
+- [x] Default stride 2 (user's decision, 2026-09-24): no local modes on 8TKG,
+  RMSIP20 0.97 vs stride 1, 1.2 s. Collective A together 0.669; lowest A
+  0.390, best single #10 0.498. RyR1 keeps one local set (residue 1988).
+- [ ] Plot the A-subspace overlap as the Transition tab's headline (it is in
+  the text report; the plot still marks the lowest A mode).
 - [x] The gate radius along the morph (`structure/morph_pore.py`): every
   heavy atom both deposits resolve interpolated (Cα offset, 70,952 atoms,
   none unmatched), axis re-found per frame. Endpoint frames measure as the
