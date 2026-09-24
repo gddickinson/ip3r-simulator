@@ -25,7 +25,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..config import PARALOGS
+from ..config import NUMBERINGS
 from ..core.annotations import reference_sequence
 from ..core.structure import AA3TO1, Structure
 from ..parameters import PARAMETERS as _P
@@ -95,6 +95,6 @@ def check_numbering(st: Structure, paralog: str, chain: str | None = None) -> Nu
 
 def best_numbering(st: Structure) -> NumberingCheck | None:
     """The paralog whose numbering the structure is in, or None if none fits."""
-    checks = [check_numbering(st, p) for p in PARALOGS]
+    checks = [check_numbering(st, p) for p in NUMBERINGS]
     best = max(checks, key=lambda c: c.identity)
     return best if best.passed else None

@@ -17,6 +17,9 @@ fetch:  ## Download every registry structure into ref/structures
 sync:  ## Re-import curated resources from ../ip3r_genes
 	$(PY) scripts/sync_genes.py
 
+ryr:  ## Re-curate the RyR1 resource (sequence, domains, state panel) from UniProt/InterPro/RCSB
+	$(PY) scripts/curate_ryr.py
+
 sync-check:  ## Exit 1 if any ip3r_genes source changed since the last sync
 	$(PY) scripts/sync_genes.py --check
 

@@ -156,4 +156,9 @@ REFERENCES = [
      "title": "Ion-pairs in proteins",
      "journal": "J Mol Biol 168:867-885",
      "doi": "10.1016/S0022-2836(83)80079-5"},
+    {"key": "xu2006", "authors": "Xu L, Wang Y, Gillespie D, Meissner G",
+     "year": 2006,
+     "title": "Two rings of negative charges in the cytosolic vestibule of "
+              "type-1 ryanodine receptor modulate ion fluxes",
+     "journal": "Biophys J 90:443-453", "doi": "10.1529/biophysj.105.072538"},
 ]

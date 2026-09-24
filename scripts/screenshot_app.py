@@ -382,6 +382,32 @@ def main() -> int:
                         or win.scene.scene.get("fill:ribbon") is not None:
                     raise RuntimeError(f"7LHF was filled: {fc.message}")
                 win.structure_panel.set_completeness("none")
+                win.structure_panel.select("9HEO")     # a ryanodine receptor
+            elif s == 20:
+                if win.scene.structure is None or win.scene.structure.name != "9HEO":
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                ch, tp = win.channel, win.transition
+                if ch.panel_paralog != "RYR1" or not ch.mutants_btn.isVisibleTo(ch):
+                    raise RuntimeError(f"channel panel not on RyR1: {ch.panel_paralog}")
+                if "9R8O" not in tp.preset.text() or tp.end.findData("9R8O") < 0:
+                    raise RuntimeError(f"RyR1 morph preset missing: {tp.preset.text()}")
+                app.processEvents()
+                win.viewport.grabFramebuffer().save(str(out / "viewport_ryr1.png"))
+                win.tabs.setCurrentWidget(ch)
+                ch.mutants_btn.click()
+            elif s == 21:
+                rows = win.channel.mutant_rows
+                if rows is None:
+                    if win.channel.mutants_btn.isEnabled():
+                        raise RuntimeError("the RyR1 mutant worker failed")
+                    state["step"] -= 1
+                    return QTimer.singleShot(1000, step)
+                d = next(r for r in rows if r.name == "D4899Q")
+                if not (d.bridged and d.measured_ratio < 0.3 < d.paired_ratio):
+                    raise RuntimeError(f"RyR1 mutants drawn wrong: {d.row()}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_ryr_mutants.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()
@@ -391,7 +417,7 @@ def main() -> int:
         QTimer.singleShot(1500, step)
 
     QTimer.singleShot(800, step)
-    QTimer.singleShot(420_000, lambda: (fail("timed out"), app.quit()))
+    QTimer.singleShot(540_000, lambda: (fail("timed out"), app.quit()))
     app.exec()
     return 1 if state["errors"] else 0
 

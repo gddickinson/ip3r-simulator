@@ -185,10 +185,13 @@ def map_charge(groups: list[ChargedGroup], z_A: np.ndarray, radius_A: np.ndarray
 
 
 def pore_charge(st: Structure, frame: Frame, profile,
-                pair_bridges: bool = False) -> PoreCharge:
+                pair_bridges: bool = False,
+                neutralise: frozenset[int] = frozenset()) -> PoreCharge:
     """Find the lining charges of a deposit and map them onto its profile;
-    ``pair_bridges`` drops every lining group that is half of a salt bridge."""
+    ``pair_bridges`` drops every lining group that is half of a salt bridge,
+    ``neutralise`` every group at those residue numbers (a charge mutant)."""
     groups, unplaced = charged_groups(st, frame, profile)
+    groups = [g for g in groups if g.res_seq not in neutralise]
     bridged: list[Bridge] = []
     if pair_bridges:
         lining = {(g.chain, g.res_seq) for g in groups}
@@ -199,7 +202,8 @@ def pore_charge(st: Structure, frame: Frame, profile,
     density = map_charge(groups, profile.z, np.maximum(profile.r_free, 0.0))
     meta = {"lining_margin_A": _P.value("pore_charge.lining_margin"),
             "smoothing_A": _P.value("pore_charge.smoothing"),
-            "pair_bridges": pair_bridges, "structure": st.name}
+            "pair_bridges": pair_bridges, "structure": st.name,
+            "neutralised": sorted(neutralise)}
     if pair_bridges:
         meta["salt_bridge_cutoff_A"] = _P.value("pore_charge.salt_bridge_cutoff")
     return PoreCharge(np.asarray(profile.z, dtype=float), density, groups,

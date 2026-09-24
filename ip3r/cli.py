@@ -7,8 +7,9 @@ testable and scriptable:
     python -m ip3r fetch            # download every registry structure
     python -m ip3r info 6DQN        # measure a deposit (axis, pore, IP3 sites)
     python -m ip3r checks           # re-derive the ip3r_genes findings
-    python -m ip3r states           # pore of every ITPR3 gating state
-    python -m ip3r unitary          # K+ conductance of each state
+    python -m ip3r states           # pore of every ITPR3 gating state (--paralog RYR1)
+    python -m ip3r unitary          # K+ conductance of each state (--paralog RYR1)
+    python -m ip3r mutants          # RyR1 charge mutants: model vs Xu 2006
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
     python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)
@@ -151,6 +152,9 @@ def _unitary(args) -> int:
     from .physics.unitary import published, unitary_panel
     loader.ALLOW_FETCH = args.fetch
     rows = unitary_panel(args.paralog, sweep=True)
+    from .parameters import PARAMETERS as _P
+    bath = rows[0].bath if rows and rows[0].bath else _P.value("permeation.bath_concentration")
+    print(f"{args.paralog}: symmetric {bath * 1000:.0f} mM KCl")
     print("K+ conductance in symmetric KCl (series = closed form; neutral / "
           "charged = drift-diffusion without / with the lining side chains; "
           "paired = charged less salt-bridged groups)")
@@ -171,7 +175,21 @@ def _unitary(args) -> int:
             if u.paired_charge.bridged:
                 print("      salt-bridged, dropped when paired: " + ", ".join(
                     b.label() for b in u.paired_charge.bridged))
-    print("measured: " + "; ".join(f"{k} {v:.0f} pS" for k, v in published().items()))
+    print("measured: " + "; ".join(f"{k} {v:.0f} pS"
+                                   for k, v in published(args.paralog).items()))
+    return 0
+
+
+def _mutants(args) -> int:
+    from .io import loader
+    from .physics.ryr_mutants import mutant_panel, open_deposit
+    loader.ALLOW_FETCH = args.fetch
+    wt, rows = mutant_panel(loader.load(args.pdb or open_deposit()))
+    print("RyR1 charge mutants, conductance / wild type (the model neutralises "
+          "the residue on all four subunits)")
+    print(wt.row())
+    for r in rows:
+        print(r.row())
     return 0
 
 
@@ -337,6 +355,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--paralog", default="ITPR3")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_unitary)
+    p = sub.add_parser("mutants", help="RyR1 charge-neutralising mutants: "
+                       "modelled vs measured conductance ratio")
+    p.add_argument("pdb", nargs="?", default=None,
+                   help="RyR1 deposit (default: the curated open state)")
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_mutants)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

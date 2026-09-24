@@ -2,7 +2,10 @@
 
 Shows the :class:`~ip3r.structure.channel.ChannelSummary` of the current
 structure — axis found two ways, C4 residual, numbering verdict, filter and
-gate — and plots its pore profile. When the deposit is 6DQN the profile
+gate — and plots its pore profile. The state comparison and the unitary
+conductance follow the loaded deposit's family (:meth:`set_paralog`): the
+ITPR3 panel, or the curated RyR1 panel with its charge mutants. When the
+deposit is 6DQN the profile
 ``ip3r_genes`` S0 committed is drawn on the same axes, so the published and
 the recomputed curves can be compared by eye as well as by the check.
 """
@@ -23,6 +26,7 @@ class ChannelPanel(QWidget):
     pore_toggled = pyqtSignal(bool)
     states_requested = pyqtSignal()
     unitary_requested = pyqtSignal()
+    mutants_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -34,15 +38,21 @@ class ChannelPanel(QWidget):
                                    "(probe radius = r_free)")
         self.show_pore.toggled.connect(self.pore_toggled.emit)
         lay.addWidget(self.show_pore)
-        self.states_btn = QPushButton("Compare the ITPR3 gating states "
-                                      "(measures 7 deposits)")
+        self.states_btn = QPushButton("")
         self.states_btn.clicked.connect(self.states_requested.emit)
         lay.addWidget(self.states_btn)
         self.unitary_btn = QPushButton("Unitary K+ conductance of each state "
                                        "(drift-diffusion over the pore)")
         self.unitary_btn.clicked.connect(self.unitary_requested.emit)
         lay.addWidget(self.unitary_btn)
+        self.mutants_btn = QPushButton("RyR1 charge mutants: model vs Xu 2006 "
+                                       "(on the open deposit)")
+        self.mutants_btn.clicked.connect(self.mutants_requested.emit)
+        lay.addWidget(self.mutants_btn)
         self.unitary_rows = None
+        self.mutant_rows = None
+        self.panel_paralog = "ITPR3"
+        self.set_paralog(None)
         self.canvas = PlotCanvas(self, height=3.6)
         lay.addWidget(self.canvas, 1)
 
@@ -95,14 +105,26 @@ class ChannelPanel(QWidget):
         self.canvas.legend(ax, loc="upper left")
         self.canvas.draw_now()
 
+    def set_paralog(self, paralog: str | None) -> None:
+        """Point the state and conductance buttons at the loaded deposit's
+        panel: RyR1's for a RyR1 deposit, otherwise ITPR3's."""
+        from ..core.annotations import is_ryr
+        from ..io.registry import load_registry
+        self.panel_paralog = "RYR1" if is_ryr(paralog) else "ITPR3"
+        n = sum(1 for e in load_registry() if e.paralog == self.panel_paralog
+                and (e.human or e.family == "RyR"))
+        self.states_btn.setText(f"Compare the {self.panel_paralog} gating states "
+                                f"(measures {n} deposits)")
+        self.mutants_btn.setVisible(self.panel_paralog == "RYR1")
+
     def show_states(self, rows) -> None:
-        """Overlay the pore profiles of the ITPR3 state panel."""
+        """Overlay the pore profiles of the state panel."""
         self.states_btn.setEnabled(True)
         ax = self.canvas.reset()
         lines = []
         for k, r in enumerate(rows):
             p = r.summary.profile
-            ax.plot(p.z, p.r_min, lw=1.6 if r.state == "activated" else 0.9,
+            ax.plot(p.z, p.r_min, lw=1.6 if r.state in ("activated", "open") else 0.9,
                     color=PALETTE[k % len(PALETTE)],
                     label=f"{r.pdb_id} {r.state} (gate {r.radius('gate'):.2f} Å)")
             lines.append(f"{r.pdb_id} {r.state}: gate {r.radius('gate'):.2f} Å, "
@@ -110,8 +132,9 @@ class ChannelPanel(QWidget):
         ax.set_xlabel("z along the four-fold axis (Å)")
         ax.set_ylabel("min heavy-atom radius (Å)")
         ax.set_ylim(0, 16)
-        ax.set_title("ITPR3 state panel (ip3r_genes S11): the gate opens only "
-                     "in the activated state")
+        ax.set_title("ITPR3 state panel (ip3r_genes S11)"
+                     if self.panel_paralog == "ITPR3" else
+                     "RyR1 state panel (curated: scripts/curate_ryr.py)")
         self.canvas.legend(ax, loc="upper left")
         self.canvas.draw_now()
         self.text.setText("<br>".join(lines) + "<br><i>Each deposit measured "
@@ -122,6 +145,7 @@ class ChannelPanel(QWidget):
         """Bars of conductance per state against the measured values."""
         from ..physics.unitary import published
         self.unitary_btn.setEnabled(True)
+        bath = next((u.bath for u in rows if u.bath), None)
         self.unitary_rows = rows
         ax = self.canvas.reset()
         x = np.arange(len(rows))
@@ -129,19 +153,23 @@ class ChannelPanel(QWidget):
                   ("charged", "lining side chains charged"),
                   ("paired", "charged, salt bridges cancelled"))
         for k, (attr, label) in enumerate(series):
-            vals = [getattr(u, attr).conductance_pS for u in rows]
+            vals = [getattr(u, attr).conductance_pS if getattr(u, attr).converged
+                    else np.nan for u in rows]
             err = [[v - u.sweep[attr][0], u.sweep[attr][1] - v]
-                   if u.sweep and v > 0 else [0.0, 0.0] for u, v in zip(rows, vals)]
+                   if u.sweep and v > 0 and np.all(np.isfinite(u.sweep[attr]))
+                   else [0.0, 0.0] for u, v in zip(rows, vals)]
             ax.bar(x + (k - 1) * 0.28, vals, 0.28, color=PALETTE[k], label=label,
                    yerr=np.array(err).T, ecolor="#8a8f99", capsize=2)
-        for k, (name, g) in enumerate(published().items()):
+        for k, (name, g) in enumerate(published(self.panel_paralog).items()):
             ax.axhline(g, color=PALETTE[len(series) + k], lw=1.0, ls="--",
                        label=f"measured: {name} {g:.0f} pS")
         for i, u in enumerate(rows):
             if not u.neutral.is_conducting:
                 ax.annotate("shut", (i, 8), ha="center", color="#8a8f99", fontsize=7)
         ax.set_xticks(x, [f"{u.name}\n{u.state}" for u in rows], fontsize=6)
-        ax.set_ylabel("K+ conductance, symmetric 140 mM KCl (pS)")
+        from ..parameters import PARAMETERS as _P
+        mM = 1000 * (bath or _P.value("permeation.bath_concentration"))
+        ax.set_ylabel(f"K+ conductance, symmetric {mM:.0f} mM KCl (pS)")
         ax.set_title("Continuum model of each pore; whiskers: diffusivity "
                      "0.25-1x bulk, ion radius 1-2 Å", fontsize=8)
         self.canvas.legend(ax, loc="center left")
@@ -152,3 +180,28 @@ class ChannelPanel(QWidget):
             + ". A continuum of point ions in a pore a few ions wide: the "
             "comparison is of magnitude, not a fit.</i>")
 
+
+    def show_mutants(self, result) -> None:
+        """Measured vs modelled conductance ratio of each RyR1 charge mutant."""
+        wt, rows = result
+        self.mutants_btn.setEnabled(True)
+        self.mutant_rows = rows
+        ax = self.canvas.reset()
+        x = np.arange(len(rows))
+        series = (("measured_ratio", "measured (Xu 2006)"),
+                  ("charged_ratio", "model: lining charges"),
+                  ("paired_ratio", "model: salt bridges cancelled"))
+        for k, (attr, label) in enumerate(series):
+            ax.bar(x + (k - 1) * 0.28, [getattr(r, attr) for r in rows], 0.28,
+                   color=PALETTE[(k + 3) % len(PALETTE)] if k == 0 else PALETTE[k],
+                   label=label)
+        ax.axhline(1.0, color="#8a8f99", lw=0.8, ls=":")
+        ax.set_xticks(x, [r.name for r in rows])
+        ax.set_ylabel("conductance, mutant / wild type")
+        ax.set_ylim(0, 1.45)                    # room for the legend above 1
+        ax.set_title(f"RyR1 charge neutralisation, modelled on {wt.name}; "
+                     "a ratio cancels the unmeasured transport constants",
+                     fontsize=8)
+        self.canvas.legend(ax, loc="upper left")
+        self.canvas.draw_now()
+        self.text.setText(wt.row() + "<br>" + "<br>".join(r.row() for r in rows))

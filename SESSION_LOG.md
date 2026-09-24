@@ -820,3 +820,53 @@ and no check verdict changed (46 checks: 44 confirmed, 2 discrepancies).
 
 **Next:** the gate radius along the morph (Round 2), or the uncharged 2.4×
 shortfall against RyR1 open deposits (Round 4).
+
+
+## 2026-09-24 — Round 6.1: RyR1 structures, and the test that refuted this morning's pairing
+
+**What was asked.** The user asked for the app to model RyRs. Asked about
+scope, they chose structures plus gating kinetics, RyR1 only. This is the
+structural half. Kinetics is Round 6.2.
+
+**What.** RyR1 is a *numbering* (`config.RYR_ACC`, `NUMBERINGS`), not a
+publication paralog, so every `ip3r_genes` check and import is untouched.
+`scripts/curate_ryr.py` (`make ryr`) writes `resources/ryr1.json`: the P11716
+sequence, InterPro Pfam domains, and a six-deposit panel. It records the
+SHA-256 of every response and, for each of the 140 rejected entries, the
+first rule it fails. The registry, annotations (grey where the publication
+has no data), numbering, state panel, unitary (bath by family), transition
+preset and Channel panel all follow the loaded deposit's family. New pieces:
+`physics/ryr_mutants.py`, the `mutants` CLI, `parameter_table_ryr.py` (the
+bath and six measured conductances, read from Xu et al. 2006 Table 2 and
+Methods before registering) and `tests/test_ryr.py` (7 tests; 265 total).
+The smoke test gains two RyR steps.
+
+**Why these deposits.** The PDB holds 158 RyR1 entries, so the panel had to
+come from rules, not preference. The rules: full-length EM tetramers, wild
+type, activators only, ≤ 4 Å (side chains carry the wall charge), and the
+best resolution per title-stated state. They picked the best primed deposit
+(8RRX, nanodisc) and the best open one (9HEO, micelles) from different
+preparations, so a sixth rule adds the open deposit's primed partner from
+the same paper (9R8O) for the morph.
+
+**Measured.** All six deposits are 100 % in P11716 numbering. The shut states
+gate at I4937, and only 9HEO opens (5.05 Å). The morph 9R8O → 9HEO has
+RMSD 2.72 Å, and the ANM overlap is 0.174 over 20 modes (null 0.031),
+against ITPR3's 0.64. The 9HEO conductance is 136 pS neutral and 180 pS
+charged against 801 pS measured: 5.9× short. So the 2.4× ITPR3 shortfall
+is the method's, not ITPR3's.
+
+**The finding.** On 9HEO, Xu et al.'s five charge-neutralising mutants give
+the right direction for all four lining residues and the right null for
+E4955Q. But D4899Q (measured 0.20×) is modelled at 0.90×, and at 1.00× with
+salt bridges cancelled. D4899 is the homologue of ITPR3's D2478 (own
+alignment; R4892 ≡ R2471 too) and is bridged the same way, so the "paired"
+reading added this morning is refuted by measurement. Its ROADMAP and
+SCIENCE entries now say so, and *charged* is the reading to trust. Found on
+the way: the charged solve for primed 9R8O did not converge but printed
+0.0 pS. It now prints `n.c.`, and the sweep skips unconverged corners.
+
+**Not changed.** `make sync-check` was clean. The 46 checks give the same
+verdicts (44 confirmed, 2 discrepancies).
+
+**Next:** Round 6.2, RyR1 gating kinetics and sparks.

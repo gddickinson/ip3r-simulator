@@ -1,7 +1,8 @@
 """The transition tab: one paralog's two states, morphed and scored.
 
-Choose an end state for the loaded deposit (or press the resting → activated
-preset, 8TKG → 8TKF), build, then scrub or play the morph, colour the
+Choose an end state for the loaded deposit (or press the family's preset:
+ITPR3 resting → activated 8TKG → 8TKF, or RyR1 primed → open from the
+curated panel's ``morph_start``/``morph_end`` roles), build, then scrub or play the morph, colour the
 receptor by how far each residue moved, and read how well the elastic
 network of the start state predicts the move.
 
@@ -22,10 +23,21 @@ from ..io.registry import load_registry
 from ..structure.morph import NOTE
 from .plot_canvas import PALETTE, PlotCanvas
 
-__all__ = ["TransitionPanel", "PRESET"]
+__all__ = ["TransitionPanel", "PRESET", "preset_for"]
 
 #: The resting -> activated pair of ITPR3 (S11's state panel; Round 2).
 PRESET = ("8TKG", "8TKF")
+
+
+def preset_for(family: str) -> tuple[str, str, str] | None:
+    """``(start, end, label)``: ITPR3's pair, or RyR1's same-preparation
+    primed -> open pair as ``scripts/curate_ryr.py`` marked it."""
+    if family != "RyR":
+        return (*PRESET, "Resting → activated")
+    reg = load_registry()
+    start = next((e.pdb_id for e in reg if "morph_start" in e.roles), None)
+    end = next((e.pdb_id for e in reg if "morph_end" in e.roles), None)
+    return (start, end, "Primed → open") if start and end else None
 
 _IRREP_COLOUR = {"A": PALETTE[1], "B": PALETTE[0], "E": PALETTE[2], "mixed": "#8a8f99"}
 
@@ -66,8 +78,10 @@ class TransitionPanel(QWidget):
         self.build = QPushButton("Build")
         self.build.clicked.connect(lambda: self.build_requested.emit(
             self.end.currentData() or "", self.fit.currentData(), self.method.currentData()))
-        self.preset = QPushButton(f"Resting → activated ({PRESET[0]} → {PRESET[1]})")
-        self.preset.clicked.connect(lambda: self.preset_requested.emit(*PRESET))
+        self._preset = (*PRESET, "Resting → activated")
+        self.preset = QPushButton("")
+        self.preset.clicked.connect(lambda: self.preset_requested.emit(*self._preset[:2]))
+        self._set_preset("IP3R")
         row.addWidget(self.build)
         row.addWidget(self.preset)
         lay.addLayout(row)
@@ -103,16 +117,25 @@ class TransitionPanel(QWidget):
 
     # --------------------------------------------------------------- state
 
+    def _set_preset(self, family: str) -> None:
+        p = preset_for(family)
+        self.preset.setVisible(p is not None)
+        if p:
+            self._preset = p
+            self.preset.setText(f"{p[2]} ({p[0]} → {p[1]})")
+
     def set_start(self, pdb_id: str | None, paralog: str | None) -> None:
         """The loaded deposit; the end list is its paralog's other deposits."""
         self.clear()
         self.start.setText(pdb_id or "—")
         self.end.clear()
         if pdb_id and paralog:
-            for e in load_registry():
-                if e.paralog == paralog and e.human and e.pdb_id != pdb_id:
+            entries = [e for e in load_registry() if e.paralog == paralog]
+            self._set_preset(entries[0].family if entries else "IP3R")
+            for e in entries:
+                if (e.human or e.family == "RyR") and e.pdb_id != pdb_id:
                     self.end.addItem(f"{e.pdb_id} — {e.state}", e.pdb_id)
-            i = self.end.findData(PRESET[1])
+            i = self.end.findData(self._preset[1])
             self.end.setCurrentIndex(max(i, 0))
         self.build.setEnabled(self.end.count() > 0)
         if pdb_id and not paralog:

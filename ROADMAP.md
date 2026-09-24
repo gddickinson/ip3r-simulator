@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 5 is complete, and the salt-bridge item (Round 4) is done.
+**Next:** Round 6.2 (RyR1 gating kinetics and sparks). Then, as before:
 Pick from the emergent items; the strongest candidates are the gate radius
 along the morph (Round 2) and the 2.4× shortfall of the uncharged pore
 against the measured conductance, starting with RyR1 open deposits (Round 4).
@@ -186,6 +186,10 @@ Emergent (not scheduled):
     23–38 pS, because D2518–R2524′ (4.2–4.3 Å) and K2482–D2400 (4.3–4.4 Å)
     sit just past the line. The 18.6 M peak is on the D2518/D2522 rings and
     does not move. Pairing does not rescue the charged model.
+    **Later the same day (Round 6.1): RyR1 refutes the paired reading.**
+    D4899 is D2478's homologue, bridged the same way, and D4899Q cuts
+    RyR1's conductance to 0.20×, where pairing predicts 1.00×. *Charged*
+    is the better reading; *paired* stays only as a bound.
     Emergent:
     - [ ] A pKa estimate (e.g. a Tanford–Kirkwood or PROPKA-style shift)
       for the eight D2518/D2522 carboxylates in a 4.4 Å lumen. Full
@@ -271,6 +275,32 @@ Emergent (not scheduled):
   - [ ] The Completeness choice is in a session; the transition spec does not
     say whether the fill was drawn while the frame was saved (it is simply
     rebuilt).
+
+## Round 6 — ryanodine receptors
+
+- [x] 6.1 RyR1 structures through the whole structural pipeline. There is
+  a curated resource (`scripts/curate_ryr.py`, `make ryr`) with a sequence,
+  Pfam domains and six deposits selected by five stated rules plus a
+  same-paper morph partner. `RYR1` is a numbering, not a publication
+  paralog. The measurements: all in P11716 numbering; the shut states gate
+  at I4937; only 9HEO opens (5.05 Å). 9R8O → 9HEO morphs, with ANM overlap
+  0.17 (null 0.03). 9HEO gives 136 pS neutral and 180 pS charged against
+  801 pS measured, so the continuum is short on both receptors. The charge
+  mutants (Xu 2006): direction right in 4/4 lining residues, E4955Q null
+  right; D4899Q 0.20× measured vs 0.90× modelled. D4899 is bridged, so
+  pairing predicts 1.00×, refuting the Round 4 paired reading. The GUI
+  follows the loaded deposit's family: state panel, conductance, a
+  mutant exhibit, and a primed → open preset.
+  Emergent:
+  - [ ] The filter charge is 4× too weak in the continuum. Try a filter-
+    local treatment (charge not spread over 3 Å; a radial rather than
+    cross-section-averaged Donnan) and hold it to the five mutants, not to
+    the wild-type number.
+  - [ ] RyR2 (cardiac), whose closed/open deposits exist, by the same rules.
+- [ ] 6.2 RyR1 gating kinetics in Dynamics: a Ca²⁺-activated open
+  probability (bell against cytosolic Ca²⁺, beside DYK and Mak), and a
+  stochastic cluster for sparks read with the puff ruler. Constants read
+  from the source before registering.
 
 ## Deliberately not doing
 

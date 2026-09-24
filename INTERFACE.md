@@ -32,7 +32,7 @@ headless (CLI, tests, notebooks).
 
 | File | Purpose |
 |---|---|
-| `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC`, `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
+| `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC` / `PARALOGS` (the publication's three), `RYR_ACC` (rabbit RyR1 P11716), `NUMBERINGS` (both: what a deposit can be numbered in), `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
 | `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file; `subscribe` for change listeners — caches of parameter-dependent results and the GUI banner; `matches` (editor filter), `write_overrides`/`read_overrides`, `replace` (whole set, one notification); `references()` for tooltips). Ported from PIEZO1. |
 | `cli.py` | `python -m ip3r <fetch|info|graft|checks|states|unitary|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
 | `__main__.py` | entry point |
@@ -42,7 +42,7 @@ headless (CLI, tests, notebooks).
 | File | Key names |
 |---|---|
 | `cif_reader.py` | `read_structure_file()` — fast mmCIF/PDB → numpy arrays (ported) |
-| `registry.py` | `StructureEntry`, `load_registry()`, `get_entry()`, `local_path()` — the 9 curated depositions from `resources/structures.json` |
+| `registry.py` | `StructureEntry` (`family`: IP3R / RyR), `load_registry()`, `get_entry()`, `local_path()` — the 9 IP3R depositions from `resources/structures.json` plus the 6 RyR1 ones from `resources/ryr1.json` |
 | `fetch.py` | `fetch_structure()`, `fetch_all()`, `is_valid()` — RCSB `.cif.gz` into `ref/structures`; `IP3R_STRUCTURE_MIRROR` copies from a local mirror (e.g. the ip3r_genes data root) |
 | `loader.py` | `load(pdb_id)` memoised; `ALLOW_FETCH` switch (off by default; the GUI and `--fetch` turn it on); `StructureUnavailable` |
 | `predictions.py` | AlphaFold DB models into `ref/alphafold` (`fetch_prediction` discovers entry + version from the API; `ACCESSIONS`, `UNAVAILABLE` with why), `local_predictions`, `load_prediction` (memoised; pLDDT in `b_factor`) |
@@ -53,7 +53,7 @@ headless (CLI, tests, notebooks).
 | File | Key names |
 |---|---|
 | `structure.py` | `Structure` — structure-of-arrays container, masks, residue index (ported) |
-| `annotations.py` | per paralog: `reference_sequence`, `elements` (Pfam + 6DQN structural elements), `residue_elements` (one element per residue, specific wins), `element_of/element_array`, `functional_sites` (10 IP3 contacts, filter/gate lining), `residue_constraint/constraint_at` (S17 JSD, 4 layers), `variants`; colour/label tables |
+| `annotations.py` | per paralog (or `RYR1`, `is_ryr`: sequence and domains from `ryr1.json`; no constraint/sites/variants, so grey): `reference_sequence`, `elements` (Pfam + 6DQN structural elements), `residue_elements` (one element per residue, specific wins), `element_of/element_array`, `functional_sites` (10 IP3 contacts, filter/gate lining), `residue_constraint/constraint_at` (S17 JSD, 4 layers), `variants`; colour/label tables |
 | `modules.py` | Paper 6's modules rebuilt from sites + domains: `module(paralog, definition)` (`contact_span`, `channel_minus_luminal`, `channel_all`) → `Module`, `modules()` (the primary pair, disjoint), `ModuleRefusal`, `MODULE_COLORS`, `MODULES_KEY` (the GUI's site toggle) |
 | `pairwise.py` | `align` (Gotoh affine-gap global, BLOSUM62, end gaps free; gap costs `align.*`), `transfer_map`, `paralog_transfer(src, dst)` (memoised) — carries residue numbers between paralogs independently of S17's MAFFT |
 | `genes_data.py` | live read-only access to `ip3r_genes/results`: `read_tsv`, `read_json`, `read_text`, `available`; raises `GenesDataMissing` (→ check `not_run`) |
@@ -90,8 +90,9 @@ headless (CLI, tests, notebooks).
 | `permeation.py` | 1-D drift-diffusion (ported from PIEZO1): `IonSpecies`, `potassium_species` (symmetric KCl; sweep overrides), `solve_pnp(z, r_free, fixed_charge=)` → `PermeationResult` (ohmic closure uncharged, local electroneutrality charged; Hall access), `series_conductance` (closed-form check), `debye_length`, `blocking_mechanisms` (steric only) |
 | `_pnp_kernels.py` | the discretisation, ported unchanged: Scharfetter–Gummel `_nernst_planck`, `_ohmic_potential`, `_donnan_potential`, `_neutrality_step`, row-scaled Dirichlet solve |
 | `pore_charge.py` | wall charge from the deposit's side-chain atoms: `charged_groups` (charge centre within `pore_charge.lining_margin` of the lumen; stubbed residues → `unplaced`), `map_charge` (Gaussian, charge-conserving), `pore_charge(pair_bridges=)` → `PoreCharge` (`bridged`: the pairs dropped) |
+| `ryr_mutants.py` | RyR1 charge mutants vs Xu 2006: `mutants()` (from the registered `permeation.published_ryr1_*`), `mutant_panel(st)` → wild type + `MutantRow`s (measured vs modelled ratio, charged and paired; lining, bridged), `open_deposit`, `open_mutant_panel` |
 | `salt_bridges.py` | `salt_bridges(st, cutoff)` → `Bridge`s: Barlow & Thornton ion pairs (charged N–O ≤ `pore_charge.salt_bridge_cutoff`), matched one-to-one closest first over the whole deposit |
-| `unitary.py` | `unitary(st)` → `Unitary` (series / neutral / charged / paired = salt bridges cancelled), `unitary_panel(paralog, sweep=)` (the S11 state panel), `sensitivity` (diffusivity × ion-radius corners), `published` (Mak 2000, Vais 2010) |
+| `unitary.py` | `unitary(st, neutralise=)` → `Unitary` (series / neutral / charged / paired = salt bridges cancelled; `n.c.` where unconverged; bath by family, `bath_for`), `published(paralog)`, `unitary_panel(paralog, sweep=)` (the S11 state panel), `sensitivity` (diffusivity × ion-radius corners), `published` (Mak 2000, Vais 2010) |
 | `puff_compare.py` | one ruler for both clusters: `MODELS`, `MODEL_LABELS`, `params_for`, `simulate`, `event_sizes`, `recruitment` (Fano, open fraction, blips / multi / large ≥ half the cluster, rate), `coupling_effect(model=)`, `scan_couplings`, `coupling_scan` |
 
 ## `ip3r/analysis/` — the findings checks
@@ -143,9 +144,9 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `fill_controller.py` | `FillController`: the Completeness selector — builds on a worker, latest request wins, rebuilt on every load, refusal shown in the panel; `fill_html` |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, Completeness (+ fill summary and pLDDT/seam legend), subunits, measured sites, legend |
-| `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, ITPR3 state comparison, `show_unitary` (conductance per state vs the measured values; `unitary_rows` for the smoke test) |
+| `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, state comparison of the loaded family (`set_paralog`: ITPR3 or RYR1), `show_mutants` (RyR1 only), `show_unitary` (conductance per state vs the measured values; `unitary_rows` for the smoke test) |
 | `modes_panel.py` | ANM table with irreps and κ, animation controls |
-| `transition_panel.py` | Transition tab: end state, fit, method, 8TKG→8TKF preset, frame slider/play, displacement colouring, element and overlap plots |
+| `transition_panel.py` | Transition tab: end state, fit, method, per-family preset (`preset_for`: 8TKG→8TKF, or RyR1's `morph_start`→`morph_end`), frame slider/play, displacement colouring, element and overlap plots |
 | `transition_controller.py` | `build_transition` (worker), `TransitionController` (install, `coords_at`, `show_frame`, `play`, `reset` — path built from the displayed structure) |
 | `dynamics_panel.py` | Gating (bell; model: DYK or Mak 1998, with the flank comparison), Oscillations (+ window scan), and the Puffs sub-tab |
 | `puffs_panel.py` | `PuffsPanel`: receptor (DYK / park-drive), coupled vs uncoupled traces, event-size histogram, "Scan coupling (both receptors)"; `result` for the smoke test |
@@ -170,15 +171,16 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 
 | File | Purpose |
 |---|---|
-| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants; `parameter_table_perm.py`, permeation and wall charge; `parameter_table_graft.py`, AlphaFold fills), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
+| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants; `parameter_table_perm.py`, permeation and wall charge; `parameter_table_graft.py`, AlphaFold fills; `parameter_table_ryr.py`, RyR1 bath and measured conductances), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
 | `sync_genes.py` | import resources from ip3r_genes; `--check` reports drift |
+| `curate_ryr.py` | the RyR1 resource from UniProt / InterPro / RCSB: `sequence`, `domains`, `panel` (rules 1–6: `verdict`, `state_of`), provenance hashes; `make ryr` |
 | `screenshot_app.py` | scripted GUI smoke test + README screenshots (ends by saving a session, loading elsewhere, restoring, and comparing every field) |
 | `create_env.sh` | the `ip3r_sim` conda env |
 
 ## `tests/`
 
 Fills (`test_graft` — a rigidly moved chain fills exactly and follows the deposit, a one-off numbering / stubbed flanks / a bent loop / a clashing neighbour each caught, 8TKG's 56 stretches, 9YKK/7LHF refused, fills beat a straight line on 16 hidden stretches), transition (`test_transition` synthetic calibrations; `test_transition_real`
-— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements; `test_salt_bridges` — one Arg cancels one Asp, the cutoff is N–O, a bridged lining group is dropped without adding its partner, 8TKF's D2478–R2471′ bridges), geometry
+— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements; `test_ryr` — the resource's literature anchors (GGGIGD 4894, I4937), each curation rule rejects its own violation, the panel gates at I4937, 9HEO short of 801 pS, D4899Q refutes pairing; `test_salt_bridges` — one Arg cancels one Asp, the cutoff is N–O, a bridged lining group is dropped without adding its partner, 8TKF's D2478–R2471′ bridges), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), VUS strata (`test_vus_strata` — the rule by hand, ties, a residue in two classes, the resource route = S17's table, one sphere per subunit), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters` — listeners fire once per effective change, import is replace-not-merge and refuses a bad file untouched, a memoised measurement made under an edit is dropped on reset,
 `test_resources`), sessions (`test_session` — round trip, the field set pinned so a result cannot ride along, malformed files refused by name, `replace` semantics), rules (`test_sizes`), CLI, and

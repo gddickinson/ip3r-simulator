@@ -1,0 +1,377 @@
+{
+ "provenance": {
+  "retrieved": "2026-09-24",
+  "sources": {
+   "https://rest.uniprot.org/uniprotkb/P11716.fasta": "3f261013b23f2eee3083614e7b1e134cfaa1d745954ba30eebe9b65917d3e152",
+   "https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/P11716/?page_size=100": "3cd0d8555771edc0b0018b30a34f0012bde1917c11189375b42cc39a7b98030e",
+   "https://search.rcsb.org/rcsbsearch/v2/query 1036f018f720": "28773263f920421dc6b205a07920eeaa480a63e707a4d5fffa6252cd2766071d",
+   "https://data.rcsb.org/graphql 17e163b07f41": "4e77b1a314836ecb507fae6de4018c764b48fdb4ce80f9012b1bdd9e85391801"
+  },
+  "rules": {
+   "min_chain_length": 5000,
+   "min_modelled": 12000,
+   "max_resolution_A": 4.0,
+   "allowed_ligands": [
+    "ACP",
+    "ADP",
+    "ATP",
+    "CA",
+    "CFF",
+    "CL",
+    "CLR",
+    "K",
+    "LBN",
+    "MG",
+    "NA",
+    "PC1",
+    "PCW",
+    "POV",
+    "ZN"
+   ]
+  }
+ },
+ "paralogs": {
+  "RYR1": {
+   "accession": "P11716",
+   "length": 5037,
+   "sequence": "MGDGGEGEDEVQFLRTDDEVVLQCSATVLKEQLKLCLAAEGFGNRLCFLEPTSNAQNVPPDLAICCFTLEQSLSVRALQEMLANTVEAGVESSQGGGHRTLLYGHAILLRHAHSRMYLSCLTTSRSMTDKLAFDVGLQEDATGEACWWTMHPASKQRSEGEKVRVGDDLILVSVSSERYLHLSTASGELQVDASFMQTLWNMNPICSCCEEGYVTGGHVLRLFHGHMDECLTISAADSDDQRRLVYYEGGAVCTHARSLWRLEPLRISWSGSHLRWGQPLRIRHVTTGRYLALTEDQGLVVVDACKAHTKATSFCFRVSKEKLDTAPKRDVEGMGPPEIKYGESLCFVQHVASGLWLTYAAPDPKALRLGVLKKKAILHQEGHMDDALFLTRCQQEESQAARMIHSTAGLYNQFIKGLDSFSGKPRGSGPPAGPALPIEAVILSLQDLIGYFEPPSEELQHEEKQSKLRSLRNRQSLFQEEGMLSLVLNCIDRLNVYTTAAHFAEYAGEEAAESWKEIVNLLYELLASLIRGNRANCALFSTNLDWVVSKLDRLEASSGILEVLYCVLIESPEVLNIIQENHIKSIISLLDKHGRNHKVLDVLCSLCVCNGVAVRSNQDLITENLLPGRELLLQTNLINYVTSIRPNIFVGRAEGSTQYGKWYFEVMVDEVVPFLTAQATHLRVGWALTEGYSPYPGGGEGWGGNGVGDDLYSYGFDGLHLWTGHVARPVTSPGQHLLAPEDVVSCCLDLSVPSISFRINGCPVQGVFEAFNLDGLFFPVVSFSAGVKVRFLLGGRHGEFKFLPPPGYAPCHEAVLPRERLRLEPIKEYRREGPRGPHLVGPSRCLSHTDFVPCPVDTVQIVLPPHLERIREKLAENIHELWALTRIEQGWTYGPVRDDNKRLHPCLVNFHSLPEPERNYNLQMSGETLKTLLALGCHVGMADEKAEDNLKKTKLPKTYMMSNGYKPAPLDLSHVRLTPAQTTLVDRLAENGHNVWARDRVAQGWSYSAVQDIPARRNPRLVPYRLLDEATKRSNRDSLCQAVRTLLGYGYNIEPPDQEPSQVENQSRWDRVRIFRAEKSYTVQSGRWYFEFEAVTTGEMRVGWARPELRPDVELGADELAYVFNGHRGQRWHLGSEPFGRPWQSGDVVGCMIDLTENTIIFTLNGEVLMSDSGSETAFREIEIGDGFLPVCSLGPGQVGHLNLGQDVSSLRFFAICGLQEGFEPFAINMQRPVTTWFSKSLPQFEPVPPEHPHYEVARMDGTVDTPPCLRLAHRTWGSQNSLVEMLFLRLSLPVQFHQHFRCTAGATPLAPPGLQPPAEDEARAAEPDPDYENLRRSAGGWGEAEGGKEGTAKEGTPGGTPQPGVEAQPVRAENEKDATTEKNKKRGFLFKAKKAAMMTQPPATPALPRLPHDVVPADNRDDPEIILNTTTYYYSVRVFAGQEPSCVWVGWVTPDYHQHDMNFDLSKVRAVTVTMGDEQGNVHSSLKCSNCYMVWGGDFVSPGQQGRISHTDLVIGCLVDLATGLMTFTANGKESNTFFQVEPNTKLFPAVFVLPTHQNVIQFELGKQKNIMPLSAAMFLSERKNPAPQCPPRLEVQMLMPVSWSRMPNHFLQVETRRAGERLGWAVQCQDPLTMMALHIPEENRCMDILELSERLDLQRFHSHTLRLYRAVCALGNNRVAHALCSHVDQAQLLHALEDAHLPGPLRAGYYDLLISIHLESACRSRRSMLSEYIVPLTPETRAITLFPPGRKGGNARRHGLPGVGVTTSLRPPHHFSPPCFVAALPAAGVAEAPARLSPAIPLEALRDKALRMLGEAVRDGGQHARDPVGGSVEFQFVPVLKLVSTLLVMGIFGDEDVKQILKMIEPEVFTEEEEEEEEEEEEEEEEEEDEEEKEEDEEEEEKEDAEKEEEEAPEGEKEDLEEGLLQMKLPESVKLQMCNLLEYFCDQELQHRVESLAAFAERYVDKLQANQRSRYALLMRAFTMSAAETARRTREFRSPPQEQINMLLHFKDEADEEDCPLPEDIRQDLQDFHQDLLAHCGIQLEGEEEEPEEETSLSSRLRSLLETVRLVKKKEEKPEEELPAEEKKPQSLQELVSHMVVRWAQEDYVQSPELVRAMFSLLHRQYDGLGELLRALPRAYTISPSSVEDTMSLLECLGQIRSLLIVQMGPQEENLMIQSIGNIMNNKVFYQHPNLMRALGMHETVMEVMVNVLGGGETKEIRFPKMVTSCCRFLCYFCRISRQNQRSMFDHLSYLLENSGIGLGMQGSTPLDVAAASVIDNNELALALQEQDLEKVVSYLAGCGLQSCPMLLAKGYPDIGWNPCGGERYLDFLRFAVFVNGESVEENANVVVRLLIRKPECFGPALRGEGGSGLLAAIEEAIRISEDPARDGPGVRRDRRREHFGEEPPEENRVHLGHAIMSFYAALIDLLGRCAPEMHLIQAGKGEALRIRAILRSLVPLDDLVGIISLPLQIPTLGKDGALVQPKMSASFVPDHKASMVLFLDRVYGIENQDFLLHVLDVGFLPDMRAAASLDTATFSTTEMALALNRYLCLAVLPLITKCAPLFAGTEHRAIMVDSMLHTVYRLSRGRSLTKAQRDVIEDCLMALCRYIRPSMLQHLLRRLVFDVPILNEFAKMPLKLLTNHYERCWKYYCLPTGWANFGVTSEEELHLTRKLFWGIFDSLAHKKYDQELYRMAMPCLCAIAGALPPDYVDASYSSKAEKKATVDAEGNFDPRPVETLNVIIPEKLDSFINKFAEYTHEKWAFDKIQNNWSYGENVDEELKTHPMLRPYKTFSEKDKEIYRWPIKESLKAMIAWEWTIEKAREGEEERTEKKKTRKISQTAQTYDPREGYNPQPPDLSGVTLSRELQAMAEQLAENYHNTWGRKKKQELEAKGGGTHPLLVPYDTLTAKEKARDREKAQELLKFLQMNGYAVTRGLKDMELDTSSIEKRFAFGFLQQLLRWMDISQEFIAHLEAVVSSGRVEKSPHEQEIKFFAKILLPLINQYFTNHCLYFLSTPAKVLGSGGHASNKEKEMITSLFCKLAALVRHRVSLFGTDAPAVVNCLHILARSLDARTVMKSGPEIVKAGLRSFFESASEDIEKMVENLRLGKVSQARTQVKGVGQNLTYTTVALLPVLTTLFQHIAQHQFGDDVILDDVQVSCYRTLCSIYSLGTTKNTYVEKLRPALGECLARLAAAMPVAFLEPQLNEYNACSVYTTKSPRERAILGLPNSVEEMCPDIPVLDRLMADIGGLAESGARYTEMPHVIEITLPMLCSYLPRWWERGPEAPPPALPAGAPPPCTAVTSDHLNSLLGNILRIIVNNLGIDEATWMKRLAVFAQPIVSRARPELLHSHFIPTIGRLRKRAGKVVAEEEQLRLEAKAEAEEGELLVRDEFSVLCRDLYALYPLLIRYVDNNRAHWLTEPNANAEELFRMVGEIFIYWSKSHNFKREEQNFVVQNEINNMSFLTADSKSKMAKAGDAQSGGSDQERTKKKRRGDRYSVQTSLIVATLKKMLPIGLNMCAPTDQDLIMLAKTRYALKDTDEEVREFLQNNLHLQGKVEGSPSLRWQMALYRGLPGREEDADDPEKIVRRVQEVSAVLYHLEQTEHPYKSKKAVWHKLLSKQRRRAVVACFRMTPLYNLPTHRACNMFLESYKAAWILTEDHSFEDRMIDDLSKAGEQEEEEEEVEEKKPDPLHQLVLHFSRTALTEKSKLDEDYLYMAYADIMAKSCHLEEGGENGEAEEEEVEVSFEEKEMEKQRLLYQQSRLHTRGAAEMVLQMISACKGETGAMVSSTLKLGISILNGGNAEVQQKMLDYLKDKKEVGFFQSIQALMQTCSVLDLNAFERQNKAEGLGMVNEDGTVINRQNGEKVMADDEFTQDLFRFLQLLCEGHNNDFQNYLRTQTGNTTTINIIICTVDYLLRLQESISDFYWYYSGKDVIEEQGKRNFSKAMSVAKQVFNSLTEYIQGPCTGNQQSLAHSRLWDAVVGFLHVFAHMMMKLAQDSSQIELLKELLDLQKDMVVMLLSLLEGNVVNGMIARQMVDMLVESSSNVEMILKFFDMFLKLKDIVGSEAFQDYVTDPRGLISKKDFQKAMDSQKQFTGPEIQFLLSCSEADENEMINFEEFANRFQEPARDIGFNVAVLLTNLSEHVPHDPRLRNFLELAESILEYFRPYLGRIEIMGASRRIERIYFEISETNRAQWEMPQVKESKRQFIFDVVNEGGEAEKMELFVSFCEDTIFEMQIAAQISEPEGEPEADEDEGMGEAAAEGAEEGAAGAEGAAGTVAAGATARLAAAAARALRGLSYRSLRRRVRRLRRLTAREAATALAALLWAVVARAGAAGAGAAAGALRLLWGSLFGGGLVEGAKKVTVTELLAGMPDPTSDEVHGEQPAGPGGDADGAGEGEGEGDAAEGDGDEEVAGHEAGPGGAEGVVAVADGGPFRPEGAGGLGDMGDTTPAEPPTPEGSPILKRKLGVDGEEEELVPEPEPEPEPEPEKADEENGEKEEVPEAPPEPPKKAPPSPPAKKEEAGGAGMEFWGELEVQRVKFLNYLSRNFYTLRFLALFLAFAINFILLFYKVSDSPPGEDDMEGSAAGDLAGAGSGGGSGWGSGAGEEAEGDEDENMVYYFLEESTGYMEPALWCLSLLHTLVAFLCIIGYNCLKVPLVIFKREKELARKLEFDGLYITEQPGDDDVKGQWDRLVLNTPSFPSNYWDKFVKRKVLDKHGDIFGRERIAELLGMDLASLEITAHNERKPDPPPGLLTWLMSIDVKYQIWKFGVIFTDNSFLYLGWYMVMSLLGHYNNFFFAAHLLDIAMGVKTLRTILSSVTHNGKQLVMTVGLLAVVVYLYTVVAFNFFRKFYNKSEDEDEPDMKCDDMMTCYLFHMYVGVRAGGGIGDEIEDPAGDEYELYRVVFDITFFFFVIVILLAIIQGLIIDAFGELRDQQEQVKEDMETKCFICGIGSDYFDTTPHGFETHTLEEHNLANYMFFLMYLINKDETEHTGQESYVWKMYQERCWDFFPAGDCFRKQYEDQLS",
+   "domains": [
+    {
+     "element": "nterm_trefoil",
+     "kind": "pfam",
+     "source": "InterPro PF08709",
+     "start": 10,
+     "end": 210
+    },
+    {
+     "element": "MIR",
+     "kind": "pfam",
+     "source": "InterPro PF02815",
+     "start": 212,
+     "end": 390
+    },
+    {
+     "element": "RIH",
+     "kind": "pfam",
+     "source": "InterPro PF01365",
+     "start": 444,
+     "end": 637
+    },
+    {
+     "element": "SPRY",
+     "kind": "pfam",
+     "source": "InterPro PF00622",
+     "start": 661,
+     "end": 795
+    },
+    {
+     "element": "RyR_repeat",
+     "kind": "pfam",
+     "source": "InterPro PF02026",
+     "start": 851,
+     "end": 940
+    },
+    {
+     "element": "RyR_repeat",
+     "kind": "pfam",
+     "source": "InterPro PF02026",
+     "start": 965,
+     "end": 1054
+    },
+    {
+     "element": "SPRY",
+     "kind": "pfam",
+     "source": "InterPro PF00622",
+     "start": 1087,
+     "end": 1206
+    },
+    {
+     "element": "SPRY",
+     "kind": "pfam",
+     "source": "InterPro PF00622",
+     "start": 1433,
+     "end": 1569
+    },
+    {
+     "element": "junctional_solenoid",
+     "kind": "pfam",
+     "source": "InterPro PF21119",
+     "start": 1663,
+     "end": 2126
+    },
+    {
+     "element": "RIH",
+     "kind": "pfam",
+     "source": "InterPro PF01365",
+     "start": 2160,
+     "end": 2368
+    },
+    {
+     "element": "RyR_repeat",
+     "kind": "pfam",
+     "source": "InterPro PF02026",
+     "start": 2735,
+     "end": 2825
+    },
+    {
+     "element": "RyR_repeat",
+     "kind": "pfam",
+     "source": "InterPro PF02026",
+     "start": 2855,
+     "end": 2939
+    },
+    {
+     "element": "RIH_assoc",
+     "kind": "pfam",
+     "source": "InterPro PF08454",
+     "start": 3877,
+     "end": 3992
+    },
+    {
+     "element": "RyR_TM4_6",
+     "kind": "pfam",
+     "source": "InterPro PF06459",
+     "start": 4382,
+     "end": 4670
+    },
+    {
+     "element": "channel",
+     "kind": "pfam",
+     "source": "InterPro PF00520",
+     "start": 4789,
+     "end": 4947
+    }
+   ]
+  }
+ },
+ "structures": [
+  {
+   "pdb_id": "7TDG",
+   "paralog": "RYR1",
+   "organism": "Oryctolagus cuniculus",
+   "uniprot": "P11716",
+   "resolution": 3.8,
+   "state": "inactivated",
+   "title": "Rabbit RyR1 with AMP-PCP and high Ca2+ embedded in nanodisc in inactivated conformation (Dataset-A)",
+   "roles": [
+    "ryr_panel"
+   ],
+   "ip3_bound": false,
+   "doi": "10.7554/eLife.75568"
+  },
+  {
+   "pdb_id": "7TDI",
+   "paralog": "RYR1",
+   "organism": "Oryctolagus cuniculus",
+   "uniprot": "P11716",
+   "resolution": 3.3,
+   "state": "closed-inactivated",
+   "title": "Rabbit RyR1 with AMP-PCP and high Ca2+ embedded in nanodisc in closed-inactivated conformation class 2 (Dataset-A)",
+   "roles": [
+    "ryr_panel"
+   ],
+   "ip3_bound": false,
+   "doi": "10.7554/eLife.75568"
+  },
+  {
+   "pdb_id": "8RRX",
+   "paralog": "RYR1",
+   "organism": "Oryctolagus cuniculus",
+   "uniprot": "P11716",
+   "resolution": 3.1,
+   "state": "primed",
+   "title": "Structure of RyR1 reconstituted into lipid nanodisc in primed state in complex with Ca2+, ATP, caffeine and Nb9657",
+   "roles": [
+    "ryr_panel"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1016/j.jbc.2024.107734"
+  },
+  {
+   "pdb_id": "9HEO",
+   "paralog": "RYR1",
+   "organism": "Oryctolagus cuniculus",
+   "uniprot": "P11716",
+   "resolution": 3.4,
+   "state": "open",
+   "title": "Open-state RyR1 in 0.05% POPC micelles, in complex with a nanobody and FKBP",
+   "roles": [
+    "ryr_panel",
+    "morph_end"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1016/j.str.2025.09.003"
+  },
+  {
+   "pdb_id": "9OL6",
+   "paralog": "RYR1",
+   "organism": "Oryctolagus cuniculus",
+   "uniprot": "P11716",
+   "resolution": 3.11,
+   "state": "closed",
+   "title": "Rabbit Ryanodine Receptor 1: DMSO Control Closed Conformation",
+   "roles": [
+    "ryr_panel"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1038/s41467-025-66522-0"
+  },
+  {
+   "pdb_id": "9R8O",
+   "paralog": "RYR1",
+   "organism": "Oryctolagus cuniculus",
+   "uniprot": "P11716",
+   "resolution": 3.3,
+   "state": "primed",
+   "title": "Primed-state RyR1 in 0.05% POPC micelles, in complex with a nanobody and FKBP",
+   "roles": [
+    "ryr_panel",
+    "morph_start"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1016/j.str.2025.09.003"
+  }
+ ],
+ "rejected": {
+  "2BCX": "1: not EM",
+  "2XOA": "1: not EM",
+  "3HSM": "1: not EM",
+  "3ILA": "1: not EM",
+  "3J8H": "1: not four full-length chains",
+  "3RQR": "1: not EM",
+  "4ERT": "1: not EM",
+  "4ESU": "1: not EM",
+  "4ETT": "1: not EM",
+  "4ETU": "1: not EM",
+  "4I0Y": "1: not EM",
+  "4I1E": "1: not EM",
+  "4I2S": "1: not EM",
+  "4I37": "1: not EM",
+  "4I3N": "1: not EM",
+  "4I6I": "1: not EM",
+  "4I7I": "1: not EM",
+  "4I8M": "1: not EM",
+  "4I96": "1: not EM",
+  "4P9J": "1: not EM",
+  "4UWA": "4: resolution",
+  "4UWE": "4: resolution",
+  "5C30": "1: not EM",
+  "5GL0": "4: resolution",
+  "5GL1": "4: resolution",
+  "5J8V": "4: resolution",
+  "5T15": "1: not four full-length chains",
+  "5T9M": "1: not four full-length chains",
+  "5T9N": "1: not four full-length chains",
+  "5T9R": "1: not four full-length chains",
+  "5T9S": "1: not four full-length chains",
+  "5T9V": "1: not four full-length chains",
+  "5TA3": "1: not four full-length chains",
+  "5TAL": "1: not four full-length chains",
+  "5TAM": "1: not four full-length chains",
+  "5TAN": "1: not four full-length chains",
+  "5TAP": "1: not four full-length chains",
+  "5TAQ": "1: not four full-length chains",
+  "5TAS": "1: not four full-length chains",
+  "5TAT": "1: not four full-length chains",
+  "5TAU": "1: not four full-length chains",
+  "5TAV": "1: not four full-length chains",
+  "5TAW": "1: not four full-length chains",
+  "5TAX": "1: not four full-length chains",
+  "5TAY": "1: not four full-length chains",
+  "5TAZ": "1: not four full-length chains",
+  "5TB0": "1: not four full-length chains",
+  "5TB1": "1: not four full-length chains",
+  "5TB2": "1: not four full-length chains",
+  "5TB3": "1: not four full-length chains",
+  "5TB4": "1: not four full-length chains",
+  "6FG3": "4: resolution",
+  "6FOO": "4: resolution",
+  "6M2W": "3: ligand F0U",
+  "6WOT": "1/2: title excluded",
+  "7CF9": "3: ligand F0U",
+  "7M6A": "5: no state named in the title",
+  "7M6L": "5: no state named in the title",
+  "7T64": "1/2: title excluded",
+  "7T65": "1/2: title excluded",
+  "7TZC": "3: ligand KVR,L9R",
+  "8DRP": "1: too little modelled",
+  "8DTB": "1: too little modelled",
+  "8DUJ": "5: no state named in the title",
+  "8DVE": "5: no state named in the title",
+  "8RRT": "4: resolution",
+  "8RRU": "4: resolution",
+  "8RRW": "4: resolution",
+  "8SEN": "5: no state named in the title",
+  "8SEO": "3: ligand AGS",
+  "8SEP": "5: no state named in the title",
+  "8SEQ": "3: ligand AMP",
+  "8SER": "3: ligand ADN",
+  "8SES": "3: ligand ADE",
+  "8SET": "3: ligand CMP",
+  "8SEU": "1: too little modelled",
+  "8SEV": "1: too little modelled",
+  "8SEW": "1: too little modelled",
+  "8SEX": "1: too little modelled",
+  "8SEY": "1: too little modelled",
+  "8SEZ": "1: too little modelled",
+  "8SF0": "1: too little modelled",
+  "8X48": "5: no state named in the title",
+  "8X49": "5: no state named in the title",
+  "8X4B": "4: resolution",
+  "8X4C": "5: no state named in the title",
+  "8X4D": "5: no state named in the title",
+  "8X4E": "5: no state named in the title",
+  "8XJI": "1/2: title excluded",
+  "8XKH": "1/2: title excluded",
+  "8XLF": "1/2: title excluded",
+  "8XLH": "1/2: title excluded",
+  "8Y40": "1/2: title excluded",
+  "9CGP": "1/2: title excluded",
+  "9CGQ": "1/2: title excluded",
+  "9E17": "3: ligand KVR,L9R",
+  "9E18": "3: ligand PNX",
+  "9E19": "3: ligand PNX",
+  "9E1A": "3: ligand A1BD2",
+  "9E1B": "3: ligand A1BD2",
+  "9E1C": "3: ligand IBM",
+  "9E1D": "3: ligand A1BD3",
+  "9E1E": "3: ligand URA",
+  "9E1F": "3: ligand A1BD4",
+  "9E1G": "3: ligand 141",
+  "9E1H": "3: ligand A1BD5",
+  "9E1I": "3: ligand A1BD5",
+  "9OL4": "3: ligand 117",
+  "9OL5": "3: ligand 117",
+  "9S16": "5: no state named in the title",
+  "9S1H": "5: no state named in the title",
+  "9S2R": "4: resolution",
+  "9S3U": "4: resolution",
+  "9S4L": "4: resolution",
+  "9S4N": "5: no state named in the title",
+  "9S54": "5: no state named in the title",
+  "9S55": "5: no state named in the title",
+  "9S5A": "4: resolution",
+  "9S5C": "4: resolution",
+  "9S5E": "4: resolution",
+  "9S5F": "5: no state named in the title",
+  "9S5W": "4: resolution",
+  "9S5Y": "4: resolution",
+  "9S5Z": "4: resolution",
+  "9ZK8": "1: not four full-length chains",
+  "9ZK9": "1: not four full-length chains",
+  "9ZKA": "1: not four full-length chains",
+  "9ZKC": "1: not four full-length chains",
+  "9ZKD": "1: not four full-length chains",
+  "9ZKE": "1: not four full-length chains",
+  "9ZL7": "1: not four full-length chains",
+  "9ZLC": "1: not four full-length chains",
+  "9ZLF": "1: not four full-length chains",
+  "9ZLH": "1: not four full-length chains",
+  "9ZN6": "3: ligand 43M,U1C",
+  "9ZN7": "5: no state named in the title",
+  "9ZN8": "5: no state named in the title",
+  "9ZN9": "3: ligand 43M",
+  "9ZNA": "3: ligand 43M,PLC",
+  "9ZND": "3: ligand 43M,CPS,U1C"
+ }
+}

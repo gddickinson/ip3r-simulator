@@ -40,7 +40,7 @@ class StructurePanel(QWidget):
         super().__init__(parent)
         lay = QVBoxLayout(self)
 
-        box = QGroupBox("Depositions (from ip3r_genes S0/S11/S22)")
+        box = QGroupBox("Depositions (IP3R: ip3r_genes S0/S11/S22; RyR1: curated)")
         bl = QVBoxLayout(box)
         self.list = QListWidget()
         self.list.itemDoubleClicked.connect(lambda it: self._load(it))

@@ -9,6 +9,11 @@ elements overlap (the filter and gate sit inside PF00520, the luminal loop
 too), and a per-residue colour needs a single answer. The rule is the one S17
 applied: the most specific element wins (filter, gate, luminal loop, then the
 Pfam domain, then the named linker between two domains).
+
+**Ryanodine receptors** (``config.RYR_ACC``) are a numbering, not a
+paralog of the publication: their sequence and Pfam domains come from
+``ryr1.json`` (``scripts/curate_ryr.py``). They have no conservation, sites
+or variants, so those return "not scored" (NaN, empty), which paints grey.
 """
 
 from __future__ import annotations
@@ -19,9 +24,9 @@ from functools import lru_cache
 
 import numpy as np
 
-from ..config import PARALOGS, RESOURCE_DIR
+from ..config import NUMBERINGS, RESOURCE_DIR, RYR_ACC
 
-__all__ = ["Element", "reference_sequence", "elements", "element_of",
+__all__ = ["Element", "is_ryr", "reference_sequence", "elements", "element_of",
            "residue_elements", "functional_sites", "ELEMENT_ORDER",
            "ELEMENT_COLORS", "ELEMENT_LABELS", "LAYERS", "LAYER_LABELS",
            "residue_constraint", "constraint_at", "variants", "element_array"]
@@ -34,7 +39,8 @@ _NOT_PAINTED = {"ip3_contact_set"}
 #: N- to C-terminal order, for legends and plots.
 ELEMENT_ORDER = ("nterm_trefoil", "MIR", "RIH_N", "RIH_C", "RIH_assoc",
                  "channel", "luminal_loop", "selectivity_filter", "gate",
-                 "linker")
+                 "linker", "RIH", "SPRY", "RyR_repeat", "junctional_solenoid",
+                 "RyR_TM4_6")
 
 ELEMENT_LABELS = {
     "nterm_trefoil": "IP3-binding core, β-trefoil (PF08709)",
@@ -47,6 +53,11 @@ ELEMENT_LABELS = {
     "selectivity_filter": "Selectivity filter (GGGVGD)",
     "gate": "Gate (6DQN)",
     "linker": "Inter-domain linker",
+    "RIH": "RIH domain (PF01365; RyR)",
+    "SPRY": "SPRY domain (PF00622; RyR)",
+    "RyR_repeat": "RyR repeat (PF02026; RyR)",
+    "junctional_solenoid": "Junctional solenoid (PF21119; RyR)",
+    "RyR_TM4_6": "RyR TM 4-6 (PF06459; RyR)",
 }
 
 #: A categorical palette, readable on the dark viewport. The gate and filter
@@ -62,6 +73,11 @@ ELEMENT_COLORS = {
     "selectivity_filter": (1.00, 0.45, 0.30),
     "gate": (1.00, 0.80, 0.20),
     "linker": (0.42, 0.45, 0.52),
+    "RIH": (0.45, 0.80, 0.50),
+    "SPRY": (0.95, 0.55, 0.75),
+    "RyR_repeat": (0.55, 0.70, 0.95),
+    "junctional_solenoid": (0.85, 0.65, 0.45),
+    "RyR_TM4_6": (0.50, 0.55, 0.85),
 }
 
 
@@ -81,24 +97,32 @@ def _load(name: str) -> dict:
     return json.loads((RESOURCE_DIR / name).read_text())
 
 
-def _check(paralog: str) -> str:
-    if paralog not in PARALOGS:
+def _check(paralog: str, allowed: tuple = NUMBERINGS) -> str:
+    if paralog not in allowed:
         raise KeyError(f"unknown paralog {paralog!r}; expected one of "
-                       f"{PARALOGS}")
+                       f"{allowed}")
     return paralog
+
+
+def is_ryr(paralog: str | None) -> bool:
+    return paralog in RYR_ACC
 
 
 @lru_cache(maxsize=None)
 def reference_sequence(paralog: str) -> str:
-    """Canonical human sequence, residue 1 at index 0."""
-    return _load("sequences.json")["paralogs"][_check(paralog)]["sequence"]
+    """Reference sequence (canonical human, or rabbit RyR1), residue 1 at index 0."""
+    if is_ryr(_check(paralog)):
+        return _load("ryr1.json")["paralogs"][paralog]["sequence"]
+    return _load("sequences.json")["paralogs"][paralog]["sequence"]
 
 
 @lru_cache(maxsize=None)
 def elements(paralog: str) -> tuple[Element, ...]:
+    rows = (_load("ryr1.json")["paralogs"][paralog]["domains"]
+            if is_ryr(_check(paralog))
+            else _load("domains.json")["paralogs"][paralog])
     return tuple(Element(e["element"], e["start"], e["end"], e["kind"],
-                         e["source"])
-                 for e in _load("domains.json")["paralogs"][_check(paralog)])
+                         e["source"]) for e in rows)
 
 
 @lru_cache(maxsize=None)
@@ -127,7 +151,9 @@ def element_of(paralog: str, resi: int) -> str | None:
 def functional_sites(paralog: str) -> dict[str, tuple[int, ...]]:
     """``site_class -> residue numbers`` (ip3_contact, filter_lining, ...)."""
     out: dict[str, list[int]] = {}
-    for s in _load("sites.json")["paralogs"][_check(paralog)]:
+    if is_ryr(_check(paralog)):
+        return {}
+    for s in _load("sites.json")["paralogs"][paralog]:
         out.setdefault(s["site_class"], []).append(s["resi"])
     return {k: tuple(sorted(v)) for k, v in out.items()}
 
@@ -153,7 +179,9 @@ LAYER_LABELS = {
 @lru_cache(maxsize=None)
 def residue_constraint(paralog: str, layer: str = "deep") -> np.ndarray:
     """Per-residue JSD (index 0 = residue 1); NaN where not scored."""
-    vals = _load("constraint.json")["paralogs"][_check(paralog)][layer]
+    if is_ryr(_check(paralog)):
+        return np.full(len(reference_sequence(paralog)), np.nan)
+    vals = _load("constraint.json")["paralogs"][paralog][layer]
     return np.array([np.nan if v is None else v for v in vals], dtype=float)
 
 

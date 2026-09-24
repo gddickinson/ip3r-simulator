@@ -316,10 +316,80 @@ as 370) and 545 ± 7 pS (Vais et al. 2010, DT40 nuclei).
   move, because it sits on the D2518/D2522 rings at z ≈ −63 Å in a 4.4 Å
   lumen, not at the filter. So cancelling ion pairs does not rescue the
   charged model. The gap to 358 pS is not a charge-counting artefact.
+- **The paired reading is refuted by RyR1** (next section). RyR1 D4899 is
+  the homologue of D2478 (own alignment of the PF00520 domains: R4892 ≡
+  R2471 as well). It is bridged the same way (2.9 Å), yet neutralising it
+  cuts RyR1's conductance to 0.20×. So a bridged filter carboxylate still
+  acts as a charge. The *charged* reading is the better one. *Paired* is
+  kept as a reported bound, not a correction.
 
 What survives: the gate is the only state change that opens a conducting
 pathway. Taken as a neutral continuum, the only open deposit's pore is
 too narrow or too long to carry the measured conductance.
+
+## Ryanodine receptor 1
+
+**Why.** RyR1 is IP3R's closest relative (both share the trefoil, MIR, RIH,
+RIH-associated and PF00520 domains), with many more deposits, a larger
+conductance and measured pore mutants. It is the natural control for
+anything measured on the ITPR3 pore.
+
+**Resource** (`scripts/curate_ryr.py` → `resources/ryr1.json`, SHA-256 of
+every response). Reference rabbit P11716 (5,037 residues), because the
+deposits are rabbit; the GGGIGD filter is at 4894–4899 and the gate
+isoleucine at 4937, as in the literature. Domains are InterPro's Pfam
+matches; PF00520 (4789–4947) is named `channel`, so the pore-domain span is
+found the same way as for the ITPRs. RyR1 has no conservation, sites or
+variants here, so those colourings are grey on it.
+
+**Panel, by rule**, from the 158 PDB entries mapped to P11716 (on 2026-09-24):
+single-particle EM of four full-length chains (not domain crystals or local
+refinements); wild type; only Ca²⁺/Zn²⁺/Mg²⁺, ATP/ACP/ADP, caffeine or
+lipid as ligands; ≤ 4.0 Å; the state the title names, best resolution per
+state. That gives 9OL6 closed (3.11 Å), 8RRX primed (3.10), 9HEO open
+(3.40), 7TDG inactivated (3.80) and 7TDI closed-inactivated (3.30). The morph
+needs one preparation, so the best primed deposit of the open state's own
+paper, 9R8O (3.30, same DOI as 9HEO), is added. 140 entries fail a rule,
+each recorded in the resource with the first rule it fails; 18 pass, and
+the best per state is taken from those.
+
+**Measured.** Every deposit is 100 % in P11716 numbering. The four shut
+states gate at I4937 (2.6–3.3 Å r_min) and 7TDI at Q4933 (2.21 Å). Only
+9HEO opens (5.05 Å, lined by Q4933). Primed 9R8O → open 9HEO morphs over
+4,235 residues × 4 subunits (RMSD 2.72 Å after the pore fit). The start's
+elastic network explains little of it: the cumulative overlap of 20 modes is
+0.174 against a null of 0.031, where ITPR3's is 0.64. Most of the raw
+displacement (71.5 %) is rigid-body, removed before the overlap.
+
+**Conductance.** Symmetric 250 mM KCl, the bath of Xu et al. 2006's
+recombinant RyR1 (801 ± 7 pS, n = 17, planar bilayer). 9HEO: 134 pS series,
+136 pS neutral, 180 pS charged, 161 pS paired; the sweep reaches at most
+308 (neutral) and 449 pS (charged). The neutral model is 5.9× short. So
+ITPR3's 2.4× shortfall is not particular to ITPR3. The same continuum
+under-predicts both receptors, and RyR1's acidic wall (−32 e) *raises* its
+conductance where ITPR3's alternating rings lowered it. Primed 9R8O
+(r_free 1.62 Å) conducts 4.5 pS neutral. Its charged solve does not
+converge (Cl⁻ is excluded, and K⁺ alone cannot neutralise a basic zone), and
+it is reported as n.c., never as 0.
+
+**Charge mutants** (`physics/ryr_mutants.py`, `python -m ip3r mutants`). Each
+mutant drops one residue's charge on all four subunits of 9HEO. The ratio
+mutant / wild type cancels the transport constants, so it tests the wall
+charge alone:
+
+| mutant | measured | model, charged | model, paired | in 9HEO |
+|---|---|---|---|---|
+| D4899Q | 0.20 | 0.90 | 1.00 | lining, bridged to R4892′ |
+| E4900N | 0.63 | 0.76 | 0.41 | lining |
+| D4938N | 0.65 | 0.78 | 0.80 | lining |
+| D4945N | 0.92 | 0.90 | 0.91 | lining |
+| E4955Q | 1.01 | 1.00 | 1.00 | not lining |
+
+The direction is right for all four lining residues, the size right for
+D4945N, and the null right for E4955Q. The filter aspartate is 4× too weak
+in the charged model and absent in the paired one. A continuum Donnan
+partition spread over 3 Å does not carry what a ring of four carboxylates
+does at a 5 Å filter.
 
 ## Paper 6: the module contrast
 

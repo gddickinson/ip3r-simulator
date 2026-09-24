@@ -1853,6 +1853,97 @@
    "source_note": "AlphaFold DB's four pLDDT bands (very low < 50 <= low < 70 <= confident < 90 <= very high), as defined in Jumper 2021 and used on every AlphaFold DB entry page",
    "minimum": 0.0,
    "maximum": 100.0
+  },
+  {
+   "key": "permeation.ryr1_bath_concentration",
+   "name": "RyR1 bath KCl concentration",
+   "value": 0.25,
+   "unit": "M",
+   "kind": "convention",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Symmetric bath salt of the RyR1 recordings the model is compared with.",
+   "source_note": "Xu 2006 Methods: 250 mM KCl cis, trans raised to 250 mM after fusion",
+   "minimum": 0.001,
+   "maximum": 3.0
+  },
+  {
+   "key": "permeation.published_ryr1",
+   "name": "RyR1 conductance (wild type)",
+   "value": 801.0,
+   "unit": "pS",
+   "kind": "empirical",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Recombinant rabbit RyR1 in planar bilayers, symmetric 250 mM KCl.",
+   "source_note": "Xu et al. 2006 (PMC1367051), Table 2, gamma K+ in symmetric 250 mM KCl: 801 +/- 7 pS (n = 17); the text rounds it to ~800",
+   "minimum": 1.0,
+   "maximum": 3000.0
+  },
+  {
+   "key": "permeation.published_ryr1_d4899q",
+   "name": "RyR1 D4899Q conductance",
+   "value": 164.0,
+   "unit": "pS",
+   "kind": "empirical",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Recombinant rabbit RyR1-D4899Q, a charge-neutralising pore mutant, symmetric 250 mM KCl.",
+   "source_note": "Xu et al. 2006 (PMC1367051), Table 2, gamma K+ in symmetric 250 mM KCl: 164 +/- 4 pS (n = 10)",
+   "minimum": 1.0,
+   "maximum": 3000.0
+  },
+  {
+   "key": "permeation.published_ryr1_e4900n",
+   "name": "RyR1 E4900N conductance",
+   "value": 505.0,
+   "unit": "pS",
+   "kind": "empirical",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Recombinant rabbit RyR1-E4900N, a charge-neutralising pore mutant, symmetric 250 mM KCl.",
+   "source_note": "Xu et al. 2006 (PMC1367051), Table 2, gamma K+ in symmetric 250 mM KCl: 505 +/- 3 pS (n = 3)",
+   "minimum": 1.0,
+   "maximum": 3000.0
+  },
+  {
+   "key": "permeation.published_ryr1_d4938n",
+   "name": "RyR1 D4938N conductance",
+   "value": 520.0,
+   "unit": "pS",
+   "kind": "empirical",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Recombinant rabbit RyR1-D4938N, a charge-neutralising pore mutant, symmetric 250 mM KCl.",
+   "source_note": "Xu et al. 2006 (PMC1367051), Table 2, gamma K+ in symmetric 250 mM KCl: 520 +/- 6 pS (n = 9)",
+   "minimum": 1.0,
+   "maximum": 3000.0
+  },
+  {
+   "key": "permeation.published_ryr1_d4945n",
+   "name": "RyR1 D4945N conductance",
+   "value": 737.0,
+   "unit": "pS",
+   "kind": "empirical",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Recombinant rabbit RyR1-D4945N, a charge-neutralising pore mutant, symmetric 250 mM KCl.",
+   "source_note": "Xu et al. 2006 (PMC1367051), Table 2, gamma K+ in symmetric 250 mM KCl: 737 +/- 11 pS (n = 6)",
+   "minimum": 1.0,
+   "maximum": 3000.0
+  },
+  {
+   "key": "permeation.published_ryr1_e4955q",
+   "name": "RyR1 E4955Q conductance",
+   "value": 812.0,
+   "unit": "pS",
+   "kind": "empirical",
+   "category": "permeation",
+   "citation": "xu2006",
+   "description": "Recombinant rabbit RyR1-E4955Q, a charge-neutralising pore mutant, symmetric 250 mM KCl.",
+   "source_note": "Xu et al. 2006 (PMC1367051), Table 2, gamma K+ in symmetric 250 mM KCl: 812 +/- 7 pS (n = 4)",
+   "minimum": 1.0,
+   "maximum": 3000.0
   }
  ]
 }

@@ -4,6 +4,10 @@ Read from ``resources/structures.json``, which ``scripts/sync_genes.py``
 builds from ``ip3r_genes`` — 6DQN from S0's measurement record, the ITPR
 references and state panel S11 selected by seven stated rules, and the six
 IP3-bound entries S22 measured ligand shells in. None of it is typed here.
+
+The RyR1 state panel is appended from ``resources/ryr1.json``, which
+``scripts/curate_ryr.py`` selects from the PDB by stated rules (no RyR
+structure is in ``ip3r_genes``).
 """
 
 from __future__ import annotations
@@ -40,11 +44,17 @@ class StructureEntry:
     def human(self) -> bool:
         return self.organism == "Homo sapiens"
 
+    @property
+    def family(self) -> str:
+        return "RyR" if self.paralog.startswith("RYR") else "IP3R"
+
 
 @lru_cache(maxsize=1)
 def load_registry() -> tuple[StructureEntry, ...]:
-    path = RESOURCE_DIR / "structures.json"
-    raw = json.loads(path.read_text())["structures"]
+    raw = json.loads((RESOURCE_DIR / "structures.json").read_text())["structures"]
+    ryr = RESOURCE_DIR / "ryr1.json"
+    if ryr.exists():
+        raw = raw + json.loads(ryr.read_text())["structures"]
     return tuple(StructureEntry(
         pdb_id=e["pdb_id"], paralog=e["paralog"], organism=e["organism"],
         uniprot=e.get("uniprot", ""), resolution=float(e["resolution"]),

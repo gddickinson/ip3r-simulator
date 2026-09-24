@@ -69,6 +69,16 @@ def ensure_dirs() -> None:
 PARALOG_ACC = {"ITPR1": "Q14643", "ITPR2": "Q14571", "ITPR3": "Q14573"}
 PARALOGS = tuple(PARALOG_ACC)
 
+#: Ryanodine receptors, curated here (``scripts/curate_ryr.py``), not from
+#: ``ip3r_genes``. Rabbit RyR1, because the deposits are rabbit: a residue
+#: number on an RyR1 deposit is a P11716 number.
+RYR_ACC = {"RYR1": "P11716"}
+
+#: Every reference numbering a deposit can be in. ``PARALOGS`` stays the
+#: three IP3Rs the publication's tables are keyed on; RyR1 has a sequence
+#: and domains but no conservation, sites or variants, so those paint grey.
+NUMBERINGS = PARALOGS + tuple(RYR_ACC)
+
 #: IP3 receptors are homotetramers with C4 symmetry about the pore axis.
 N_SUBUNITS = 4
 

@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
         self.channel.pore_toggled.connect(self.scene.show_pore)
         self.channel.states_requested.connect(self._compare_states)
         self.channel.unitary_requested.connect(self._unitary_states)
+        self.channel.mutants_requested.connect(self._ryr_mutants)
         self.modes.compute_requested.connect(self.compute_modes)
         self.modes.animate_requested.connect(self._animate_mode)
         self.modes.stop_requested.connect(self.scene.stop_animation)
@@ -205,6 +206,7 @@ class MainWindow(QMainWindow):
             f"{st.n_atoms:,} atoms, {st.n_residues:,} residues, chains "
             f"{', '.join(st.chains)}")
         self.channel.show_summary(summary)
+        self.channel.set_paralog(summary.numbering.paralog if summary.numbering else None)
         self.morph.reset()
         self.scene.set_structure(st, summary, self._style_kwargs())
         self.transition.set_start(st.name, summary.numbering.paralog
@@ -296,8 +298,9 @@ class MainWindow(QMainWindow):
         from ..structure.states import state_panel
         loader.ALLOW_FETCH = True
         self.channel.states_btn.setEnabled(False)
-        self.statusBar().showMessage("measuring the ITPR3 state panel…")
-        run_async(state_panel, on_done=self.channel.show_states,
+        paralog = self.channel.panel_paralog
+        self.statusBar().showMessage(f"measuring the {paralog} state panel…")
+        run_async(state_panel, paralog, on_done=self.channel.show_states,
                   on_error=lambda e: (self.channel.states_btn.setEnabled(True),
                                       QMessageBox.warning(self, "States failed", e)))
 
@@ -305,12 +308,24 @@ class MainWindow(QMainWindow):
         from ..physics.unitary import unitary_panel
         loader.ALLOW_FETCH = True
         self.channel.unitary_btn.setEnabled(False)
-        self.statusBar().showMessage("solving drift-diffusion over each ITPR3 state…")
-        run_async(unitary_panel, sweep=True,
+        paralog = self.channel.panel_paralog
+        self.statusBar().showMessage(f"solving drift-diffusion over each {paralog} state…")
+        run_async(unitary_panel, paralog, sweep=True,
                   on_done=lambda rows: (self.statusBar().clearMessage(),
                                         self.channel.show_unitary(rows)),
                   on_error=lambda e: (self.channel.unitary_btn.setEnabled(True),
                                       QMessageBox.warning(self, "Conductance failed", e)))
+
+    def _ryr_mutants(self) -> None:
+        from ..physics.ryr_mutants import open_mutant_panel
+        loader.ALLOW_FETCH = True
+        self.channel.mutants_btn.setEnabled(False)
+        self.statusBar().showMessage("modelling the RyR1 charge mutants…")
+        run_async(open_mutant_panel,
+                  on_done=lambda res: (self.statusBar().clearMessage(),
+                                       self.channel.show_mutants(res)),
+                  on_error=lambda e: (self.channel.mutants_btn.setEnabled(True),
+                                      QMessageBox.warning(self, "Mutants failed", e)))
 
     def _tab_shown(self, i: int) -> None:
         w = self.tabs.widget(i)

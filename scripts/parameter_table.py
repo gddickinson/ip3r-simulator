@@ -16,6 +16,7 @@ from param_entry import entry as _p
 from parameter_table_pd import PD
 from parameter_table_perm import PERM
 from parameter_table_graft import GRAFT
+from parameter_table_ryr import RYR
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -355,3 +356,4 @@ P = [
 P += PD
 P += PERM
 P += GRAFT
+P += RYR

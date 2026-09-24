@@ -100,6 +100,26 @@ paired with R2471 of the next subunit) lowers it further, to 23 pS
 
 ![Unitary conductance](docs/img/gui_unitary.png)
 
+**Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
+chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
+wild type, activators only, ≤ 4 Å, best per stated state), one each closed,
+primed, open, inactivated and closed-inactivated, plus a primed deposit from
+the open state's own paper for the morph (9R8O → 9HEO). They go through the
+same measurement: every one is in P11716 numbering, the shut states gate at
+I4937, and only open 9HEO widens (5.05 Å). Its modelled K+ conductance is
+136 pS neutral and 180 pS charged, against 801 pS measured (Xu et al. 2006),
+so the continuum model is short on both receptors. RyR1 also allows a
+stronger test than one number. Five charge-neutralising mutants were
+measured, and the model makes each one on the structure
+(`python -m ip3r mutants`). It gets the direction right for all four lining
+residues and no effect for E4955Q, which does not line the pore. It misses
+the largest effect: D4899Q cuts the conductance to 0.20× but the model
+predicts 0.90×. And D4899, like ITPR3's homologous D2478, is salt-bridged,
+so cancelling ion pairs predicts no effect at all. The bridge does not
+neutralise that charge.
+
+![RyR1 charge mutants](docs/img/gui_ryr_mutants.png)
+
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
@@ -272,6 +292,9 @@ python -m ip3r --session view.json  # the GUI, reopened on a saved session
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
+python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
+python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
+python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
@@ -324,4 +347,5 @@ al. 2013 (Biophys J 105:1133); Cao et al. 2014 (PLoS Comput Biol
 Hite 2018 (NSMB 25:660); Atilgan et al. 2001 (Biophys J 80:505); Yang, Song &
 Jernigan 2009 (PNAS 106:12347); Tama & Sanejouand 2001 (Protein Eng 14:1);
 Brüschweiler 1995 (J Chem Phys 102:3396); Kabsch 1976 (Acta Cryst A32:922); Hanley &
-McNeil 1982 (Radiology 143:29). Full entries: `ip3r/resources/references.json`.
+McNeil 1982 (Radiology 143:29); Barlow & Thornton 1983 (J Mol Biol
+168:867); Xu et al. 2006 (Biophys J 90:443). Full entries: `ip3r/resources/references.json`.
