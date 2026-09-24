@@ -1293,3 +1293,73 @@ findings check uses the ANM, so no verdict moved.
 
 **Next:** unchanged. K_Mg,A from Meissner 1997, then the V-channel trigger
 from Ríos 1993.
+
+## 2026-09-24 (4) — Round 6.5: K_Mg,A from Meissner 1997
+
+**Why this item.** The user supplied the two PDFs (`pdfs/`, git-ignored),
+and this was the first of the two items waiting on them.
+
+**Source read.** Meissner, Rios, Tripathy & Pasek 1997, JBC 272:1628
+(doi:10.1074/jbc.272.3.1628, checked on Crossref). The text layer prints µ
+as "m". The units follow from "3000-fold higher" (K⁺ 42 mM against Mg²⁺'s
+13 µM).
+- Table IV (0.5 M choline-Cl), Ca²⁺/Mg²⁺: +AMP Ka 0.18 µM, na 2.0,
+  Ki 18 ± 9 µM, ni 1.2; −AMP Ka 0.39 µM, na 1.9, Ki 13 ± 4 µM, ni 1.1.
+- Na⁺: Ki 24 mM (+AMP) and 27 mM (−AMP), ni 1.7–1.8.
+- Eq. 4: K_eff^na = Ka^na (1 + ([I]/Ki)^ni). Scheme 2 puts Mg²⁺ and the
+  monovalent cations on the same activation site.
+
+**The point that was not obvious.** Meissner's constant cannot be used as
+it stands. Murayama's bell was measured in 0.17 M NaCl, and Na⁺ competes at
+the same site: N = (170/24)^1.7 ≈ 28. With two competitors,
+shift = ((1+N+M)/(1+N))^(1/na). So 1 mM Mg²⁺ moves half-activation 2.3×
+there, against 11.2× in Meissner's own medium. In this scheme's form that
+is K_Mg,A 769 µM, against 98 µM if Na⁺ is ignored.
+
+**Calibrating the transfer.** With no monovalent competitor, each Table IV
+row predicts the half-activation in Table II's 0.25 M salts:
+
+| salt | predicted Ka | Table II |
+|---|---|---|
+| NaCl | 1.44 µM | 1.30 µM |
+| KCl | 1.38 µM | 0.92 µM |
+| CsCl | 0.61 µM | 0.73 µM |
+
+All three fall within 1.6×. Without competition, NaCl would be missed 3×.
+
+**What.**
+- `physics/mg_competition.py`: `hill_ka`, `ka_shift`, `equivalent_k_mg_a`.
+- Six parameters (`ryr.meissner_*`, `ryr.murayama_sodium`) and the
+  reference `meissner1997`.
+- The build's duplicate check caught my first name, `ryr.murayama_na`.
+  That key already holds Murayama's Hill nA, so the new one is
+  `ryr.murayama_sodium`.
+- The third reading, `spark_mg.READINGS["meissner"]`.
+- CLI: `spark-mg --reading`. `--ratio` still works.
+- The Gating panel's Mg²⁺ sentence gives all three readings. The Puffs
+  reading selector picks the new one up from `READINGS`.
+- Tests: `test_mg_competition` (9).
+
+**Measured** (triggered sparks at 1 mM Mg²⁺, 20 trials each):
+- Activation site only: 435 ms under Meissner's reading (19/20 ended).
+  Across the error-bar corners it runs from 32 ms (at 345 µM) to never
+  ending (at 1,600 µM). The old readings gave 17.5 ms (54 µM) and 49.5 ms
+  (521 µM).
+- Both sites: 6.0 ms under Meissner's reading, and 4–6 ms under every
+  reading.
+
+**What it settles.** Activation-site Mg²⁺ alone cannot end a spark at the
+measured 6.3 ms under any value consistent with Meissner: the best case is
+5× too slow. The earlier 17.5 ms came from Laver's ATP value, measured with
+no Na⁺ on the site. So the question has moved to whether the voltage
+sensor lifts the inactivation-site block, which is the V-channel item.
+
+**Caveats (in SCIENCE_RYR.md).**
+- The constants come from choline-Cl, and Cl⁻ moves the Ca²⁺ affinity.
+- The same law predicts Ka 0.77 µM in Murayama's salt, while Murayama
+  measured 5.5 µM. That 7× is unexplained. The shift is independent of Ka
+  only if the 7× lies in Ca²⁺'s own affinity.
+- The Hill-form equivalent is matched at 1 mM. It is 721–1,175 µM when
+  matched at other Mg²⁺ levels.
+
+**Next:** the V-channel trigger from Ríos et al. 1993.

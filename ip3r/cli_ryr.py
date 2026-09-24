@@ -6,7 +6,7 @@
                                               # read with the puff ruler
     python -m ip3r spark-termination [--scan fit|ki|rate]  # what ends a
                                               # cleft spark
-    python -m ip3r spark-mg [--scan] [--ratio] [--spontaneous]  # Mg2+ and
+    python -m ip3r spark-mg [--scan] [--reading R] [--spontaneous]  # Mg2+ and
                                               # the triggered cleft spark
 """
 
@@ -110,12 +110,12 @@ def _spark_mg(args) -> int:
     from .physics import ryr_gating as rg
     from .physics import spark_mg as sm
     fit = rg.fit_to_bell()
-    k = sm.k_mg_a_reading(fit, "selectivity" if args.ratio else "measured")
+    reading = "selectivity" if args.ratio else args.reading
+    k = sm.k_mg_a_reading(fit, reading)
     base = rg.with_mg(fit, 0.0, k)
     print(f"fitted to Murayama 25 C (Ka {fit.k_a:.2f}, Ki {fit.k_i:.0f} µM); "
-          f"activation-site Mg2+ affinity {base.k_mg_a:.0f} µM"
-          + (" (Laver 2004's selectivity on the fitted Ka)" if args.ratio else
-             " (Laver 2004, absolute)"))
+          f"activation-site Mg2+ affinity {base.k_mg_a:.0f} µM "
+          f"({sm.READINGS[reading]})")
     if args.spontaneous:
         rows = sm.spontaneous(base, k, args.duration, args.seeds)
     elif args.scan:
@@ -172,6 +172,9 @@ def register(sub) -> None:
     p.add_argument("--ratio", action="store_true",
                    help="activation-site Mg2+ affinity from Laver 2004's "
                    "Mg2+/Ca2+ selectivity instead of their absolute value")
+    p.add_argument("--reading", choices=("measured", "selectivity", "meissner"),
+                   default="measured", help="which activation-site Mg2+ "
+                   "affinity (--ratio is --reading selectivity)")
     p.add_argument("--spontaneous", action="store_true",
                    help="untriggered runs over free Mg2+")
     p.add_argument("--duration", type=float, default=10.0)

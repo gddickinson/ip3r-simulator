@@ -303,6 +303,69 @@ cannot take Mg²⁺ at the inactivation site: with Ki = 10 µM, 1 mM Mg²⁺
 inactivates all 30 at rest.
 
 **Limits.** Mg²⁺ is assumed to bind in rapid equilibrium, and Laver 2004
-note that it may not reach equilibrium during an opening. K_Mg,A was
-measured with ATP. The trigger is a step, not a V channel that keeps
-releasing. Luminal depletion is still absent.
+note that it may not reach equilibrium during an opening. The trigger is a
+step, not a V channel that keeps releasing. Luminal depletion is still
+absent.
+
+### K_Mg,A in Murayama's condition (Meissner et al. 1997; `physics/mg_competition.py`)
+
+**Source.** Meissner, Rios, Tripathy & Pasek 1997 (JBC 272:1628, supplied
+as a PDF) used the [³H]ryanodine assay without ATP, and fitted Mg²⁺ and
+each monovalent cation as competitors at the Ca²⁺ activation site with
+their Eq. 4: K_eff^na = Ka^na (1 + ([I]/Ki)^ni). Table IV (0.5 M
+choline-Cl) gives Mg²⁺ Ki 18 ± 9 µM (ni 1.2, na 2.0, Ka 0.18 µM) with
+5 mM AMP, and 13 ± 4 µM (ni 1.1, na 1.9, Ka 0.39 µM) without. The +AMP row
+is used because Murayama's bell had 1 mM AMP. µ is printed as "m" in the
+text layer; the units follow from the text ("3000-fold higher" for K⁺'s
+42 mM).
+
+**The medium matters more than the constant.** Their Scheme 2 puts Mg²⁺
+and the monovalent cations on the same site. Murayama measured in 0.17 M
+NaCl, and by Table IV (Na⁺ Ki 24 mM, ni 1.7) Na⁺ already holds that site:
+(170/24)^1.7 ≈ 28. With both competitors,
+shift = ((1 + N + M)/(1 + N))^(1/na). So 1 mM Mg²⁺ moves half-activation
+2.3× in Murayama's medium, against 11.2× in Meissner's choline medium.
+Written in this scheme's form, Ka (1 + Mg/K_Mg,A), that is **K_Mg,A =
+769 µM** matched at 1 mM (98 µM in choline). The forms differ in shape, so
+the equivalent is 1,175 / 840 / 721 µM when matched at 10 / 63 / 250 µM.
+
+**Check (calibrating the transfer).** If the ions truly compete, Table IV's
+monovalent rows should predict Table II's half-activation in 0.25 M of each
+salt. They do: NaCl 1.44 vs 1.30 µM, KCl 1.38 vs 0.92, CsCl 0.61 vs 0.73,
+all within 1.6× (`tests/test_mg_competition.py`). Without competition, NaCl
+would be missed 3×.
+
+**Error bars.** Over Mg²⁺ Ki 9–27 µM and Na⁺ Ki 18–30 mM the equivalent
+spans 345–1,600 µM. The −AMP row gives 727. Every corner sits above
+Laver's 54 µM, and most above the 521 µM selectivity reading.
+
+**Measured** (triggered, 1 mM Mg²⁺, `spark-mg --reading meissner`):
+
+| Mg²⁺ acts at | K_Mg,A | ended | median |
+|---|---|---|---|
+| activation site only | 769 µM | 19/20 | 435 ms |
+| activation site only | 345 µM (best corner) | 20/20 | 32 ms |
+| activation site only | 1,600 µM (worst corner) | 0/20 | — |
+| both sites | 769 µM | 20/20 | 6.0 ms |
+
+Scan (769 µM, both sites): no triggered spark ends up to 158 µM. From
+398 µM all end (39 ms), and at 1,000 µM they end in 6.0 ms.
+
+**What it settles.** The 17.5–49.5 ms bracket came mostly from the 54 µM
+reading, which was measured with ATP and without Na⁺ on the site. In the
+assay that produced the fitted bell, Mg²⁺ at the activation site alone ends
+a triggered spark in at best 32 ms (5× the 6.3 ms measured), and at the
+central values in 435 ms. So if the voltage sensor lifts the
+inactivation-site block, activation-site Mg²⁺ cannot be what ends the spark
+at the measured rate. With both sites the result is 6.0 ms at every
+reading (4–6 ms), and it hardly depends on K_Mg,A. That row, or a
+terminator not yet modelled (luminal depletion, the V channels closing), is
+what the next rounds must decide between.
+
+**Caveats.** Meissner's constants come from 0.5 M choline-Cl, not 0.17 M
+NaCl, and Cl⁻ itself moves the site's Ca²⁺ affinity (their Table II). The
+same law predicts Ka 0.77 µM in Murayama's salt, while Murayama measured
+5.5 µM on recombinant RyR1: a 7× difference that the competition does not
+explain. The shift used here depends only on the ratios Mg/Ki and Na/Ki,
+not on Ka, so it holds if that 7× lies in Ca²⁺'s own affinity. It does not
+hold if the difference lies in the competitors' affinities.

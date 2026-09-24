@@ -45,6 +45,10 @@ _MUR = ("Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 25 C "
         "([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+)")
 _MUR37 = _MUR.replace("at 25 C", "at 37 C") + "; read from the S1 Table .doc"
 
+_M97 = ("Meissner, Rios, Tripathy & Pasek 1997 (JBC 272:1628), Table IV: "
+        "[3H]ryanodine binding, 0.5 M choline-Cl, fitted with their Eqs. 3-4 "
+        "(K_eff^na = Ka^na (1 + ([I]/Ki)^ni)), mean +/- S.D.")
+
 _L04 = ("Laver, O'Neill & Lamb 2004 (PMC2234024), Table I: RyR1 (rabbit) in "
         "bilayers, 2 mM ATP, luminal Ca2+ 1 mM, cytoplasmic Cs+ 250 mM")
 
@@ -212,6 +216,32 @@ RYR += [
        "ratio is the Mg2+/Ca2+ selectivity of the site.", f"{_L04}: "
        "Kapp(Ca2+)c 0.51 +/- 0.07 uM (ratio to Kapp(Mg2+) 106; DIDS 133)",
        0.01, 1e3),
+    _p("ryr.meissner_ki_mg", "Mg2+ inhibition constant (Meissner)", 18.0,
+       "uM", "empirical", "ryr", "meissner1997", "Competitive Mg2+ "
+       "constant at the Ca2+ activation site, in the assay Murayama used.",
+       f"{_M97}: Ca2+/Mg2+ with 5 mM AMP, Ki 0.018 +/- 0.009 mM (n = 4); "
+       "without AMP 0.013 +/- 0.004 mM. The +AMP row because Murayama's "
+       "bell had 1 mM AMP", 1.0, 1e4),
+    _p("ryr.meissner_ni_mg", "Mg2+ Hill coefficient (Meissner)", 1.2, "",
+       "empirical", "ryr", "meissner1997", "Hill coefficient of the Mg2+ "
+       "term in Eq. 4.", f"{_M97}: +AMP 1.2 +/- 0.3; -AMP 1.1 +/- 0.1",
+       0.1, 5.0),
+    _p("ryr.meissner_na_ca", "Ca2+ activation Hill coefficient (Meissner)",
+       2.0, "", "empirical", "ryr", "meissner1997", "The Ca2+ Hill "
+       "coefficient na of the same fit; the shift of half-activation is the "
+       "na-th root of Eq. 4's factor.", f"{_M97}: Ca2+/Mg2+ +AMP na 2.0 +/- "
+       "0.2 (Ka 0.18 uM); -AMP 1.9 +/- 0.4 (Ka 0.39 uM)", 0.1, 5.0),
+    _p("ryr.meissner_ki_na", "Na+ inhibition constant (Meissner)", 24000.0,
+       "uM", "empirical", "ryr", "meissner1997", "Competitive Na+ constant "
+       "at the same site: Murayama's NaCl occupies it too.", f"{_M97}: "
+       "Ca2+/Na+ +AMP Ki 24 +/- 6 mM (n = 3); -AMP 27 +/- 7 mM", 1.0, 1e7),
+    _p("ryr.meissner_ni_na", "Na+ Hill coefficient (Meissner)", 1.7, "",
+       "empirical", "ryr", "meissner1997", "Hill coefficient of the Na+ "
+       "term.", f"{_M97}: +AMP 1.7 +/- 0.2; -AMP 1.8 +/- 0.2", 0.1, 5.0),
+    _p("ryr.murayama_sodium", "Na+ in Murayama's assay", 170000.0, "uM",
+       "empirical", "ryr", "murayama2015", "The Na+ competing at the "
+       "activation site in the condition the fitted bell was measured in.",
+       _MUR, 0.0, 1e7),
     _p("spark.mg_scan_min", "Mg2+ scan: lowest non-zero Mg2+", 10.0, "uM",
        "method", "spark", "method_choice", "Low end of the free Mg2+ scan "
        "of cleft sparks (0 is always included).", "A fifth of the A-site "

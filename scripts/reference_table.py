@@ -175,6 +175,11 @@ REFERENCES = [
      "title": "Luminal Ca2+-regulated Mg2+ inhibition of skeletal RyRs "
               "reconstituted as isolated channels or coupled clusters",
      "journal": "J Gen Physiol 124:741-758", "doi": "10.1085/jgp.200409092"},
+    {"key": "meissner1997", "authors": "Meissner G, Rios E, Tripathy A, Pasek DA",
+     "year": 1997,
+     "title": "Regulation of skeletal muscle Ca2+ release channel (ryanodine "
+              "receptor) by Ca2+ and monovalent cations and anions",
+     "journal": "J Biol Chem 272:1628-1638", "doi": "10.1074/jbc.272.3.1628"},
     {"key": "laver1997mh", "authors": "Laver DR, Owen VJ, Junankar PR, et al.",
      "year": 1997,
      "title": "Reduced inhibitory effect of Mg2+ on ryanodine receptor-Ca2+ "

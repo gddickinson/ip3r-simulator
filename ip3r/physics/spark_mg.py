@@ -16,9 +16,11 @@ site, ``ryr.mg_i_relative``) and measures sparks two ways:
 
 :func:`dissect` separates the two Mg2+ sites at the fibre's free Mg2+, and
 :func:`mg_scan` runs from 0 to it. The activation-site affinity has two
-readings: Laver 2004's absolute 54 µM (measured with ATP), and their
-Mg2+/Ca2+ selectivity carried onto the fitted Ka (:func:`k_mg_a_by_ratio`).
-Both are reported.
+readings: Laver 2004's absolute 54 µM (measured with ATP), their
+Mg2+/Ca2+ selectivity carried onto the fitted Ka (:func:`k_mg_a_by_ratio`),
+and Meissner 1997's constant, measured in the [3H]ryanodine assay itself and
+carried into Murayama's 0.17 M NaCl with Na+ competing at the same site
+(:mod:`mg_competition`). All three are reported.
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from ..parameters import PARAMETERS as _P
+from .mg_competition import equivalent_k_mg_a
 from .ryr_gating import SternParams, fit_to_bell, with_mg
 from .spark_termination import Termination, measure
 from .sparks_cleft import CleftSparkParams, simulate_sparks_cleft
@@ -93,7 +96,8 @@ def k_mg_a_by_ratio(base: SternParams) -> float:
 #: uncertainty left: Laver's absolute value was measured with ATP, which
 #: Murayama's bell was not).
 READINGS = {"measured": "measured (Laver 2004, with ATP)",
-            "selectivity": "Laver 2004's Mg²⁺/Ca²⁺ selectivity on this Ka"}
+            "selectivity": "Laver 2004's Mg²⁺/Ca²⁺ selectivity on this Ka",
+            "meissner": "Meissner 1997 in Murayama's 0.17 M NaCl (Na⁺ competing)"}
 
 
 def k_mg_a_reading(base: SternParams, reading: str) -> float:
@@ -102,6 +106,8 @@ def k_mg_a_reading(base: SternParams, reading: str) -> float:
         return _P.value("ryr.k_mg_a")
     if reading == "selectivity":
         return k_mg_a_by_ratio(base)
+    if reading == "meissner":
+        return equivalent_k_mg_a()
     raise ValueError(f"unknown K_Mg,A reading {reading!r}; one of {list(READINGS)}")
 
 

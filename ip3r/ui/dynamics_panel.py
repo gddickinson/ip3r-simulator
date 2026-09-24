@@ -165,17 +165,20 @@ class _Gating(QWidget):
 
     @staticmethod
     def _mg_sentence(fit, mg, peak) -> str:
-        """What the fibre's Mg2+ does to the fitted bell, at both K_Mg,A
-        readings (``spark_mg.READINGS``)."""
+        """What the fibre's Mg2+ does to the fitted bell, at each K_Mg,A
+        reading (``spark_mg.READINGS``)."""
         sel = rg.with_mg(fit, k_mg_a=sm.k_mg_a_reading(fit, "selectivity"))
-        b, bs = rg.bell_at(mg), rg.bell_at(sel)
+        mei = rg.with_mg(fit, k_mg_a=sm.k_mg_a_reading(fit, "meissner"))
+        b, bs, bm = rg.bell_at(mg), rg.bell_at(sel), rg.bell_at(mei)
         return (f"Under {mg.mg:g} µM free Mg²⁺ (dash-dot, drawn relative "
                 f"to the Mg²⁺-free peak; Laver 2004's two sites) the peak falls to {100 * b.po_peak / peak:.0f} % of "
                 f"its Mg²⁺-free height and half-activation moves to "
                 f"{b.c_half_act:.0f} µM with K_Mg,A {mg.k_mg_a:.0f} µM "
                 f"(measured), or {100 * bs.po_peak / peak:.0f} % and "
                 f"{bs.c_half_act:.0f} µM with {sel.k_mg_a:.0f} µM (Laver's "
-                "selectivity on the fitted Ka). Under Mg²⁺ triggered sparks "
+                f"selectivity on the fitted Ka), or {100 * bm.po_peak / peak:.0f} % "
+                f"and {bm.c_half_act:.0f} µM with {mei.k_mg_a:.0f} µM (Meissner "
+                "1997, same assay, Na⁺ competing). Under Mg²⁺ triggered sparks "
                 "do end (Puffs: Triggered sparks vs Mg²⁺).")
 
     @staticmethod

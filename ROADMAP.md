@@ -5,15 +5,13 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Mg²⁺ ends a triggered cleft spark (Round 6.5), but under
-the physiological reading (voltage sensor lifts the inactivation-site
-block) it takes 17.5–49.5 ms, against 6.3 ms measured. The two readings
-of the activation-site affinity bracket that range. The next steps are to
-read Meissner et al. 1997 (JBC, the same [³H]ryanodine assay as Murayama,
-with Mg²⁺; now in `pdfs/meissner_1997.pdf`, and Ríos 1993 in `pdfs/rios_1993.pdf`) to pin K_Mg,A in Murayama's condition, and to simulate the V channels
-as the trigger. Other strong candidates: the A-subspace headline in the
-Transition tab (Round 2, emergent) and the continuum's conductance
-shortfall (Rounds 4 and 6.1).
+**Next:** the V-channel trigger (Round 6.5 emergent; Ríos et al. 1993 is
+in `pdfs/rios_1993.pdf`). Meissner 1997 (Round 6.5) showed that
+activation-site Mg²⁺ alone ends a triggered spark in at best 32 ms (6.3 ms
+measured), and that Mg²⁺ at both sites gives 6 ms. So whether the voltage
+sensor lifts the inactivation-site block is now the deciding question.
+Other candidates: the A-subspace headline in the Transition tab (Round 2)
+and the continuum's conductance shortfall (Rounds 4 and 6.1).
 
 ## Destination
 
@@ -411,9 +409,15 @@ Emergent (not scheduled):
   at 1 mM. Stern's published Ki (10 µM) cannot take Mg²⁺ at the I1 site:
   all 30 are inactivated at rest.
   Emergent:
-  - [ ] Pin K_Mg,A in Murayama's condition (no ATP): Meissner et al.
-    1997 JBC measured it by the same assay. The 54/521 µM bracket is
-    the largest uncertainty left.
+  - [x] K_Mg,A in Murayama's condition (`physics/mg_competition.py`):
+    Meissner 1997 Table IV, same assay, Mg²⁺ Ki 18 µM (+AMP). Na⁺ holds
+    the same site in Murayama's 0.17 M NaCl (Scheme 2, Ki 24 mM), so
+    1 mM Mg²⁺ shifts Ka 2.3×, not 11×: K_Mg,A ≈ 769 µM (345–1,600 over
+    the error bars). The transfer is checked on the paper's own Table II
+    (three salts within 1.6×). Activation site alone: triggered spark
+    435 ms (32 ms at best) vs 6.3 ms measured; both sites 6.0 ms at every
+    reading. Caveat: Murayama's Ka is 7× what the same law predicts for
+    their salt.
   - [ ] Mg²⁺ binding kinetics: rapid equilibrium is assumed; Laver 2004
     say Mg²⁺ may not re-equilibrate within an opening.
   - [ ] The V-channel trigger (Stern's own half of the couplon), with
