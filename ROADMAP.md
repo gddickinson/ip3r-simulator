@@ -53,9 +53,13 @@ Emergent (not scheduled):
 
 ## Round 3 — more of the publication, on the structure
 
-- [ ] Paper 6 module contrast (`module_contrast.tsv`): re-derive the paired
-  per-orthologue core-vs-pore identities from the deep alignments
-  (`aln_ITPR*.fasta`) and the module map; highlight both modules.
+- [x] Paper 6 module contrast, re-derived from the deep alignments with this
+  project's own column map, modules and statistics. Every published number
+  reproduces: 260/246/262 tips, core − pore −0.0239/−0.0005/−0.0199,
+  ITPR2's signed-rank p 0.134144 to all six figures. With the luminal loop
+  counted as pore, the answer reverses in all three paralogs (+0.055/+0.044/+0.056).
+  3 checks (29 total: 27 confirmed, 2 discrepancies, unchanged). Modules
+  drawn as Cα traces from "Show on structure".
 - [ ] Ligand shells: colour residues by all-atom distance to IP3 (S22's
   shells) and plot conservation against distance (the "no step at 4.5 Å"
   result).

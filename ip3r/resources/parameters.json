@@ -477,6 +477,19 @@
    "maximum": 8.0
   },
   {
+   "key": "ligand.module_min_coverage",
+   "name": "Module coverage floor",
+   "value": 0.5,
+   "unit": "",
+   "kind": "method",
+   "category": "ligand",
+   "citation": "ip3r_genes",
+   "description": "Fraction of a module's reference columns an orthologue must resolve for its identity to enter the paired core-vs-pore test.",
+   "source_note": "S22's MIN_MODULE_COVERAGE; a tip truncated at one end would otherwise enter as an extreme divergence in that module",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
    "key": "numbering.min_identity",
    "name": "Numbering-check identity",
    "value": 0.95,
@@ -512,6 +525,19 @@
    "citation": "method_choice",
    "description": "Largest difference in a radius, residual or distance that still counts as reproducing the published value.",
    "source_note": "The published values are quoted to 0.01 A; 0.05 A allows for rounding and axis-fit differences and nothing else",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
+   "key": "check.log_p_tol",
+   "name": "P-value agreement tolerance",
+   "value": 0.02,
+   "unit": "decades",
+   "kind": "method",
+   "category": "checks",
+   "citation": "method_choice",
+   "description": "Largest difference in log10 of a re-derived and a published p-value that still counts as agreement.",
+   "source_note": "Published p-values carry six significant figures, and a normal approximation written independently of scipy's agrees with it to well under 0.01 decades; 0.02 leaves room for rounding only",
    "minimum": 0.0,
    "maximum": 1.0
   },

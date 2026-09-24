@@ -69,7 +69,7 @@ inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
 IP3), and stochastic clusters in which Ca²⁺ coupling turns independent blips
 into cooperative openings.
 
-**Check the publication.** The Findings tab re-derives 26 results from the
+**Check the publication.** The Findings tab re-derives 29 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
 do not share, `rederived` from the publication's input tables with this
@@ -77,9 +77,15 @@ project's arithmetic, and `read` (the table read, the prose tested).
 
 ![The findings panel](docs/img/gui_findings.png)
 
-## The checks, as of the first run
+Residue-keyed findings can be drawn on any structure in human numbering.
+Paper 6's two modules, for example, are shown as Cα traces: the ligand core
+in green and the pore module less the luminal loop in magenta.
 
-24 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+![Paper 6's modules on 6DQN](docs/img/gui_modules.png)
+
+## The checks, as of Round 3
+
+27 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts
@@ -113,6 +119,9 @@ touches a published paper's headline:
 | `P5.vus_count` | rederived | confirmed | 1,546 |
 | `P5.omega_range` | read | confirmed | ω 0.024, 0.043, 0.042 |
 | `P6.contacts_vs_core` | rederived | confirmed | +0.069, +0.092, +0.073 |
+| `P6.module_map` | rederived | confirmed | all nine module spans identical |
+| `P6.module_contrast` | rederived | confirmed | core − pore −0.0239 / −0.0005 / −0.0199; ITPR2 p = 0.134 |
+| `P6.loop_reverses` | rederived | confirmed | loop counted as pore: +0.055 / +0.044 / +0.056 |
 | `P2.sister_pair` | rederived | confirmed | ITPR2 + ITPR3 |
 | `P2.au_test` | read | confirmed | only H3_23 retained (p_AU 0.48) |
 | `P2.teleost_itpr1` | rederived | confirmed | ≥ 2 copies: ITPR1 87 %, ITPR2 4 %, ITPR3 2 % |

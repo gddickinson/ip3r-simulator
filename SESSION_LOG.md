@@ -113,3 +113,57 @@ verdicts moved (24 confirmed, 2 discrepancies, unchanged).
 **Next:** Round 3. Two emergent items were added to ROADMAP: the source of the
 stride-3 local modes, and why the gate radius along the morph is not yet
 measurable.
+
+## 2026-09-23 — Session 3: Round 3, item 1 — Paper 6's module contrast
+
+**Sync.** Both repos were up to date and `make sync-check` was clean, so no
+verdicts moved.
+
+**Built.**
+- `core/modules.py` rebuilds the ligand core (the span of the ten contacts)
+  and the pore module (PF00520 less the luminal loop, and the whole of
+  PF00520 as the sensitivity case) from the imported sites and domain map.
+  Each module is validated against what it must and must not contain, as S22
+  does, so a wrong span raises instead of being drawn.
+- `analysis/module_contrast.py` computes per-tip identities in each module
+  from `aln_ITPR*.fasta`. The residue → column map is built by walking the
+  reference row, and is refused unless its ungapped sequence is our UniProt
+  sequence. S17's `deep_col` is not used, so the column mapping is
+  independent too.
+- `stats.sign_test` (exact, log-space) and `stats.signed_rank_test` (normal
+  approximation, tie-corrected, no continuity correction). Both are
+  calibrated: the variance was checked against a permutation null.
+- Three checks: `P6.module_map`, `P6.module_contrast` and `P6.loop_reverses`.
+  Each tests the *pattern* the prose states (which paralogs are
+  significant, and in which direction) as well as the table's numbers.
+  `loop_reverses` is calibrated with an *input* plant: every ITPR3 tip is
+  given the reference's channel domain.
+- Two new parameters: `ligand.module_min_coverage` (S22's 0.5) and
+  `check.log_p_tol` (0.02 decades).
+- GUI: "Show on structure" now works for residue-keyed checks with no
+  structure of their own (drawn on the displayed structure, in human
+  numbering only). Modules are drawn as Cα traces with per-atom highlight
+  colours. The smoke test asserts that two colours are drawn.
+  Tests: 95 → 112.
+
+**Measured.** Every field of the 6 primary and loop-included rows
+reproduces: tip counts, drop counts, means, sign counts and ties exactly,
+and p to six figures. The published result stands. Paired per orthologue,
+the pore leads in ITPR1 (223 vs 32) and ITPR3 (218 vs 42); ITPR2 is level
+(p 0.134); and all three reverse when the luminal loop counts as pore. The
+answer depends on one boundary, as the paper says.
+
+**Where I was wrong first.**
+- My first module colours (blue core, orange pore) disappeared into the
+  blue → red conservation ramp in the screenshot. They are now green and
+  magenta, outside that ramp.
+- The alignments are memoised, so without an explicit cache clear the
+  calibration test's "declared sources are complete" proof would have passed
+  on the real alignments. The test now clears the cache (`clear_caches`).
+
+**Not done.** The `ibc_literature` sensitivity definition (ITPR1 224–604,
+transferred through S17's pairwise alignment) is a literature boundary, not
+a rule, and is not rebuilt here. `P6.module_map` skips it, saying so.
+
+**Next:** Round 3, item 2 (ligand shells: conservation against all-atom
+distance to IP3).

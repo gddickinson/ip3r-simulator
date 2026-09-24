@@ -59,9 +59,22 @@ def _contacts(ax, d):
     ax.set_xticks(range(len(labels)), labels, rotation=60, fontsize=6)
 
 
+def _modules(ax, d):
+    per = d["paralogs"]
+    for i, (gene, v) in enumerate(sorted(per.items())):
+        ax.scatter(v["pore"], v["core"], s=6, alpha=0.6, color=_C[i],
+                   label=f"{gene} (mean core − pore {v['mean_difference']:+.3f})")
+    lo = min(min(min(v["core"]), min(v["pore"])) for v in per.values())
+    ax.plot([lo, 1], [lo, 1], color="#8a8f99", lw=0.8, ls=":")
+    ax.set_xlabel("pore-module identity to human (per orthologue)")
+    ax.set_ylabel("ligand-core identity to human")
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
+
+
 EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
-            "S0.ip3_contacts": _contacts}
+            "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
+            "P6.loop_reverses": _modules}
 
 
 def has_exhibit(check_id: str, outcome) -> bool:

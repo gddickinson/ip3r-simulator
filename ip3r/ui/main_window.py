@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (QDockWidget, QFileDialog, QMainWindow, QMessageBox,
                              QScrollArea, QTabWidget)
 
 from .. import __version__
-from ..config import SETTINGS, genes_results
+from ..config import DEFAULT_STRUCTURE, SETTINGS, genes_results
 from ..io import loader
 from ..io.fetch import fetch_all
 from ..io.registry import get_entry
@@ -26,6 +26,7 @@ from .findings_panel import FindingsPanel
 from .gl_widget import ViewportWidget
 from .modes_panel import ModesPanel
 from .params_dialog import ParametersDialog
+from ..core.modules import MODULES_KEY
 from .scene_controller import SceneController
 from .structure_panel import StructurePanel
 from .transition_controller import TransitionController, build_transition
@@ -38,7 +39,8 @@ __all__ = ["MainWindow"]
 #: Which measured sites a structural check highlights when shown.
 CHECK_SITES = {"S0.ip3_contacts": "ip3_contact", "S0.selectivity_filter": "filter_lining",
                "S0.gate": "gate_lining", "P6.shell_agreement": "ip3_contact",
-               "P6.contacts_heavy_atom": "ip3_contact"}
+               "P6.contacts_heavy_atom": "ip3_contact", "P6.module_map": MODULES_KEY,
+               "P6.module_contrast": MODULES_KEY, "P6.loop_reverses": MODULES_KEY}
 
 
 class MainWindow(QMainWindow):
@@ -86,6 +88,7 @@ class MainWindow(QMainWindow):
         tp.stop_requested.connect(self.morph.stop)
         tp.paint_toggled.connect(self._paint_displacement)
         self.findings.show_structure.connect(self._show_check)
+        self.findings.showable = frozenset(CHECK_SITES)
         self.variants.highlight_residue.connect(self._highlight_variant)
         self.viewport.atom_picked.connect(self._picked)
         self.viewport.scene_ready.connect(lambda _: self.scene.attach())
@@ -244,7 +247,11 @@ class MainWindow(QMainWindow):
                                       QMessageBox.warning(self, "States failed", e)))
 
     def _show_check(self, pdb_id: str, check_id: str) -> None:
-        if self.scene.structure is not None and self.scene.structure.name == pdb_id:
+        # "" = the check has no structure of its own: use the one on screen
+        # (painted only if it is in human numbering, as every site is).
+        shown = self.scene.structure.name if self.scene.structure is not None else None
+        pdb_id = pdb_id or shown or DEFAULT_STRUCTURE
+        if shown == pdb_id:
             self._apply_check(check_id)
         else:
             self._pending_check = check_id

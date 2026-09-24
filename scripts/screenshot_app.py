@@ -83,6 +83,15 @@ def main() -> int:
                     return QTimer.singleShot(1000, step)
                 win.findings.tree.setCurrentItem(win.findings._items["S0.pore_profile"])
                 win.grab().save(str(out / "gui_findings.png"))
+                win.findings.tree.setCurrentItem(win.findings._items["P6.module_contrast"])
+                if not win.findings.show_btn.isEnabled():
+                    raise RuntimeError("P6.module_contrast cannot be shown on the structure")
+                win.findings.show_btn.click()
+                view = win.scene.view
+                cols = {tuple(c) for c in view.highlight_rgb[view.highlight]}
+                if len(cols) < 2:
+                    raise RuntimeError(f"module highlight drew {len(cols)} colour(s), not 2")
+                win.grab().save(str(out / "gui_modules.png"))
                 tabs = win.transition.parentWidget().parentWidget()
                 tabs.setCurrentWidget(win.transition)
                 win.transition.preset.click()           # loads 8TKG, builds -> 8TKF

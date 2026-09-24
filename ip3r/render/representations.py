@@ -97,6 +97,7 @@ class MolecularView:
     displacement: np.ndarray | None = None    # per atom, Å; NaN = not measured
     highlight: np.ndarray | None = None       # per-atom bool, drawn as balls
     highlight_color: tuple = (1.0, 0.85, 0.2)
+    highlight_rgb: np.ndarray | None = None   # per-atom colours; overrides the above
     visible_chains: frozenset | None = None
     traces: list[ChainTrace] = field(default_factory=list)
 
@@ -243,7 +244,10 @@ class MolecularView:
             return
         st = self.structure
         mask = self.highlight & self._chain_ok() & (st.element != "H") & ~st.hetero
-        col = np.tile(np.asarray(self.highlight_color, np.float32), (int(mask.sum()), 1))
+        if self.highlight_rgb is not None:
+            col = np.asarray(self.highlight_rgb, np.float32)[mask]
+        else:
+            col = np.tile(np.asarray(self.highlight_color, np.float32), (int(mask.sum()), 1))
         self.scene.spheres(f"{self.name}:highlight").upload(
             st.xyz[mask], np.full(int(mask.sum()), 1.1, np.float32), col,
             np.ones(int(mask.sum()), np.float32))

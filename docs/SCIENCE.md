@@ -114,6 +114,26 @@ a fixed step (Shuai & Jung 2002), coupled through a mean-field cluster Ca²⁺
 factor of simultaneous openings (~1 independent; 1.43 coupled at 0.2 µM).
 DYK's resting activity is high (n∞(0.1 µM) = 0.55), so puffs are modest.
 
+## Paper 6: the module contrast
+
+The **ligand core** is the smallest span that holds all ten IP3 contacts. The
+**pore module** is PF00520 less the luminal loop. Both are rebuilt in
+`core.modules` from the imported sites and domain map, and validated against
+what they must contain. For each orthologue in S17's deep alignment, the
+identity to the human reference is computed in each module. Only columns the
+tip covers are counted, and a tip must cover at least 50 % of each module
+(`ligand.module_min_coverage`). The test is on the paired difference core −
+pore: an exact sign test, and a signed-rank test that drops zeros, corrects
+for ties and applies no continuity correction. The residue → column map comes
+from walking the alignment's reference row, and is refused unless that row's
+ungapped sequence is the UniProt sequence. S17's `deep_col` column is not
+used.
+
+What agreement establishes: from the alignments, the published spans, tip
+counts, means, sign counts and p-values follow by independent code, and the
+reversal with the loop counted in is real. It says nothing about the
+alignments themselves.
+
 ## What the findings checks establish
 
 | kind | what agreement means |

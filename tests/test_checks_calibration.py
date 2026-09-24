@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 from ip3r.analysis import checks as C
-from ip3r.analysis import checks_constraint
+from ip3r.analysis import checks_constraint, module_contrast
 from ip3r.config import GENES_DIR
 from ip3r.parameters import PARAMETERS
 from conftest import needs_genes, needs_structure
@@ -77,6 +77,30 @@ def _gate_filter_boost(d: Path):
         _edit(d / f"results/constraint/constraint_{g}_{a}.tsv",
               lambda r: r if r["element"] not in ("gate", "selectivity_filter")
               else {**r, "deep_jsd": "0.99", "deep_frac_modal": "1.0"})
+
+
+def _pore_to_reference(d: Path, gene: str) -> None:
+    """Rewrite one deep alignment so every tip matches the reference over
+    the whole channel domain (loop included)."""
+    from ip3r.core.modules import module
+    p = d / R / f"constraint/aln_{gene}.fasta"
+    recs, lab = {}, None
+    for line in p.read_text().splitlines():
+        if line.startswith(">"):
+            lab = line[1:]
+            recs[lab] = []
+        else:
+            recs[lab].append(line.strip())
+    recs = {k: "".join(v) for k, v in recs.items()}
+    ref = next(v for k, v in recs.items() if k.startswith("REF|"))
+    cols = [i for i, c in enumerate(ref) if c != "-"]
+    m = module(gene, "channel_all")
+    span = set(cols[r - 1] for r in m.residues)
+    out = []
+    for k, v in recs.items():
+        row = "".join(ref[i] if i in span else c for i, c in enumerate(v))
+        out += [f">{k}", row]
+    p.write_text("\n".join(out) + "\n")
 
 
 PLANTS = {
@@ -137,10 +161,26 @@ PLANTS = {
     "P6.shell_agreement": lambda d: _edit(
         d / R / "ligand_site/shell_agreement.tsv",
         lambda r: {**r, "n_contact_le_4.5A": "0"} if r["pdb_id"] == "8TKG" else r),
+    "P6.module_map": lambda d: _edit(d / R / "ligand_site/module_map.tsv",
+                                     _set({"paralog": "ITPR2", "definition": "channel_all"},
+                                          end=2552)),
+    # The pattern, not only a number: ITPR2 made significant in the table.
+    "P6.module_contrast": lambda d: _edit(
+        d / R / "ligand_site/module_contrast.tsv",
+        _set({"paralog": "ITPR2", "core_definition": "contact_span",
+              "pore_definition": "channel_minus_luminal"}, p_wilcoxon=0.001)),
+    # An input plant: every ITPR3 tip given the reference's pore, so the
+    # core no longer leads with the loop counted in.
+    "P6.loop_reverses": lambda d: _pore_to_reference(d, "ITPR3"),
     # The real verdict is a discrepancy; the flip is a looser cutoff that
     # takes R503 in, run with the modified registry explicitly allowed.
     "P6.contacts_heavy_atom": ("param", "ligand.contact_cutoff", 5.0),
 }
+
+
+def _clear_caches() -> None:
+    checks_constraint.per_residue.cache_clear()
+    module_contrast.clear_caches()
 
 
 def _copy_sources(check, dest: Path) -> None:
@@ -170,7 +210,7 @@ def test_check_flips_on_planted_input(check_id, tmp_path, monkeypatch):
     (tmp_path / "results").mkdir()
     _copy_sources(check, tmp_path)
     monkeypatch.setenv("IP3R_GENES_DIR", str(tmp_path))
-    checks_constraint.per_residue.cache_clear()
+    _clear_caches()
     before = C.run_check(check).status
     assert before in ("confirmed", "discrepancy"), \
         f"{check_id} did not run on its declared sources: {C.run_check(check).outcome.detail}"
@@ -181,17 +221,17 @@ def test_check_flips_on_planted_input(check_id, tmp_path, monkeypatch):
             after = C.run_check(check, allow_modified=True).status
         else:
             plant(tmp_path)
-            checks_constraint.per_residue.cache_clear()
+            _clear_caches()
             after = C.run_check(check).status
     finally:
         PARAMETERS.reset()
-        checks_constraint.per_residue.cache_clear()
+        _clear_caches()
     assert after != before, f"{check_id}: planted change did not flip {before}"
 
 
 def test_missing_project_is_not_run(tmp_path, monkeypatch):
     monkeypatch.setenv("IP3R_GENES_DIR", str(tmp_path / "nowhere"))
-    checks_constraint.per_residue.cache_clear()
+    _clear_caches()
     out = C.run_check({c.id: c for c in C.all_checks()}["P5.vus_count"])
     assert out.status == "not_run"
 

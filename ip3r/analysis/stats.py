@@ -8,9 +8,12 @@ whose answer is known exactly.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
-__all__ = ["auc", "rank_average", "mean_by_group"]
+__all__ = ["auc", "rank_average", "mean_by_group", "sign_test",
+           "signed_rank_test"]
 
 
 def rank_average(values: np.ndarray) -> np.ndarray:
@@ -54,3 +57,41 @@ def mean_by_group(keys, values) -> dict:
         s, n = out.get(k, (0.0, 0))
         out[k] = (s + v, n + 1)
     return {k: (s / n, n) for k, (s, n) in out.items()}
+
+
+def sign_test(diffs) -> dict:
+    """Exact two-sided sign test; zero differences are dropped and counted."""
+    d = np.asarray(diffs, float)
+    pos, neg = int((d > 0).sum()), int((d < 0).sum())
+    n, k = pos + neg, min(pos, neg)
+    if n == 0:
+        return {"n_pos": 0, "n_neg": 0, "n_ties": int((d == 0).sum()), "p": float("nan")}
+    # log-space binomial tail, so n in the hundreds does not overflow a float
+    logs = [math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1)
+            - n * math.log(2) for i in range(k + 1)]
+    top = max(logs)
+    tail = math.exp(top) * sum(math.exp(x - top) for x in logs)
+    return {"n_pos": pos, "n_neg": neg, "n_ties": int((d == 0).sum()),
+            "p": min(1.0, 2.0 * tail)}
+
+
+def signed_rank_test(diffs) -> dict:
+    """Wilcoxon signed-rank, two-sided, zeros dropped, normal approximation
+    with the tie correction and no continuity correction.
+
+    The approximation is the large-sample form; it is used for n >= 20 only
+    (below that it returns NaN rather than a wrong p).
+    """
+    d = np.asarray(diffs, float)
+    d = d[np.isfinite(d) & (d != 0)]
+    n = len(d)
+    if n < 20:
+        return {"n": n, "w_plus": float("nan"), "z": float("nan"), "p": float("nan")}
+    ranks = rank_average(np.abs(d))
+    w_plus = float(ranks[d > 0].sum())
+    mean = n * (n + 1) / 4.0
+    _, counts = np.unique(np.abs(d), return_counts=True)
+    var = n * (n + 1) * (2 * n + 1) / 24.0 - float((counts ** 3 - counts).sum()) / 48.0
+    z = (w_plus - mean) / math.sqrt(var)
+    return {"n": n, "w_plus": w_plus, "z": z,
+            "p": math.erfc(abs(z) / math.sqrt(2.0))}

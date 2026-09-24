@@ -11,6 +11,7 @@ from __future__ import annotations
 import numpy as np
 
 from ..core.annotations import constraint_at, element_of, functional_sites
+from ..core.modules import MODULE_COLORS, MODULES_KEY, modules
 from ..physics.anm import ANM, atom_displacements, tetramer_sites
 from ..render import colormaps
 from ..render.representations import MolecularView, Style
@@ -116,12 +117,23 @@ class SceneController:
         self._sites = classes
         if self.view is None:
             return
-        mask = np.zeros(self.structure.n_atoms, bool)
+        st = self.structure
+        mask = np.zeros(st.n_atoms, bool)
+        rgb = np.tile(np.asarray(self.view.highlight_color, np.float32), (st.n_atoms, 1))
         if self.view.paralog:
             fs = functional_sites(self.view.paralog)
             for k in classes:
-                mask |= np.isin(self.structure.res_seq, fs.get(k, ()))
+                mask |= np.isin(st.res_seq, fs.get(k, ()))
+            if MODULES_KEY in classes:
+                # Paper 6's two modules as a Cα trace, each in its own colour;
+                # drawn under the site balls, which keep the default colour.
+                ca = (st.atom_name == "CA") & ~st.hetero
+                for m in modules(self.view.paralog):
+                    sel = ca & np.isin(st.res_seq, m.residues) & ~mask
+                    rgb[sel] = MODULE_COLORS[m.definition]
+                    mask |= sel
         self.view.highlight = mask if mask.any() else None
+        self.view.highlight_rgb = rgb
         self.view.rebuild()
         self.viewport.update()
 
@@ -136,6 +148,7 @@ class SceneController:
         if not mask.any():
             return f"{paralog} residue {resi} is not resolved in {self.structure.name}"
         self.view.highlight = mask
+        self.view.highlight_rgb = None
         self.view.highlight_color = (1.0, 0.3, 0.9)
         self.view.rebuild()
         self.viewport.update()

@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QFormLayout, QGroupBox,
                              QPushButton, QVBoxLayout, QWidget)
 
 from ..core.annotations import ELEMENT_COLORS, ELEMENT_LABELS, ELEMENT_ORDER, LAYER_LABELS
+from ..core.modules import MODULES_KEY
 from ..io.loader import is_local
 from ..parameters import PARAMETERS as _P
 from ..io.registry import load_registry
@@ -86,7 +87,9 @@ class StructurePanel(QWidget):
         self.site_boxes = {}
         for key, label in (("ip3_contact", "Ten IP3 contacts (S0)"),
                            ("filter_lining", "Filter lining (S0)"),
-                           ("gate_lining", "Gate lining (S0)")):
+                           ("gate_lining", "Gate lining (S0)"),
+                           (MODULES_KEY, "Paper 6 modules: ligand core (green) "
+                                         "and pore less the loop (magenta), Cα")):
             cb = QCheckBox(label)
             cb.toggled.connect(lambda on, k=key: self.sites_toggled.emit(k, on))
             sl.addWidget(cb)

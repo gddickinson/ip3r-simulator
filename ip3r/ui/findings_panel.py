@@ -31,7 +31,10 @@ _KIND_TEXT = {"recomputed": "recomputed from primary data (structures)",
 
 
 class FindingsPanel(QWidget):
-    show_structure = pyqtSignal(str, str)           # pdb id, check id
+    show_structure = pyqtSignal(str, str)           # pdb id ("" = as shown), check id
+    #: Checks with no structure of their own that can still be drawn on the
+    #: displayed one (residue-keyed); set by the main window.
+    showable: frozenset = frozenset()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -136,7 +139,7 @@ class FindingsPanel(QWidget):
         else:
             html.append("<p><i>Not run yet.</i></p>")
         self.detail.setHtml("".join(html))
-        self.show_btn.setEnabled(bool(c.structures))
+        self.show_btn.setEnabled(bool(c.structures) or cid in self.showable)
         ax = self.canvas.reset()
         if r is None or not exhibits.draw(ax, cid, r.outcome):
             ax.set_axis_off()
@@ -147,3 +150,5 @@ class FindingsPanel(QWidget):
         c = next((x for x in all_checks() if x.id == cid), None)
         if c and c.structures:
             self.show_structure.emit(c.structures[0], cid)
+        elif c and cid in self.showable:
+            self.show_structure.emit("", cid)

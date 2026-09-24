@@ -198,6 +198,12 @@ P = [
        "residue counts as an IP3 contact.",
        "The cutoff ip3r_genes S0 and S22 used for the ten measured contacts",
        2.5, 8.0),
+    _p("ligand.module_min_coverage", "Module coverage floor", 0.5, "",
+       "method", "ligand", "ip3r_genes", "Fraction of a module's reference "
+       "columns an orthologue must resolve for its identity to enter the "
+       "paired core-vs-pore test.", "S22's MIN_MODULE_COVERAGE; a tip "
+       "truncated at one end would otherwise enter as an extreme divergence "
+       "in that module", 0.0, 1.0),
     _p("numbering.min_identity", "Numbering-check identity", 0.95, "",
        "method", "structure", "ip3r_genes", "Fraction of residues a "
        "structure must share, by number, with a reference sequence to be "
@@ -219,6 +225,13 @@ P = [
        "published value.", "The published values are quoted to 0.01 A; "
        "0.05 A allows for rounding and axis-fit differences and nothing "
        "else", 0.0, 1.0),
+    _p("check.log_p_tol", "P-value agreement tolerance", 0.02, "decades",
+       "method", "checks", "method_choice", "Largest difference in log10 "
+       "of a re-derived and a published p-value that still counts as "
+       "agreement.", "Published p-values carry six significant figures, "
+       "and a normal approximation written independently of scipy's agrees "
+       "with it to well under 0.01 decades; 0.02 leaves room for rounding "
+       "only", 0.0, 1.0),
     _p("check.stat_tol", "Statistic agreement tolerance", 0.002, "",
        "method", "checks", "method_choice", "Largest difference in a "
        "re-derived AUC, mean or fraction that still counts as agreement.",
