@@ -88,6 +88,16 @@ between (`python -m ip3r puffs --scan`).
 
 ![Park/drive puffs](docs/img/gui_puffs_pd.png)
 
+The Channel tab turns each ITPR3 deposit's pore into a K+ conductance by
+drift-diffusion (ported from PIEZO1), with and without the charges of the
+side chains that line it. Only activated 8TKF conducts. It gives 65 pS
+uncharged (25–150 pS over the unmeasured diffusivity and ion radius)
+against 358–545 pS measured, so the continuum model falls 2.4× short even
+at its most generous. Its own lining charges lower the conductance rather
+than raising it (`python -m ip3r unitary`).
+
+![Unitary conductance](docs/img/gui_unitary.png)
+
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
@@ -225,6 +235,7 @@ findings checks; everything else runs without it.
 python -m ip3r                      # the GUI, from an activated environment
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
+python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap

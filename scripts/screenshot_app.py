@@ -206,6 +206,20 @@ def main() -> int:
                     raise RuntimeError(f"park/drive puffs drew {pz.result}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_puffs_pd.png"))
+                win.tabs.setCurrentWidget(win.channel)
+                win.channel.unitary_btn.click()
+            elif s == 12:
+                rows = win.channel.unitary_rows
+                if rows is None:
+                    if win.channel.unitary_btn.isEnabled():
+                        raise RuntimeError("the unitary conductance worker failed")
+                    state["step"] -= 1
+                    return QTimer.singleShot(1000, step)
+                open_ = [u.name.upper() for u in rows if u.neutral.is_conducting]
+                if open_ != ["8TKF"]:
+                    raise RuntimeError(f"conducting states drawn: {open_}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_unitary.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

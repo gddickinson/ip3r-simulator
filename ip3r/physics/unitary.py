@@ -1,0 +1,134 @@
+"""Unitary conductance of a deposit, and across the ITPR3 state panel.
+
+The pore profile a deposit measures as (:mod:`ip3r.structure.pore`) becomes a
+K+ conductance in symmetric KCl — the condition the measured values were
+recorded in — three ways:
+
+* ``series``: the closed-form resistor sum over the free radius, no solver;
+* ``neutral``: drift-diffusion with no wall charge (must equal ``series``);
+* ``charged``: drift-diffusion with the deposit's own lining charges
+  (:mod:`ip3r.physics.pore_charge`) partitioning the ions.
+
+The profile is **protein only**, not S0's HETATM-inclusive one: a bound lipid
+or detergent near the axis is a property of the preparation, not a wall an
+ion meets in a membrane. ``r_free`` (less van der Waals radii) is the radius
+an ion's centre is measured against.
+
+The answer depends on two constants nobody has measured for IP3R — the
+in-pore diffusivity and the effective ion radius — so :func:`sensitivity`
+reports the range over the registered sweep bounds, not one tuned number.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+
+from ..core.structure import Structure
+from ..io import loader
+from ..parameters import PARAMETERS as _P
+from ..structure.channel import ChannelSummary, measure_channel
+from ..structure.pore import PoreProfile, pore_profile
+from ..structure.states import state_panel
+from .permeation import (PermeationResult, potassium_species,
+                         series_conductance, solve_pnp)
+from .pore_charge import PoreCharge, pore_charge
+
+__all__ = ["Unitary", "permeation_profile", "unitary", "unitary_panel",
+           "sensitivity", "published"]
+
+
+@dataclass
+class Unitary:
+    name: str
+    state: str
+    profile: PoreProfile
+    charge: PoreCharge
+    series: dict
+    neutral: PermeationResult
+    charged: PermeationResult
+    gate_radius: float = float("nan")      # S0's r_min at the gate, A
+    sweep: dict | None = None              # sensitivity(), when asked for
+
+    @property
+    def min_free_radius(self) -> float:
+        return float(np.min(self.profile.r_free))
+
+    @property
+    def series_pS(self) -> float:
+        return self.series["conductance"] * 1e12
+
+    def row(self) -> str:
+        if not self.neutral.is_conducting:
+            return (f"{self.name:5s} {self.state:24s} r_free {self.min_free_radius:5.2f} A"
+                    f"   closed ({self.neutral.blocked_by.split(':')[0]})")
+        return (f"{self.name:5s} {self.state:24s} r_free {self.min_free_radius:5.2f} A"
+                f"   series {self.series_pS:6.1f}  neutral "
+                f"{self.neutral.conductance_pS:6.1f}  charged "
+                f"{self.charged.conductance_pS:6.1f} pS"
+                f"   (wall {self.charge.net_charge:+.0f} e)")
+
+
+def published() -> dict[str, float]:
+    """The measured ITPR3 conductances in symmetric 140 mM KCl, pS."""
+    return {"Vais 2010 (DT40)": _P.value("permeation.published_itpr3_dt40"),
+            "Mak 2000 (oocyte)": _P.value("permeation.published_itpr3_oocyte")}
+
+
+def permeation_profile(st: Structure, summary: ChannelSummary) -> PoreProfile:
+    """Protein-only profile over the same window S0's profile spans."""
+    lo, hi = summary.span
+    return pore_profile(st, summary.frame, lo - 12.0, hi + 12.0,
+                        include_hetero=False)
+
+
+def unitary(st: Structure, summary: ChannelSummary | None = None,
+            state: str = "", species=None) -> Unitary:
+    """Measure one deposit's conductance three ways."""
+    summary = summary or measure_channel(st)
+    prof = permeation_profile(st, summary)
+    radius = np.maximum(prof.r_free, 0.0)
+    species = species or potassium_species()
+    charge = pore_charge(st, summary.frame, prof)
+    gate = summary.constrictions.get("gate")
+    return Unitary(
+        name=st.name, state=state, profile=prof, charge=charge,
+        series=series_conductance(prof.z, radius, species),
+        neutral=solve_pnp(prof.z, radius, species=species),
+        charged=solve_pnp(prof.z, radius, species=species,
+                          fixed_charge=charge.density),
+        gate_radius=float("nan") if gate is None else gate.radius)
+
+
+def unitary_panel(paralog: str = "ITPR3", progress=None,
+                  sweep: bool = False) -> list[Unitary]:
+    """Every human deposit of ``paralog``, ordered by gate radius (S11's
+    panel); ``sweep`` also fills each row's :func:`sensitivity`."""
+    rows = state_panel(paralog, progress=progress)
+    out = [unitary(loader.load(r.pdb_id), r.summary, r.state) for r in rows]
+    if sweep:
+        for u in out:
+            u.sweep = sensitivity(u)
+    return out
+
+
+def sensitivity(u: Unitary) -> dict[str, tuple[float, float]]:
+    """``(min, max)`` pS over the sweep corners of diffusivity x ion radius.
+
+    The corners bound the range because conductance is monotone in both:
+    rising with diffusivity, falling with radius.
+    """
+    radius = np.maximum(u.profile.r_free, 0.0)
+    out: dict[str, list[float]] = {"neutral": [], "charged": []}
+    for scale in (_P.value("permeation.sweep_scale_low"),
+                  _P.value("permeation.sweep_scale_high")):
+        for ion in (_P.value("permeation.sweep_radius_low"),
+                    _P.value("permeation.sweep_radius_high")):
+            sp = potassium_species(diffusion_scale=scale, ion_radius=ion)
+            out["neutral"].append(solve_pnp(u.profile.z, radius,
+                                            species=sp).conductance_pS)
+            out["charged"].append(solve_pnp(
+                u.profile.z, radius, species=sp,
+                fixed_charge=u.charge.density).conductance_pS)
+    return {k: (min(v), max(v)) for k, v in out.items()}

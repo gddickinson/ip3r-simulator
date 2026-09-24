@@ -534,3 +534,68 @@ does.
 
 **Next:** Round 4, item 3 (unitary current from the pore profile).
 
+## 2026-09-24 — Session 10: Round 4, item 3 — unitary conductance
+
+**What.** Each ITPR3 deposit's pore profile now gives a K+ conductance in
+symmetric 140 mM KCl.
+- `physics/permeation.py` and `physics/_pnp_kernels.py` are PIEZO1's 1-D
+  drift-diffusion solver, ported. The kernels are unchanged; the wetting
+  gate and sodium protocol are dropped.
+- `physics/pore_charge.py` builds the wall charge from the deposit's own
+  side chains. PIEZO1's open structure had no side chains, so it placed
+  charges at the Cα. Here stubbed residues are counted as unplaced, never
+  guessed.
+- `physics/unitary.py` measures one deposit three ways (series, neutral,
+  charged) and runs the state panel with a sensitivity sweep.
+- New: the CLI `unitary`, a Channel-tab button with a bar plot against the
+  measurements (`docs/img/gui_unitary.png`, a smoke-test step), 19
+  parameters (`scripts/parameter_table_perm.py`), 3 references, and 7 tests
+  (201 → 208 passed, plus the smoke test).
+
+**Why.** The state panel said where the gate opens. This asks whether the
+opening is enough, which is a number the single-channel literature has
+measured.
+
+**The measurements, read before registering.** Vais et al. 2010
+(PMC2995152) gives 545 ± 7 pS for rat ITPR3 in DT40 nuclei (symmetric
+140 mM KCl, 0 Mg²⁺, room temperature). Vais cites Mak et al. 2000 as
+"370 ± 8 pS", but Mak 2000's own text (PMC2217211) says **358 ± 8 pS**. The
+primary value is registered. I also first gave vais2010 a wrong title from
+memory; it was corrected from Crossref before the build.
+
+**Measured.**
+- Shut (r_free below the K+ radius 1.38 Å): 8TKH 0.25, 8TLA 0.74,
+  7T3P 0.83, 6DQN 0.85, 6DQJ 0.99, 8TKG 1.03 Å.
+- 8TKF: series 64.2, neutral 65.3, charged 33.0 pS. Over diffusivity
+  0.25–1× and ion radius 1–2 Å the neutral range is 25–150 pS and the
+  charged 13–75 pS. Measured is 358/545 pS, so the model is 2.4× short at
+  best. Our PIEZO1 model was 1.5× high by the same method, so this is not
+  a systematic undercount by the method.
+- Where the resistance sits: along the ~50 Å pore, with a third at the
+  filter slice (r_free 3.08 Å).
+- Charge rings (4 copies each): E2398, K2482, D2478, D2518, D2522, K2529.
+  The same rings, plus R2524/E2532, line every state.
+- Removing one ring at a time gives: E2398 15.5, K2482 63.6, D2478 23.1,
+  D2518 29.9, D2522 30.6, K2529 48.9 pS. Acidic only: 174 pS.
+- Sensitivity of the charged value: lining margin 0/1.5/3/5/8 Å →
+  58/33/33/7/8 pS; smoothing 1.5/3/6 Å → 16/33/151 pS.
+- Voltage: 25.6 pS at −20 mV, 31.7 at +20 mV (rectifying; measured I–V is
+  linear).
+- Grid: step 1/0.5/0.25 Å → neutral 69.5/65.3/65.4, charged 35.1/33.0/31.7.
+
+**Interpretation.** A positive ring next to a negative one is a junction.
+Each carrier must cross the zone where it is the excluded co-ion, so small-
+signal conductance falls. The Donnan and junction tests show the solver
+does this correctly. Whether the protein does is another matter: D2478 is
+salt-bridged (2.5 Å) to R2471 of the neighbouring subunit, which sits
+outside the lumen and is not counted. So the charged number should not be
+quoted; the neutral bound should. The finding pinned by a test: no
+setting of the unmeasured constants brings the only open deposit to
+either measured value.
+
+**Not changed.** `make sync-check` was clean; no `ip3r_genes` table moved,
+and the 45 checks are untouched.
+
+**Next:** Round 5, item 1 (parameter editing), or the salt-bridge / RyR
+emergent items under Round 4.
+

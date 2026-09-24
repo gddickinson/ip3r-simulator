@@ -99,6 +99,7 @@ class MainWindow(QMainWindow):
         sp.sites_toggled.connect(lambda *_: self._apply_sites())
         self.channel.pore_toggled.connect(self.scene.show_pore)
         self.channel.states_requested.connect(self._compare_states)
+        self.channel.unitary_requested.connect(self._unitary_states)
         self.modes.compute_requested.connect(self.compute_modes)
         self.modes.animate_requested.connect(self._animate_mode)
         self.modes.stop_requested.connect(self.scene.stop_animation)
@@ -269,6 +270,17 @@ class MainWindow(QMainWindow):
         run_async(state_panel, on_done=self.channel.show_states,
                   on_error=lambda e: (self.channel.states_btn.setEnabled(True),
                                       QMessageBox.warning(self, "States failed", e)))
+
+    def _unitary_states(self) -> None:
+        from ..physics.unitary import unitary_panel
+        loader.ALLOW_FETCH = True
+        self.channel.unitary_btn.setEnabled(False)
+        self.statusBar().showMessage("solving drift-diffusion over each ITPR3 state…")
+        run_async(unitary_panel, sweep=True,
+                  on_done=lambda rows: (self.statusBar().clearMessage(),
+                                        self.channel.show_unitary(rows)),
+                  on_error=lambda e: (self.channel.unitary_btn.setEnabled(True),
+                                      QMessageBox.warning(self, "Conductance failed", e)))
 
     def _tab_shown(self, i: int) -> None:
         w = self.tabs.widget(i)

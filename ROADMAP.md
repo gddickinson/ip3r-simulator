@@ -5,7 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 4, item 3** (unitary current from the pore profile).
+**Next: Round 5, item 1** (parameter editing in the GUI), unless an emergent
+Round 4 item is preferred.
 
 ## Destination
 
@@ -162,8 +163,27 @@ Emergent (not scheduled):
     IPI distribution and the amplitude-vs-N saturation.
   - [ ] Above ~0.5 µM coupling, park/drive sits at a sustained 9 % open
     rather than puffing. Is that the missing store depletion, or the model?
-- [ ] Unitary current from the pore profile (1-D drift–diffusion, as PIEZO1's
-  `physics/permeation.py`), compared across the state panel.
+- [x] Unitary current from the pore profile (1-D drift–diffusion ported from
+  PIEZO1, and wall charge from each deposit's own side-chain atoms), across
+  the ITPR3 state panel. Six of seven states are sterically shut (r_free
+  ≤ 1.03 Å). Activated 8TKF gives 65 pS neutral (series check 64 pS;
+  25–150 pS over diffusivity 0.25–1× and ion radius 1–2 Å) and 33 pS
+  charged. The measured values are 358 ± 8 pS (Mak 2000; Vais 2010 cites it
+  as 370) and 545 ± 7 pS (Vais 2010), so the model is 2.4× short at best.
+  The lining rings of alternating sign act as junctions in series and
+  *lower* conductance. Acidic rings alone give 174 pS. The charged number
+  is fragile (7–151 pS over margin/smoothing; peak partition 18.6 M, above
+  the packing ceiling).
+  Emergent:
+  - [ ] Salt bridges: filter D2478 is 2.5 Å from R2471 of the next subunit,
+    and K2482 is 4.4 Å from D2400. Neutralise ion pairs, or use a pKa
+    estimate, before trusting any charged number.
+  - [ ] Why 2.4× short even uncharged? Candidates: 8TKF is not maximally
+    open (a subconductance state?), the continuum fails at 3 Å, or the
+    cytosolic exit is not where the profile window ends. Compare RyR1 open
+    deposits, whose ~750 pS a structure-based model should also meet.
+  - [ ] Ca²⁺ current under physiological ions (Vais 2010: 0.30 pA/mM
+    [Ca²⁺]_ER; P_Ca:P_K = 15). The solver takes asymmetric baths already.
 
 ## Round 5 — usability
 

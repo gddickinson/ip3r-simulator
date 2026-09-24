@@ -8,6 +8,7 @@ testable and scriptable:
     python -m ip3r info 6DQN        # measure a deposit (axis, pore, IP3 sites)
     python -m ip3r checks           # re-derive the ip3r_genes findings
     python -m ip3r states           # pore of every ITPR3 gating state
+    python -m ip3r unitary          # K+ conductance of each state
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
     python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)
@@ -144,6 +145,30 @@ def _states(args) -> int:
     return 0
 
 
+def _unitary(args) -> int:
+    from .io import loader
+    from .physics.unitary import published, unitary_panel
+    loader.ALLOW_FETCH = args.fetch
+    rows = unitary_panel(args.paralog, sweep=True)
+    print("K+ conductance in symmetric KCl (series = closed form; neutral / "
+          "charged = drift-diffusion without / with the lining side chains)")
+    for u in rows:
+        print(u.row())
+        if u.neutral.is_conducting:
+            lo, hi = u.sweep["neutral"]
+            clo, chi = u.sweep["charged"]
+            print(f"      sweep (diffusivity x ion radius): neutral {lo:.0f}-{hi:.0f}, "
+                  f"charged {clo:.0f}-{chi:.0f} pS; Debye "
+                  f"{u.charged.meta['debye_length_A']:.1f} A; in-pore peak "
+                  f"{u.charged.meta.get('peak_in_pore_M', float('nan')):.1f} M"
+                  + (" (above the packing ceiling)"
+                     if u.charged.meta.get("exceeds_packing_limit") else ""))
+            print("      lining charges: " + ", ".join(
+                f"{lab} x{n} at z {z:+.0f}" for lab, n, z in u.charge.residues()))
+    print("measured: " + "; ".join(f"{k} {v:.0f} pS" for k, v in published().items()))
+    return 0
+
+
 def _gating(args) -> int:
     from .physics import gating, gating_mak
     model = gating_mak if args.model == "mak" else gating
@@ -231,6 +256,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--paralog", default="ITPR3")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_states)
+    p = sub.add_parser("unitary", help="K+ conductance of every state from "
+                       "its pore profile")
+    p.add_argument("--paralog", default="ITPR3")
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_unitary)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

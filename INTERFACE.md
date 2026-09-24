@@ -34,7 +34,7 @@ headless (CLI, tests, notebooks).
 |---|---|
 | `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC`, `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
 | `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file). Ported from PIEZO1. |
-| `cli.py` | `python -m ip3r <fetch|info|checks|states|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
+| `cli.py` | `python -m ip3r <fetch|info|checks|states|unitary|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
 | `__main__.py` | entry point |
 
 ## `ip3r/io/`
@@ -83,6 +83,10 @@ headless (CLI, tests, notebooks).
 | `puffs.py` | stochastic DYK cluster: `simulate_cluster` → `PuffTrace` (`n_open` snapshot per `puff.record_dt` bin, `n_peak` most open within it, `peaks`), `detect_events` (on peaks), `fano`, `PuffParams` |
 | `park_drive.py` | Siekmann/Cao park/drive receptor: `ParkDriveParams` (the 41 `pd.*` constants), `ip3_functions`, `gate_inf`, `mode_rates`, `constant_generator`, `stationary` (detailed balance), `open_probability`, `park_fraction`, `drive_open_probability`, `bell_at`; `STATES`/`OPEN`/`PARK` |
 | `puffs_pd.py` | park/drive cluster: `simulate_cluster_pd` (split step: exact `expm` within modes, then mode switch; gate equilibria tabulated per number open; `clamp_ca` for the single-channel condition), `ParkDrivePuffParams` |
+| `permeation.py` | 1-D drift-diffusion (ported from PIEZO1): `IonSpecies`, `potassium_species` (symmetric KCl; sweep overrides), `solve_pnp(z, r_free, fixed_charge=)` → `PermeationResult` (ohmic closure uncharged, local electroneutrality charged; Hall access), `series_conductance` (closed-form check), `debye_length`, `blocking_mechanisms` (steric only) |
+| `_pnp_kernels.py` | the discretisation, ported unchanged: Scharfetter–Gummel `_nernst_planck`, `_ohmic_potential`, `_donnan_potential`, `_neutrality_step`, row-scaled Dirichlet solve |
+| `pore_charge.py` | wall charge from the deposit's side-chain atoms: `charged_groups` (charge centre within `pore_charge.lining_margin` of the lumen; stubbed residues → `unplaced`), `map_charge` (Gaussian, charge-conserving), `pore_charge` → `PoreCharge` |
+| `unitary.py` | `unitary(st)` → `Unitary` (series / neutral / charged), `unitary_panel(paralog, sweep=)` (the S11 state panel), `sensitivity` (diffusivity × ion-radius corners), `published` (Mak 2000, Vais 2010) |
 | `puff_compare.py` | one ruler for both clusters: `MODELS`, `MODEL_LABELS`, `params_for`, `simulate`, `event_sizes`, `recruitment` (Fano, open fraction, blips / multi / large ≥ half the cluster, rate), `coupling_effect(model=)`, `scan_couplings`, `coupling_scan` |
 
 ## `ip3r/analysis/` — the findings checks
@@ -129,7 +133,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, side/top views, mode animation |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
-| `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, ITPR3 state comparison |
+| `channel_panel.py` | `ChannelSummary` text, pore profile vs S0's, ITPR3 state comparison, `show_unitary` (conductance per state vs the measured values; `unitary_rows` for the smoke test) |
 | `modes_panel.py` | ANM table with irreps and κ, animation controls |
 | `transition_panel.py` | Transition tab: end state, fit, method, 8TKG→8TKF preset, frame slider/play, displacement colouring, element and overlap plots |
 | `transition_controller.py` | `build_transition` (worker), `TransitionController` (install, `coords_at`, `show_frame`, `play`, `reset` — path built from the displayed structure) |
@@ -153,7 +157,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 
 | File | Purpose |
 |---|---|
-| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
+| `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants; `parameter_table_perm.py`, permeation and wall charge), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
 | `sync_genes.py` | import resources from ip3r_genes; `--check` reports drift |
 | `screenshot_app.py` | scripted GUI smoke test + README screenshots |
 | `create_env.sh` | the `ip3r_sim` conda env |
@@ -161,7 +165,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 ## `tests/`
 
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
-— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster), geometry
+— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
 `test_resources`), rules (`test_sizes`), CLI, and

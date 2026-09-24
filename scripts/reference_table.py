@@ -130,4 +130,16 @@ REFERENCES = [
      "title": "Census, evolution and constraint of the IP3 receptor family "
               "(the publication project this application illustrates)",
      "journal": "github.com/gddickinson/ip3r_genes", "doi": ""},
+    {"key": "vais2010", "authors": "Vais H, Foskett JK, Mak DOD", "year": 2010,
+     "title": "Unitary Ca2+ current through recombinant type 3 InsP3 receptor "
+              "channels under physiological ionic conditions",
+     "journal": "J Gen Physiol 136:687-700", "doi": "10.1085/jgp.201010513"},
+    {"key": "mak2000", "authors": "Mak DOD, McBride S, Raghuram V, Yue Y, "
+     "Joseph SK, Foskett JK", "year": 2000,
+     "title": "Single-channel properties in endoplasmic reticulum membrane of "
+              "recombinant type 3 inositol trisphosphate receptor",
+     "journal": "J Gen Physiol 115:241-256", "doi": "10.1085/jgp.115.3.241"},
+    {"key": "hall1975", "authors": "Hall JE", "year": 1975,
+     "title": "Access resistance of a small circular pore",
+     "journal": "J Gen Physiol 66:531-532", "doi": "10.1085/jgp.66.4.531"},
 ]
