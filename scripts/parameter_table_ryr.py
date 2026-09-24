@@ -122,3 +122,34 @@ RYR += [
        "is an unbuffered upper estimate, so the scan stops at it", 0.01,
        10.0),
 ]
+
+# ------------------------------------------ the junctional cleft (spatial)
+_CLEFT = ("Stern, Pizarro & Rios 1997 (PMC2229377), Table I and Fig. 7 B "
+          "(double row, V and C channels alternating)")
+
+RYR += [
+    _p("spark.cleft_width", "Couplon width", 60.0, "nm", "empirical",
+       "spark", "stern1997", "Width of the junctional cleft: two rows of "
+       "channels, one channel spacing apart.", f"{_CLEFT}: 'Couplon width "
+       "60 nm'", 10.0, 1000.0),
+    _p("spark.cleft_height", "Junctional gap thickness", 15.0, "nm",
+       "empirical", "spark", "stern1997", "Height of the cleft; diffusion "
+       "is two-dimensional across it.", f"{_CLEFT}: 'Junctional gap "
+       "thickness 15 nm'", 1.0, 200.0),
+    _p("spark.source_diameter", "Release source diameter", 30.0, "nm",
+       "empirical", "spark", "stern1997", "Each open channel releases "
+       "uniformly over a disc of this diameter (the foot).", "Stern 1997 "
+       "Appendix: 'we treated Ca2+ release as a diffuse source spread over "
+       "a 30-nm-diameter disk representing the foot process'", 1.0, 100.0),
+    _p("spark.r_max", "Edge boundary: background distance", 1000.0, "nm",
+       "empirical", "spark", "stern1997", "Distance at which Ca2+ escaping "
+       "the cleft edge reaches background; sets the edge transfer "
+       "coefficient D_inf = 2 pi D / (h ln(R_max / h)).", "Stern 1997 "
+       "Appendix, Eq. 13: 'R max, which was taken as the length scale of "
+       "the junctional strip (1 um)'", 20.0, 1e5),
+    _p("spark.cleft_grid", "Cleft finite-volume grid spacing", 1.0, "nm",
+       "method", "spark", "method_choice", "Cell size of the steady-state "
+       "diffusion solve that gives the coupling coefficients.", "Measured "
+       "here: the coupling coefficients at 1 nm and 0.5 nm agree to < 1 %",
+       0.1, 10.0),
+]

@@ -5,11 +5,11 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 6 is complete. Candidates: a spatial Ca²⁺ field for the
-cluster (Round 6.2 emergent; it also bears on IP3R puffs), and, as before:
-Pick from the emergent items; the strongest candidates are the gate radius
-along the morph (Round 2) and the 2.4× shortfall of the uncharged pore
-against the measured conductance, starting with RyR1 open deposits (Round 4).
+**Next:** the spark duration is now 3× the measurement, and no geometric
+number closes it, so the gating scheme is the suspect: refit Stern's
+inactivation to Murayama's bell and rerun the cleft (Round 6.3 emergent).
+Other strong candidates: the gate radius along the morph (Round 2), and the
+continuum's conductance shortfall on both receptors (Rounds 4 and 6.1).
 
 ## Destination
 
@@ -312,14 +312,41 @@ Emergent (not scheduled):
   last ~120 ms against 6.3 ms measured (frog): the mean-field cluster sits
   at a self-sustaining point (~5.5 open) until it closes by chance.
   Emergent:
-  - [ ] A spatial Ca²⁺ field for the cluster (per-channel Ca²⁺ from its
-    open neighbours at their distances, with a buffer). The fixed point is
-    a mean-field artefact, and it is the obvious suspect for the spark
-    duration.
+  - [x] A spatial Ca²⁺ field for the cluster: done as Round 6.3.
   - [ ] Stern's inactivation against Murayama's bell: refit k_i (and k_i−)
-    to the measured flank, and see whether sparks still terminate.
+    to the measured flank, and see whether sparks still terminate. This is
+    now the lead suspect for the 3× spark duration (Round 6.3).
   - [ ] Murayama's S1 Table has 11 MH/CCD mutants (Amax, KA, KI at 25 and
     37 °C). A mutant bell could be drawn beside the variant spheres.
+
+- [x] 6.3 Sparks in the junctional cleft (`physics/cleft.py`,
+  `physics/sparks_cleft.py`; Puffs tab fourth receptor; `sparks --cleft`).
+  Stern 1997's own geometry (60 × 15 nm cleft, V/C chessboard, 30 nm
+  source disc, Eq. 13 leaky edges) is solved by finite volumes. The solve
+  conserves Ca²⁺ exactly and is grid-converged. Per pA it gives 171/65/56 µM
+  at the source, across the row and 30 nm along it, against ~185/75/73 read
+  from their Fig. 9, so it falls off somewhat faster. Each channel sees its
+  own Ca²⁺: 51 µM from itself and 11.4 µM from a diagonal neighbour. With
+  all the others open that is 36 µM, against 239 µM in the mean-field
+  cluster. The array is simulated exactly by Gillespie's method, with no
+  step. Sparks last a median 21 ms (IQR 17–26) against ~130 ms mean-field,
+  and they end with 16 of 30 channels inactivated (0 at the start): local
+  inactivation, as Stern described. The duration holds at 16–22 ms over
+  0.75–2× coupling and 15–45 nm source (own release 40–74 µM). At 0.5×
+  there are no sparks. It is still 3× the 6.3 ms frog release.
+  `docs/SCIENCE.md` passed 500 lines, so the RyR1 sections moved to
+  `docs/SCIENCE_RYR.md`.
+  Emergent:
+  - [ ] Draw the cleft: the field and each channel's state at a spark's
+    peak, in the Puffs tab (`cleft.field` exists).
+  - [ ] Mobile buffers (their fura-2 runs, 3 mM suppressing release) need
+    time-dependent diffusion in the cleft; the steady field cannot hold them.
+  - [ ] The solve decays faster than Fig. 9 (15 vs ~25 µM/pA at 60 nm).
+    Their edge coefficient or source may differ from the reading here; a
+    finer digitisation of Fig. 9 would say which.
+  - [ ] IP3R puffs with a spatial field: the cluster has no cleft, so the
+    field is open cytosol (point sources with buffers). The geometry of an
+    IP3R cluster would have to be sourced first.
 
 ## Deliberately not doing
 

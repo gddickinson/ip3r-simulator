@@ -92,24 +92,28 @@ def simulate_sparks(p: float = 0.0, duration: float = 5.0, seed: int = 0,
     t_out, ca_out = np.empty(n_rec), np.empty(n_rec)
     open_out = np.empty(n_rec, dtype=np.int32)
     peak_out = np.zeros(n_rec, dtype=np.int32)
+    inact_out = np.zeros(n_rec, dtype=np.int32)
     k = 0
     for step in range(steps + 1):
         n_open = int((state == OPEN).sum())
         if step % record_every == 0:
             t_out[k], open_out[k] = step * pp.dt, n_open
             ca_out[k] = pp.ca_rest + pp.ca_per_open * n_open
+            inact_out[k] = int((state >= 2).sum())
             k += 1
         peak_out[k - 1] = max(peak_out[k - 1], n_open)
         rows = cum[n_open][state]                              # (n, 4)
         state = (rows < rng.random(n)[:, None]).sum(axis=1)
         state = np.minimum(state, 3)
-    return PuffTrace(t_out[:k], open_out[:k], ca_out[:k], pp, p, peak_out[:k])
+    return PuffTrace(t_out[:k], open_out[:k], ca_out[:k], pp, p, peak_out[:k],
+                     inact_out[:k])
 
 
-def spark_couplings() -> np.ndarray:
+def spark_couplings(base: float | None = None) -> np.ndarray:
     """0, then ``puff.scan_points`` geometric steps over the band
-    ``spark.scan_low``-``spark.scan_high`` times the derived coupling."""
-    base = diffusion_coupling()
+    ``spark.scan_low``-``spark.scan_high`` times ``base`` (default: the
+    derived coupling)."""
+    base = diffusion_coupling() if base is None else base
     return np.concatenate([[0.0], base * np.geomspace(
         _P.value("spark.scan_low"), _P.value("spark.scan_high"),
         int(round(_P.value("puff.scan_points"))))])

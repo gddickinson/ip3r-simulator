@@ -23,6 +23,9 @@ comparison does not rest on either model's chosen coupling.
 read with the same ruler. It is not in ``MODELS`` (the IP3R pair the
 coupling scan compares at one IP3), because its natural coupling is ~8 µM,
 outside the IP3R scan; ``spark_scan`` sweeps a band around it instead.
+The cleft cluster (:mod:`ip3r.physics.sparks_cleft`, key ``ryr1-cleft``)
+is the same receptor with a spatial Ca2+ field; its coupling is the
+nearest-neighbour value, and ``spark_ends`` measures how each spark ends.
 """
 
 from __future__ import annotations
@@ -35,19 +38,25 @@ from ..parameters import PARAMETERS as _P
 from .puffs import PuffParams, PuffTrace, detect_events, fano, simulate_cluster
 from .puffs_pd import ParkDrivePuffParams, simulate_cluster_pd
 from .sparks import SparkParams, simulate_sparks, spark_couplings
+from .sparks_cleft import CleftSparkParams, native_coupling, simulate_sparks_cleft
 
-__all__ = ["MODELS", "ALL_MODELS", "SPARK", "MODEL_LABELS", "spark_scan", "params_for", "simulate", "event_sizes",
-           "recruitment", "coupling_effect", "scan_couplings", "coupling_scan"]
+__all__ = ["MODELS", "ALL_MODELS", "SPARK", "SPARK_CLEFT", "SPARKS", "MODEL_LABELS",
+           "spark_scan", "params_for", "simulate", "event_sizes", "recruitment",
+           "spark_ends", "coupling_effect", "scan_couplings", "coupling_scan"]
 
 MODELS = ("dyk", "park-drive")
 SPARK = "ryr1"
-ALL_MODELS = MODELS + (SPARK,)
+SPARK_CLEFT = "ryr1-cleft"
+SPARKS = (SPARK, SPARK_CLEFT)
+ALL_MODELS = MODELS + SPARKS
 MODEL_LABELS = {"dyk": "De Young–Keizer subunits",
                 "park-drive": "Park/drive (Siekmann; Cao 2013)",
-                SPARK: "RyR1 sparks (Stern 1997 scheme)"}
+                SPARK: "RyR1 sparks (Stern 1997 scheme)",
+                SPARK_CLEFT: "RyR1 sparks in the cleft (Stern 1997 geometry)"}
 _SIM = {"dyk": (simulate_cluster, PuffParams),
         "park-drive": (simulate_cluster_pd, ParkDrivePuffParams),
-        SPARK: (simulate_sparks, SparkParams)}
+        SPARK: (simulate_sparks, SparkParams),
+        SPARK_CLEFT: (simulate_sparks_cleft, CleftSparkParams)}
 
 
 def params_for(model: str, coupling: float | None = None,
@@ -89,6 +98,23 @@ def recruitment(tr: PuffTrace, large_fraction: float | None = None) -> dict:
             "large_per_s": large / duration if duration > 0 else float("nan")}
 
 
+def spark_ends(tr: PuffTrace, large_fraction: float | None = None) -> list[dict]:
+    """Every event reaching the large size: duration, peak, and how many
+    channels were inactivated (CI or I) at its first and after its last bin.
+    Needs a RyR1 trace (``n_inactivated``)."""
+    large_at = recruitment(tr, large_fraction)["large_at"]
+    step = float(tr.t[1] - tr.t[0])
+    out = []
+    for e in detect_events(tr):
+        if e["peak_open"] < large_at:
+            continue
+        a = int(round((e["start"] - tr.t[0]) / step))
+        b = min(a + int(round(e["duration"] / step)), len(tr.t) - 1)
+        out.append({**e, "inactivated_start": int(tr.n_inactivated[a]),
+                    "inactivated_end": int(tr.n_inactivated[b])})
+    return out
+
+
 def coupling_effect(p: float = 0.2, duration: float = 20.0, seed: int = 0,
                     pp=None, model: str = "dyk") -> dict:
     """Coupling on versus off, same seed and cluster, for one receptor.
@@ -121,10 +147,13 @@ def coupling_scan(p: float = 0.2, duration: float = 10.0, seed: int = 0,
                 for c in cs] for m in models}
 
 
-def spark_scan(duration: float = 10.0, seed: int = 0, couplings=None) -> list[dict]:
-    """The RyR1 cluster over :func:`sparks.spark_couplings`: one
+def spark_scan(duration: float = 10.0, seed: int = 0, couplings=None,
+               model: str = SPARK) -> list[dict]:
+    """A RyR1 cluster over the registered spark band (for the cleft, the
+    band's factors times its own nearest-neighbour coupling): one
     :func:`recruitment` row per coupling."""
-    cs = spark_couplings() if couplings is None else np.asarray(couplings, float)
+    if couplings is None:
+        couplings = spark_couplings(native_coupling() if model == SPARK_CLEFT else None)
     return [{"coupling": float(c),
-             **recruitment(simulate(SPARK, 0.0, duration, seed, params_for(SPARK, c)))}
-            for c in cs]
+             **recruitment(simulate(model, 0.0, duration, seed, params_for(model, c)))}
+            for c in np.asarray(couplings, float)]

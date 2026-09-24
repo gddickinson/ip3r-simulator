@@ -72,6 +72,7 @@ class PuffTrace:
     params: object           # the simulator's parameter set
     p: float
     n_peak: np.ndarray | None = None   # most open at once within each bin
+    n_inactivated: np.ndarray | None = None  # RyR1 only: channels in CI or I
 
     @property
     def peaks(self) -> np.ndarray:

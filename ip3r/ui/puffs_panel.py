@@ -2,7 +2,9 @@
 with and without the Ca2+ coupling that lets one opening recruit the next.
 
 Two receptors can fill the same cluster: De Young-Keizer subunits and the
-park/drive scheme (Siekmann; Cao et al. 2013). Both are read with one ruler
+park/drive scheme (Siekmann; Cao et al. 2013). RyR1 sparks come in two
+forms: one mean-field cluster Ca2+, or each channel's own Ca2+ in the
+junctional cleft. Both are read with one ruler
 (``physics.puff_compare``): traces, the Fano factor, and the event-size
 distribution, where a clean blip/puff split shows as a valley. "Scan
 coupling" runs both receptors over the registered coupling range.
@@ -37,6 +39,13 @@ _NOTE = {
             "point where 30 × P_open(cluster Ca²⁺) equals the number open) "
             "until they close by chance, so they last ~100 ms against a "
             "measured release of about 6 ms (frog).",
+    "ryr1-cleft": "The same RyR1s in Stern 1997's junctional cleft: two rows, "
+                  "C and V channels alternating, each C channel seeing its "
+                  "own Ca²⁺ (its own release about 50 µM, a diagonal "
+                  "neighbour's about 11 µM; the coupling above is the "
+                  "nearest-neighbour value). Sparks now end by local "
+                  "inactivation after about 20 ms, not ~130 ms, still about "
+                  "3× the measured release (frog).",
 }
 
 
@@ -93,7 +102,7 @@ class PuffsPanel(QWidget):
         pp = pc.params_for(self.model_key)
         self.coupling.setValue(pp.ca_per_open)
         self.n.setValue(pp.n_channels)
-        self.p.setEnabled(self.model_key != pc.SPARK)       # RyR ignores IP3
+        self.p.setEnabled(self.model_key not in pc.SPARKS)  # RyR ignores IP3
 
     def run(self):
         self.text.setText("Simulating…")

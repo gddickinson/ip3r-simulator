@@ -2165,6 +2165,71 @@
    "source_note": "The derived value is an unbuffered upper estimate, so the scan stops at it",
    "minimum": 0.01,
    "maximum": 10.0
+  },
+  {
+   "key": "spark.cleft_width",
+   "name": "Couplon width",
+   "value": 60.0,
+   "unit": "nm",
+   "kind": "empirical",
+   "category": "spark",
+   "citation": "stern1997",
+   "description": "Width of the junctional cleft: two rows of channels, one channel spacing apart.",
+   "source_note": "Stern, Pizarro & Rios 1997 (PMC2229377), Table I and Fig. 7 B (double row, V and C channels alternating): 'Couplon width 60 nm'",
+   "minimum": 10.0,
+   "maximum": 1000.0
+  },
+  {
+   "key": "spark.cleft_height",
+   "name": "Junctional gap thickness",
+   "value": 15.0,
+   "unit": "nm",
+   "kind": "empirical",
+   "category": "spark",
+   "citation": "stern1997",
+   "description": "Height of the cleft; diffusion is two-dimensional across it.",
+   "source_note": "Stern, Pizarro & Rios 1997 (PMC2229377), Table I and Fig. 7 B (double row, V and C channels alternating): 'Junctional gap thickness 15 nm'",
+   "minimum": 1.0,
+   "maximum": 200.0
+  },
+  {
+   "key": "spark.source_diameter",
+   "name": "Release source diameter",
+   "value": 30.0,
+   "unit": "nm",
+   "kind": "empirical",
+   "category": "spark",
+   "citation": "stern1997",
+   "description": "Each open channel releases uniformly over a disc of this diameter (the foot).",
+   "source_note": "Stern 1997 Appendix: 'we treated Ca2+ release as a diffuse source spread over a 30-nm-diameter disk representing the foot process'",
+   "minimum": 1.0,
+   "maximum": 100.0
+  },
+  {
+   "key": "spark.r_max",
+   "name": "Edge boundary: background distance",
+   "value": 1000.0,
+   "unit": "nm",
+   "kind": "empirical",
+   "category": "spark",
+   "citation": "stern1997",
+   "description": "Distance at which Ca2+ escaping the cleft edge reaches background; sets the edge transfer coefficient D_inf = 2 pi D / (h ln(R_max / h)).",
+   "source_note": "Stern 1997 Appendix, Eq. 13: 'R max, which was taken as the length scale of the junctional strip (1 um)'",
+   "minimum": 20.0,
+   "maximum": 100000.0
+  },
+  {
+   "key": "spark.cleft_grid",
+   "name": "Cleft finite-volume grid spacing",
+   "value": 1.0,
+   "unit": "nm",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "Cell size of the steady-state diffusion solve that gives the coupling coefficients.",
+   "source_note": "Measured here: the coupling coefficients at 1 nm and 0.5 nm agree to < 1 %",
+   "minimum": 0.1,
+   "maximum": 10.0
   }
  ]
 }

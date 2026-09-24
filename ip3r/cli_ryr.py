@@ -2,7 +2,8 @@
 
     python -m ip3r mutants [PDB]    # charge mutants: model vs Xu 2006
     python -m ip3r ryr-gating       # Stern 1997 scheme vs Murayama 2015 bell
-    python -m ip3r sparks [--scan]  # a RyR1 cluster, read with the puff ruler
+    python -m ip3r sparks [--scan] [--cleft]  # a RyR1 cluster, read with
+                                              # the puff ruler
 """
 
 from __future__ import annotations
@@ -35,30 +36,42 @@ def _ryr_gating(args) -> int:
 
 
 def _sparks(args) -> int:
+    import numpy as np
     from .parameters import PARAMETERS as _P
     from .physics import puff_compare as pc
-    from .physics.puffs import detect_events
-    from .physics.sparks import diffusion_coupling
-    print(f"derived coupling {diffusion_coupling():.2f} µM per open channel "
-          "(free diffusion at the channel spacing)")
+    model = pc.SPARK_CLEFT if args.cleft else pc.SPARK
+    if args.cleft:
+        from .physics.cleft import coupling_matrix, nearest_coupling
+        g = coupling_matrix()
+        print(f"cleft coupling (Stern 1997 geometry): own release "
+              f"{np.median(np.diag(g)):.1f} µM, nearest neighbour "
+              f"{nearest_coupling(g):.2f} µM, all others open "
+              f"{np.median(g.sum(axis=1) - np.diag(g)):.1f} µM (medians)")
+    else:
+        from .physics.sparks import diffusion_coupling
+        print(f"derived coupling {diffusion_coupling():.2f} µM per open channel "
+              "(free diffusion at the channel spacing)")
     if args.scan:
         print(f"{'µM/open':>8s} {'Fano':>5s} {'open':>6s} {'blips':>6s} "
               f"{'multi':>6s} {'large':>6s} {'/s':>5s}")
-        for r in pc.spark_scan(args.duration, args.seed):
+        for r in pc.spark_scan(args.duration, args.seed, model=model):
             print(f"{r['coupling']:8.3f} {r['fano']:5.2f} {r['open_fraction']:6.3f} "
                   f"{r['blips']:6d} {r['multi']:6d} {r['large']:6d} "
                   f"{r['large_per_s']:5.2f}")
         return 0
-    pp = pc.params_for(pc.SPARK, args.coupling)
-    tr = pc.simulate(pc.SPARK, 0.0, args.duration, args.seed, pp)
-    r = pc.recruitment(tr)
-    durs = [e["duration"] for e in detect_events(tr) if e["peak_open"] >= r["large_at"]]
-    print(json.dumps(r, indent=1))
-    if durs:
-        import numpy as np
-        print(f"spark duration median {1e3 * np.median(durs):.0f} ms over "
-              f"{len(durs)} sparks; measured release (frog) "
+    tr = pc.simulate(model, 0.0, args.duration, args.seed,
+                     pc.params_for(model, args.coupling))
+    print(json.dumps(pc.recruitment(tr), indent=1))
+    ends = pc.spark_ends(tr)
+    if ends:
+        med = {k: np.median([e[k] for e in ends])
+               for k in ("duration", "inactivated_start", "inactivated_end")}
+        print(f"spark duration median {1e3 * med['duration']:.0f} ms over "
+              f"{len(ends)} sparks; measured release (frog) "
               f"{_P.value('spark.published_release_duration'):g} ms")
+        print(f"channels inactivated: {med['inactivated_start']:.0f} at the "
+              f"start, {med['inactivated_end']:.0f} at the end (medians of "
+              f"{int(round(tr.params.n_channels))})")
     return 0
 
 
@@ -74,9 +87,13 @@ def register(sub) -> None:
     p.set_defaults(fn=_ryr_gating)
     p = sub.add_parser("sparks", help="a stochastic RyR1 cluster (Ca2+ sparks)")
     p.add_argument("--coupling", type=float, default=None,
-                   help="µM per open channel (default: the derived coupling)")
+                   help="µM per open channel; with --cleft, between nearest "
+                   "neighbours (default: the derived coupling)")
     p.add_argument("--scan", action="store_true",
                    help="over the registered spark coupling band")
+    p.add_argument("--cleft", action="store_true",
+                   help="each channel sees its own Ca2+ in Stern's cleft "
+                   "(default: one mean-field cluster Ca2+)")
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(fn=_sparks)

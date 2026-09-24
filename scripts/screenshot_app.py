@@ -443,6 +443,19 @@ def main() -> int:
                     raise RuntimeError(f"RyR1 sparks drew {pz.result}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_sparks.png"))
+                pz.model.setCurrentIndex(pz.model.findData("ryr1-cleft"))
+                pz.result = None
+                pz.run()
+            elif s == 23:                          # the same RyR1s, in the cleft
+                pz = win.dynamics.puffs
+                if pz.result is None:
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                c, u = pz.result["coupled"], pz.result["uncoupled"]
+                if pz.result["model"] != "ryr1-cleft" or c["large"] == 0 or u["multi"]:
+                    raise RuntimeError(f"cleft sparks drew {pz.result}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_sparks_cleft.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

@@ -127,11 +127,15 @@ bell. The scheme activates where RyR1 does (3.9 vs 4.4 µM) but inactivates
 cluster with the Ca²⁺ coupling derived from one channel's current at 30 nm.
 Uncoupled it gives only blips. Coupled it gives 1.5 sparks per second that
 recruit nearly the whole cluster, read with the same ruler as IP3R puffs.
-The sparks last ~120 ms, against ~6 ms measured, because a single cluster
-Ca²⁺ has a self-sustaining point at ~5 open. That calls for a spatial Ca²⁺
-field, and it is on the roadmap.
+With a single cluster Ca²⁺ the sparks last ~120 ms, against ~6 ms
+measured. "RyR1 sparks in the cleft" puts the same channels in Stern's
+junctional cleft (two rows, 60 × 15 nm, edges leaking), where each channel
+sees its own Ca²⁺ from a steady diffusion solve. Sparks there end by local
+inactivation after ~20 ms: six times shorter, still 3× the measurement, and
+no geometric uncertainty closes the gap.
 
 ![RyR1 sparks](docs/img/gui_sparks.png)
+![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
 
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
@@ -309,6 +313,7 @@ python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
 python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
 python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
 python -m ip3r ryr-gating | sparks --scan   # RyR1 bells; sparks over the coupling band
+python -m ip3r sparks --cleft      # sparks with each channel's own Ca2+ in the cleft
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
@@ -344,7 +349,8 @@ If they differ from the current set, you are asked whether to apply them
 ## How it is built, and how it checks itself
 
 See [`INTERFACE.md`](INTERFACE.md) for the module map and
-[`docs/SCIENCE.md`](docs/SCIENCE.md) for the models. Every number a
+[`docs/SCIENCE.md`](docs/SCIENCE.md) for the models (the ryanodine
+receptor in [`docs/SCIENCE_RYR.md`](docs/SCIENCE_RYR.md)). Every number a
 calculation uses is a registered parameter with a unit, bounds and a source
 (`python -m ip3r params`); curated data imported from `ip3r_genes` records
 the SHA-256 of its source tables (`make sync-check`). Files stay under 500

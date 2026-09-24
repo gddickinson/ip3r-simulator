@@ -927,3 +927,52 @@ unchanged (44 confirmed, 2 discrepancies).
 
 **Next:** a spatial Ca²⁺ field for the clusters (it would test the IP3R
 puffs too), or the gate radius along the morph.
+
+
+## 2026-09-24 — Round 6.3: RyR1 sparks in the junctional cleft
+
+**What.** `physics/cleft.py` (Stern 1997's cleft, a steady finite-volume
+solve giving each C channel's Ca²⁺ per open C channel), and
+`physics/sparks_cleft.py` (the array simulated exactly by Gillespie's
+method). The cleft is a fourth receptor in Puffs and `sparks --cleft` in
+the CLI. `spark_ends` measures each spark's duration and how many channels
+are inactivated at its start and end; both spark simulators now record
+`n_inactivated`. There are five registered geometry parameters,
+`tests/test_cleft.py` (9 tests; 290 total) and a smoke step.
+
+**Why this geometry.** The roadmap asked for a spatial field. Rather than
+invent a cluster layout, I read Stern et al.'s Appendix and ported their
+method: Table I dimensions, the Fig. 7 B chessboard, the 30 nm diffuse
+source and their Eq. 13 edge coefficient. Eq. 13 is an image on PMC and was
+read from the GIF. Fig. 9 was digitised (the scale bar is 92 px = 500 µM)
+to give the solve something to be held to.
+
+**Decisions and why.**
+- Gillespie rather than a fixed step, because the steady field makes the
+  array a true Markov process (as Stern argued), so there is no step to
+  converge. It is also fast: 0.1 s for 20 s simulated.
+- The GUI's coupling knob scales only the off-diagonal. A channel's own
+  release belongs to the channel, so "uncoupled" still means independent
+  channels that see themselves.
+- No buffer. A steady field is unchanged by fixed fast buffers. A mobile
+  buffer needs time-dependent diffusion, which Stern also treated
+  separately, so it is recorded as emergent rather than faked with the
+  excess-buffer approximation.
+- `docs/SCIENCE.md` had reached 605 lines, so the RyR1 sections moved to
+  `docs/SCIENCE_RYR.md` to meet the 500-line rule.
+
+**Measured.** Per pA the solve gives 171/65/56/15 µM (at the source, across
+the row, 30 and 60 nm along it) against ~185/75/73/25 from Fig. 9. The
+shapes agree; this solve falls off faster. Sparks last a median 21 ms
+against ~130 ms mean-field, and they end with 16 of 30 channels
+inactivated (0 at the start). The mean-field sparks end with 27 of 30
+inactivated. The duration holds at 16–22 ms over coupling 0.75–2× and
+source diameter 15–45 nm. At 0.5× coupling there are no sparks. The result
+is still 3× the 6.3 ms frog release. A planted wrong transition table
+fails two of the new tests (checked, then restored).
+
+**Not changed.** `make sync-check` was clean, no checks were touched, and
+the verdicts are unchanged (44 confirmed, 2 discrepancies).
+
+**Next:** refit Stern's inactivation to Murayama's bell and rerun the
+cleft. The geometry cannot close the remaining 3×.
