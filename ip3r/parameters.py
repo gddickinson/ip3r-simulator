@@ -238,11 +238,16 @@ class ParameterRegistry:
                 isinstance(v, (int, float)) and not isinstance(v, bool)
                 for v in raw.values()):
             raise ValueError(f"{path}: expected a JSON object of key: number")
+        return self.replace(raw)
+
+    def replace(self, values: dict) -> list[str]:
+        """Make ``values`` the whole override set (defaults elsewhere), with
+        one notification; returns the keys that are not registered."""
         before, unknown = dict(self._overrides), []
         self._quiet = True
         try:
             self._overrides.clear()
-            unknown = self.apply(raw)
+            unknown = self.apply(values)
         finally:
             self._quiet = False
         if self._overrides != before:

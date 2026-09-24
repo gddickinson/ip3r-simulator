@@ -33,6 +33,13 @@ def main() -> int:
     from ip3r.ui.main_window import MainWindow
     from ip3r.ui.theme import apply_dark_theme
 
+    import tempfile
+
+    import numpy as np
+
+    from ip3r.render.representations import Style
+
+    tmp = tempfile.TemporaryDirectory()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     configure_surface_format(SETTINGS.render)
@@ -249,6 +256,54 @@ def main() -> int:
                 if PARAMETERS.modified or win.params_strip.isVisible():
                     raise RuntimeError("Reset all left the registry or banner modified")
                 d.close()
+            elif s == 14:                            # a view worth restoring
+                from ip3r.parameters import PARAMETERS
+                sp = win.structure_panel
+                sp.style.setCurrentIndex(sp.style.findData(Style.BACKBONE))
+                sp.site_boxes["gate_lining"].setChecked(True)
+                list(sp.chain_boxes.values())[-1].setChecked(False)
+                win.transition.slider.setValue(5)
+                cam = win.viewport.scene.camera
+                cam.orbit(0.3, 0.1)
+                cam.zoom(0.8)
+                win.tabs.setCurrentWidget(win.channel)
+                PARAMETERS.set_value("display.displacement_max", 20.0)
+                state["session"] = win.sessions.save_to(Path(tmp.name) / "s.json")
+                PARAMETERS.reset()
+                win.structure_panel.select("6DQN")      # somewhere else entirely
+            elif s == 15:
+                if win.scene.structure is None or win.scene.structure.name != "6DQN":
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                from ip3r.io.session import load_session
+                if not win.sessions.apply(load_session(Path(tmp.name) / "s.json"),
+                                          parameters="apply"):
+                    raise RuntimeError("the session was not started")
+            elif s == 16:
+                ss = win.sessions
+                if ss.pending is not None or ss._frame is not None:
+                    if win.transition.status.text().startswith("not built"):
+                        raise RuntimeError(win.transition.status.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(1000, step)
+                skip = {"saved_at", "software_version", "format_version", "notes"}
+                want = {k: v for k, v in state["session"].as_dict().items() if k not in skip}
+                got = {k: v for k, v in ss.capture().as_dict().items() if k not in skip}
+                def same(a, b):                     # camera floats to 1e-9 Å
+                    if isinstance(a, list) and a and isinstance(a[0], float):
+                        return np.allclose(a, b, rtol=0, atol=1e-9)
+                    return a == b
+                bad = [k for k in want if not same(want[k], got[k])]
+                if win.structure_panel.current_id() != want["structure"]:
+                    bad.append("deposition list selection")
+                if bad:
+                    raise RuntimeError("session not restored: " + "; ".join(
+                        f"{k} {want[k]!r} → {got[k]!r}" if k in want else k
+                        for k in bad))
+                app.processEvents()
+                win.grab().save(str(out / "gui_session.png"))
+                from ip3r.parameters import PARAMETERS
+                PARAMETERS.reset()
             else:
                 print("screenshots written to", out)
                 return app.quit()
@@ -258,7 +313,7 @@ def main() -> int:
         QTimer.singleShot(1500, step)
 
     QTimer.singleShot(800, step)
-    QTimer.singleShot(240_000, lambda: (fail("timed out"), app.quit()))
+    QTimer.singleShot(420_000, lambda: (fail("timed out"), app.quit()))
     app.exec()
     return 1 if state["errors"] else 0
 

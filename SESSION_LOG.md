@@ -634,3 +634,48 @@ detail on the tooltip.
 and no check verdict changed.
 
 **Next:** Round 5, item 2 (session save/restore).
+
+
+## 2026-09-24 — Round 5.2: session save/restore
+
+**What.** File → Save session… (`Ctrl+Shift+S`) and Open session… (`Ctrl+O`)
+write and read the view as JSON, and `python -m ip3r --session FILE` starts
+on one. The headless half is `io/session.py` (`Session`, `save_session`,
+`load_session`, `parameter_differences`), ported from PIEZO1's. The GUI half
+is `ui/session_controller.py`. The registry gained `replace` (the whole
+override set, one notification); `read_overrides` now uses it.
+21 tests (215 → 236), and three smoke-test steps.
+
+**What a session holds, and why.** It holds the view: deposit, style,
+colour, layer, subunits, sites, pore, camera (rotation, pivot, distance, pan,
+projection), tab, and the transition *spec* (end, fit, method, frame,
+paint). It holds no coordinates and no results. As in PIEZO1, a file with
+its own copy of the numbers would drift from the code. The field set is
+pinned by a test so adding one is a decision. Unlike PIEZO1, it also records
+the **parameter overrides**. Every number the view shows depends on them, so
+reopening a session under a different set would show different numbers
+under the same name. Restoring compares the two sets. If they differ, the
+user chooses to apply the session's set or keep their own, and applying
+always re-measures the deposit, even the one on screen. Nothing is applied
+silently, which is the registry's rule.
+
+**Asynchrony.** Both the load and the morph run on workers, so a restore is
+held as pending and finished from `_loaded` and `_transition_built`. A
+restore is dropped (and says so) if another deposit arrives first, so style
+and camera are never applied to the wrong structure. The atom count is
+stored, and a changed file is reported because the camera addresses
+coordinates.
+
+**Calibration.** The smoke test saves 8TKG→8TKF at frame 5 (backbone, gate
+lining, chain D hidden, orbited camera, Channel tab, one parameter edited).
+It then resets parameters, loads 6DQN, restores, and compares every field.
+It passed first time, so a planted fault (camera restore removed) was run
+and caught (rotation and distance reported). Looking at the screenshot
+found a real bug the field comparison could not see: the deposition list
+still highlighted 6DQN. The restore now loads through the list, and the
+smoke test checks the list selection.
+
+**Not changed.** `make sync-check` was clean; no `ip3r_genes` table moved,
+and no check verdict changed.
+
+**Next:** Round 5, item 3 (variants as spheres; VUS by conservation layer).

@@ -5,8 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 5, item 2** (session save/restore), unless an emergent
-Round 4 item is preferred.
+**Next: Round 5, item 3** (variants as spheres; VUS by conservation layer),
+unless an emergent Round 4 item is preferred.
 
 ## Destination
 
@@ -199,7 +199,19 @@ Emergent (not scheduled):
   - [ ] Panels that read a parameter when they are built (spin-box
     defaults) do not follow an edit. Audit them, and either re-read on
     change or document it.
-- [ ] Session save/restore (structure, style, camera).
+- [x] Session save/restore (File → Save/Open session, `Ctrl+Shift+S`/`Ctrl+O`,
+  `--session`). A session holds the view: deposit, style, colour, layer,
+  subunits, sites, pore, camera, tab, and the transition spec (end, fit,
+  method, frame). It holds no coordinates or results. It does record the
+  parameter overrides it was saved under, and restoring asks before applying
+  a different set (applying re-measures). The smoke test saves an 8TKG→8TKF
+  view at frame 5 under an edit, moves to 6DQN with defaults, and restores.
+  All 17 view fields come back, the camera to 1e-9. It fails when the camera
+  restore is removed (checked). It caught one bug on the first look: the
+  deposition list stayed on the previous deposit.
+  Emergent:
+  - [ ] Mode animation and Dynamics-panel settings (IP3, coupling, model) are
+    not in a session. Add them if a saved view turns out to need them.
 - [ ] Variants painted as spheres on all four subunits with class colours;
   ClinVar VUS stratified by conservation layer.
 - [ ] AlphaFold models for the unresolved stretches, seams shown.

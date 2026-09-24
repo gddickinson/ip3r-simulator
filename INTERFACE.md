@@ -33,7 +33,7 @@ headless (CLI, tests, notebooks).
 | File | Purpose |
 |---|---|
 | `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC`, `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
-| `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file; `subscribe` for change listeners — caches of parameter-dependent results and the GUI banner; `matches` (editor filter), `write_overrides`/`read_overrides`; `references()` for tooltips). Ported from PIEZO1. |
+| `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file; `subscribe` for change listeners — caches of parameter-dependent results and the GUI banner; `matches` (editor filter), `write_overrides`/`read_overrides`, `replace` (whole set, one notification); `references()` for tooltips). Ported from PIEZO1. |
 | `cli.py` | `python -m ip3r <fetch|info|checks|states|unitary|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
 | `__main__.py` | entry point |
 
@@ -45,6 +45,7 @@ headless (CLI, tests, notebooks).
 | `registry.py` | `StructureEntry`, `load_registry()`, `get_entry()`, `local_path()` — the 9 curated depositions from `resources/structures.json` |
 | `fetch.py` | `fetch_structure()`, `fetch_all()`, `is_valid()` — RCSB `.cif.gz` into `ref/structures`; `IP3R_STRUCTURE_MIRROR` copies from a local mirror (e.g. the ip3r_genes data root) |
 | `loader.py` | `load(pdb_id)` memoised; `ALLOW_FETCH` switch (off by default; the GUI and `--fetch` turn it on); `StructureUnavailable` |
+| `session.py` | `Session` (the view: deposit, style, colour, layer, subunits, sites, pore, camera, tab, transition spec, and the parameter overrides it was saved under — never coordinates or results), `from_dict` refuses a wrong type or newer format by name, `save_session`/`load_session`, `parameter_differences` |
 
 ## `ip3r/core/`
 
@@ -128,8 +129,8 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 
 | File | Purpose |
 |---|---|
-| `app.py` | `main()` — surface format, theme, window, initial load |
-| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer, `CHECK_RANGE` to the Range tab |
+| `app.py` | `main()` — surface format, theme, window, initial load (or `--session FILE`) |
+| `main_window.py` | layout and wiring; menus (File: open/save session); loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer, `CHECK_RANGE` to the Range tab |
 | `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, side/top views, mode animation |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
@@ -146,6 +147,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `variants_panel.py` | S17 variants per paralog/class; highlight only in matching numbering |
 | `params_dialog.py` | `ParametersDialog`: the registry editor (filter, modified-only, edit with clamp report, reset selected/all, import/export in the `IP3R_PARAMETERS` format; `edit(key, text)` for the smoke test) |
 | `params_banner.py` | `ParametersBanner`: the amber "parameters modified" strip, driven by the registry's listeners; hosted in a full-width toolbar (`MainWindow.params_strip`) |
+| `session_controller.py` | `SessionController`: File → Save/Open session, `--session`; `capture`, `save_to`, `apply(session, parameters=)` (asks when the saved parameter set differs; applying re-measures), finished from `loaded` and `transition_built` because both the load and the morph run on workers; a restore is dropped if another deposit arrives first |
 | `plot_canvas.py`, `workers.py`, `theme.py` | helpers |
 
 ## `ip3r/resources/` (committed)
@@ -161,7 +163,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 |---|---|
 | `parameter_table.py` (+ `parameter_table_pd.py`, the park/drive constants; `parameter_table_perm.py`, permeation and wall charge), `param_entry.py` (the shared entry constructor), `reference_table.py`, `build_parameters.py` | the registry and its provenance gate (duplicate reference keys fail the build) |
 | `sync_genes.py` | import resources from ip3r_genes; `--check` reports drift |
-| `screenshot_app.py` | scripted GUI smoke test + README screenshots |
+| `screenshot_app.py` | scripted GUI smoke test + README screenshots (ends by saving a session, loading elsewhere, restoring, and comparing every field) |
 | `create_env.sh` | the `ip3r_sim` conda env |
 
 ## `tests/`
@@ -170,7 +172,7 @@ Transition (`test_transition` synthetic calibrations; `test_transition_real`
 — the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters` — listeners fire once per effective change, import is replace-not-merge and refuses a bad file untouched, a memoised measurement made under an edit is dropped on reset,
-`test_resources`), rules (`test_sizes`), CLI, and
+`test_resources`), sessions (`test_session` — round trip, the field set pinned so a result cannot ride along, malformed files refused by name, `replace` semantics), rules (`test_sizes`), CLI, and
 **`test_checks_calibration.py`** — every check flipped by a planted input
 (`PLANTS`), sources proven complete, `not_run` without data, refusal under
 modified parameters.

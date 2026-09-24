@@ -233,6 +233,7 @@ findings checks; everything else runs without it.
 ```
 ./run_app.command                   # the GUI (activates ip3r_sim; double-click in Finder)
 python -m ip3r                      # the GUI, from an activated environment
+python -m ip3r --session view.json  # the GUI, reopened on a saved session
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
@@ -257,6 +258,15 @@ Nothing typed is remembered after you quit. "Export…" writes the set as
 JSON, which `IP3R_PARAMETERS=file.json python -m ip3r …` reproduces headless.
 
 ![Parameter editor](docs/img/gui_parameters.png)
+
+**Saving where you were.** File → Save session… (`Ctrl+Shift+S`) writes the
+view as JSON: the deposit, style, colouring, layer, subunits, marked sites,
+pore, camera, open tab, and any transition built (end, fit, method, frame).
+File → Open session… (`Ctrl+O`) or `--session` puts it back. A session holds
+no coordinates and no results: it is re-derived from the same inputs on
+opening. It does record the parameter overrides in force when it was saved.
+If they differ from the current set, you are asked whether to apply them
+(the deposit is then re-measured) or keep your own.
 
 ## How it is built, and how it checks itself
 

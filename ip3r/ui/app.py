@@ -16,7 +16,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--geometry", metavar="WxH")
     parser.add_argument("--no-load", action="store_true",
                         help="start without loading a structure")
+    parser.add_argument("--session", metavar="FILE",
+                        help="open a saved session (overrides --structure)")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
+    session = None
+    if args.session:
+        from ..io.session import load_session
+        try:
+            session = load_session(args.session)
+        except (OSError, ValueError) as exc:
+            parser.error(f"--session: {exc}")
 
     from PyQt6.QtCore import QTimer
     from PyQt6.QtWidgets import QApplication
@@ -34,7 +43,9 @@ def main(argv: list[str] | None = None) -> int:
         w, h = (int(v) for v in args.geometry.lower().split("x"))
         win.resize(w, h)
     win.show()
-    if not args.no_load:
+    if session is not None:
+        QTimer.singleShot(300, lambda: win.sessions.apply(session))
+    elif not args.no_load:
         pdb = (args.structure or SETTINGS.default_structure).upper()
         QTimer.singleShot(300, lambda: win.structure_panel.select(pdb))
     return app.exec()

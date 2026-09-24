@@ -32,6 +32,7 @@ from .params_dialog import ParametersDialog
 from .range_panel import RangePanel
 from ..core.modules import MODULES_KEY
 from .scene_controller import SceneController
+from .session_controller import SessionController
 from .structure_panel import StructurePanel
 from .transition_controller import TransitionController, build_transition
 from .transition_panel import TransitionPanel
@@ -84,6 +85,7 @@ class MainWindow(QMainWindow):
         self._pending_check: str | None = None
         self._pending_transition: tuple | None = None
         self.morph = TransitionController(self.scene)
+        self.sessions = SessionController(self)
 
         self.structure_panel = StructurePanel()
         self._dock("Structure", self.structure_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
@@ -148,6 +150,9 @@ class MainWindow(QMainWindow):
     def _menus(self) -> None:
         mb = self.menuBar()
         f = mb.addMenu("&File")
+        self._action(f, "Open session…", self.sessions.open, "Ctrl+O")
+        self._action(f, "Save session…", self.sessions.save, "Ctrl+Shift+S")
+        f.addSeparator()
         self._action(f, "Fetch all registry structures", self._fetch_all)
         self._action(f, "Save screenshot…", self._screenshot, "Ctrl+S")
         f.addSeparator()
@@ -212,6 +217,7 @@ class MainWindow(QMainWindow):
         if self._pending_transition and self._pending_transition[0] == st.name:
             self.build_transition(*self._pending_transition[1:])
         self._pending_transition = None
+        self.sessions.loaded(st)
 
     def _style_kwargs(self) -> dict:
         sp = self.structure_panel
@@ -264,6 +270,7 @@ class MainWindow(QMainWindow):
         self.transition.show_result(result)
         if self.transition.paint.isChecked():
             self._paint_displacement(True)
+        self.sessions.transition_built(result)
 
     def _transition_preset(self, start: str, end: str) -> None:
         tp = self.transition
