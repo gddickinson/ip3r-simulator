@@ -100,13 +100,18 @@ def _modes(args) -> int:
     loader.ALLOW_FETCH = args.fetch
     st = loader.load(args.pdb)
     fr = tetramer_frame(st)
+    from .physics.network_checks import describe_local, local_modes
     coords, res = tetramer_sites(st, fr)
     anm = ANM(coords, axis=fr.axis)
     ms = anm.label_symmetry(anm.calc_modes(args.n))
     print(f"{st.name}: {len(coords)} sites, {len(res)} per subunit")
+    kappa = ms.collectivity()
     for i in range(ms.n_modes):
         print(f"  mode {i + 1:3d}  λ = {ms.eigenvalues[i]:.4e}  {ms.symmetry[i]:5s} "
-              f"χ = {ms.character[i]:+.3f}")
+              f"χ = {ms.character[i]:+.3f}  κ {kappa[i]:.2f}")
+    local = local_modes(ms, res, tetramer_sites(st, fr, stride=1)[1])
+    for line in describe_local(local):
+        print(f"local network artefact: {line}")
     return 0
 
 
@@ -134,7 +139,22 @@ def _transition(args) -> int:
     for i in range(ov.modes.n_modes):
         print(f"  mode {i + 1:3d} {ov.modes.symmetry[i]:5s} κ {kappa[i]:.2f}  overlap {ov.overlap[i]:.3f}"
               f"  cumulative {ov.cumulative[i]:.3f}  (null {ov.null_cumulative[i]:.3f})")
+    if args.cutoff_scan:
+        _cutoff_table(tr, args)
+    if args.stride_check:
+        from .physics.network_checks import stride_agreement
+        for s, v in stride_agreement(tr, reference=args.reference, n_modes=args.n).items():
+            print(f"stride {s}: RMSIP with stride 1 over {ov.modes.n_modes} modes {v:.3f}")
     return 0
+
+
+def _cutoff_table(tr, args) -> None:
+    from .physics.network_checks import cutoff_scan
+    print("cutoff  local  lowest A  overlap  collective A  cumulative  (null)")
+    for r in cutoff_scan(tr, stride=args.stride, reference=args.reference, n_modes=args.n):
+        a = "   -" if r.lowest_a is None else f"#{r.lowest_a + 1:3d}"
+        print(f"{r.cutoff:6.1f}  {r.n_local:5d}  {a:>8s}  {r.lowest_a_overlap:7.3f}"
+              f"  {r.collective_a:12.3f}  {r.cumulative:10.3f}  ({r.null:.3f})")
 
 
 def _gate_table(st_start, st_end, tr, m) -> None:
@@ -375,6 +395,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("-n", type=int, default=None)
     p.add_argument("--gate", action="store_true",
                    help="also measure the gate on every frame (atoms interpolated)")
+    p.add_argument("--cutoff-scan", action="store_true",
+                   help="re-solve the network over the registered cutoff grid")
+    p.add_argument("--stride-check", action="store_true",
+                   help="RMSIP of strides 2-4 against stride 1 (slow: ~10 s)")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_transition)
     p = sub.add_parser("gating")

@@ -12,6 +12,7 @@ import numpy as np
 
 from ..core.annotations import constraint_at, element_of, functional_sites
 from ..core.modules import MODULE_COLORS, MODULES_KEY, ModuleRefusal, modules
+from ..physics.network_checks import describe_local, local_modes
 from ..physics.anm import ANM, atom_displacements, tetramer_sites
 from ..render import colormaps
 from ..render.representations import MolecularView, Style
@@ -241,7 +242,9 @@ class SceneController:
         anm = ANM(coords, axis=fr.axis)
         modes = anm.label_symmetry(anm.calc_modes())
         self.modes = (modes, residues)
-        return modes, f"{len(coords):,} sites ({len(residues)} per subunit)"
+        local = local_modes(modes, residues, tetramer_sites(st, fr, stride=1)[1])
+        return (modes, f"{len(coords):,} sites ({len(residues)} per subunit)",
+                {m.index: describe_local([m])[0].split(") ", 1)[1] for m in local})
 
     def animate_mode(self, index: int, amplitude: float) -> None:
         if self.modes is None or self.view is None:

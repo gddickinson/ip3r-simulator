@@ -1,6 +1,7 @@
 # ---- Downloads and derived data: regenerable ----
 ref/
 data/
+pdfs/
 # ---- Python ----
 __pycache__/
 *.py[cod]

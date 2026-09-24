@@ -47,6 +47,27 @@ Modes below `anm.min_collectivity` (0.2) are reported as artefacts and are
 never called "the lowest A mode". At stride 4 on 8TKG the naive lowest A
 mode was such a fragment, with κ 0.01 and overlap 0.008.
 
+**Where the local modes come from** (`physics/network_checks.py`,
+`local_modes`: the residue carrying most of the mode, summed over subunits,
+and any unresolved stretch between its sampled neighbours). On 8TKG at
+stride 3 all five (#11–15, B E E A B) are one piece: residue 86, the first
+after the unresolved loop 77–85, held by 5 springs where the network's
+median site has 17. Four copies of one flap give an A, a B and an E pair.
+At stride 4 the same flap takes modes 2–5; at strides 1 and 2 it keeps
+enough springs and there are no local modes. RyR1 9R8O has its own
+(residue 896, even at stride 1; residue 1988 at stride 2), so no stride
+removes them everywhere and the κ guard stays. Bridging the flap with
+sequence-neighbour springs was tried and does nothing at any strength (1,
+10, 100 × γ): the flap swings as a body rather than stretching along its
+chain. What does remove it is keeping each site's coordination (a cutoff of
+15 Å × stride^⅓), but that changes the model, not only its sampling (below).
+
+**The stride is not free.** Against the stride-1 network (the reference;
+7.8 s), the RMSIP of the first 20 modes (Amadei et al. 1999) is 0.97 at
+stride 2, 0.89 at stride 3 and 0.77 at stride 4: the flap's modes displace
+collective ones from the computed window. The first 10 modes agree to 0.99
+at strides 2–3.
+
 ## Two states: transition, morph, overlap
 
 `structure/transition.py` reduces two deposits of one paralog to a common
@@ -100,11 +121,29 @@ random direction **of the same irrep make-up**.
 
 Across strides 1–4 the lowest collective A mode overlaps at 0.39–0.49 and
 20 modes at 0.61–0.67. At stride 5 the network falls apart (0.03, at the
-null). The 8TKG network therefore points towards activation, and one A mode
-carries two-thirds of what 20 modes capture. From the other end the picture
-is not symmetric: the lowest A mode of 8TKF points back only weakly (0.17).
-Other pairs overlap less: 6DQJ → 8TKF reaches 0.32 over 20 modes, and
-8TKH → 8TKF 0.16.
+null). The 8TKG network therefore points towards activation. From the other
+end the picture is not symmetric: the lowest A mode of 8TKF points back only
+weakly (0.17). Other pairs overlap less: 6DQJ → 8TKF reaches 0.32 over 20
+modes, and 8TKH → 8TKF 0.16.
+
+**The single mode is a cutoff choice; the A subspace is the result**
+(`network_checks.cutoff_scan`, `transition --cutoff-scan`, measured
+2026-09-24). With no sampling artefact at all (stride 1), the lowest A
+mode's overlap falls steadily as the cutoff rises, while the three lowest A
+modes (#5, 9, 10) together hold:
+
+| cutoff (Å) | 12 | 13.5 | 15 | 16.5 | 18 | 21.6 |
+|---|---|---|---|---|---|---|
+| lowest A mode | 0.48 | 0.45 | 0.43 | 0.38 | 0.33 | 0.24 |
+| A modes in the first 10, together | 0.51 | 0.66 | 0.67 | 0.67 | 0.67 | 0.68 |
+
+A longer cutoff redistributes the move among near-degenerate A modes. The
+earlier sentence here, "one A mode carries two-thirds of what 20 modes
+capture", held only at 15 Å. At stride 3 the scan is noisier (collective A
+together 0.59–0.67 over 13.5–21 Å) because the flap comes and goes, and at
+12 Å the network falls apart (every mode local). RyR1 9R8O → 9HEO is
+different: its lowest A mode overlaps only 0.12, and that is flat in the
+cutoff (0.120–0.127 at stride 1).
 
 ## Unresolved stretches, filled from AlphaFold
 

@@ -40,6 +40,7 @@ import numpy as np
 from ..parameters import PARAMETERS as _P
 from ..structure.transition import Transition
 from .anm import ANM, ModeSet, apply_generator
+from .network_checks import describe_local, local_modes
 
 __all__ = ["TransitionOverlap", "transition_overlap", "remove_rigid_body",
            "irrep_fractions", "null_cumulative"]
@@ -131,10 +132,16 @@ class TransitionOverlap:
         ]
         if a is not None:
             lines.append(f"lowest collective A mode #{a + 1}: overlap {self.overlap[a]:.3f}")
-        local = np.flatnonzero(~self.modes.is_collective())
-        if len(local):
+        local = local_modes(self.modes, self.residues, tr.residues)
+        if local:
             lines.append("local network artefacts (collectivity below threshold): "
-                         + ", ".join(f"#{i + 1}" for i in local))
+                         + "; ".join(describe_local(local)))
+        coll_a = self.modes.is_collective() & (self.modes.symmetry == "A")
+        if coll_a.any():
+            lines.append(f"collective A modes together ({int(coll_a.sum())}): overlap "
+                         f"{np.sqrt(np.sum(self.overlap[coll_a] ** 2)):.3f}; "
+                         "the split among them moves with the cutoff, the total "
+                         "far less (network_checks.cutoff_scan)")
         lines.append(f"cumulative overlap of {k} modes {self.cumulative[-1]:.3f} "
                      f"(random direction of the same symmetry: "
                      f"{self.null_cumulative[-1]:.3f})")
@@ -143,13 +150,15 @@ class TransitionOverlap:
 
 def transition_overlap(tr: Transition, reference: str = "start",
                        stride: int | None = None,
-                       n_modes: int | None = None) -> TransitionOverlap:
+                       n_modes: int | None = None,
+                       cutoff: float | None = None) -> TransitionOverlap:
     """Overlap of the ANM of one endpoint with the observed displacement.
 
     ``reference="start"`` solves the network of the start state and scores
     start -> end; ``"end"`` solves the end state and scores end -> start.
     The ANM sites are the transition's own basis (strided), so the modes and
-    the displacement are indexed identically by construction.
+    the displacement are indexed identically by construction. ``cutoff``
+    overrides ``anm.cutoff`` (for the sensitivity scan).
     """
     if reference not in ("start", "end"):
         raise ValueError("reference is 'start' or 'end'")
@@ -163,7 +172,8 @@ def transition_overlap(tr: Transition, reference: str = "start",
     internal = remove_rigid_body(disp, x0)
     rigid = 1.0 - float(np.sum(internal ** 2) / np.sum(disp ** 2))
 
-    anm = ANM(x0, n_subunits=n, axis=tr.frame.axis)
+    anm = ANM(x0, n_subunits=n, axis=tr.frame.axis,
+              cutoff=_P.value("anm.cutoff") if cutoff is None else float(cutoff))
     modes = anm.label_symmetry(anm.calc_modes(n_modes))
     ov = modes.overlap(internal)
     fractions = irrep_fractions(internal, tr.frame.axis, n)

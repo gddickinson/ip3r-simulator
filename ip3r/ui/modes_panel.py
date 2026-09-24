@@ -74,17 +74,22 @@ class ModesPanel(QWidget):
         row.addWidget(self.stop)
         lay.addLayout(row)
         self.modes = None
+        self.local = {}
 
     def set_busy(self, text: str) -> None:
         self.status.setText(text)
         self.compute.setEnabled(False)
 
-    def show_modes(self, modes, meta: str) -> None:
+    def show_modes(self, modes, meta: str, local: dict | None = None) -> None:
+        """``local`` maps a local mode's index to where it sits ("on residue 86, ...")."""
         self.modes = modes
+        self.local = local or {}
         self.compute.setEnabled(True)
         a = modes.first("A")
+        where = sorted(set(self.local.values()))
         self.status.setText(meta + (f"; lowest collective A mode is #{a + 1}"
-                                    if a is not None else ""))
+                                    if a is not None else "")
+                            + (f"; local artefacts {'; '.join(where)}" if where else ""))
         kappa = modes.collectivity()
         self.table.setRowCount(modes.n_modes)
         for i in range(modes.n_modes):
@@ -104,7 +109,8 @@ class ModesPanel(QWidget):
         i = rows[0].row()
         local = "" if self.modes.is_collective()[i] else (
             " Collectivity κ is below threshold: a weakly attached fragment "
-            "of the network, not a collective motion.")
+            f"of the network ({self.local.get(i, 'unlocated')}), not a collective "
+            "motion.")
         self.explain.setText(f"Mode {i + 1}: {IRREP_TEXT.get(self.modes.symmetry[i], '')}."
                              + local)
         self.animate_requested.emit(i, float(self.amp.value()))

@@ -152,8 +152,11 @@ P = [
     _p("anm.stride", "C-alpha stride", 3.0, "", "method", "anm",
        "method_choice", "Keep every n-th C-alpha of each subunit.",
        "A full tetramer is ~9,000 C-alphas; a stride of 3 keeps the "
-       "shift-invert solve interactive while the low modes, which are "
-       "collective by construction, are insensitive to it", 1.0, 10.0),
+       "shift-invert solve under a second (stride 1: 7.8 s). Not free: "
+       "against stride 1 on 8TKG the RMSIP of 20 modes is 0.97 at stride 2, "
+       "0.89 at 3 and 0.77 at 4, because striding leaves a few pieces "
+       "(8TKG residue 86, after unresolved 77-85) hanging on too few "
+       "springs; their local modes take slots (network_checks)", 1.0, 10.0),
     _p("anm.symmetry_tolerance", "C4 character tolerance", 0.15, "",
        "method", "anm", "method_choice", "How close to an ideal character "
        "(+1, -1, 0) a mode must be to receive an irrep label.",
@@ -172,6 +175,22 @@ P = [
        "At stride 4 the 'lowest A mode' was such a fragment (kappa 0.01, "
        "overlap 0.008) while the collective one below it had 0.49", 0.0,
        1.0),
+
+    _p("anm.scan_cutoff_low", "Cutoff scan: lowest", 12.0, "A", "method",
+       "anm", "atilgan2001", "Smallest cutoff of the sensitivity scan "
+       "(network_checks.cutoff_scan).",
+       "Just below Atilgan et al. 2001's 13-15 A range; at stride 3 the "
+       "network falls apart here (every mode local), which the scan should "
+       "show rather than hide", 6.0, 30.0),
+    _p("anm.scan_cutoff_high", "Cutoff scan: highest", 21.0, "A", "method",
+       "anm", "method_choice", "Largest cutoff of the sensitivity scan.",
+       "About the constant-coordination cutoff at stride 3: neighbours grow "
+       "as rc^3/stride, so 15 A x 3^(1/3) = 21.6 A keeps stride 1's "
+       "coordination", 6.0, 40.0),
+    _p("anm.scan_cutoff_step", "Cutoff scan: step", 1.5, "A", "method",
+       "anm", "method_choice", "Spacing of the sensitivity scan's cutoffs.",
+       "Seven networks from 12 to 21 A; the lowest-A-mode overlap moves "
+       "about 0.03 per step on 8TKG", 0.1, 10.0),
 
     # ------------------------------------------------- transition and morph
     _p("transition.min_residues", "Minimum common residues", 50.0, "",

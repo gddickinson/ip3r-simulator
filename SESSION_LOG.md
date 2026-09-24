@@ -1200,3 +1200,65 @@ gate.
 
 **Next:** still the PDFs (Meissner 1997, Ríos 1993). Without them, the next
 item is Round 2's stride-3 local modes.
+
+## 2026-09-24 (2) — Round 2: where the local modes come from
+
+**Why this item.** The PDFs (Meissner et al. 1997, JBC 272:1628,
+doi:10.1074/jbc.272.3.1628; Ríos et al. 1993) have still not been supplied.
+The user asked which ones are wanted and was told. The logged fallback was
+Round 2's stride-3 local modes.
+
+**What.**
+- `physics/network_checks.py`:
+  - `local_modes` puts every low-κ mode on the sequence: the residue
+    carrying most of it (summed over subunits), and the unresolved stretch
+    between that residue's sampled neighbours. `describe_local` groups the
+    modes by residue.
+  - `cutoff_scan` re-solves the network over a registered grid
+    (`anm.scan_cutoff_low/high/step`: 12–21 Å in 1.5 Å steps).
+  - `rmsip` and `stride_agreement` score a strided network against
+    stride 1.
+- `transition_overlap(cutoff=)`. The report now names where the local
+  modes sit and gives the collective A modes together.
+- CLI: `transition --cutoff-scan --stride-check`; `modes` prints κ and
+  where the local modes sit. Modes tab: the status line and a selected
+  local mode name the residue.
+- The `anm.stride` source note claimed the low modes were "insensitive" to
+  the stride. That was measured false and has been rewritten with the RMSIP
+  values.
+- Tests: `test_network_checks` (8). A planted flap after a gap is located,
+  and the same slab without it has no local modes. The real-data tests pin
+  8TKG's five and the cutoff behaviour.
+
+**Measured.**
+- 8TKG stride 3: #11–15 (B E E A B) are all residue 86, after the
+  unresolved 77–85. Residue 86 has 5 springs, against a median of 17. At
+  stride 4 the same flap takes modes 2–5. Strides 1 and 2 have no local
+  modes, and neither does 6DQN.
+- RyR1 9R8O has its own local modes: residue 896 at strides 1 and 3,
+  residue 1988 at stride 2.
+- Sequence-neighbour springs at 1, 10 and 100 × γ change nothing. The flap
+  swings as a body, and a chain spring resists only stretching. So bridging
+  it is answered: no.
+- A constant-coordination cutoff (15 Å × stride^⅓) removes the flap. But it
+  changes the model: the headline number moved.
+- RMSIP of 20 modes against stride 1: 0.970 at stride 2, 0.892 at stride 3,
+  0.769 at stride 4.
+
+**The finding.** At stride 1, where there is no sampling artefact, the
+lowest-A-mode overlap is 0.48 / 0.45 / 0.43 / 0.38 / 0.33 / 0.24 at cutoffs
+of 12 / 13.5 / 15 / 16.5 / 18 / 21.6 Å. Over the same range the A modes
+among the first 10 together give 0.51 / 0.66 / 0.67 / 0.67 / 0.67 / 0.68.
+- The cutoff only redistributes the move among near-degenerate A modes.
+- The logged "0.415, one A mode carries two-thirds of 20 modes" held only at
+  15 Å. The A subspace is the result, and README and SCIENCE.md now say so.
+- Round 2's robustness test had varied the stride but never the cutoff.
+- For RyR1 the lowest A mode (0.12) is flat in the cutoff.
+
+**Not changed.** Defaults (cutoff 15 Å, stride 3, κ 0.2) are unchanged.
+Sync was clean. No check or verdict moved. `make test` gave 326 passed
+before the new tests (334 with them), lint and sizes were clean, and
+`make screenshots` passed.
+
+**Next:** the PDFs if supplied. Otherwise, the A-subspace headline in the
+Transition tab and the default-stride decision (new emergent item).

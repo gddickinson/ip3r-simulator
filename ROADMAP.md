@@ -12,8 +12,9 @@ of the activation-site affinity bracket that range. The next steps are to
 read Meissner et al. 1997 (JBC, the same [³H]ryanodine assay as Murayama,
 with Mg²⁺; behind a browser challenge, so the user may need to supply the
 PDF) to pin K_Mg,A in Murayama's condition, and to simulate the V channels
-as the trigger. Other strong candidates: the gate radius along the morph
-(Round 2) and the continuum's conductance shortfall (Rounds 4 and 6.1).
+as the trigger. Other strong candidates: the A-subspace headline and the
+default stride (Round 2, emergent) and the continuum's conductance
+shortfall (Rounds 4 and 6.1).
 
 ## Destination
 
@@ -51,9 +52,21 @@ that opens, Ca²⁺ out.
   MIR 19 Å, pore domain 2.5 Å, filter 0.8 Å (pore fit).
 
 Emergent (not scheduled):
-- [ ] Where do the stride-3 local modes (#11–15 of 8TKG, κ ≤ 0.11) come
-  from — which sites are weakly attached, and should the network bridge
-  them (e.g. a sequence-neighbour spring) rather than just flag them?
+- [x] Where do the stride-3 local modes come from (`physics/network_checks.py`)?
+  All five (#11–15 of 8TKG) are one flap: residue 86, the first after the
+  unresolved loop 77–85, on 5 springs (median 17). The same flap takes modes
+  2–5 at stride 4; strides 1–2 have none. RyR1 9R8O has its own (residue
+  896, even at stride 1). Sequence-neighbour springs (1–100 × γ) change
+  nothing, so the network is not bridged; the modes are named in the
+  report and the Modes tab. RMSIP20 vs stride 1: 0.97 / 0.89 / 0.77 at
+  strides 2 / 3 / 4. **Found on the way:** the lowest-A-mode overlap is a
+  cutoff choice. At stride 1 it falls 0.48 → 0.24 over 12–21.6 Å while the
+  three lowest A modes together hold at 0.66–0.68 (`--cutoff-scan`).
+  RyR1's lowest A (0.12) is flat in the cutoff.
+- [ ] Report the A-subspace overlap as the headline in the Transition tab
+  (it is in the text report now) and decide whether the default stride
+  should be 2 (1.2 s, no local modes on 8TKG, RMSIP20 0.97) — the GUI runs
+  it on a worker, but RyR1 has local modes at stride 2 too.
 - [x] The gate radius along the morph (`structure/morph_pore.py`): every
   heavy atom both deposits resolve interpolated (Cα offset, 70,952 atoms,
   none unmatched), axis re-found per frame. Endpoint frames measure as the

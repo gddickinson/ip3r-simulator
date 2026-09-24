@@ -61,8 +61,14 @@ and the filter 0.8 Å. The tab then asks whether the resting
 state's elastic network points towards the activated one. It does: the lowest
 collective A mode overlaps the observed displacement at 0.42, where a
 random direction of the same symmetry scores 0.02. Twenty modes capture
-0.64, against 0.05 at random. The displacement is 100 % A-symmetric, but
-that is inherited from C4-imposed reconstruction and is not a finding.
+0.64, against 0.05 at random. The single mode's 0.42 is a choice of the
+15 Å cutoff: from 12 to 21.6 Å it falls from 0.48 to 0.24, while the three
+lowest A modes together hold at 0.66–0.68 (`transition --cutoff-scan`), so
+the claim is the A subspace, not one mode. The displacement is 100 %
+A-symmetric, but that is inherited from C4-imposed reconstruction and is not
+a finding. Low-collectivity modes are named where they sit: on 8TKG at
+stride 3 all five are one flap, residue 86 after the unresolved 77–85 loop
+(the Modes tab and the report say so).
 
 ![The transition tab](docs/img/gui_transition.png)
 
@@ -336,7 +342,8 @@ python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
 python -m ip3r spark-mg [--scan] [--ratio]  # Mg2+ ends a triggered spark
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
-python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame)
+python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame;
+                                    #  --cutoff-scan, --stride-check: the network against itself)
 python -m ip3r graft 8TKG --calibrate   # AlphaFold fills, seams, and how good they are
 python -m ip3r gating | oscillate --window | puffs --ip3 0.2
 python -m ip3r puffs --model park-drive | puffs --scan   # the two receptors
