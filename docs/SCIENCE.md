@@ -301,6 +301,21 @@ as 370) and 545 ± 7 pS (Vais et al. 2010, DT40 nuclei).
   linear. It is a point-ion continuum at its limit. D2478 is also
   salt-bridged (2.5 Å) to R2471 of the neighbouring subunit, a charge the
   lining rule does not see.
+- **Salt bridges cancelled** (`physics/salt_bridges.py`, the *paired*
+  reading). An ion pair is an acid and a base with a charged O and a charged
+  N within 4 Å (Barlow & Thornton 1983, `pore_charge.salt_bridge_cutoff`).
+  Pairs are matched one-to-one, closest first, across the whole deposit, so
+  each bridge removes exactly +1 and −1. A lining group that is half of a
+  pair is dropped. On 8TKF only the four D2478–R2471′ bridges (2.45–2.58 Å)
+  qualify: the wall goes from −8 e to −4 e and the conductance from 33 to
+  **23 pS** (8–54 pS over the diffusivity × radius sweep). The next pairs
+  are close to the line. D2518–R2524′ sits at 4.23–4.34 Å and K2482–D2400
+  at 4.31–4.40 Å, so a 4.5 Å cutoff drops those too and gives 38 pS. Over
+  cutoffs of 3–6 Å the paired reading is 23–38 pS, always below the neutral
+  65 pS. The peak partition density (18.6 M, above the ceiling) does not
+  move, because it sits on the D2518/D2522 rings at z ≈ −63 Å in a 4.4 Å
+  lumen, not at the filter. So cancelling ion pairs does not rescue the
+  charged model. The gap to 358 pS is not a charge-counting artefact.
 
 What survives: the gate is the only state change that opens a conducting
 pathway. Taken as a neutral continuum, the only open deposit's pore is

@@ -232,6 +232,14 @@
    "title": "AlphaFold Protein Structure Database: massively expanding the structural coverage of protein-sequence space with high-accuracy models",
    "journal": "Nucleic Acids Res 50:D439-D444",
    "doi": "10.1093/nar/gkab1061"
+  },
+  {
+   "key": "barlow1983",
+   "authors": "Barlow DJ, Thornton JM",
+   "year": 1983,
+   "title": "Ion-pairs in proteins",
+   "journal": "J Mol Biol 168:867-885",
+   "doi": "10.1016/S0022-2836(83)80079-5"
   }
  ]
 }

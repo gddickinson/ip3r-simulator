@@ -131,6 +131,7 @@ def test_only_the_activated_state_conducts_and_falls_short_of_the_measurement():
     assert u.charged.converged
     assert {lab for lab, _, _ in u.charge.residues()} >= {"ASP2478", "LYS2482"}
     # The finding: no corner of the unmeasured-constant sweep reaches either
-    # measured value, with or without the wall charge.
-    ceiling = max(u.sweep["neutral"][1], u.sweep["charged"][1])
+    # measured value, with or without the wall charge,
+    # with or without its salt bridges.
+    ceiling = max(u.sweep[k][1] for k in ("neutral", "charged", "paired"))
     assert ceiling < min(published().values())

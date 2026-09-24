@@ -152,20 +152,25 @@ def _unitary(args) -> int:
     loader.ALLOW_FETCH = args.fetch
     rows = unitary_panel(args.paralog, sweep=True)
     print("K+ conductance in symmetric KCl (series = closed form; neutral / "
-          "charged = drift-diffusion without / with the lining side chains)")
+          "charged = drift-diffusion without / with the lining side chains; "
+          "paired = charged less salt-bridged groups)")
     for u in rows:
         print(u.row())
         if u.neutral.is_conducting:
             lo, hi = u.sweep["neutral"]
             clo, chi = u.sweep["charged"]
+            plo, phi = u.sweep["paired"]
             print(f"      sweep (diffusivity x ion radius): neutral {lo:.0f}-{hi:.0f}, "
-                  f"charged {clo:.0f}-{chi:.0f} pS; Debye "
+                  f"charged {clo:.0f}-{chi:.0f}, paired {plo:.0f}-{phi:.0f} pS; Debye "
                   f"{u.charged.meta['debye_length_A']:.1f} A; in-pore peak "
                   f"{u.charged.meta.get('peak_in_pore_M', float('nan')):.1f} M"
                   + (" (above the packing ceiling)"
                      if u.charged.meta.get("exceeds_packing_limit") else ""))
             print("      lining charges: " + ", ".join(
                 f"{lab} x{n} at z {z:+.0f}" for lab, n, z in u.charge.residues()))
+            if u.paired_charge.bridged:
+                print("      salt-bridged, dropped when paired: " + ", ".join(
+                    b.label() for b in u.paired_charge.bridged))
     print("measured: " + "; ".join(f"{k} {v:.0f} pS" for k, v in published().items()))
     return 0
 

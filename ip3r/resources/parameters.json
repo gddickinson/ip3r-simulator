@@ -1738,6 +1738,19 @@
    "maximum": 15.0
   },
   {
+   "key": "pore_charge.salt_bridge_cutoff",
+   "name": "Salt-bridge N-O distance",
+   "value": 4.0,
+   "unit": "A",
+   "kind": "convention",
+   "category": "pore_charge",
+   "citation": "barlow1983",
+   "description": "An acidic and a basic side chain are an ion pair (and cancel) when a charged oxygen and a charged nitrogen are at most this far apart.",
+   "source_note": "Barlow & Thornton 1983, abstract: ion pairs 'less than or equal to 4 A between charged groups', from the like- vs opposite-charge distance distributions in 38 proteins. On 8TKF the answer depends on it: K2482-D2400 and D2518-R2524' sit at 4.2-4.4 A, so it is swept in SESSION_LOG, not tuned",
+   "minimum": 2.0,
+   "maximum": 8.0
+  },
+  {
    "key": "pore_charge.max_concentration",
    "name": "Counterion packing ceiling",
    "value": 10.0,

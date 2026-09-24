@@ -23,6 +23,10 @@ There is no curated route. The ip3r_genes annotation names filter and gate
 residues, none of them ionisable, so a curated charge set would be empty.
 Histidine and chain termini carry no charge here, as in PIEZO1: His is
 mostly neutral at pH 7.4, and deposited chain ends are construct boundaries.
+
+With ``pair_bridges``, a lining group that is one side of a salt bridge
+(:mod:`ip3r.physics.salt_bridges`) is dropped, since the pair is net
+neutral; the dropped bridges travel with the result.
 """
 
 from __future__ import annotations
@@ -34,6 +38,7 @@ import numpy as np
 from ..core.structure import Structure
 from ..parameters import PARAMETERS as _P
 from ..structure.symmetry import Frame
+from .salt_bridges import Bridge, salt_bridges
 
 __all__ = ["ChargedGroup", "PoreCharge", "charged_groups", "map_charge",
            "pore_charge", "CHARGE", "CENTRE_ATOMS", "AVOGADRO"]
@@ -78,6 +83,7 @@ class PoreCharge:
     groups: list[ChargedGroup] = field(default_factory=list)
     unplaced: list[str] = field(default_factory=list)
     meta: dict = field(default_factory=dict)
+    bridged: list[Bridge] = field(default_factory=list)   # dropped as pairs
 
     @property
     def net_charge(self) -> float:
@@ -96,9 +102,12 @@ class PoreCharge:
         return sorted(rows, key=lambda r: r[2])
 
     def summary(self) -> str:
+        paired = (f"; {len(self.bridged)} salt-bridged lining groups dropped"
+                  if self.meta.get("pair_bridges") else "")
         return (f"{len(self.groups)} charged groups, net {self.net_charge:+.0f} e, "
                 f"peak {self.peak_density / 1000.0:.2f} M-equivalent; "
-                f"{len(self.unplaced)} stubbed ionisable residues unplaced")
+                f"{len(self.unplaced)} stubbed ionisable residues unplaced"
+                + paired)
 
 
 def _centres(st: Structure) -> dict[tuple[str, int], tuple[str, np.ndarray]]:
@@ -175,12 +184,23 @@ def map_charge(groups: list[ChargedGroup], z_A: np.ndarray, radius_A: np.ndarray
     return (per_length / area) * 1e30 / AVOGADRO        # e/A^3 -> mol/m^3
 
 
-def pore_charge(st: Structure, frame: Frame, profile) -> PoreCharge:
-    """Find the lining charges of a deposit and map them onto its profile."""
+def pore_charge(st: Structure, frame: Frame, profile,
+                pair_bridges: bool = False) -> PoreCharge:
+    """Find the lining charges of a deposit and map them onto its profile;
+    ``pair_bridges`` drops every lining group that is half of a salt bridge."""
     groups, unplaced = charged_groups(st, frame, profile)
+    bridged: list[Bridge] = []
+    if pair_bridges:
+        lining = {(g.chain, g.res_seq) for g in groups}
+        bridged = [b for b in salt_bridges(st)
+                   if lining.intersection(b.members())]
+        paired = {k for b in bridged for k in b.members()}
+        groups = [g for g in groups if (g.chain, g.res_seq) not in paired]
     density = map_charge(groups, profile.z, np.maximum(profile.r_free, 0.0))
+    meta = {"lining_margin_A": _P.value("pore_charge.lining_margin"),
+            "smoothing_A": _P.value("pore_charge.smoothing"),
+            "pair_bridges": pair_bridges, "structure": st.name}
+    if pair_bridges:
+        meta["salt_bridge_cutoff_A"] = _P.value("pore_charge.salt_bridge_cutoff")
     return PoreCharge(np.asarray(profile.z, dtype=float), density, groups,
-                      unplaced,
-                      meta={"lining_margin_A": _P.value("pore_charge.lining_margin"),
-                            "smoothing_A": _P.value("pore_charge.smoothing"),
-                            "structure": st.name})
+                      unplaced, meta=meta, bridged=bridged)

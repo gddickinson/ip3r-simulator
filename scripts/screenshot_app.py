@@ -225,6 +225,10 @@ def main() -> int:
                 open_ = [u.name.upper() for u in rows if u.neutral.is_conducting]
                 if open_ != ["8TKF"]:
                     raise RuntimeError(f"conducting states drawn: {open_}")
+                u = next(u for u in rows if u.neutral.is_conducting)
+                if not u.paired_charge.bridged or not (
+                        0 < u.paired.conductance_pS < u.charged.conductance_pS):
+                    raise RuntimeError(f"salt-bridged reading not drawn: {u.row()}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_unitary.png"))
             elif s == 13:

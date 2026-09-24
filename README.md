@@ -94,7 +94,9 @@ side chains that line it. Only activated 8TKF conducts. It gives 65 pS
 uncharged (25–150 pS over the unmeasured diffusivity and ion radius)
 against 358–545 pS measured, so the continuum model falls 2.4× short even
 at its most generous. Its own lining charges lower the conductance rather
-than raising it (`python -m ip3r unitary`).
+than raising it. Cancelling the salt-bridged ones (the filter's D2478 is
+paired with R2471 of the next subunit) lowers it further, to 23 pS
+(`python -m ip3r unitary`).
 
 ![Unitary conductance](docs/img/gui_unitary.png)
 

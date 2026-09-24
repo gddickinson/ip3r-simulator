@@ -7,7 +7,9 @@ recorded in — three ways:
 * ``series``: the closed-form resistor sum over the free radius, no solver;
 * ``neutral``: drift-diffusion with no wall charge (must equal ``series``);
 * ``charged``: drift-diffusion with the deposit's own lining charges
-  (:mod:`ip3r.physics.pore_charge`) partitioning the ions.
+  (:mod:`ip3r.physics.pore_charge`) partitioning the ions;
+* ``paired``: the same, with every salt-bridged lining group dropped
+  (:mod:`ip3r.physics.salt_bridges`), since an ion pair is net neutral.
 
 The profile is **protein only**, not S0's HETATM-inclusive one: a bound lipid
 or detergent near the axis is a property of the preparation, not a wall an
@@ -48,6 +50,8 @@ class Unitary:
     series: dict
     neutral: PermeationResult
     charged: PermeationResult
+    paired_charge: PoreCharge
+    paired: PermeationResult
     gate_radius: float = float("nan")      # S0's r_min at the gate, A
     sweep: dict | None = None              # sensitivity(), when asked for
 
@@ -66,8 +70,10 @@ class Unitary:
         return (f"{self.name:5s} {self.state:24s} r_free {self.min_free_radius:5.2f} A"
                 f"   series {self.series_pS:6.1f}  neutral "
                 f"{self.neutral.conductance_pS:6.1f}  charged "
-                f"{self.charged.conductance_pS:6.1f} pS"
-                f"   (wall {self.charge.net_charge:+.0f} e)")
+                f"{self.charged.conductance_pS:6.1f}  paired "
+                f"{self.paired.conductance_pS:6.1f} pS"
+                f"   (wall {self.charge.net_charge:+.0f} e, "
+                f"{self.paired_charge.net_charge:+.0f} e unpaired)")
 
 
 def published() -> dict[str, float]:
@@ -91,6 +97,7 @@ def unitary(st: Structure, summary: ChannelSummary | None = None,
     radius = np.maximum(prof.r_free, 0.0)
     species = species or potassium_species()
     charge = pore_charge(st, summary.frame, prof)
+    paired = pore_charge(st, summary.frame, prof, pair_bridges=True)
     gate = summary.constrictions.get("gate")
     return Unitary(
         name=st.name, state=state, profile=prof, charge=charge,
@@ -98,6 +105,9 @@ def unitary(st: Structure, summary: ChannelSummary | None = None,
         neutral=solve_pnp(prof.z, radius, species=species),
         charged=solve_pnp(prof.z, radius, species=species,
                           fixed_charge=charge.density),
+        paired_charge=paired,
+        paired=solve_pnp(prof.z, radius, species=species,
+                         fixed_charge=paired.density),
         gate_radius=float("nan") if gate is None else gate.radius)
 
 
@@ -120,7 +130,7 @@ def sensitivity(u: Unitary) -> dict[str, tuple[float, float]]:
     rising with diffusivity, falling with radius.
     """
     radius = np.maximum(u.profile.r_free, 0.0)
-    out: dict[str, list[float]] = {"neutral": [], "charged": []}
+    out: dict[str, list[float]] = {"neutral": [], "charged": [], "paired": []}
     for scale in (_P.value("permeation.sweep_scale_low"),
                   _P.value("permeation.sweep_scale_high")):
         for ion in (_P.value("permeation.sweep_radius_low"),
@@ -131,4 +141,7 @@ def sensitivity(u: Unitary) -> dict[str, tuple[float, float]]:
             out["charged"].append(solve_pnp(
                 u.profile.z, radius, species=sp,
                 fixed_charge=u.charge.density).conductance_pS)
+            out["paired"].append(solve_pnp(
+                u.profile.z, radius, species=sp,
+                fixed_charge=u.paired_charge.density).conductance_pS)
     return {k: (min(v), max(v)) for k, v in out.items()}

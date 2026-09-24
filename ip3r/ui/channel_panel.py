@@ -125,15 +125,17 @@ class ChannelPanel(QWidget):
         self.unitary_rows = rows
         ax = self.canvas.reset()
         x = np.arange(len(rows))
-        for k, (attr, label) in enumerate((("neutral", "no wall charge"),
-                                           ("charged", "lining side chains charged"))):
+        series = (("neutral", "no wall charge"),
+                  ("charged", "lining side chains charged"),
+                  ("paired", "charged, salt bridges cancelled"))
+        for k, (attr, label) in enumerate(series):
             vals = [getattr(u, attr).conductance_pS for u in rows]
             err = [[v - u.sweep[attr][0], u.sweep[attr][1] - v]
                    if u.sweep and v > 0 else [0.0, 0.0] for u, v in zip(rows, vals)]
-            ax.bar(x + (k - 0.5) * 0.38, vals, 0.38, color=PALETTE[k], label=label,
+            ax.bar(x + (k - 1) * 0.28, vals, 0.28, color=PALETTE[k], label=label,
                    yerr=np.array(err).T, ecolor="#8a8f99", capsize=2)
         for k, (name, g) in enumerate(published().items()):
-            ax.axhline(g, color=PALETTE[2 + k], lw=1.0, ls="--",
+            ax.axhline(g, color=PALETTE[len(series) + k], lw=1.0, ls="--",
                        label=f"measured: {name} {g:.0f} pS")
         for i, u in enumerate(rows):
             if not u.neutral.is_conducting:
@@ -145,7 +147,8 @@ class ChannelPanel(QWidget):
         self.canvas.legend(ax, loc="center left")
         self.canvas.draw_now()
         self.text.setText("<br>".join(u.row() for u in rows) + "<br><i>" + "; ".join(
-            f"{u.name}: {u.charge.summary()}" for u in rows if u.neutral.is_conducting)
+            f"{u.name}: {u.charge.summary()}; paired: {u.paired_charge.summary()}"
+            for u in rows if u.neutral.is_conducting)
             + ". A continuum of point ions in a pore a few ions wide: the "
             "comparison is of magnitude, not a fit.</i>")
 

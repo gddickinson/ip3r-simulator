@@ -5,9 +5,10 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 5 is complete. Pick from the emergent items; the strongest
-candidates are the gate radius along the morph (Round 2) and the salt-bridge
-neutralisation before any charged conductance (Round 4).
+**Next:** Round 5 is complete, and the salt-bridge item (Round 4) is done.
+Pick from the emergent items; the strongest candidates are the gate radius
+along the morph (Round 2) and the 2.4× shortfall of the uncharged pore
+against the measured conductance, starting with RyR1 open deposits (Round 4).
 
 ## Destination
 
@@ -176,9 +177,20 @@ Emergent (not scheduled):
   is fragile (7–151 pS over margin/smoothing; peak partition 18.6 M, above
   the packing ceiling).
   Emergent:
-  - [ ] Salt bridges: filter D2478 is 2.5 Å from R2471 of the next subunit,
-    and K2482 is 4.4 Å from D2400. Neutralise ion pairs, or use a pKa
-    estimate, before trusting any charged number.
+  - [x] Salt bridges cancelled before the wall charge counts
+    (`physics/salt_bridges.py`; Barlow & Thornton's ≤ 4 Å N–O, one-to-one,
+    closest first, partners searched in the whole deposit). A fourth
+    reading, *paired*, appears in the CLI and the Channel panel. On 8TKF the
+    four D2478–R2471′ bridges (2.45–2.58 Å) drop out: −8 → −4 e, and
+    33 → 23 pS (8–54 pS swept). Over cutoffs of 3–6 Å the reading is
+    23–38 pS, because D2518–R2524′ (4.2–4.3 Å) and K2482–D2400 (4.3–4.4 Å)
+    sit just past the line. The 18.6 M peak is on the D2518/D2522 rings and
+    does not move. Pairing does not rescue the charged model.
+    Emergent:
+    - [ ] A pKa estimate (e.g. a Tanford–Kirkwood or PROPKA-style shift)
+      for the eight D2518/D2522 carboxylates in a 4.4 Å lumen. Full
+      ionisation there is the least plausible assumption left in the
+      charged reading.
   - [ ] Why 2.4× short even uncharged? Candidates: 8TKF is not maximally
     open (a subconductance state?), the continuum fails at 3 Å, or the
     cytosolic exit is not where the profile window ends. Compare RyR1 open

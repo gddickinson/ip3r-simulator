@@ -98,6 +98,15 @@ PERM = [
        "over along the axis.", "About a side chain's positional uncertainty "
        "at 3 A resolution; the total charge is conserved whatever it is "
        "(as PIEZO1)", 0.5, 15.0),
+    _p("pore_charge.salt_bridge_cutoff", "Salt-bridge N-O distance", 4.0,
+       "A", "convention", "pore_charge", "barlow1983", "An acidic and a "
+       "basic side chain are an ion pair (and cancel) when a charged oxygen "
+       "and a charged nitrogen are at most this far apart.", "Barlow & "
+       "Thornton 1983, abstract: ion pairs 'less than or equal to 4 A "
+       "between charged groups', from the like- vs opposite-charge distance "
+       "distributions in 38 proteins. On 8TKF the answer depends on it: "
+       "K2482-D2400 and D2518-R2524' sit at 4.2-4.4 A, so it is swept in "
+       "SESSION_LOG, not tuned", 2.0, 8.0),
     _p("pore_charge.max_concentration", "Counterion packing ceiling", 10.0,
        "M", "method", "pore_charge", "method_choice", "In-pore concentration "
        "above which a result is flagged; nothing is clipped to it.",

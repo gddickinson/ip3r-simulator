@@ -780,3 +780,43 @@ and no check verdict changed (46 checks: 44 confirmed, 2 discrepancies).
 
 **Next:** Round 5 is complete. The emergent items are listed in `ROADMAP.md`.
 
+
+
+## 2026-09-24 — Round 4 emergent: salt bridges cancelled before the wall charge counts
+
+**What.** New `physics/salt_bridges.py`. `pore_charge(..., pair_bridges=True)`
+drops every lining group that is half of an ion pair. `Unitary` gains a
+fourth reading, *paired*, which appears in `python -m ip3r unitary`, in the
+Channel panel (a third bar) and in the sensitivity sweep. One new registered
+parameter (`pore_charge.salt_bridge_cutoff`, 4 Å) and one reference (Barlow &
+Thornton 1983, whose abstract states the ≤ 4 Å criterion; read on PubMed
+before registering). There are 4 new tests (254 → 258), and the smoke test
+now requires the paired reading to be drawn.
+
+**Why this rule.** A carboxylate held by a guanidinium is not a free charge
+acting on the lumen, so the round asked for ion pairs to be neutralised
+before any charged number is trusted. Pairs are matched one-to-one, closest
+first, so an Arg reaching two Asps cancels one: every bridge removes exactly
++1 and −1. Partners are searched in the whole deposit, because D2478's
+partner (R2471 of the next subunit) does not itself line the pore. The tests
+were checked by planting many-to-one pairing, which the first test catches.
+
+**Measured on 8TKF.** At 4 Å only the four D2478–R2471′ bridges qualify
+(2.45–2.58 Å). The wall goes from −8 to −4 e and the conductance from 33 to
+23 pS (8–54 pS over diffusivity × ion radius). The cutoff matters only near
+4.25–4.5 Å: D2518–R2524′ sits at 4.23–4.34 Å and K2482–D2400 at 4.31–4.40 Å.
+Over cutoffs of 3–6 Å the reading is 23 / 23 / 23 / 23 / 38 / 38 / 38 pS
+(3, 3.5, 4, 4.25, 4.5, 5, 6 Å), always below the neutral 65 pS. The 18.6 M
+peak partition density does not move, because it sits on the D2518/D2522
+rings at z ≈ −63 Å (lumen 4.4 Å), not at the filter.
+
+**What it means.** Cancelling ion pairs does not rescue the charged model,
+and the gap to 358–545 pS is not a charge-counting artefact. The least
+plausible assumption left is full ionisation of eight aspartates in a 4.4 Å
+lumen, a pKa question, now an emergent item.
+
+**Not changed.** `make sync-check` was clean; no `ip3r_genes` table moved,
+and no check verdict changed (46 checks: 44 confirmed, 2 discrepancies).
+
+**Next:** the gate radius along the morph (Round 2), or the uncharged 2.4×
+shortfall against RyR1 open deposits (Round 4).
