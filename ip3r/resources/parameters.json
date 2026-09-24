@@ -670,6 +670,84 @@
    "source_note": "ip3r_genes D4's bar, fixed before any error rate was known: the median measured genomic span of an ITPR gene (Paper 3, results/methods/contiguity_summary.json d4_bar)",
    "minimum": 1.0,
    "maximum": 1000000000.0
+  },
+  {
+   "key": "range.absence_min_proteomes",
+   "name": "Absence-clade proteome floor",
+   "value": 10.0,
+   "unit": "proteomes",
+   "kind": "method",
+   "category": "range",
+   "citation": "ip3r_genes",
+   "description": "A phylum or class is an absence target when at least this many of its reference proteomes were swept and none carries a call.",
+   "source_note": "ip3r_genes S23 manifest rule G3 (results/s23_scope/report.md: 'one per clade S20 swept >= 10 proteomes of and found 0 ITPR in')",
+   "minimum": 1.0,
+   "maximum": 10000.0
+  },
+  {
+   "key": "range.substantial_evalue",
+   "name": "Substantial-match E-value",
+   "value": 1e-05,
+   "unit": "",
+   "kind": "method",
+   "category": "range",
+   "citation": "ip3r_genes",
+   "description": "A relaxed-search hit is substantial only at or below this full-sequence E-value (with the coverage bar).",
+   "source_note": "ip3r_genes S20's primary threshold, the strict side of its one-search-two-sensitivities design (results/s20_sweep/report.md)",
+   "minimum": 0.0,
+   "maximum": 10.0
+  },
+  {
+   "key": "range.substantial_coverage",
+   "name": "Substantial-match model coverage",
+   "value": 0.5,
+   "unit": "",
+   "kind": "method",
+   "category": "range",
+   "citation": "ip3r_genes",
+   "description": "A relaxed-search hit is substantial only if it spans at least this fraction of the profile.",
+   "source_note": "ip3r_genes S20: 'spanning at least half the model' (results/s20_sweep/report.md, negative-claims table)",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
+   "key": "range.family_floor_aa",
+   "name": "Full-length family floor",
+   "value": 2000.0,
+   "unit": "aa",
+   "kind": "method",
+   "category": "range",
+   "citation": "ip3r_genes",
+   "description": "A plant or fungal record shorter than this is a fragment of a gene, not a full-length receptor.",
+   "source_note": "ip3r_genes S20 chase threshold min_length_aa (results/s20_sweep/verdict_summary.json)",
+   "minimum": 1.0,
+   "maximum": 10000.0
+  },
+  {
+   "key": "range.contaminant_pident",
+   "name": "Contaminant identity",
+   "value": 95.0,
+   "unit": "%",
+   "kind": "method",
+   "category": "range",
+   "citation": "ip3r_genes",
+   "description": "A record this identical (or more) to one relative outside its kingdom, over the coverage bar, is an assembly-contamination suspect.",
+   "source_note": "ip3r_genes S20 chase threshold contaminant_pident (results/s20_sweep/verdict_summary.json)",
+   "minimum": 0.0,
+   "maximum": 100.0
+  },
+  {
+   "key": "range.contaminant_qcov",
+   "name": "Contaminant coverage",
+   "value": 0.5,
+   "unit": "",
+   "kind": "method",
+   "category": "range",
+   "citation": "ip3r_genes",
+   "description": "Query coverage the contaminant identity must hold over.",
+   "source_note": "ip3r_genes S20 chase threshold contaminant_qcov (results/s20_sweep/verdict_summary.json)",
+   "minimum": 0.0,
+   "maximum": 1.0
   }
  ]
 }

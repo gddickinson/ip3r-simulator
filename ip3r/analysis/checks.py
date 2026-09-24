@@ -123,7 +123,8 @@ def register(id: str, paper: str, claim: str, method: str, kind: str,
 def _load_all() -> None:
     # Importing the modules registers their checks.
     from . import (checks_constraint, checks_evolution, checks_modules,  # noqa: F401
-                   checks_genomes, checks_shells, checks_structure, checks_tree)
+                   checks_genomes, checks_range, checks_shells, checks_structure,
+                   checks_tree)
 
 
 def run_check(check: Check, allow_modified: bool = False) -> CheckResult:

@@ -114,9 +114,20 @@ a P3 or P4 check opens this tab on the right layer.
 
 ![Misses against contiguity](docs/img/gui_genomes.png)
 
+**See where the receptor is.** The Range tab draws Paper 1 as one bar per
+clade of the 6,928-proteome sweep. Each bar shows the fraction of swept
+proteomes carrying an IP3 receptor call, on a fixed 0–1 scale, coloured by
+supergroup; archaea and bacteria are collapsed to one row each. A red cross
+marks a clade whose absence held in controlled genome assemblies (a small
+one where it held for a class inside the clade). You can hide small clades
+or expand the prokaryotes. Clicking a row lists its genome-level absences.
+"Show" on any P1 check opens this tab.
+
+![Paper 1's range](docs/img/gui_range.png)
+
 ## The checks, as of Round 3
 
-37 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+44 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts

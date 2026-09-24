@@ -1,4 +1,4 @@
-"""Evolutionary findings (papers 1-4) and the publication's claims ledgers.
+"""Evolutionary findings (papers 2-4; Paper 1 is ``checks_range``) and the publication's claims ledgers.
 
 These are ``rederived`` checks where the committed per-cell or per-genome
 table allows the headline count to be recomputed, and ``read`` checks where
@@ -21,7 +21,6 @@ MATRIX = "loss_dynamics/character_matrix.tsv"
 CONTIG = "methods/contiguity_cells.tsv"
 DOLLO = "loss_counts/dollo_counts.tsv"
 RECOVERY = "methods/gene_recovery.tsv"
-ABSENCE = "s23_scope/absence_at_genome.tsv"
 
 
 def _core_tips() -> dict[str, set[str]]:
@@ -148,23 +147,6 @@ def unreachable():
     ok = (genome_only, len(rows)) == (744, 923)
     return agree(ok, "744 / 923", f"{genome_only} / {len(rows)} "
                  f"({genome_only / len(rows):.1%})")
-
-
-@register("P1.absences", "range",
-          "35 clade-level absences are confirmed in genome assemblies, each "
-          "genome carrying a positive control chosen for its clade.",
-          "Clades whose controlled genomes carry no full-length receptor "
-          "counted in absence_at_genome.tsv, independently of its verdict "
-          "column.",
-          "rederived", (ABSENCE,))
-def absences():
-    rows = G.read_tsv(ABSENCE)
-    held = [r for r in rows if int(r["genomes_controlled"]) > 0
-            and r["genomes_with_full_itpr"] == "0"]
-    agrees_verdict = all(r["verdict"].startswith("absence holds") for r in held)
-    ok = len(held) == 35 and agrees_verdict
-    return agree(ok, "35", f"{len(held)} clades (of {len(rows)}); verdict column "
-                 f"{'agrees' if agrees_verdict else 'DISAGREES'}")
 
 
 @register("LEDGER.claims", "ledger",

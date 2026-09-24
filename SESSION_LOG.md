@@ -347,3 +347,61 @@ recompute each statistic and do not only count it.
 
 **Next:** Round 3, item 5 (Paper 1: presence/absence across eukaryotic
 clades).
+
+## 2026-09-23 — Session 7: Round 3, item 5 — Paper 1 range across eukaryotes
+
+**What.**
+- `analysis/range_table.py` joins the S20 proteome sweep (presence,
+  taxonomy, the six assignment tables, relaxed hits) and the S23 genome
+  sweep (manifest, control ledger, copies, copy-number ledger).
+- `analysis/checks_range.py` holds seven rederived checks, each calibrated
+  by an input plant. `P1.absences` moves there from `checks_evolution.py`
+  and is upgraded: it used to count the summary table's columns, and now it
+  rebuilds every row of `absence_at_genome.tsv` from the per-genome
+  ledgers.
+- `analysis/range_figure.py` draws the clade bars and five exhibits.
+  `ui/range_panel.py` is the new Range tab, and "Show" on any P1 check
+  opens it. The smoke test asserts 70 rows, 45 with a call, 662/6,928
+  proteomes and 35/35 absences held.
+- Six registered parameters (`range.*`), all cited to the ip3r_genes
+  thresholds they reproduce. Tests: 164 → 170.
+
+**Why.** Paper 1 is the one the rest of the series takes its family call
+from. Until now this project checked a single number of it (the 35
+absences), and only by reading a summary. The paper's structure is
+"absent here, present beside it in the same kingdom, and the instrument
+demonstrably works in both". That can only be seen per clade, and checked
+from the rows.
+
+**Measured.** Everything reproduces:
+- 662/6,928 proteomes and 45/135 clades. Presence from 2,012 ITPR
+  assignment records agrees with the presence table in 6,854/6,854 taxa.
+- All 13 named phylum counts match. All 24 cells of the relaxed table
+  match, and the one non-MIR exception (PF08454, *Oryza barthii*) clears
+  neither PF08709 nor a full-length profile.
+- G3, rebuilt from its sentence (≥ 10 proteomes, no call, eukaryotic
+  phylum or class), gives the same 35 targets. All 35 genome rows rebuild
+  from the ledgers, and neither weakly controlled ciliate genome
+  (*Tetrahymena*, *Ichthyophthirius*) sits in an absence target.
+- Copies: 117 genomes with none and 43 with one; the top three are
+  Macrostomum 18, Stentor 13 and Dysidea 8; Cymbomonas carries 3.
+- Chase: 47 real genes and 52 fragments; no contaminant; identity 19.9–39.9
+  % (plants) and 20.5–33.5 % (fungi); maximum 45.8 %.
+
+46 checks: 44 confirmed, 2 discrepancies (unchanged). No verdict about the
+publication moved.
+
+**Where I was wrong first.** `P1.record_chase` first found 50 real genes
+against the published 47. Rule R5 also calls a record a fragment when
+UniProt flags it, at any length. Three flagged records are 2,366–2,858 aa,
+so my length-only rule passed them. It was the checker's error, and the
+fourth time in this project that a discrepancy was the checker's.
+
+**Noted about ip3r_genes (not a discrepancy).** Paper 1 ledger row C20
+("Macrostomum lignano carries 18 IP3 receptor genes") verifies
+`copy_number.18 == 1`, i.e. that *some* genome carries 18. It does not
+verify which genome. `P1.copy_number` checks the species, and it is
+Macrostomum.
+
+**Next:** Round 3's scheduled items are done. Round 4 (Mak 1998 gating
+model) is next, unless an emergent Round 3 item is preferred.

@@ -105,6 +105,13 @@ def _grid(name):
     return draw
 
 
+def _range(name):
+    def draw(ax, d):
+        from . import range_figure
+        getattr(range_figure, name)(ax, d)
+    return draw
+
+
 EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
@@ -113,7 +120,14 @@ EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.paralog_clades": _tree, "P2.cyclostome_lineages": _tree,
             "P2.support_bar": _tree, "P3.miss_by_contiguity": _grid("draw_misses"),
             "P3.contiguity_tests": _grid("draw_logistic"),
-            "P4.recovery_channels": _grid("draw_recovery")}
+            "P4.recovery_channels": _grid("draw_recovery"),
+            "P1.presence_range": _range("draw_presence"),
+            "P1.kingdom_absences": _range("draw_presence"),
+            "P1.absence_targets": _range("draw_presence"),
+            "P1.relaxed_controls": _range("draw_relaxed"),
+            "P1.absences": _range("draw_absences"),
+            "P1.copy_number": _range("draw_copies"),
+            "P1.record_chase": _range("draw_chase")}
 
 
 def has_exhibit(check_id: str, outcome) -> bool:

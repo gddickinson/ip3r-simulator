@@ -284,4 +284,37 @@ P = [
        "before any error rate was known: the median measured genomic span "
        "of an ITPR gene (Paper 3, results/methods/contiguity_summary.json "
        "d4_bar)", 1.0, 1e9),
+    # ------------------------------------------------------ Paper 1 range
+    _p("range.absence_min_proteomes", "Absence-clade proteome floor", 10.0,
+       "proteomes", "method", "range", "ip3r_genes", "A phylum or class is "
+       "an absence target when at least this many of its reference proteomes "
+       "were swept and none carries a call.", "ip3r_genes S23 manifest rule "
+       "G3 (results/s23_scope/report.md: 'one per clade S20 swept >= 10 "
+       "proteomes of and found 0 ITPR in')", 1.0, 1e4),
+    _p("range.substantial_evalue", "Substantial-match E-value", 1e-5, "",
+       "method", "range", "ip3r_genes", "A relaxed-search hit is substantial "
+       "only at or below this full-sequence E-value (with the coverage bar).",
+       "ip3r_genes S20's primary threshold, the strict side of its "
+       "one-search-two-sensitivities design (results/s20_sweep/report.md)",
+       0.0, 10.0),
+    _p("range.substantial_coverage", "Substantial-match model coverage", 0.5,
+       "", "method", "range", "ip3r_genes", "A relaxed-search hit is "
+       "substantial only if it spans at least this fraction of the profile.",
+       "ip3r_genes S20: 'spanning at least half the model' "
+       "(results/s20_sweep/report.md, negative-claims table)", 0.0, 1.0),
+    _p("range.family_floor_aa", "Full-length family floor", 2000.0, "aa",
+       "method", "range", "ip3r_genes", "A plant or fungal record shorter "
+       "than this is a fragment of a gene, not a full-length receptor.",
+       "ip3r_genes S20 chase threshold min_length_aa "
+       "(results/s20_sweep/verdict_summary.json)", 1.0, 1e4),
+    _p("range.contaminant_pident", "Contaminant identity", 95.0, "%",
+       "method", "range", "ip3r_genes", "A record this identical (or more) "
+       "to one relative outside its kingdom, over the coverage bar, is an "
+       "assembly-contamination suspect.", "ip3r_genes S20 chase threshold "
+       "contaminant_pident (results/s20_sweep/verdict_summary.json)",
+       0.0, 100.0),
+    _p("range.contaminant_qcov", "Contaminant coverage", 0.5, "",
+       "method", "range", "ip3r_genes", "Query coverage the contaminant "
+       "identity must hold over.", "ip3r_genes S20 chase threshold "
+       "contaminant_qcov (results/s20_sweep/verdict_summary.json)", 0.0, 1.0),
 ]

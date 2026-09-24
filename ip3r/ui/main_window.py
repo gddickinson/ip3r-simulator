@@ -27,6 +27,7 @@ from .genomes_panel import GenomesPanel
 from .gl_widget import ViewportWidget
 from .modes_panel import ModesPanel
 from .params_dialog import ParametersDialog
+from .range_panel import RangePanel
 from ..core.modules import MODULES_KEY
 from .scene_controller import SceneController
 from .structure_panel import StructurePanel
@@ -51,6 +52,10 @@ CHECK_TREE = frozenset(("P2.sister_pair", "P2.paralog_clades", "P2.cyclostome_li
 CHECK_GENOMES = {"P3.no_absent_cells": "state", "P3.false_negatives": "miss",
                  "P3.miss_by_contiguity": "miss", "P3.contiguity_tests": "miss",
                  "P4.unreachable": "recovery", "P4.recovery_channels": "recovery"}
+#: Checks whose "Show" opens the Range tab (Paper 1).
+CHECK_RANGE = frozenset(("P1.presence_range", "P1.kingdom_absences", "P1.relaxed_controls",
+                         "P1.absence_targets", "P1.absences", "P1.copy_number",
+                         "P1.record_chase"))
 CHECK_COLOURS = {k: "ligand_shell" for k in ("P6.shell_distances", "P6.shell_constraint",
                                              "P6.shell_trend", "P6.no_contact_step")}
 
@@ -77,11 +82,13 @@ class MainWindow(QMainWindow):
         self.variants = VariantsPanel()
         self.tree = TreePanel()
         self.genomes = GenomesPanel()
+        self.range = RangePanel()
         self.tabs = tabs = QTabWidget()
         for w, name in ((self.findings, "Findings"), (self.channel, "Channel"),
                         (self.modes, "Modes"), (self.transition, "Transition"),
                         (self.dynamics, "Dynamics"),
-                        (self.tree, "Tree"), (self.genomes, "Genomes"),
+                        (self.range, "Range"), (self.tree, "Tree"),
+                        (self.genomes, "Genomes"),
                         (self.variants, "Variants")):
             tabs.addTab(w, name)
         self._dock("Analysis", tabs, Qt.DockWidgetArea.RightDockWidgetArea, scroll=False)
@@ -103,7 +110,8 @@ class MainWindow(QMainWindow):
         tp.stop_requested.connect(self.morph.stop)
         tp.paint_toggled.connect(self._paint_displacement)
         self.findings.show_structure.connect(self._show_check)
-        self.findings.showable = frozenset(CHECK_SITES) | CHECK_TREE | frozenset(CHECK_GENOMES)
+        self.findings.showable = (frozenset(CHECK_SITES) | CHECK_TREE
+                                  | frozenset(CHECK_GENOMES) | CHECK_RANGE)
         tabs.currentChanged.connect(self._tab_shown)
         self.variants.highlight_residue.connect(self._highlight_variant)
         self.viewport.atom_picked.connect(self._picked)
@@ -264,12 +272,16 @@ class MainWindow(QMainWindow):
 
     def _tab_shown(self, i: int) -> None:
         w = self.tabs.widget(i)
-        if w is self.tree or w is self.genomes:
+        if w is self.tree or w is self.genomes or w is self.range:
             w.ensure_loaded()
 
     def _show_check(self, pdb_id: str, check_id: str) -> None:
         if check_id in CHECK_TREE:
             self.tabs.setCurrentWidget(self.tree)
+            return
+        if check_id in CHECK_RANGE:
+            self.range.ensure_loaded()
+            self.tabs.setCurrentWidget(self.range)
             return
         if check_id in CHECK_GENOMES:
             self.genomes.show_layer(CHECK_GENOMES[check_id])

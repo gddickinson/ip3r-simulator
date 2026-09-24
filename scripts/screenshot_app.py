@@ -162,6 +162,25 @@ def main() -> int:
                     raise RuntimeError(f"recovery layer drew {g.info['counts']}")
                 app.processEvents()
                 g.canvas.grab().save(str(out / "genomes_recovery.png"))
+                win.findings.tree.setCurrentItem(win.findings._items["P1.absences"])
+                win.findings.show_btn.click()           # opens the Range tab
+                if win.tabs.currentWidget() is not win.range:
+                    raise RuntimeError("P1.absences did not open the Range tab")
+            elif s == 10:
+                r = win.range
+                if r.data is None:
+                    if r.status.text() != "Not loaded." and not r.status.text().startswith("Reading"):
+                        raise RuntimeError(r.status.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                info = r.info
+                held = sum(a.holds for a in r.data.absences)
+                if (info["clades"], info["with_call"], info["present"], info["proteomes"],
+                        held) != (70, 45, 662, 6928, 35):
+                    raise RuntimeError(f"range drew {dict(info, rows=len(info['rows']))}, "
+                                       f"{held} absences held")
+                app.processEvents()
+                win.grab().save(str(out / "gui_range.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

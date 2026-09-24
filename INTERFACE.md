@@ -87,7 +87,7 @@ headless (CLI, tests, notebooks).
 | `checks.py` | framework: `register` decorator, `Check`, `Outcome` (`confirmed/discrepancy/not_run/error`), `run_check(s)`, `all_checks`, `PAPERS`; refuses to confirm against a modified registry |
 | `checks_structure.py` | `S0.*` (C4, filter, gate, pore profile, IP3 contacts — recomputed from coordinates) and `P6.shell_agreement`, `P6.contacts_heavy_atom` |
 | `checks_constraint.py` | `P5.*` (element means, rankings, gate identity, variant AUCs under S17's position rules, deep-ranks-third, VUS count, ω) and `P6.contacts_vs_core` |
-| `checks_evolution.py` | `P1.absences`, `P2.sister_pair` (own Newick reader), `P2.au_test`, `P2.teleost_itpr1`, `P3.*`, `P4.unreachable`, `LEDGER.claims` |
+| `checks_evolution.py` | `P2.sister_pair` (own Newick reader), `P2.au_test`, `P2.teleost_itpr1`, `P3.*`, `P4.unreachable`, `LEDGER.claims` |
 | `checks_modules.py` | `P6.module_map`, `P6.module_contrast`, `P6.loop_reverses` |
 | `checks_shells.py` | `P6.shell_distances` (recomputed), `P6.shell_constraint`, `P6.shell_trend`, `P6.no_contact_step` |
 | `shell_constraint.py` | `measured_shells` (the 6-deposit pocket), `pocket(gene)` → `Pocket` (carried by own alignment, joined to deep JSD), `shell_rows`, `trend`, `contact_step`, `clear_caches` |
@@ -100,6 +100,9 @@ headless (CLI, tests, notebooks).
 | `genome_grid.py` | Papers 3/4 per cell: `load_grid(layers)` → `GenomeGrid` (309 genomes × `CELLS` ITPR1–3 + RYR; layers `search`/`miss`/`state`/`recovery`; `counts`, `row`, `subset`), `Genome` (N50, level, source, `above_bar`), `recovery_channel(row)` (rebuilt from counts), `above_bar` (registered `genomes.contiguity_bar_bp`), `order`/`ORDERS` |
 | `grid_figure.py` | `draw_grid(ax, grid, layer)` (fixed category colours, N50 strip on a fixed log scale, bar line, class blocks), `LAYER_STYLE`, `LAYER_TITLES`; exhibits `draw_misses`, `draw_logistic`, `draw_recovery` |
 | `checks_genomes.py` | `P3.miss_by_contiguity`, `P3.contiguity_tests` (every row of contiguity_tests.tsv), `P4.recovery_channels` (rederived) |
+| `range_table.py` | Paper 1's S20/S23 rows: `load_proteomes` → `Proteome` (clade from taxonomy.tsv), `clade_rows` → `CladeRow`, `count_at(rank, name)`, `taxon_calls` (from the 6 assignment tables), `absence_targets` (S23 rule G3, `range.absence_min_proteomes`), `genome_absences` → `GenomeAbsence` (rebuilt from manifest + control ledger + copies + copy ledger; `CONTROLLED`), `copy_numbers`, `substantial_table` (relaxed hits at the registered bar; `LINEAGES`), `load_range` → `Range` (`absences_in(clade)`) |
+| `range_figure.py` | `draw_range(ax, clades, absences)` — clade bars on a fixed 0–1 scale, supergroup colours (`GROUP_COLORS`), prokaryotes collapsed, genome absences crossed; exhibits `draw_presence`, `draw_relaxed`, `draw_absences`, `draw_copies`, `draw_chase` |
+| `checks_range.py` | `P1.presence_range`, `P1.kingdom_absences`, `P1.relaxed_controls`, `P1.absence_targets`, `P1.absences`, `P1.copy_number`, `P1.record_chase` (all rederived) |
 | `exhibits.py` | `draw(ax, check_id, outcome)` — figures from a check's own numbers |
 
 ## `ip3r/render/` (moderngl, OpenGL 4.1)
@@ -117,7 +120,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | File | Purpose |
 |---|---|
 | `app.py` | `main()` — surface format, theme, window, initial load |
-| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer |
+| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer, `CHECK_RANGE` to the Range tab |
 | `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, side/top views, mode animation |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
@@ -129,6 +132,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `findings_panel.py` | checks by paper, run on a worker, claim/method/verdict, exhibit, show on structure (`showable`: residue-keyed checks drawn on the displayed structure) |
 | `tree_panel.py` | Tree tab: `draw_tree` on a toolbar canvas, tip labels / support toggles, "Vertebrates" zoom, click names a tip; loaded on a worker when first shown |
 | `genomes_panel.py` | Genomes tab: `draw_grid` with layer / sort / class / above-bar controls, click names a genome; loaded on a worker when first shown; `show_layer` (from a check's "Show") |
+| `range_panel.py` | Range tab: `draw_range` with min-proteomes / collapse-prokaryotes / genome-absence controls, click lists a clade's genome absences; loaded on a worker when first shown |
 | `variants_panel.py` | S17 variants per paralog/class; highlight only in matching numbering |
 | `params_dialog.py`, `plot_canvas.py`, `workers.py`, `theme.py` | helpers |
 

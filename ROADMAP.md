@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 3.**
+**Next: Round 4** (Round 3's scheduled items are done; its emergent items remain open).
 
 ## Destination
 
@@ -109,8 +109,27 @@ Emergent (not scheduled):
   could be drawn as another layer from `lesion_by_class.tsv` /
   `integrity_pairs.tsv`, so the reader can see it sits in the same rows.
 
-- [ ] Paper 1: presence/absence across eukaryotic clades from the S20/S23
-  tables.
+- [x] Paper 1: presence/absence across eukaryotic clades (Range tab: one bar
+  per clade, fraction of 6,928 proteomes with a call, genome-level absences
+  marked). Seven rederived checks, all confirmed (`P1.absences` upgraded
+  from reading the summary to rebuilding it). The numbers: 662/6,928
+  proteomes and 45/135 clades. Presence from the 2,012 assignment records
+  agrees with the presence table in 6,854/6,854 taxa. All 13 named phylum
+  counts match (Streptophyta 0/384 vs Chlorophyta 15/48; Dikarya
+  0/1,353). All 24 cells of the relaxed-sensitivity table match (PF08709
+  0/26/0/16, MIR 633/4,376). S23's G3 rule, rebuilt from its sentence,
+  gives the same 35 absence targets, and all 35 genome rows rebuild from
+  the per-genome ledgers. Copies: 117/43 of 194 genomes, with Macrostomum
+  18, Stentor 13, Dysidea 8 and Cymbomonas 3. Chase: 47 real genes, 52
+  fragments. 46 checks: 44 confirmed, 2 discrepancies (unchanged).
+Emergent (not scheduled):
+- [ ] The Range tab stops at clade level. S23's 194 genomes (copy number,
+  control verdict) could be drawn per genome inside a clicked clade, the way
+  the Genomes tab draws Paper 3.
+- [ ] Paper 1's family-call benchmark (24/25 recall, 31/31 specificity, the
+  0.10 labelled-bait margin) and the profile calibration (11,875 agree,
+  1 disagree) are not yet re-derived; `benchmark_controls/` and
+  `hmm_sweep/` hold the per-record inputs.
 
 ## Round 4 — better physics
 

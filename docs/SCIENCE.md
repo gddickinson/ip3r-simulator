@@ -207,6 +207,36 @@ and protein-record recovery (`gene_recovery.tsv`).
   full-length record resolving to a cell? one resolving to *this* cell?
   It agrees with the table's own label in all 1,236 cells.
 
+## Paper 1: presence and absence across eukaryotes
+
+`analysis/range_table.py` joins the S20 proteome sweep (per-proteome
+presence, the taxonomy, the per-record assignments, the relaxed search) and
+the S23 genome sweep (manifest, control ledger, copies, copy-number ledger).
+A clade is the taxonomy table's own `clade`. Seven checks re-derive the
+paper's numbers from those rows:
+
+- **Presence two ways.** Presence is counted from the presence table's call
+  count, and again record by record from the six assignment tables. The two
+  agree in all 6,854 taxa. They can only be compared per taxon, because 72
+  taxa have more than one proteome.
+- **Absence targets from the rule.** S23's rule G3 is re-implemented from its
+  one-sentence statement: a eukaryotic phylum or class with ≥
+  `range.absence_min_proteomes` (10) swept and no call. It gives exactly the
+  35 clades `absence_at_genome.tsv` reports.
+- **Genome absences from the ledgers.** Each target's genomes, controlled
+  genomes (`controlled_cross_kingdom` or `controlled_by_target` only),
+  complete-gene genomes and trace-only genomes are counted from the
+  per-genome ledgers. All 35 rows match the published table.
+- **Substantial matches** are full E ≤ `range.substantial_evalue` (1e-5)
+  and model coverage ≥ `range.substantial_coverage` (0.5), with each target
+  counted once per lineage. All 24 cells of S20's four-lineage table
+  reproduce.
+- **The record chase.** Rule R5 calls a record a fragment if it is below
+  `range.family_floor_aa` (2,000) *or* UniProt flags it as a fragment. The
+  first checker applied only the floor and got 50 real genes instead of 47:
+  three records of 2,366–2,858 aa are UniProt-flagged fragments. That was
+  the checker's error.
+
 ## What the findings checks establish
 
 | kind | what agreement means |

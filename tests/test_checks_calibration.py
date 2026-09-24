@@ -130,6 +130,43 @@ def _drop_below_bar(d: Path) -> None:
     _edit(p, _set({"accession": acc}, contig_n50=int(bar) - 1))
 
 
+def _rows(path: Path) -> list[dict]:
+    with open(path, newline="") as fh:
+        return list(csv.DictReader(fh, delimiter="\t"))
+
+
+def _call_in(d: Path, rank: str, name: str) -> None:
+    """One proteome of a named phylum or class given an IP3R call."""
+    taxa = {r["taxid"] for r in _rows(d / R / "s20_sweep/taxonomy.tsv") if r[rank] == name}
+    assert taxa
+    done = []
+
+    def fn(row):
+        if not done and row["taxid"] in taxa:
+            row["n_itpr"] = "1"
+            done.append(1)
+        return row
+    _edit(d / R / "s20_sweep/proteome_presence.tsv", fn)
+
+
+def _gene_in(d: Path, phylum: str) -> None:
+    """A complete gene model moved onto the first genome of a phylum."""
+    acc = next(m["accession"] for m in _rows(d / R / "s23_scope/genome_manifest_s23.tsv")
+               if m["phylum"] == phylum)
+    _edit(d / R / "s23_scope/copies.tsv", _first({}, accession=acc))
+
+
+def _drop_first(path: Path) -> None:
+    done = []
+
+    def fn(row):
+        if not done:
+            done.append(1)
+            return None
+        return row
+    _edit(path, fn)
+
+
 PLANTS = {
     "P5.element_means": lambda d: _edit(d / R / "constraint/constraint_by_element.tsv",
                                         _set({"paralog": "ITPR1", "element": "MIR"}, mean_jsd=0.9)),
@@ -190,8 +227,19 @@ PLANTS = {
     "P4.unreachable": lambda d: _edit(d / R / "methods/gene_recovery.tsv",
                                       _first({"cell": "ITPR1", "gene_present": "1"},
                                              recovery_channel="protein_db")),
-    "P1.absences": lambda d: _edit(d / R / "s23_scope/absence_at_genome.tsv",
-                                   _first({}, genomes_with_full_itpr=1)),
+    # Paper 1: input plants in the per-proteome, per-record and per-genome rows.
+    "P1.presence_range": lambda d: _edit(d / R / "s20_sweep/proteome_presence.tsv",
+                                         _first({"group": "bacteria_genus"}, n_itpr=1)),
+    "P1.kingdom_absences": lambda d: _call_in(d, "phylum", "Streptophyta"),
+    "P1.relaxed_controls": lambda d: _edit(
+        d / R / "s20_sweep/relaxed_hits.tsv",
+        _set({"profile": "PF08709", "group": "viridiplantae"},
+             full_evalue="1e-10", hmm_coverage="0.9")),
+    "P1.absence_targets": lambda d: _call_in(d, "class", "Cestoda"),
+    "P1.absences": lambda d: _gene_in(d, "Ascomycota"),
+    "P1.copy_number": lambda d: _drop_first(d / R / "s23_scope/copies.tsv"),
+    "P1.record_chase": lambda d: _edit(d / R / "s20_sweep/plant_fungal_verdicts.tsv",
+                                       _first({"verdict": "real_gene"}, length=1500)),
     "LEDGER.claims": lambda d: _edit(d / "manuscript/claims_check.tsv",
                                      _first({}, verdict="fail")),
     "S0.c4_symmetry": lambda d: _json(d / META, lambda m: m.update(c4_residual_rmsd_A=0.5)),
