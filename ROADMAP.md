@@ -10,8 +10,7 @@ the physiological reading (voltage sensor lifts the inactivation-site
 block) it takes 17.5–49.5 ms, against 6.3 ms measured. The two readings
 of the activation-site affinity bracket that range. The next steps are to
 read Meissner et al. 1997 (JBC, the same [³H]ryanodine assay as Murayama,
-with Mg²⁺; behind a browser challenge, so the user may need to supply the
-PDF) to pin K_Mg,A in Murayama's condition, and to simulate the V channels
+with Mg²⁺; now in `pdfs/meissner_1997.pdf`, and Ríos 1993 in `pdfs/rios_1993.pdf`) to pin K_Mg,A in Murayama's condition, and to simulate the V channels
 as the trigger. Other strong candidates: the A-subspace headline and the
 default stride (Round 2, emergent) and the continuum's conductance
 shortfall (Rounds 4 and 6.1).

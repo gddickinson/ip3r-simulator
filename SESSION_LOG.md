@@ -1260,5 +1260,8 @@ Sync was clean. No check or verdict moved. `make test` gave 326 passed
 before the new tests (334 with them), lint and sizes were clean, and
 `make screenshots` passed.
 
-**Next:** the PDFs if supplied. Otherwise, the A-subspace headline in the
-Transition tab and the default-stride decision (new emergent item).
+**Next:** the PDFs have now been supplied (`pdfs/meissner_1997.pdf`,
+`pdfs/rios_1993.pdf`, git-ignored; both have text), so do Round 6.5's
+emergent items: pin K_Mg,A from Meissner 1997, then the V-channel
+trigger from Ríos 1993. The user's Mendeley library
+(`~/Documents/Mendeley Desktop`) has about 2,100 more PDFs.
