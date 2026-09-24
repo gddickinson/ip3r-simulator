@@ -72,6 +72,14 @@ CON1 = R + "constraint/constraint_ITPR1_Q14643.tsv"
 META = R + "s0_baseline/review_figures/structure_meta.json"
 
 
+def _swap_tips(d: Path, a: str, b: str) -> None:
+    """Exchange two tip labels in the committed tree (an input plant)."""
+    p = d / R / "phylogeny/rooted.nwk"
+    t = p.read_text()
+    assert a in t and b in t
+    p.write_text(t.replace(a, "\0").replace(b, a).replace("\0", b))
+
+
 def _gate_filter_boost(d: Path):
     for g, a in (("ITPR1", "Q14643"), ("ITPR2", "Q14571"), ("ITPR3", "Q14573")):
         _edit(d / f"results/constraint/constraint_{g}_{a}.tsv",
@@ -140,6 +148,14 @@ PLANTS = {
                                              assigned_to="ITPR3")),
     "P2.au_test": lambda d: _edit(d / R / "phylogeny/au_test.tsv",
                                   _set({"tree": "H1_12"}, p_AU=0.3)),
+    # Tree plants are made in the tree itself: move a tip, or raise one support.
+    "P2.paralog_clades": lambda d: _swap_tips(d, "ITPR1_Bos_taurus_Bovine_Q9TU34",
+                                              "ITPR2_Homo_sapiens_Human_Q14571"),
+    "P2.cyclostome_lineages": lambda d: _swap_tips(
+        d, "vertebrate_basal_Petromyzon_marinus_Sea_lamprey_A0ACM8C056",
+        "ITPR3_Homo_sapiens_Human_Q14573"),
+    "P2.support_bar": lambda d: (d / R / "phylogeny/rooted.nwk").write_text(
+        (d / R / "phylogeny/rooted.nwk").read_text().replace("83.1/77", "83.1/97")),
     "P2.teleost_itpr1": lambda d: _edit(d / R / "duplication/teleost_copies.tsv",
                                         _set({"group": "teleost"}, ITPR1_copies=1)),
     "P3.no_absent_cells": lambda d: _edit(d / R / "loss_dynamics/character_matrix.tsv",

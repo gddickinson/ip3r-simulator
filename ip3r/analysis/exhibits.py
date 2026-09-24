@@ -92,11 +92,19 @@ def _shell_means(ax, d):
     ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
 
 
+def _tree(ax, d):
+    from .newick import parse
+    from .tree_figure import draw_tree
+    draw_tree(ax, parse(d["newick"]))
+
+
 EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
             "P6.loop_reverses": _modules, "P6.shell_trend": _shell_trend,
-            "P6.shell_constraint": _shell_means}
+            "P6.shell_constraint": _shell_means, "P2.sister_pair": _tree,
+            "P2.paralog_clades": _tree, "P2.cyclostome_lineages": _tree,
+            "P2.support_bar": _tree}
 
 
 def has_exhibit(check_id: str, outcome) -> bool:

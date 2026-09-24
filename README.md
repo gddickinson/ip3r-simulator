@@ -69,7 +69,7 @@ inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
 IP3), and stochastic clusters in which Ca²⁺ coupling turns independent blips
 into cooperative openings.
 
-**Check the publication.** The Findings tab re-derives 33 results from the
+**Check the publication.** The Findings tab re-derives 36 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
 do not share, `rederived` from the publication's input tables with this
@@ -91,9 +91,20 @@ conservation against that distance for all three paralogs.
 
 ![Ligand shells and conservation against distance](docs/img/gui_shells.png)
 
+**Read the tree.** The Tree tab draws Paper 2's RyR-rooted maximum-likelihood
+tree (134 proteins) from the committed `rooted.nwk`, parsed by this
+project's reader. Each paralog's whole clade is boxed with its size and
+SH-aLRT/UFBoot support, and so is the RyR outgroup. Hagfish and lamprey tips
+are yellow diamonds, labelled with the support of their clade and of the
+node where it joins. A white dot marks each node that clears both support
+bars (80/95). "Vertebrates" zooms to the 57 vertebrate tips with their
+labels. "Show" on any tree check opens this tab.
+
+![Paper 2's tree](docs/img/gui_tree.png)
+
 ## The checks, as of Round 3
 
-31 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+34 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts
@@ -137,6 +148,9 @@ touches a published paper's headline:
 | `P2.sister_pair` | rederived | confirmed | ITPR2 + ITPR3 |
 | `P2.au_test` | read | confirmed | only H3_23 retained (p_AU 0.48) |
 | `P2.teleost_itpr1` | rederived | confirmed | ≥ 2 copies: ITPR1 87 %, ITPR2 4 %, ITPR3 2 % |
+| `P2.paralog_clades` | rederived | confirmed | 19/13/19 at 100/100, 4/2/1 unnamed; only the 6 cyclostomes outside |
+| `P2.cyclostome_lineages` | rederived | confirmed | two cyclostome-only clades, both species in each; 4 first among vertebrates (99.5/100), 2 join ITPR2+ITPR3 (83.1/77) |
+| `P2.support_bar` | rederived | confirmed | 91 of 131 bipartitions clear both bars |
 | `P3.no_absent_cells` | rederived | confirmed | 927 cells, 0 absent |
 | `P3.dollo_zero` | read | confirmed | 0 losses |
 | `P3.false_negatives` | rederived | confirmed | 140/923, 5/563 contiguous |
@@ -162,7 +176,8 @@ findings checks; everything else runs without it.
 ## Running
 
 ```
-python -m ip3r                      # the GUI
+./run_app.command                   # the GUI (activates ip3r_sim; double-click in Finder)
+python -m ip3r                      # the GUI, from an activated environment
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r info 8TKF            # one deposit, measured

@@ -56,7 +56,8 @@ def sister_pair() -> tuple[str, str] | None:
 def sister():
     pair = sister_pair()
     found = " + ".join(pair) if pair else "no pair forms a clade without the third"
-    return agree(pair == ("ITPR2", "ITPR3"), "ITPR2 + ITPR3", found)
+    return agree(pair == ("ITPR2", "ITPR3"), "ITPR2 + ITPR3", found,
+                 newick=G.read_text(TREE))
 
 
 @register("P2.au_test", "origin",

@@ -223,3 +223,57 @@ not a discrepancy with the paper.
   No project effect.
 
 **Next:** Round 3, item 3 (Paper 2 tree viewer).
+
+## 2026-09-23 — Session 5: Round 3, item 3 — Paper 2 tree viewer
+
+**Sync.** Both repos were up to date and `make sync-check` was clean, so no
+verdicts moved.
+
+**Built.**
+- `run_app.command` at the project root, added at the user's request. It
+  activates `ip3r_sim` and runs `python -m ip3r`, so it can be
+  double-clicked in Finder, and arguments pass through
+  (`./run_app.command checks`).
+- `analysis/tree.py` asks Paper 2's clade questions of `rooted.nwk` with the
+  existing Newick reader. Tip groups come from the census prefix on each
+  label, and cyclostomes are recognised by genus, so no ip3r_genes clade
+  table enters an answer. A paralog's whole clade is the MRCA of every tip
+  whose record names it, and it must contain nothing foreign.
+- `analysis/checks_tree.py` adds three rederived checks:
+  `P2.paralog_clades`, `P2.cyclostome_lineages` and `P2.support_bar`. Each
+  is calibrated by an input plant made in the tree itself (two tips
+  swapped, or one support raised), not by editing the answer table.
+- `analysis/tree_figure.py` draws the tree as a ladderized phylogram. It is
+  shared by the new Tree tab (with a toolbar, tip-label and support
+  toggles, a "Vertebrates" zoom and click-to-name) and by the exhibits of
+  all four P2 tree checks. "Show" on a tree check opens the Tree tab.
+- New parameters: `tree.alrt_min` 80 (Guindon 2010) and `tree.ufboot_min`
+  95 (Hoang 2018). `test_tree.py` checks every definition on toy trees with
+  known answers. The smoke test opens the tab from a check and asserts
+  19/13/19 and cyclostome clades of 4 + 2. Tests: 137 → 148.
+
+**Measured.** Everything the paper says about the tree reproduces from the
+Newick alone. The whole clades are 19/13/19 at 100/100 and take in 4/2/1
+unnamed shark, chimaera and coelacanth tips, the exact records listed in
+`paralog_clades.tsv`. The six vertebrate tips outside all three clades are
+all cyclostomes. They form two cyclostome-only clades, each holding hagfish
+and lamprey. The 4-tip clade (99.5/100) branches first among the 57
+vertebrates, and the 2-tip clade joins ITPR2+ITPR3 at 83.1/77. Of the 131
+bipartitions, 107 clear SH-aLRT 80, 97 clear UFBoot 95 and 91 clear both.
+A second rule for the whole clade ("expand the named core while the clade
+stays pure") gives the same 19/13/19.
+
+**Where I was wrong first.**
+- My first support count was 92 of 132 nodes, where the paper has 91 of
+  131. The paper was right. Rooting splits one unrooted edge into the
+  root's two children, IQ-TREE labels both, and I had counted that one
+  bipartition twice. `bipartitions()` now counts it once, and a toy-tree
+  test pins that down.
+- My first toy Newick in `test_tree.py` had unbalanced parentheses. It is
+  now built from named sub-clades.
+- In the first vertebrate-zoom screenshot, tip labels spilled above the
+  axes and the clade labels were cut off. Labels are now clipped, and the
+  zoom sets x as well as y.
+
+**Next:** Round 3, item 4 (Paper 3/4: genome × paralog grid of the character
+matrix and the recovery channel).

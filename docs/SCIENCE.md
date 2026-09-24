@@ -163,6 +163,27 @@ boundary (third → fourth) everywhere. Note that the FEL purifying fraction
 (the paper's §8) falls after the *second* shell instead, so the two
 instruments put the drop in different places.
 
+## Paper 2: the tree
+
+The P2 tree checks ask their questions of the committed `rooted.nwk` with this
+project's Newick reader (`analysis/newick.py`, `analysis/tree.py`). No
+ip3r_genes clade table goes into the answer. A tip's group comes from the
+census prefix on its label. Cyclostomes are recognised by genus (*Myxine*,
+*Petromyzon* and the other hagfish and lamprey genera).
+
+- **A paralog's whole clade** is the MRCA of every tip whose record names it.
+  The check requires that clade to contain nothing foreign, meaning no other
+  paralog, no cyclostome and no invertebrate. A second rule, "expand the
+  named core while the clade stays pure", gives the same 19/13/19.
+- **A cyclostome clade** is a maximal clade made only of cyclostome tips. A
+  clade "branches first among the vertebrates" when its parent holds exactly
+  the vertebrate tips.
+- **Support is counted per bipartition.** In a rooted tree the root's two
+  edges are a single bipartition of the unrooted tree, and IQ-TREE labels
+  both of them. Counting nodes gave 92 of 132; counting bipartitions gives
+  the published 91 of 131. The bars are the registered parameters
+  `tree.alrt_min` (80, Guindon 2010) and `tree.ufboot_min` (95, Hoang 2018).
+
 ## What the findings checks establish
 
 | kind | what agreement means |

@@ -59,6 +59,10 @@ Emergent (not scheduled):
   Re-derive the §8 shell FEL table and compare residue by residue.
 - [ ] "Show on structure" for the shells frames the whole tetramer, so the
   pocket is small on screen. Add a camera preset centred on one IP3 site.
+- [ ] Paper 2's model-robustness claim ("nine claim clades held, none
+  weakened" under the extra NNI round) can be re-derived the same way from
+  `itpr_ml_bnni.contree` and `claim_members.tsv`, with the two trees shown
+  side by side.
 
 - [x] Paper 6 module contrast, re-derived from the deep alignments with this
   project's own column map, modules and statistics. Every published number
@@ -76,8 +80,16 @@ Emergent (not scheduled):
   the largest drop between shells is at 11.5 Å in all three paralogs.
   4 checks (33 total: 31 confirmed, 2 discrepancies, unchanged). Residues are
   painted by shell; the exhibit plots JSD against distance.
-- [ ] Paper 2: a tree viewer for `rooted.nwk` with the paralog clades boxed
-  and the cyclostome tips marked.
+- [x] Paper 2 tree viewer. `rooted.nwk` is drawn with this project's reader
+  (Tree tab, and as the P2 exhibits). Paralog clades and the RyR outgroup are
+  boxed, cyclostome tips marked, and nodes clearing 80/95 dotted. There is a
+  one-click vertebrate zoom. Three new rederived checks, all confirmed:
+  clades 19/13/19 at 100/100 with 4/2/1 unnamed tips and only the six
+  cyclostomes outside; two cyclostome-only clades, each holding both
+  species (4 tips first among vertebrates at 99.5/100, 2 joining
+  ITPR2+ITPR3 at 83.1/77); 91 of 131 bipartitions clear both bars. The
+  naive node count was 92/132 because the root's twin edge was counted
+  twice. 36 checks: 34 confirmed, 2 discrepancies (unchanged).
 - [ ] Paper 3/4: a genome × paralog grid of the character matrix and the
   recovery channel, sortable by contiguity.
 - [ ] Paper 1: presence/absence across eukaryotic clades from the S20/S23

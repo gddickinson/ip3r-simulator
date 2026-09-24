@@ -631,6 +631,32 @@
    "source_note": "Published tables round to four decimals; 0.002 allows for rounding and tie-handling differences",
    "minimum": 0.0,
    "maximum": 0.1
+  },
+  {
+   "key": "tree.alrt_min",
+   "name": "SH-aLRT support bar",
+   "value": 80.0,
+   "unit": "%",
+   "kind": "convention",
+   "category": "phylogeny",
+   "citation": "guindon2010",
+   "description": "A tree node counts as supported only if its SH-like approximate likelihood-ratio support is at least this.",
+   "source_note": "The IQ-TREE recommendation for SH-aLRT, and half of the joint bar ip3r_genes Paper 2 holds every claim to",
+   "minimum": 0.0,
+   "maximum": 100.0
+  },
+  {
+   "key": "tree.ufboot_min",
+   "name": "UFBoot support bar",
+   "value": 95.0,
+   "unit": "%",
+   "kind": "convention",
+   "category": "phylogeny",
+   "citation": "hoang2018",
+   "description": "A tree node counts as supported only if its ultrafast bootstrap support is at least this.",
+   "source_note": "Hoang et al.'s threshold for a clade to be considered real, and the other half of Paper 2's joint bar",
+   "minimum": 0.0,
+   "maximum": 100.0
   }
  ]
 }

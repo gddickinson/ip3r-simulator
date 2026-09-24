@@ -117,6 +117,26 @@ def main() -> int:
                 if abs(drawn - win.scene.structure.xyz).max() < 1.0:
                     raise RuntimeError("the morph end frame did not move the model")
                 win.grab().save(str(out / "gui_transition.png"))
+                win.findings.tree.setCurrentItem(
+                    win.findings._items["P2.cyclostome_lineages"])
+                win.findings.show_btn.click()           # opens the Tree tab
+                if win.tabs.currentWidget() is not win.tree:
+                    raise RuntimeError("P2.cyclostome_lineages did not open the Tree tab")
+            elif s == 8:
+                if win.tree.root is None:
+                    if not win.tree.status.text().startswith("Reading"):
+                        raise RuntimeError(win.tree.status.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                info = win.tree.info
+                if sorted(info["clades"].values()) != [13, 19, 19] or \
+                        info["cyclostome_clades"] != [4, 2]:
+                    raise RuntimeError(f"tree drew {info}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_tree.png"))
+                win.tree.zoom_vertebrates()
+                app.processEvents()
+                win.tree.canvas.grab().save(str(out / "tree_vertebrates.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

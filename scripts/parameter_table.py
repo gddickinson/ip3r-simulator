@@ -265,4 +265,15 @@ P = [
        "re-derived AUC, mean or fraction that still counts as agreement.",
        "Published tables round to four decimals; 0.002 allows for rounding "
        "and tie-handling differences", 0.0, 0.1),
+    # ------------------------------------------------------ tree support
+    _p("tree.alrt_min", "SH-aLRT support bar", 80.0, "%", "convention",
+       "phylogeny", "guindon2010", "A tree node counts as supported only if "
+       "its SH-like approximate likelihood-ratio support is at least this.",
+       "The IQ-TREE recommendation for SH-aLRT, and half of the joint bar "
+       "ip3r_genes Paper 2 holds every claim to", 0.0, 100.0),
+    _p("tree.ufboot_min", "UFBoot support bar", 95.0, "%", "convention",
+       "phylogeny", "hoang2018", "A tree node counts as supported only if "
+       "its ultrafast bootstrap support is at least this.",
+       "Hoang et al.'s threshold for a clade to be considered real, and the "
+       "other half of Paper 2's joint bar", 0.0, 100.0),
 ]

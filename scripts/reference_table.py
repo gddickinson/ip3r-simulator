@@ -99,6 +99,15 @@ REFERENCES = [
      "title": "EMBOSS: the European Molecular Biology Open Software Suite",
      "journal": "Trends Genet 16:276-277",
      "doi": "10.1016/S0168-9525(00)02024-2"},
+    {"key": "guindon2010", "authors": "Guindon S, Dufayard JF, Lefort V, "
+     "Anisimova M, Hordijk W, Gascuel O", "year": 2010,
+     "title": "New algorithms and methods to estimate maximum-likelihood "
+              "phylogenies: assessing the performance of PhyML 3.0",
+     "journal": "Syst Biol 59:307-321", "doi": "10.1093/sysbio/syq010"},
+    {"key": "hoang2018", "authors": "Hoang DT, Chernomor O, von Haeseler A, "
+     "Minh BQ, Vinh LS", "year": 2018,
+     "title": "UFBoot2: improving the ultrafast bootstrap approximation",
+     "journal": "Mol Biol Evol 35:518-522", "doi": "10.1093/molbev/msx281"},
     {"key": "ip3r_genes", "authors": "ip3r_genes project", "year": 2026,
      "title": "Census, evolution and constraint of the IP3 receptor family "
               "(the publication project this application illustrates)",
