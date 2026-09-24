@@ -24,7 +24,7 @@ Two consequences this module exists to make visible:
   of the bell moves out. In this model the left flank moves too, less
   (over 0.1 -> 10 µM IP3: right flank 2.4x, half-activation 1.8x). Mak et
   al. (1998) measured IP3 tuning inhibition *alone*; the DYK scheme does not
-  reproduce that, and a Hill-type model that does is on the roadmap.
+  reproduce that, and ``gating_mak`` is the Hill-type model that does.
 
 Concentrations are µM, time is s.
 """
@@ -34,12 +34,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-from scipy.optimize import minimize_scalar
 
 from ..parameters import PARAMETERS as _P
+from .bell import Bell, measure_bell
 
 __all__ = ["GatingParams", "m_inf", "n_inf", "q2", "h_inf", "tau_h",
-           "subunit_activity", "open_probability", "bell_peak",
+           "subunit_activity", "open_probability", "bell_at", "bell_peak",
            "hill_fit_left_flank"]
 
 
@@ -105,19 +105,18 @@ def open_probability(c, p, h=None, g: GatingParams | None = None):
     return subunit_activity(c, p, h, g) ** g.subunits
 
 
+def bell_at(p: float, g: GatingParams | None = None) -> Bell:
+    """The steady-state bell at IP3 ``p``, measured by ``physics.bell``."""
+    g = g or GatingParams()
+    return measure_bell(lambda c: open_probability(c, p, g=g))
+
+
 def bell_peak(p: float, g: GatingParams | None = None) -> tuple[float, float]:
     """``(Ca2+ at the peak, peak open probability)`` at IP3 ``p``."""
-    g = g or GatingParams()
-    res = minimize_scalar(lambda lc: -float(open_probability(10 ** lc, p, g=g)),
-                          bounds=(-4.0, 3.0), method="bounded",
-                          options={"xatol": 1e-6})
-    return float(10 ** res.x), float(-res.fun)
+    b = bell_at(p, g)
+    return b.c_peak, b.po_peak
 
 
 def hill_fit_left_flank(p: float, g: GatingParams | None = None) -> float:
     """Ca2+ at half-maximal activation on the rising flank of the bell (µM)."""
-    g = g or GatingParams()
-    c_peak, po_peak = bell_peak(p, g)
-    grid = np.logspace(-4, np.log10(c_peak), 2000)
-    po = open_probability(grid, p, g=g)
-    return float(np.interp(po_peak / 2, po, grid))
+    return bell_at(p, g).c_half_act

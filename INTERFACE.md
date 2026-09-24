@@ -76,7 +76,9 @@ headless (CLI, tests, notebooks).
 |---|---|
 | `anm.py` | `build_hessian` (inverse-square springs), `ANM.calc_modes` (drops 6 × components), `ANM.label_symmetry` (C4 irreps A/B/E), `apply_generator`, `ModeSet` (`collectivity` κ, `is_collective`, `first(irrep)` skips local artefacts), `tetramer_sites`, `atom_displacements` |
 | `transition_modes.py` | `transition_overlap(tr, reference)` → `TransitionOverlap` (overlap, cumulative, symmetry-matched null, irrep fractions, `report()`), `remove_rigid_body`, `irrep_fractions`, `null_cumulative` |
-| `gating.py` | De Young–Keizer / Li–Rinzel: `m_inf`, `n_inf`, `q2`, `h_inf`, `tau_h`, `open_probability`, `bell_peak`, `hill_fit_left_flank`, `GatingParams` |
+| `gating.py` | De Young–Keizer / Li–Rinzel: `m_inf`, `n_inf`, `q2`, `h_inf`, `tau_h`, `open_probability`, `bell_peak`, `hill_fit_left_flank`, `bell_at` (via `bell`), `GatingParams` |
+| `gating_mak.py` | Mak et al. 1998 Hill-type steady state: `MakParams`, `k_inh` (Eq. 2), `open_probability` (Eq. 1), `bell_at`, `compare_flanks` (both models, one ruler) |
+| `bell.py` | model-agnostic bell measurement: `measure_bell(f)` → `Bell` (peak, half-activation, half-inhibition, `width_decades`), `flank_shifts` |
 | `calcium.py` | closed-cell Li–Rinzel: `simulate` → `Trace`, `fluxes`, `oscillation_metrics` (sustained only), `oscillation_window` (0.36–0.63 µM measured), `steady_state`, `CellParams` |
 | `puffs.py` | stochastic DYK cluster: `simulate_cluster` → `PuffTrace`, `detect_events`, `fano`, `coupling_effect`, `PuffParams` |
 
@@ -128,7 +130,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `modes_panel.py` | ANM table with irreps and κ, animation controls |
 | `transition_panel.py` | Transition tab: end state, fit, method, 8TKG→8TKF preset, frame slider/play, displacement colouring, element and overlap plots |
 | `transition_controller.py` | `build_transition` (worker), `TransitionController` (install, `coords_at`, `show_frame`, `play`, `reset` — path built from the displayed structure) |
-| `dynamics_panel.py` | Gating (bell), Oscillations (+ window scan), Puffs (coupled vs uncoupled) |
+| `dynamics_panel.py` | Gating (bell; model: DYK or Mak 1998, with the flank comparison), Oscillations (+ window scan), Puffs (coupled vs uncoupled) |
 | `findings_panel.py` | checks by paper, run on a worker, claim/method/verdict, exhibit, show on structure (`showable`: residue-keyed checks drawn on the displayed structure) |
 | `tree_panel.py` | Tree tab: `draw_tree` on a toolbar canvas, tip labels / support toggles, "Vertebrates" zoom, click names a tip; loaded on a worker when first shown |
 | `genomes_panel.py` | Genomes tab: `draw_grid` with layer / sort / class / above-bar controls, click names a genome; loaded on a worker when first shown; `show_layer` (from a check's "Show") |
@@ -155,7 +157,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 ## `tests/`
 
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
-— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_calcium`, `test_puffs`), geometry
+— the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
 (`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
 `test_resources`), rules (`test_sizes`), CLI, and

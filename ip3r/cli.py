@@ -10,7 +10,7 @@ testable and scriptable:
     python -m ip3r states           # pore of every ITPR3 gating state
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
-    python -m ip3r gating           # the bell curve at several IP3 levels
+    python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)
     python -m ip3r oscillate --ip3 0.5 [--window]
     python -m ip3r puffs --ip3 0.2
     python -m ip3r params           # every registered number and its source
@@ -145,11 +145,16 @@ def _states(args) -> int:
 
 
 def _gating(args) -> int:
-    from .physics.gating import bell_peak, hill_fit_left_flank
+    from .physics import gating, gating_mak
+    model = gating_mak if args.model == "mak" else gating
     for p in args.ip3:
-        c, po = bell_peak(p)
-        print(f"IP3 {p:6.2f} µM: peak P_open {po:.4f} at Ca2+ {c:.3f} µM; "
-              f"half-activation {hill_fit_left_flank(p):.3f} µM")
+        b = model.bell_at(p)
+        print(f"IP3 {p:6.3f} µM: peak P_open {b.po_peak:.4f} at Ca2+ "
+              f"{b.c_peak:.3f} µM; half-activation {b.c_half_act:.3f}, "
+              f"half-inhibition {b.c_half_inh:.3f} µM")
+    for name, (a, i) in gating_mak.compare_flanks().items():
+        print(f"{name}: IP3 low -> high moves half-activation {a:.3f}x, "
+              f"half-inhibition {i:.2f}x")
     return 0
 
 
@@ -234,6 +239,7 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=_transition)
     p = sub.add_parser("gating")
     p.add_argument("--ip3", type=float, nargs="+", default=[0.1, 0.3, 1.0, 10.0])
+    p.add_argument("--model", choices=["dyk", "mak"], default="dyk")
     p.set_defaults(fn=_gating)
     p = sub.add_parser("oscillate")
     p.add_argument("--ip3", type=float, default=0.5)

@@ -405,3 +405,53 @@ Macrostomum.
 
 **Next:** Round 3's scheduled items are done. Round 4 (Mak 1998 gating
 model) is next, unless an emergent Round 3 item is preferred.
+
+## 2026-09-24 — Session 8: Round 4, item 1 — Mak et al. 1998 gating model
+
+**What.**
+- `physics/gating_mak.py` implements the biphasic Hill model: Eq. 1 has
+  one denominator (not a product of two Hill factors), and in Eq. 2 K_inh
+  depends on IP3.
+- `physics/bell.py` is a model-agnostic ruler: peak, and the Ca²⁺ at half
+  that peak on each flank. The DYK `bell_peak` and `hill_fit_left_flank`
+  now use it, so both models are measured the same way.
+- Nine registered parameters: seven `mak.*` constants from the paper and
+  two method parameters for the comparison span (33 nM, 10 µM). There is a
+  new reference, `mak1998`.
+- The Gating panel has a model selector, and its second plot shows K_inh
+  against IP3 with K_act dotted. `python -m ip3r gating --model mak` prints
+  the same.
+- The smoke test switches the panel to Mak, asserts on it, and writes
+  `docs/img/gui_gating_mak.png`. Tests: 170 → 178.
+
+**Why.** Up to now the app only said "experiment finds inhibition alone is
+tuned; DYK doesn't". With this round the app shows that experimental
+result and measures the difference with an instrument that can fail.
+
+**Verified against the paper (PMC28128 text).** P_max 0.81, K_act
+210 ± 20 nM, H_act 1.9 ± 0.3, H_inh 3.9 ± 0.7, K_∞ 52 ± 4 µM, K_IP3
+50 ± 4 nM, H_IP3 4 ± 0.5. Uncertainties are kept in the source notes.
+Eq. 1's form was confirmed separately: a single denominator 1 + a + b.
+
+**Measured.**
+
+| model | half-activation (33 nM → 10 µM IP3) | half-inhibition |
+|---|---|---|
+| De Young–Keizer | 2.01× | 2.76× |
+| Mak 1998 | 1.016× | 6.22× |
+
+- The plateau at 10 µM IP3 is 0.77–0.81 over 1–20 µM Ca²⁺ (paper: ≈0.8).
+- Below K_IP3 the bell collapses: at 10 nM the peak is 0.11 and K_inh is
+  0.08 µM, below K_act. The paper reports this for 10–20 nM.
+- The Hill curve's K_inh at 33 nM is 8.3 µM; the paper's measured point is
+  9.5 µM.
+- Over 0.1 → 10 µM IP3 (the old DYK comparison span), Mak barely moves
+  (1.06×). Its IP3 sensitivity is about tenfold higher than DYK's, so the
+  span was taken from the paper's own statement: at 33 nM, activation was
+  not affected.
+
+**Correction to Session 7.** There are 45 checks (43 confirmed,
+2 discrepancies), not 46/44. `P1.absences` moved between modules and was
+counted as new. The README said 39; it now says 45. No verdict moved.
+
+**Next:** Round 4, item 2 (a puff model with low resting activity).

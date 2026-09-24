@@ -21,6 +21,13 @@ REFERENCES = [
               "derived from a detailed kinetic model: a Hodgkin-Huxley like "
               "formalism",
      "journal": "J Theor Biol 166:461-473", "doi": "10.1006/jtbi.1994.1041"},
+    {"key": "mak1998", "authors": "Mak DOD, McBride S, Foskett JK",
+     "year": 1998,
+     "title": "Inositol 1,4,5-trisphosphate activation of inositol "
+              "trisphosphate receptor Ca2+ channel by ligand tuning of Ca2+ "
+              "inhibition",
+     "journal": "Proc Natl Acad Sci USA 95:15821-15825",
+     "doi": "10.1073/pnas.95.26.15821"},
     {"key": "bezprozvanny1991",
      "authors": "Bezprozvanny I, Watras J, Ehrlich BE", "year": 1991,
      "title": "Bell-shaped calcium-response curves of Ins(1,4,5)P3- and "

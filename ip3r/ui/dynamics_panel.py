@@ -1,11 +1,11 @@
 """The dynamics tab: what the channel does with IP3 and Ca2+.
 
-Three views of the De Young-Keizer / Li-Rinzel model, from one molecule to
-one cell:
+Three views of IP3R gating, from one molecule to one cell:
 
 * **Gating** — steady-state open probability against Ca2+ at several IP3
-  levels: the bell of Bezprozvanny et al. (1991), and IP3 moving its right
-  flank (inhibition) while the left (activation) stays put.
+  levels, under De Young-Keizer or Mak et al. (1998): the bell of
+  Bezprozvanny et al. (1991), and IP3 moving its right flank (inhibition).
+  Only the Mak model leaves the left flank (activation) where it is.
 * **Oscillations** — the closed-cell model at a chosen IP3; a scan finds the
   IP3 window in which Ca2+ oscillates with no oscillating input.
 * **Puffs** — a stochastic cluster of receptors, with and without the Ca2+
@@ -19,11 +19,13 @@ from __future__ import annotations
 
 import numpy as np
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QDoubleSpinBox, QFormLayout, QHBoxLayout, QLabel,
+from PyQt6.QtWidgets import (QComboBox, QDoubleSpinBox, QFormLayout, QHBoxLayout, QLabel,
                              QPushButton, QTabWidget, QVBoxLayout, QWidget)
 
 from ..physics.calcium import oscillation_metrics, oscillation_window, simulate
-from ..physics.gating import bell_peak, h_inf, open_probability
+from ..parameters import PARAMETERS as _P
+from ..physics import gating_mak as mk
+from ..physics.gating import bell_at, h_inf, open_probability
 from ..physics.puffs import PuffParams, fano, simulate_cluster
 from .plot_canvas import PALETTE, PlotCanvas
 from .workers import run_async
@@ -42,13 +44,26 @@ def _spin(value, lo, hi, step, suffix="", decimals=2):
 
 
 class _Gating(QWidget):
+    """The steady-state bell under either gating model, with the flank test
+    that tells them apart (``gating_mak.compare_flanks``)."""
+
+    MODELS = ("De Young–Keizer (Li–Rinzel)", "Mak et al. 1998 (Hill)")
+    LEVELS = ((0.1, 0.3, 1.0, 10.0), (0.01, 0.02, 0.033, 0.1, 10.0))
+
     def __init__(self):
         super().__init__()
         lay = QVBoxLayout(self)
-        note = QLabel("Steady-state P_open = (m∞ n∞ h∞)³ at clamped Ca²⁺ and "
-                      "IP3 (Li & Rinzel 1994; De Young & Keizer 1992 constants).")
-        note.setWordWrap(True)
-        lay.addWidget(note)
+        row = QHBoxLayout()
+        row.addWidget(QLabel("Model"))
+        self.model = QComboBox()
+        self.model.addItems(self.MODELS)
+        self.model.currentIndexChanged.connect(self.draw)
+        row.addWidget(self.model)
+        row.addStretch(1)
+        lay.addLayout(row)
+        self.note = QLabel()
+        self.note.setWordWrap(True)
+        lay.addWidget(self.note)
         self.canvas = PlotCanvas(self, height=3.4, cols=2)
         lay.addWidget(self.canvas, 1)
         self.text = QLabel()
@@ -57,28 +72,52 @@ class _Gating(QWidget):
         self.draw()
 
     def draw(self):
+        mak = self.model.currentIndex() == 1
         ax1, ax2 = self.canvas.reset(1, 2)[0]
-        c = np.logspace(-2, 2, 400)
+        c = np.logspace(-2, 2.5, 400)
         lines = []
-        for k, p in enumerate((0.1, 0.3, 1.0, 10.0)):
-            ax1.semilogx(c, open_probability(c, p), color=PALETTE[k], label=f"IP3 {p:g} µM")
-            cp, po = bell_peak(p)
-            ax1.plot([cp], [po], "o", color=PALETTE[k], ms=3)
-            ax2.semilogx(c, h_inf(c, p), color=PALETTE[k])
-            lines.append(f"IP3 {p:g} µM: peak P_open {po:.3f} at {cp:.2f} µM Ca²⁺")
+        for k, p in enumerate(self.LEVELS[mak]):
+            po = mk.open_probability(c, p) if mak else open_probability(c, p)
+            b = mk.bell_at(p) if mak else bell_at(p)
+            ax1.semilogx(c, po, color=PALETTE[k], label=f"IP3 {p:g} µM")
+            ax1.plot([b.c_peak], [b.po_peak], "o", color=PALETTE[k], ms=3)
+            if not mak:
+                ax2.semilogx(c, h_inf(c, p), color=PALETTE[k])
+            lines.append(f"IP3 {p:g} µM: peak {b.po_peak:.3f} at "
+                         f"{b.c_peak:.2f} µM")
         ax1.set_xlabel("Ca²⁺ (µM)")
         ax1.set_ylabel("P_open (steady state)")
         ax1.set_title("the bell: activation then inhibition")
-        ax2.set_xlabel("Ca²⁺ (µM)")
-        ax2.set_ylabel("h∞ (inhibitory site free)")
-        ax2.set_title("IP3 relieves Ca²⁺ inhibition")
+        if mak:
+            p = np.logspace(-2.3, 1, 300)
+            ax2.loglog(p, mk.k_inh(p), color=PALETTE[0])
+            ax2.axhline(mk.MakParams().k_act, color="grey", ls=":", lw=1)
+            ax2.set_xlabel("IP3 (µM)")
+            ax2.set_ylabel("K_inh (µM)")
+            ax2.set_title("IP3 tunes K_inh alone (K_act dotted)")
+        else:
+            ax2.set_xlabel("Ca²⁺ (µM)")
+            ax2.set_ylabel("h∞ (inhibitory site free)")
+            ax2.set_title("IP3 relieves Ca²⁺ inhibition")
         self.canvas.legend(ax1, loc="upper left")
         self.canvas.draw_now()
-        self.text.setText("; ".join(lines) + ". More IP3 raises the peak and "
-                          "moves it to higher Ca²⁺: IP3 relieves Ca²⁺ inhibition. "
-                          "In this model the activating flank shifts too, less "
-                          "than the inhibitory one; experiment (Mak et al. 1998) "
-                          "finds inhibition alone is tuned.")
+        self.note.setText(
+            "P_open = P_max / [1 + (K_act/c)^H_act + (c/K_inh(IP3))^H_inh] "
+            "(Mak, McBride & Foskett 1998, Eqs. 1–2; Xenopus IP3R-1). "
+            "Steady state only: no kinetics." if mak else
+            "Steady-state P_open = (m∞ n∞ h∞)³ at clamped Ca²⁺ and IP3 "
+            "(Li & Rinzel 1994; De Young & Keizer 1992 constants).")
+        self.text.setText("; ".join(lines) + ". " + self._flank_sentence())
+
+    @staticmethod
+    def _flank_sentence() -> str:
+        r = mk.compare_flanks()
+        lo, hi = _P.value("mak.compare_ip3_low"), _P.value("mak.compare_ip3_high")
+        (da, di), (ma, mi) = r["DYK"], r["Mak"]
+        return (f"IP3 {lo:g} → {hi:g} µM moves the half-inhibition point "
+                f"{di:.1f}× and half-activation {da:.2f}× in De Young–Keizer; "
+                f"{mi:.1f}× and {ma:.3f}× in Mak 1998, where IP3 tunes "
+                f"inhibition alone, as measured.")
 
 
 class _Oscillation(QWidget):
@@ -201,7 +240,8 @@ class DynamicsPanel(QWidget):
         super().__init__(parent)
         lay = QVBoxLayout(self)
         tabs = QTabWidget()
-        tabs.addTab(_Gating(), "Gating")
+        self.gating = _Gating()
+        tabs.addTab(self.gating, "Gating")
         tabs.addTab(_Oscillation(), "Oscillations")
         tabs.addTab(_Puffs(), "Puffs")
         lay.addWidget(tabs)

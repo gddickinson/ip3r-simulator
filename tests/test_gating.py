@@ -3,8 +3,8 @@ literature measured, and the model constants are the registered ones."""
 
 import numpy as np
 
-from ip3r.physics.gating import (GatingParams, bell_peak, h_inf,
-                                 hill_fit_left_flank, open_probability)
+from ip3r.physics.gating import (GatingParams, bell_at, bell_peak, h_inf,
+                                 open_probability)
 
 
 def test_bell_shape():
@@ -29,15 +29,10 @@ def test_ip3_tunes_inhibition_more_than_activation():
     IP3 tunes inhibition *only* (Mak et al. 1998) — which the DYK model does
     not reproduce, and the prose was corrected to say so.
     """
-    left = [hill_fit_left_flank(p) for p in (0.1, 10.0)]
-    right = []
-    for p in (0.1, 10.0):
-        c = np.logspace(-1, 3, 4000)
-        po = open_probability(c, p)
-        cp, pk = bell_peak(p)
-        after = c > cp
-        right.append(float(np.interp(-pk / 2, -po[after], c[after])))
-    assert right[1] / right[0] > 1.2 * (left[1] / left[0]) > 1.2
+    lo, hi = bell_at(0.1), bell_at(10.0)
+    left = hi.c_half_act / lo.c_half_act
+    right = hi.c_half_inh / lo.c_half_inh
+    assert right > 1.2 * left > 1.2
 
 
 def test_h_inf_falls_with_calcium():

@@ -23,6 +23,9 @@ def _p(key, name, value, unit, kind, category, citation, description,
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
 
+_MAK = ("Mak, McBride & Foskett 1998, Eqs. 1-2 and text; Xenopus oocyte "
+        "nuclear IP3R-1, verified against the PMC28128 text 2026-09-24")
+
 P = [
     # ---------------------------------------------------------- gating (DYK)
     _p("gating.a1", "IP3 on-rate a1", 400.0, "1/(uM s)", "empirical",
@@ -53,6 +56,39 @@ P = [
        "Li-Rinzel flux uses the cube of the subunit activity, i.e. three.",
        "Li & Rinzel 1994 (the cubic exponent); Shuai & Jung 2002 use the same "
        "3-of-4 rule for single stochastic channels", 1.0, 4.0),
+
+    # ------------------------------------------------------ gating (Mak 1998)
+    _p("mak.p_max", "Maximal open probability P_max", 0.81, "", "empirical",
+       "gating", "mak1998", "Plateau P_open; unchanged by IP3.", _MAK, 0.0, 1.0),
+    _p("mak.k_act", "Activating Ca2+ half-constant K_act", 0.21, "uM",
+       "empirical", "gating", "mak1998", "Unchanged by IP3.",
+       _MAK + " (210 +/- 20 nM)", 0.001, 10.0),
+    _p("mak.h_act", "Activation Hill coefficient H_act", 1.9, "", "empirical",
+       "gating", "mak1998", "Unchanged by IP3.", _MAK + " (1.9 +/- 0.3)",
+       0.1, 10.0),
+    _p("mak.h_inh", "Inhibition Hill coefficient H_inh", 3.9, "", "empirical",
+       "gating", "mak1998", "Unchanged by IP3.", _MAK + " (3.9 +/- 0.7)",
+       0.1, 10.0),
+    _p("mak.k_inf", "K_inh at saturating IP3, K_inf", 52.0, "uM", "empirical",
+       "gating", "mak1998", "Ceiling of the IP3-tuned inhibition constant "
+       "(Eq. 2).", _MAK + " (52 +/- 4 uM; the 10 uM IP3 fit alone gave 54)",
+       0.1, 1000.0),
+    _p("mak.k_ip3", "IP3 half-constant of K_inh, K_IP3", 0.050, "uM",
+       "empirical", "gating", "mak1998", "IP3 at which K_inh is half its "
+       "ceiling (Eq. 2).", _MAK + " (50 +/- 4 nM)", 0.001, 10.0),
+    _p("mak.h_ip3", "Hill coefficient of K_inh in IP3, H_IP3", 4.0, "",
+       "empirical", "gating", "mak1998", "Steepness of the IP3 tuning "
+       "(Eq. 2).", _MAK + " (4 +/- 0.5)", 0.1, 10.0),
+
+    _p("mak.compare_ip3_low", "Low end of the flank comparison", 0.033, "uM",
+       "method", "gating", "mak1998", "Both gating models' flanks are "
+       "compared from this IP3 to the high end.", "The lowest IP3 at which "
+       "Mak et al. state Ca2+ activation was not affected (33 nM); below it "
+       "their bell collapses", 0.001, 10.0),
+    _p("mak.compare_ip3_high", "High end of the flank comparison", 10.0, "uM",
+       "method", "gating", "mak1998", "Saturating IP3 for the flank "
+       "comparison.", "The saturating IP3 of Mak et al.'s Fig. 1c fit",
+       0.01, 1000.0),
 
     # ------------------------------------------------------- cell (Li-Rinzel)
     _p("cell.v1", "Maximal channel flux rate v1", 6.0, "1/s", "empirical",

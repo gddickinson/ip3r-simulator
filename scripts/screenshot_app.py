@@ -181,6 +181,13 @@ def main() -> int:
                                        f"{held} absences held")
                 app.processEvents()
                 win.grab().save(str(out / "gui_range.png"))
+                win.tabs.setCurrentWidget(win.dynamics)
+                gt = win.dynamics.gating
+                gt.model.setCurrentIndex(1)             # Mak et al. 1998
+                if "Mak 1998" not in gt.text.text() or "K_inh" not in gt.note.text():
+                    raise RuntimeError(f"Mak gating drew: {gt.text.text()[:120]}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_gating_mak.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

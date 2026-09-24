@@ -67,9 +67,15 @@ that is inherited from C4-imposed reconstruction and is not a finding.
 bell-shaped Ca²⁺ dependence of open probability, IP3 relieving Ca²⁺
 inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
 IP3), and stochastic clusters in which Ca²⁺ coupling turns independent blips
-into cooperative openings.
+into cooperative openings. The Gating panel also offers the Hill-type model
+Mak, McBride & Foskett (1998) fitted to single IP3R-1 channels, in which IP3
+tunes Ca²⁺ inhibition alone. From 33 nM to 10 µM IP3 it moves the
+half-inhibition point 6.2× and half-activation 1.016×; De Young–Keizer moves
+them 2.8× and 2.0× (`python -m ip3r gating --model mak`).
 
-**Check the publication.** The Findings tab re-derives 39 results from the
+![The Mak 1998 gating model](docs/img/gui_gating_mak.png)
+
+**Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
 do not share, `rederived` from the publication's input tables with this

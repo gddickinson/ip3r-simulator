@@ -98,7 +98,38 @@ The steady state is bell-shaped in Ca²⁺ (Bezprozvanny et al. 1991). More
 IP3 raises the bell and moves its inhibitory flank out (IP3 relieves Ca²⁺
 inhibition). In this model the activating flank moves too, by less (0.1 →
 10 µM IP3: 2.4× vs 1.8×); Mak et al. (1998) measured IP3 tuning inhibition
-alone, which the DYK scheme does not reproduce (Round 4).
+alone, which the DYK scheme does not reproduce.
+
+## Gating (Mak, McBride & Foskett 1998)
+
+Single IP3R-1 channels in *Xenopus* oocyte nuclear patches, fitted by a
+biphasic Hill equation with one denominator (their Eqs. 1–2):
+
+    P_open = P_max / [1 + (K_act/c)^H_act + (c/K_inh)^H_inh],
+    K_inh(p) = K_∞ / [1 + (K_IP3/p)^H_IP3].
+
+P_max 0.81, K_act 0.21 µM, H_act 1.9, H_inh 3.9, K_∞ 52 µM, K_IP3 50 nM and
+H_IP3 4 were each read from the paper (PMC28128) before they were
+registered. "Kinh being the only IP3-concentration-sensitive parameter" is
+the model's content. It describes steady-state data only, with no
+inhibition kinetics, so it cannot drive the cell or puff models.
+
+Both models are measured with one ruler (`physics.bell`): the Ca²⁺ at half
+the bell's own peak on each flank. From 33 nM (the lowest IP3 at which the
+paper says activation was unaffected) to 10 µM:
+
+| model | half-activation | half-inhibition |
+|---|---|---|
+| De Young–Keizer | 2.01× | 2.76× |
+| Mak 1998 | 1.016× | 6.22× |
+
+The test can fail. With IP3 dependence planted into K_act, the same ruler
+sees the activating flank move (a test asserts it). Below K_IP3 the Mak bell
+collapses (10 nM: peak 0.11, K_inh 0.08 µM < K_act), as the paper reports
+for 10–20 nM. The Hill curve gives K_inh(33 nM) = 8.3 µM against the 9.5 µM
+the paper measured at that point. The two models' IP3 sensitivities differ
+by roughly tenfold: Mak's K_inh saturates by 0.1 µM IP3, while DYK's bell
+is still rising at 10 µM.
 
 ## Cell Ca²⁺ (closed-cell Li–Rinzel)
 

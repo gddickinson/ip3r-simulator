@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 4** (Round 3's scheduled items are done; its emergent items remain open).
+**Next: Round 4, item 2** (puff model with low resting activity).
 
 ## Destination
 
@@ -133,9 +133,16 @@ Emergent (not scheduled):
 
 ## Round 4 — better physics
 
-- [ ] Mak et al. 1998 Hill-type gating model, in which IP3 tunes Ca²⁺
-  inhibition alone (the DYK model shifts both flanks; see SCIENCE.md) —
-  every constant verified against the paper before it is registered.
+- [x] Mak et al. 1998 Hill-type gating model (`physics/gating_mak.py`,
+  Gating panel model choice, `gating --model mak`). All seven constants
+  were read from the paper's text before registration. Both models are
+  measured with one ruler (`physics/bell.py`). From 33 nM to 10 µM IP3,
+  Mak moves half-inhibition 6.22× and half-activation 1.016×; DYK moves them
+  2.76× and 2.01×. A planted K_act dependence is caught. The plateau is
+  0.77–0.81 over 1–20 µM Ca²⁺ (paper: "≈0.8").
+  Emergent: the model has no kinetics. A kinetic scheme fitted to the same
+  data (e.g. Siekmann's park/drive, the next item) would let the Mak
+  receptor drive the cell and puff models.
 - [ ] A puff model with low resting activity (e.g. a Siekmann-type park/drive
   scheme) so blips and puffs separate cleanly; the DYK cluster gives only
   modest clustering (Fano ~1.4).
