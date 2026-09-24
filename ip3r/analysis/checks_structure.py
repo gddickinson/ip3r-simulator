@@ -30,6 +30,8 @@ def _summary(pdb: str):
     return measure_channel(load(pdb), include_hetero=True)
 
 
+_P.subscribe(_summary.cache_clear)      # measured with registered constants
+
 def _tol() -> float:
     return _P.value("check.length_tol")
 

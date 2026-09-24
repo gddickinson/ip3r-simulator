@@ -22,6 +22,7 @@ import numpy as np
 from ..core import genes_data as G
 from ..core.pairwise import paralog_transfer
 from ..io.loader import load
+from ..parameters import PARAMETERS as _P
 from ..structure.shells import SHELLS, ShellResidue, consensus_shells, deposit_distances
 from .checks_constraint import per_residue
 from .stats import mann_whitney_greater, spearman
@@ -125,3 +126,12 @@ def clear_caches() -> None:
     """Forget the joined tables (the measured structures are kept: they do
     not come from ip3r_genes)."""
     pocket.cache_clear()
+
+
+def _parameters_changed() -> None:
+    """The shells hang on registered edges: forget both levels."""
+    measured_shells.cache_clear()
+    pocket.cache_clear()
+
+
+_P.subscribe(_parameters_changed)

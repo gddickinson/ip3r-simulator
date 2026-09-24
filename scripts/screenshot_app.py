@@ -220,6 +220,35 @@ def main() -> int:
                     raise RuntimeError(f"conducting states drawn: {open_}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_unitary.png"))
+            elif s == 13:
+                from ip3r.analysis.checks import all_checks, run_check
+                from ip3r.parameters import PARAMETERS
+                from ip3r.ui.params_dialog import ParametersDialog
+                if win.params_strip.isVisible():
+                    raise RuntimeError("banner shown at the documented defaults")
+                d = win.params_dialog = ParametersDialog(win)
+                d.show()
+                p = PARAMETERS.get("gating.d1")
+                if d.edit("gating.d1", "not a number") or PARAMETERS.modified:
+                    raise RuntimeError("the editor accepted a non-number")
+                d.edit("gating.d1", f"{p.default * 2:g}")
+                app.processEvents()
+                if not win.params_strip.isVisible() or "gating.d1" not in \
+                        win.params_banner.text.text():
+                    raise RuntimeError("no banner after an edit")
+                check = next(c for c in all_checks() if c.id == "S0.c4_symmetry")
+                if run_check(check).outcome.status != "not_run":
+                    raise RuntimeError("a check ran against a modified registry")
+                d.filter_edit.setText("gating")
+                d.resize(1180, 520)
+                app.processEvents()
+                d.grab().save(str(out / "gui_parameters.png"))
+                win.grab().save(str(out / "gui_params_banner.png"))
+                d.reset_all()
+                app.processEvents()
+                if PARAMETERS.modified or win.params_strip.isVisible():
+                    raise RuntimeError("Reset all left the registry or banner modified")
+                d.close()
             else:
                 print("screenshots written to", out)
                 return app.quit()

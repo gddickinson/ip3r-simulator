@@ -248,6 +248,16 @@ Mouse: left-drag rotate, shift-drag pan, wheel zoom, click to identify a
 residue (element and conservation shown). `Ctrl+1` side view, `Ctrl+2` down
 the pore, `Space` spin.
 
+**Changing a parameter.** Help → Parameters… (`Ctrl+Shift+P`) lists every
+registered number with its default, bounds and source; double-click a value
+to change it (out-of-range values are clamped, and the clamp is reported).
+While anything differs from its default an amber banner runs across the top
+of the window, and the findings checks report *not run* rather than confirm.
+Nothing typed is remembered after you quit. "Export…" writes the set as
+JSON, which `IP3R_PARAMETERS=file.json python -m ip3r …` reproduces headless.
+
+![Parameter editor](docs/img/gui_parameters.png)
+
 ## How it is built, and how it checks itself
 
 See [`INTERFACE.md`](INTERFACE.md) for the module map and

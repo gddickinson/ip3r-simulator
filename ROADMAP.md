@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next: Round 5, item 1** (parameter editing in the GUI), unless an emergent
+**Next: Round 5, item 2** (session save/restore), unless an emergent
 Round 4 item is preferred.
 
 ## Destination
@@ -187,8 +187,18 @@ Emergent (not scheduled):
 
 ## Round 5 — usability
 
-- [ ] Parameter editing in the GUI with a visible "modified" banner (checks
-  already refuse to confirm against a modified registry).
+- [x] Parameter editing in the GUI (Help → Parameters, `Ctrl+Shift+P`) with
+  an amber full-width "modified" banner, driven by registry change
+  listeners. Import/export use the `IP3R_PARAMETERS` format; nothing is
+  persisted between sessions. Listeners also clear the two
+  parameter-dependent memo caches the checks use (`_summary`, the shell
+  pocket). Without that, a measurement made under an edit was served to a
+  check after reset (the test fails with the subscription removed). The
+  smoke test edits, sees the banner, sees a check refuse, and resets.
+  Emergent:
+  - [ ] Panels that read a parameter when they are built (spin-box
+    defaults) do not follow an edit. Audit them, and either re-read on
+    change or document it.
 - [ ] Session save/restore (structure, style, camera).
 - [ ] Variants painted as spheres on all four subunits with class colours;
   ClinVar VUS stratified by conservation layer.

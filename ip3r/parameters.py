@@ -38,7 +38,7 @@ from dataclasses import dataclass, field
 from .config import RESOURCE_DIR
 
 __all__ = ["Parameter", "ParameterRegistry", "PARAMETERS", "value",
-           "set_value", "reset", "overrides", "resolve"]
+           "set_value", "reset", "overrides", "resolve", "references"]
 
 
 @dataclass(frozen=True)
@@ -86,6 +86,8 @@ class ParameterRegistry:
     parameters: dict[str, Parameter] = field(default_factory=dict)
     _overrides: dict[str, float] = field(default_factory=dict)
     sentinels: dict[str, str] = field(default_factory=dict)
+    _listeners: list = field(default_factory=list, repr=False)
+    _quiet: bool = field(default=False, repr=False)
 
     # ------------------------------------------------------------- reading
 
@@ -115,6 +117,15 @@ class ParameterRegistry:
     def is_default(self, key: str) -> bool:
         return key not in self._overrides
 
+    def matches(self, key: str, needle: str = "", only_modified: bool = False) -> bool:
+        """Whether a parameter passes an editor's filter: ``needle`` (case-
+        insensitive) in its key, name, unit, citation or category."""
+        p = self.get(key)
+        if only_modified and self.is_default(key):
+            return False
+        hay = " ".join((p.key, p.name, p.unit, p.citation, p.category)).lower()
+        return needle.strip().lower() in hay
+
     def categories(self) -> list[str]:
         return sorted({p.category for p in self.parameters.values()})
 
@@ -133,17 +144,44 @@ class ParameterRegistry:
         """
         parameter = self.get(key)
         applied = parameter.clamp(float(candidate))
+        before = self.value(key)
         if applied == parameter.default:
             self._overrides.pop(key, None)
         else:
             self._overrides[key] = applied
+        if applied != before:
+            self._notify()
         return applied
 
     def reset(self, key: str | None = None) -> None:
+        before = dict(self._overrides)
         if key is None:
             self._overrides.clear()
         else:
             self._overrides.pop(key, None)
+        if self._overrides != before:
+            self._notify()
+
+    # ------------------------------------------------------------ listening
+
+    def subscribe(self, callback) -> None:
+        """Call ``callback()`` after every change of an effective value.
+
+        Two kinds of listener: caches of parameter-dependent results (a
+        result memoised under an edited value must not be served after a
+        reset, least of all to a check), and the GUI's "modified" banner.
+        """
+        if callback not in self._listeners:
+            self._listeners.append(callback)
+
+    def unsubscribe(self, callback) -> None:
+        if callback in self._listeners:
+            self._listeners.remove(callback)
+
+    def _notify(self) -> None:
+        if not self._quiet:
+            for callback in list(self._listeners):
+                callback()
 
     def overrides(self) -> dict[str, float]:
         """Every parameter currently differing from its documented default."""
@@ -169,12 +207,46 @@ class ParameterRegistry:
 
     def apply(self, values: dict) -> list[str]:
         """Apply a set of overrides, returning any keys that were not known."""
-        unknown = []
-        for key, candidate in (values or {}).items():
-            if key in self.parameters:
-                self.set_value(key, candidate)
-            else:
-                unknown.append(key)
+        unknown, before, outer = [], dict(self._overrides), self._quiet
+        self._quiet = True                     # one notification, not one per key
+        try:
+            for key, candidate in (values or {}).items():
+                if key in self.parameters:
+                    self.set_value(key, candidate)
+                else:
+                    unknown.append(key)
+        finally:
+            self._quiet = outer
+        if self._overrides != before:
+            self._notify()
+        return unknown
+
+    def write_overrides(self, path) -> None:
+        """Save the overrides as JSON in the ``IP3R_PARAMETERS`` format, so a
+        parameter set edited in the GUI can be reproduced headless."""
+        with open(path, "w") as fh:
+            json.dump(dict(sorted(self._overrides.items())), fh, indent=2)
+            fh.write("\n")
+
+    def read_overrides(self, path) -> list[str]:
+        """Replace the overrides with a file's (defaults for every key it does
+        not list); returns keys it lists that are not registered. A file
+        that is not a JSON object of numbers is refused before anything is
+        changed."""
+        raw = json.loads(open(path).read())
+        if not isinstance(raw, dict) or not all(
+                isinstance(v, (int, float)) and not isinstance(v, bool)
+                for v in raw.values()):
+            raise ValueError(f"{path}: expected a JSON object of key: number")
+        before, unknown = dict(self._overrides), []
+        self._quiet = True
+        try:
+            self._overrides.clear()
+            unknown = self.apply(raw)
+        finally:
+            self._quiet = False
+        if self._overrides != before:
+            self._notify()
         return unknown
 
     def provenance_rows(self) -> list[dict]:
@@ -218,6 +290,15 @@ PARAMETERS = _load()
 
 def value(key: str) -> float:
     return PARAMETERS.value(key)
+
+
+def references() -> dict[str, str]:
+    """``citation key -> "Authors (year) Title. Journal"`` for tooltips."""
+    path = RESOURCE_DIR / "references.json"
+    if not path.exists():
+        return {}
+    return {r["key"]: f"{r['authors']} ({r['year']}) {r['title']}. {r.get('journal', '')}"
+            for r in json.loads(path.read_text())["references"]}
 
 
 def set_value(key: str, candidate: float) -> float:

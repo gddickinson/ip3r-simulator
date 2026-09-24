@@ -599,3 +599,38 @@ and the 45 checks are untouched.
 **Next:** Round 5, item 1 (parameter editing), or the salt-bridge / RyR
 emergent items under Round 4.
 
+
+
+## 2026-09-24 — Round 5.1: parameter editing in the GUI
+
+**What.** Help → Parameters (`Ctrl+Shift+P`) is now an editor, ported from
+PIEZO1's. It shows value, default, unit, bounds, kind and source, with the
+full reference on the tooltip, and offers a filter, "Show only modified",
+edit with clamp reporting, reset selected/all, and import/export. An amber
+banner (`ui/params_banner.py`) runs across the window top whenever any value
+differs from its default, including values set by `IP3R_PARAMETERS` at
+start-up. The registry gained change listeners (`subscribe`), a filter
+(`matches`) and `write_overrides`/`read_overrides`; import replaces the
+overrides rather than merging, and refuses a malformed file without touching
+anything. 7 tests (208 → 215), plus a smoke-test step and two screenshots.
+
+**Why the listeners matter beyond the banner.** Checks refuse to *run* when
+the registry is modified, but two memo caches they read
+(`checks_structure._summary` and `shell_constraint.measured_shells`/`pocket`)
+could be filled by an edited computation and then served after "Reset all".
+A check would then confirm on numbers made with the edited value. Those
+caches now clear on every change. The test proves the hazard is real: it
+fails with the subscription removed. `pairwise._cached` was already keyed on
+the gap costs, so it needed nothing.
+
+**Design choices.** Nothing typed in the dialog is persisted: the registry
+docstring already said a value typed once must not silently change what a
+later run computes. Export is the route to reproduce a set. The first banner
+lived above the viewport and wrapped into a tall column in the narrow
+centre, so it moved to a full-width toolbar holding one line, with the
+detail on the tooltip.
+
+**Not changed.** `make sync-check` was clean; no `ip3r_genes` table moved,
+and no check verdict changed.
+
+**Next:** Round 5, item 2 (session save/restore).

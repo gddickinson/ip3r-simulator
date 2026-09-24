@@ -33,7 +33,7 @@ headless (CLI, tests, notebooks).
 | File | Purpose |
 |---|---|
 | `config.py` | paths (`RESOURCE_DIR`, `REF_DIR`, `GENES_DIR` = `../ip3r_genes` or `$IP3R_GENES_DIR`, `genes_results()` resolved at call time), `PARALOG_ACC`, `DEFAULT_STRUCTURE` (6DQN), `RenderSettings` |
-| `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file). Ported from PIEZO1. |
+| `parameters.py` | the parameter registry (`PARAMETERS.value(key)`, overrides tracked, `IP3R_PARAMETERS` override file; `subscribe` for change listeners — caches of parameter-dependent results and the GUI banner; `matches` (editor filter), `write_overrides`/`read_overrides`; `references()` for tooltips). Ported from PIEZO1. |
 | `cli.py` | `python -m ip3r <fetch|info|checks|states|unitary|modes|transition|gating|oscillate|puffs|params>`; no argument launches the GUI |
 | `__main__.py` | entry point |
 
@@ -144,7 +144,9 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `genomes_panel.py` | Genomes tab: `draw_grid` with layer / sort / class / above-bar controls, click names a genome; loaded on a worker when first shown; `show_layer` (from a check's "Show") |
 | `range_panel.py` | Range tab: `draw_range` with min-proteomes / collapse-prokaryotes / genome-absence controls, click lists a clade's genome absences; loaded on a worker when first shown |
 | `variants_panel.py` | S17 variants per paralog/class; highlight only in matching numbering |
-| `params_dialog.py`, `plot_canvas.py`, `workers.py`, `theme.py` | helpers |
+| `params_dialog.py` | `ParametersDialog`: the registry editor (filter, modified-only, edit with clamp report, reset selected/all, import/export in the `IP3R_PARAMETERS` format; `edit(key, text)` for the smoke test) |
+| `params_banner.py` | `ParametersBanner`: the amber "parameters modified" strip, driven by the registry's listeners; hosted in a full-width toolbar (`MainWindow.params_strip`) |
+| `plot_canvas.py`, `workers.py`, `theme.py` | helpers |
 
 ## `ip3r/resources/` (committed)
 
@@ -167,7 +169,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
 — the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_gating_mak` — the paper's constants, the plateau, a planted K_act dependence the flank test must catch, `test_calcium`, `test_puffs`, `test_park_drive` — stationary = generator null space, printed IP3 functions reproduced; `test_puffs_pd` — the split step reproduces the clamped stationary P_open to 3 %, and a 5 ms step must fail; `test_puff_compare` — recruitment counted by hand, only park/drive recruits the cluster; `test_permeation` — cylinder and Donnan closed forms, solver = series sum, charge conserved, stubs counted, only 8TKF conducts and falls short of both measurements), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
-(`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
+(`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters` — listeners fire once per effective change, import is replace-not-merge and refuses a bad file untouched, a memoised measurement made under an edit is dropped on reset,
 `test_resources`), rules (`test_sizes`), CLI, and
 **`test_checks_calibration.py`** — every check flipped by a planted input
 (`PLANTS`), sources proven complete, `not_run` without data, refusal under

@@ -12,11 +12,12 @@ from __future__ import annotations
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (QDockWidget, QFileDialog, QMainWindow, QMessageBox,
-                             QScrollArea, QTabWidget)
+                             QScrollArea, QTabWidget, QToolBar)
 
 from .. import __version__
 from ..config import DEFAULT_STRUCTURE, SETTINGS, genes_results
 from ..io import loader
+from ..parameters import PARAMETERS
 from ..io.fetch import fetch_all
 from ..io.registry import get_entry
 from ..structure.channel import measure_channel
@@ -26,6 +27,7 @@ from .findings_panel import FindingsPanel
 from .genomes_panel import GenomesPanel
 from .gl_widget import ViewportWidget
 from .modes_panel import ModesPanel
+from .params_banner import ParametersBanner
 from .params_dialog import ParametersDialog
 from .range_panel import RangePanel
 from ..core.modules import MODULES_KEY
@@ -67,6 +69,17 @@ class MainWindow(QMainWindow):
         self.resize(1560, 960)
         self.viewport = ViewportWidget(SETTINGS.render)
         self.setCentralWidget(self.viewport)
+        # Across the whole window, above the docks: the centre is too narrow.
+        self.params_banner = ParametersBanner()
+        self.params_banner.edit_requested.connect(self.edit_parameters)
+        self.params_strip = strip = QToolBar("Parameters modified")
+        strip.setMovable(False)
+        strip.setFloatable(False)
+        strip.toggleViewAction().setVisible(False)
+        strip.addWidget(self.params_banner)
+        self.params_banner.visibility_changed.connect(strip.setVisible)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, strip)
+        strip.setVisible(PARAMETERS.modified)
         self.scene = SceneController(self.viewport)
         self._pending_check: str | None = None
         self._pending_transition: tuple | None = None
@@ -145,8 +158,13 @@ class MainWindow(QMainWindow):
         self._action(v, "Toggle spin", lambda: self.viewport.set_spin(
             0.0 if self.viewport._spin_speed else 20.0), "Space")
         h = mb.addMenu("&Help")
-        self._action(h, "Parameters…", lambda: ParametersDialog(self).exec())
+        self._action(h, "Parameters…", self.edit_parameters, "Ctrl+Shift+P")
         self._action(h, "About", self._about)
+
+    def edit_parameters(self) -> None:
+        """The registry editor; the banner follows the registry by itself."""
+        self.params_dialog = ParametersDialog(self)
+        self.params_dialog.exec()
 
     def _action(self, menu, text, slot, shortcut=None) -> QAction:
         a = QAction(text, self)
