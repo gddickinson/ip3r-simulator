@@ -355,6 +355,7 @@ python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's
 python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
 python -m ip3r spark-mg [--scan] [--reading measured|selectivity|meissner]  # Mg2+ ends a triggered spark
 python -m ip3r ec [--scan] [--reading R]  # the couplon under voltage clamp (V + C channels)
+python -m ip3r ec --depletion [--pool-scan]  # ... with the SR emptying (Stern's Fig. 20 pool)
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame;
@@ -392,7 +393,8 @@ If they differ from the current set, you are asked whether to apply them
 
 See [`INTERFACE.md`](INTERFACE.md) for the module map and
 [`docs/SCIENCE.md`](docs/SCIENCE.md) for the models (the ryanodine
-receptor in [`docs/SCIENCE_RYR.md`](docs/SCIENCE_RYR.md)). Every number a
+receptor in [`docs/SCIENCE_RYR.md`](docs/SCIENCE_RYR.md), and the couplon in
+[`docs/SCIENCE_EC.md`](docs/SCIENCE_EC.md)). Every number a
 calculation uses is a registered parameter with a unit, bounds and a source
 (`python -m ip3r params`); curated data imported from `ip3r_genes` records
 the SHA-256 of its source tables (`make sync-check`). Files stay under 500

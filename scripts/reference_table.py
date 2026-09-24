@@ -193,6 +193,12 @@ REFERENCES = [
      "title": "An allosteric model of the molecular interactions of "
               "excitation-contraction coupling in skeletal muscle",
      "journal": "J Gen Physiol 102:449-481", "doi": "10.1085/jgp.102.3.449"},
+    {"key": "launikonis2006", "authors": "Launikonis BS, Zhou J, Royer L, "
+     "Shannon TR, Brum G, Rios E", "year": 2006,
+     "title": "Depletion \"skraps\" and dynamic buffering inside the "
+              "cellular calcium store",
+     "journal": "Proc Natl Acad Sci USA 103:2982-2987",
+     "doi": "10.1073/pnas.0511252103"},
     {"key": "rios1999", "authors": "Rios E, Stern MD, Gonzalez A, Pizarro G, "
      "Shirokova N", "year": 1999,
      "title": "Calcium release flux underlying Ca2+ sparks of frog skeletal "

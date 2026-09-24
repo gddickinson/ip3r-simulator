@@ -141,6 +141,8 @@ def _ec(args) -> int:
     if args.only:
         configs = {k: v for k, v in configs.items() if args.only.lower() in k.lower()}
     vs = er.voltages() if args.scan else np.array([0.0, -30.0, -50.0])
+    if args.depletion:
+        return _ec_depletion(args, configs)
     print("couplon: 30 V channels (Rios 1993 fiber 827, Stern's rates) and 30 "
           f"C channels; V steady Po {', '.join(f'{v:.0f} mV {open_probability(v):.4f}' for v in vs)}")
     print(f"activation-site Mg2+ reading: {args.reading}; 'after' = C open "
@@ -150,6 +152,28 @@ def _ec(args) -> int:
             e = er.ensemble(v, er.with_gating(sp), args.trials)
             print(er.summarise(e, label).row(), flush=True)
         print(er.event_stats(sp, label, trials=args.trials).row(), flush=True)
+    return 0
+
+
+def _ec_depletion(args, configs) -> int:
+    from .parameters import PARAMETERS as P
+    from .physics import lumen
+    lp = lumen.LumenParams()
+    n = 30 if args.large else int(P.value("lumen.fig20_channels"))
+    print(f"SR content {lp.content} mM, {lp.density} couplons/um^3, refill tau "
+          f"{lp.refill_tau} s; couplon {2 * n} channels ({n} C). Measured: a "
+          f"100-ms pulse to +{P.value('lumen.rios_voltage'):.0f} mV releases "
+          f"{P.value('lumen.rios_released_low'):.0%}-"
+          f"{P.value('lumen.rios_released_high'):.0%} (Rios 1993); Stern's "
+          "Fig. 20 (28 channels) leaves 0.66 mM at 0 mV and 1.34 at -30 mV")
+    vs = (P.value("lumen.rios_voltage"), 0.0, -30.0)
+    if args.pool_scan:
+        for f, d in lumen.pool_scan(configs, vs[0], (1.0, 1.5, 2.0, 3.0),
+                                    args.trials, small=not args.large):
+            print(f"pool x{f:<4}", d.row(), flush=True)
+        return 0
+    for d in lumen.depletion_panel(configs, vs, args.trials, small=not args.large):
+        print(d.row(), flush=True)
     return 0
 
 
@@ -213,4 +237,11 @@ def register(sub) -> None:
                    help="only the configurations whose label contains this")
     p.add_argument("--trials", type=int, default=None,
                    help="couplons per ensemble (default ec.trials)")
+    p.add_argument("--depletion", action="store_true",
+                   help="with the SR emptying (Stern's Fig. 20 pool)")
+    p.add_argument("--large", action="store_true",
+                   help="with --depletion: the 60-channel couplon instead of "
+                   "Stern's 28-channel Fig. 20 one")
+    p.add_argument("--pool-scan", action="store_true",
+                   help="with --depletion: the pool x1-x3 at Rios's +20 mV")
     p.set_defaults(fn=_ec)

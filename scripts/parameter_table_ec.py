@@ -89,4 +89,61 @@ EC = [
     _p("ec.scan_v_step", "Voltage scan: step", 10.0, "mV", "method", "ec",
        "method_choice", "Spacing of the voltage scan.", "Stern's Fig. 1 B "
        "steps by 10 mV", 1.0, 100.0),
+    # ------------------------------------------------ SR content (Round 6.7)
+    _p("lumen.content", "SR Ca2+ content at rest", 2.0, "mM", "empirical",
+       "ec", "stern1997", "Releasable SR Ca2+ as a concentration in "
+       "accessible myoplasmic water; the unitary currents scale with the "
+       "fraction left.", f"{_STERN}, Fig. 20: 'starting from an intra-SR "
+       "calcium content equivalent to 2 mM in accessible myoplasmic water'. "
+       "Rios 1993 (Fig. 2) measured 1.5 and 1.2 mM in fiber 827", 0.01, 100.0),
+    _p("lumen.couplon_density", "Couplon density", 4.8, "1/um^3",
+       "empirical", "ec", "stern1997", "Couplons per unit fibre volume: turns "
+       "one couplon's release current into a rate of SR emptying.",
+       f"{_STERN}: 'The density of couplons was 4.8 um-3' (junctional "
+       "t-tubule area per Z disk from Peachey & Eisenberg 1978, times Z disks "
+       "per length)", 0.01, 1e3),
+    _p("lumen.refill_tau", "SR refilling time constant", 0.43, "s",
+       "empirical", "ec", "stern1997", "Uptake returns the content to rest "
+       "exponentially with this time constant (first order in the deficit).",
+       f"{_STERN}, Fig. 20 C, digitised: after the pulse the content goes "
+       "0.655 -> 0.929 mM (0 mV) and 1.34 -> 1.467 mM (-30 mV) in 96 ms, "
+       "tau 421 and 450 ms. Their uptake is the Brum 1988 pump driven by "
+       "global Ca2+, which runs faster during the pulse, so first order "
+       "under-refills there", 1e-3, 1e3),
+    _p("lumen.fig20_channels", "Fig. 20 couplon: C channels", 14.0, "",
+       "convention", "ec", "stern1997", "C channels in the couplon of the "
+       "depletion calibration (as many V channels again).", f"{_STERN}, "
+       "Fig. 20: 'The dynamics of the model (28 channels/couplon)'", 1.0,
+       500.0),
+    _p("lumen.iterations", "SR path: most iterations", 12.0, "", "method",
+       "ec", "method_choice", "The content path and the ensemble's release "
+       "are made consistent by fixed-point iteration, at most this often.",
+       "Converged in 4-7 on Stern's constants and up to 10 on the fitted scheme (Round 6.7)", 1.0,
+       100.0),
+    _p("lumen.tolerance", "SR path: tolerance", 0.01, "", "method", "ec",
+       "method_choice", "Iteration stops when no point of the content "
+       "fraction moves by more than this.", "1 % of the content: below the "
+       "ensemble's sampling noise at 200 couplons", 1e-6, 1.0),
+    _p("lumen.damping", "SR path: damping", 0.5, "", "method", "ec",
+       "method_choice", "Each iteration moves the path this fraction of the "
+       "way to the new one (1 = plain substitution).", "Plain substitution "
+       "oscillates when the store empties within the pulse", 0.01, 1.0),
+    _p("lumen.rios_released_low", "Released by a conditioning pulse: low",
+       0.5, "", "empirical", "ec", "rios1993", "Fraction of SR content lost "
+       "in a 100-ms pulse to +20 mV (fiber 827, 10 C).", "Rios 1993 Fig. 2 "
+       "text: 'This depletion is ~60% for the pulse shown early in the "
+       "experiment and ~50% in the late record'", 0.0, 1.0),
+    _p("lumen.rios_released_high", "Released by a conditioning pulse: high",
+       0.6, "", "empirical", "ec", "rios1993", "As the low value, early in "
+       "the experiment.", "Rios 1993 Fig. 2 text (see the low value)", 0.0,
+       1.0),
+    _p("lumen.rios_voltage", "Conditioning pulse voltage", 20.0, "mV",
+       "convention", "ec", "rios1993", "Step of Rios's conditioning pulse "
+       "(100 ms from -80 mV).", "Rios 1993 Figs. 1-2: conditioning pulse to "
+       "+20 mV, 100 ms", -150.0, 100.0),
+    _p("lumen.skrap_max", "Local depletion in a spark: most", 0.074, "",
+       "empirical", "ec", "launikonis2006", "Largest fall of free SR Ca2+ "
+       "measured during a skeletal spark (frog, SEER).", "Launikonis et al. "
+       "2006 PNAS (PMC1413852): 'implying a reduction of [Ca2+]SR by at most "
+       "7.4%' (sulfate, sparks above the median)", 0.0, 1.0),
 ]

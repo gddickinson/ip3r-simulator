@@ -5,13 +5,12 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** luminal Ca²⁺ depletion under the couplon (Round 6.4 emergent).
-Round 6.6 found that with real V channels, a C channel fitted to the
-measured bell gives no release peak under any Mg²⁺ arrangement: it
-either keeps releasing after repolarisation or never amplifies. A
-time-dependent terminator is missing, and Rios 1993 measured 50–60 %
-depletion from one conditioning pulse. It needs a sourced SR volume and
-refilling rate first.
+**Next:** the C channels' inactivation in the couplon (Round 6.7 emergent).
+Round 6.7 ruled out SR depletion. The fitted scheme peaks and stops only
+by emptying 73–89 % of the store in a pulse that empties 50–60 % in a
+fibre. What remains is inactivation stronger or slower in the couplon than
+the steady-state bell shows. A two-site inactivation (Hill 1.5, Round 6.4)
+is the sourced first step.
 Other candidates: the A-subspace headline in the Transition tab (Round 2)
 and the continuum's conductance shortfall (Rounds 4 and 6.1).
 
@@ -385,9 +384,8 @@ Emergent (not scheduled):
   what let sparks end at all.
   Emergent:
   - [x] Mg²⁺: done as Round 6.5.
-  - [ ] Luminal Ca²⁺ depletion (the SR under the couplon empties during
-    release) as a terminator. It needs an SR compartment with a sourced
-    volume and refilling rate.
+  - [x] Luminal Ca²⁺ depletion as a terminator: done as Round 6.7. It is
+    not the terminator.
   - [x] The V channels: done as Round 6.6.
   - [ ] A one-Ca²⁺ inactivation gate has Hill slope 1 against the
     measured 1.5. A two-site inactivation would fit the slope as well.
@@ -449,7 +447,7 @@ Emergent (not scheduled):
   is kept but the C channels barely open (0.12 at 0 mV, 0.014 at
   −30 mV). The time-dependent terminator is missing.
   Emergent:
-  - [ ] Luminal depletion is now the lead candidate (see Round 6.4's item).
+  - [x] Luminal depletion: done as Round 6.7.
   - [ ] The couplon in the GUI: V and C open probability and flux per
     step, and the configuration selector (a Puffs sub-tab or its own).
   - [ ] Stern's other protocols as calibrations: the peak/plateau bell
@@ -458,6 +456,34 @@ Emergent (not scheduled):
   - [ ] Rios 1993's Appendix model (eight charges per channel), which
     saturates Po before charge; it may change how many C channels a V
     channel recruits at low voltage.
+
+- [x] 6.7 SR depletion as the terminator (`physics/lumen.py`;
+  `ec --depletion [--pool-scan] [--large]`). The model is Stern's own
+  Fig. 20: one well-mixed pool of 2 mM, 4.8 couplons/µm³, every unitary
+  current proportional to the content, and uptake first order with
+  τ 0.43 s (digitised from Fig. 20 C). The shared path is made consistent
+  with the ensemble by damped fixed-point iteration. Calibration, Stern's
+  constants on his 28-channel couplon: 0.54 mM left at 100 ms [0.655] at
+  0 mV and 1.19 [1.34] at −30 mV; corrected plateau 1.11 pA [1.2]. It
+  over-depletes slightly, the generous direction. Finding: at 2 mM the
+  fitted scheme regains control (C after repolarisation 0.001, against
+  0.72) and a corrected peak (2.9), but it releases 87–89 % of the store.
+  Stern's constants release Rios's measured 50–60 % only at twice the pool
+  (57 %). At that pool the fitted scheme releases 73–83 %, with a C Po
+  peak/plateau of 1.5–2.7 against Stern's 4.6, which does not depend on
+  the pool. **Depletion makes a peak only by emptying more store than a
+  fibre loses.** This agrees with Launikonis 2006: skraps are ≤ 7.4 %.
+  Emergent:
+  - [ ] Two-site Ca²⁺ inactivation, fitted to the bell's inhibitory Hill
+    slope, in the couplon.
+  - [ ] Inactivation kinetics: Stern's I-gate rates are not measured by a
+    steady-state bell. A sourced time course (e.g. RyR1 inactivation after
+    a Ca²⁺ step in bilayers) would constrain them.
+  - [ ] The 60-channel couplon through the depletion panel (not run; it
+    doubles the channel density at a fixed couplon density).
+  - [ ] A Ca²⁺-driven pump (Brum 1988 removal model, González & Ríos 1993
+    Fig. 2 constants, in Rios 1993's Fig. 1 legend) in place of first-order
+    uptake, with the global cytosolic Ca²⁺ that drives it.
 
 ## Deliberately not doing
 

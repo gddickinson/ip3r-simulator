@@ -70,12 +70,14 @@ def voltages() -> np.ndarray:
 
 
 def ensemble(v: float, pp: CouplonParams | None = None,
-             trials: int | None = None, seed0: int = 0) -> Ensemble:
-    """Mean of ``trials`` couplons stepped to ``v`` mV (then back)."""
+             trials: int | None = None, seed0: int = 0,
+             scale: tuple | None = None) -> Ensemble:
+    """Mean of ``trials`` couplons stepped to ``v`` mV (then back); ``scale``
+    is the SR-content path of :func:`couplon.simulate_couplon`."""
     pp = pp or CouplonParams()
     trials = int(round(_P.value("ec.trials"))) if trials is None else trials
     duration = _P.value("ec.pulse") + _P.value("ec.after")
-    runs = [simulate_couplon(step_protocol(v), duration, seed0 + s, pp)
+    runs = [simulate_couplon(step_protocol(v), duration, seed0 + s, pp, scale)
             for s in range(trials)]
     n = min(len(r.t) for r in runs)
     mean = lambda f: np.mean([f(r)[:n] for r in runs], axis=0)

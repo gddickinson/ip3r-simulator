@@ -1426,3 +1426,61 @@ quantal two-pulse release) and Rios's eight-charge Appendix model are
 also recorded as emergent.
 
 **Next:** luminal depletion under the couplon.
+
+## 2026-09-24 (6) — Round 6.7: SR depletion is not the terminator
+
+**Sync.** Both repositories were up to date and the resources were in step
+with ip3r_genes, so no verdict moved.
+
+**Why.** Round 6.6 left the fitted C scheme without a time-dependent
+terminator, and luminal depletion was the lead candidate. The roadmap
+asked for a sourced SR volume and refill rate first.
+
+**Sources.** No new PDF was needed. Stern 1997 itself ran depletion (the
+"effects of global calcium dynamics" section, Fig. 20). It gives a
+well-mixed pool, currents proportional to content, a density of 4.8
+couplons/µm³, 2 mM content, and a 28-channel couplon. The refill τ
+(0.43 s) was digitised from the Fig. 20 C recovery. The measured rulers:
+Rios 1993 Fig. 2 (50–60 % released by a 100-ms pulse to +20 mV) and
+Launikonis et al. 2006 PNAS (skraps ≤ 7.4 %). Launikonis et al. 2006 JGP
+(PMC2151548) concluded experimentally that depletion does not terminate
+release in frog. The dimensional check before building: Stern's Fig. 20 B
+integral against the C drop agrees with 24.9 µM per pA·ms once his
+Ca²⁺-driven uptake is allowed for.
+
+**What.**
+- `physics/lumen.py`: the pool, the fixed-point path (damped, with
+  common random numbers), Schneider's correction, the panel, and the pool
+  scan.
+- `couplon.simulate_couplon(scale=)`: content changes are scheduled
+  events, placed only where the fraction changes, so a path of ones is the
+  same couplon event for event (tested). The cleft Ca²⁺ is now kept as
+  `c_rel` at full current.
+- `ec --depletion [--pool-scan] [--large]`. Eleven `lumen.*` parameters
+  and the reference `launikonis2006`.
+- `docs/SCIENCE_RYR.md` was at 468 lines, so the couplon sections moved to
+  `docs/SCIENCE_EC.md`.
+- `tests/test_lumen.py` (9 tests), including the Fig. 20 calibration and
+  the finding.
+
+**Measured.**
+- Calibration: Stern's constants leave 0.54 mM [0.655] at 0 mV and 1.19
+  [1.34] at −30 mV. The corrected plateau is 1.11 [1.2] pA.
+- At 2 mM the fitted scheme looked rescued: it stops at repolarisation and
+  its corrected release still peaks (2.9). It does this by emptying 87–89 %
+  of the store.
+- Stern's constants also over-release at 2 mM (80 % at +20 mV), so the
+  pool was scaled. At ×2 they release 57 % (Rios's range) with a C Po
+  peak/plateau of 4.6, which does not depend on the pool. At the same
+  pool the fitted schemes release 73–83 % with ratios of 1.5–2.7, and the
+  ratios keep falling as the pool grows.
+
+**What it means.** A peak made by depletion needs more depletion than a
+fibre shows. The couplon's missing terminator is inactivation, so the
+next round is two-site or kinetically constrained Ca²⁺ inactivation.
+
+**Not done.** The 60-channel couplon's depletion panel was stopped after
+~40 minutes without a row. It could only deplete more, and it is recorded
+as emergent. No GUI change, so no screenshots.
+
+**Next:** Ca²⁺ inactivation in the couplon (two-site first).
