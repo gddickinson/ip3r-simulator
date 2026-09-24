@@ -5,11 +5,13 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** the V-channel trigger (Round 6.5 emergent; Ríos et al. 1993 is
-in `pdfs/rios_1993.pdf`). Meissner 1997 (Round 6.5) showed that
-activation-site Mg²⁺ alone ends a triggered spark in at best 32 ms (6.3 ms
-measured), and that Mg²⁺ at both sites gives 6 ms. So whether the voltage
-sensor lifts the inactivation-site block is now the deciding question.
+**Next:** luminal Ca²⁺ depletion under the couplon (Round 6.4 emergent).
+Round 6.6 found that with real V channels, a C channel fitted to the
+measured bell gives no release peak under any Mg²⁺ arrangement: it
+either keeps releasing after repolarisation or never amplifies. A
+time-dependent terminator is missing, and Rios 1993 measured 50–60 %
+depletion from one conditioning pulse. It needs a sourced SR volume and
+refilling rate first.
 Other candidates: the A-subspace headline in the Transition tab (Round 2)
 and the continuum's conductance shortfall (Rounds 4 and 6.1).
 
@@ -386,8 +388,7 @@ Emergent (not scheduled):
   - [ ] Luminal Ca²⁺ depletion (the SR under the couplon empties during
     release) as a terminator. It needs an SR compartment with a sourced
     volume and refilling rate.
-  - [ ] The V channels (voltage-gated, half the couplon) are not
-    simulated. Stern's own sparks were started and shaped by them.
+  - [x] The V channels: done as Round 6.6.
   - [ ] A one-Ca²⁺ inactivation gate has Hill slope 1 against the
     measured 1.5. A two-site inactivation would fit the slope as well.
 
@@ -420,10 +421,8 @@ Emergent (not scheduled):
     their salt.
   - [ ] Mg²⁺ binding kinetics: rapid equilibrium is assumed; Laver 2004
     say Mg²⁺ may not re-equilibrate within an opening.
-  - [ ] The V-channel trigger (Stern's own half of the couplon), with
-    the I1-site block lifted only on the V-coupled channels. This would
-    test whether the physiological row, not the both-sites row, is the
-    fibre's.
+  - [x] The V-channel trigger: done as Round 6.6. Neither row gives the
+    release waveform.
   - [x] Mg²⁺ in the GUI. Puffs: free Mg²⁺ and the K_Mg,A reading on
     every RyR1 receptor, plus "Triggered sparks vs Mg²⁺" on the cleft
     receptors (never shuts ≤ 25 µM; 131 → 4 ms from 63 µM to 1 mM, with
@@ -432,6 +431,33 @@ Emergent (not scheduled):
     half-activation at 77 µM (54 µM reading) or 21 % and 13 µM (521 µM).
     The smoke test found that a silent cluster crashed the event-size
     plot (log axis with no data); fixed, and now a step.
+
+- [x] 6.6 The V channels: the couplon under voltage clamp
+  (`physics/allosteric_v.py`, `physics/couplon.py`, `physics/ec_release.py`;
+  `ec` CLI). Rios 1993's ten-state allosteric model is used at fiber 827,
+  the row that gives Stern's V plateaus (0.457/0.052/0.003). Stern's text
+  says the rates were doubled. Their couplon figure (12) follows ×2, while
+  their stand-alone check (Fig. 11) follows ×1, so it predates the factor.
+  V trajectories are exact, then fed into the C Gillespie as scheduled
+  events. The Monte Carlo equals the master equation. Calibration: Stern's
+  constants reproduce his Fig. 12 (C peak 0.64/0.38/0.11 vs
+  0.64/0.39/0.12; plateau 0.12/0.09/0.04 vs 0.105/0.078/0.039), with
+  release stopping at repolarisation. Finding: fitted to Murayama's bell,
+  the C array gives flux peak/plateau 1.0–1.1 (Stern 2.7) under every
+  Mg²⁺ arrangement and reading. No Mg²⁺ or activation-site Mg²⁺: release
+  continues after repolarisation (C Po 0.72, 0.39). Both sites: control
+  is kept but the C channels barely open (0.12 at 0 mV, 0.014 at
+  −30 mV). The time-dependent terminator is missing.
+  Emergent:
+  - [ ] Luminal depletion is now the lead candidate (see Round 6.4's item).
+  - [ ] The couplon in the GUI: V and C open probability and flux per
+    step, and the configuration selector (a Puffs sub-tab or its own).
+  - [ ] Stern's other protocols as calibrations: the peak/plateau bell
+    against voltage (Fig. 2 B), quantal two-pulse release (Figs. 4–6),
+    couplon length (Fig. 13).
+  - [ ] Rios 1993's Appendix model (eight charges per channel), which
+    saturates Po before charge; it may change how many C channels a V
+    channel recruits at low voltage.
 
 ## Deliberately not doing
 

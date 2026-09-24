@@ -369,3 +369,100 @@ same law predicts Ka 0.77 µM in Murayama's salt, while Murayama measured
 explain. The shift used here depends only on the ratios Mg/Ki and Na/Ki,
 not on Ka, so it holds if that 7× lies in Ca²⁺'s own affinity. It does not
 hold if the difference lies in the competitors' affinities.
+
+## The V channels: the couplon under voltage clamp (Round 6.6)
+
+**Sources.** Rios, Karhanek, Ma & Gonzalez 1993 (J Gen Physiol 102:449,
+supplied as a PDF): the release channel opposite a tetrad of voltage
+sensors, written as an MWC allosteric protein (`physics/allosteric_v.py`).
+The channel is closed or open as a whole. Each of four sensors moves
+independently (k_c, k_−c = α/2·exp(±(V − V̄)/8K), Eqs. 2–3). Each active
+sensor multiplies the opening rate by 1/f and the closing rate by f. That
+gives ten states and the closed forms of Eqs. 6–7 for Po(V) and Q(V). Stern
+et al. 1997 used this model for their V channels, "with time-dimensioned
+rate constants increased by a factor of 2", at 0.1 pA against the C
+channels' 0.3 pA. They made the V channels "neither activated nor
+inactivated by Ca²⁺" (`physics/couplon.py`).
+
+**Which row.** Rios's Table I has four reference fibres. Fiber 827 is the
+one their kinetic figures use, and it is the only one that gives Stern's V
+plateaus (Figs. 11–12: 0.457 / 0.052 / 0.003 at 0 / −30 / −50 mV; the
+others give 0.24–0.71 at 0 mV). It also reproduces Rios's own statement that
+Po saturates at 0.72 with every sensor active.
+
+**The factor of 2, read from the figures.** Stern's Fig. 11, their
+stand-alone check of the V model, follows the printed rates (rise rms 0.020
+at ×1, 0.087 at ×2, and the decay after repolarisation agrees). Their
+Fig. 12, the couplon runs, follows ×2 (V at 10 ms: 0.43, against 0.42 at ×2
+and 0.26 at ×1). So Fig. 11 was made before the factor was applied, and the
+couplon uses ×2 (`ec.stern_rate_scale`). Both figures print "0.0" where
+0.1 belongs on the y axis, so the values were read from the tick positions.
+
+**Exact simulation.** The V channels do not depend on Ca²⁺, so each one is
+simulated first by Gillespie's method through the voltage steps (a step
+boundary is exact because the process is memoryless). The C array is then
+simulated by Gillespie's method with each V opening and closing as a
+scheduled change of Ca²⁺. `cleft.v_coupling_matrix` gives the V → C
+coupling from the same finite-volume solve. At 0.1 pA a V channel gives
+6.5 µM at the C channel across the row and 5.6 µM at each neighbour along
+it. The Monte Carlo mean of the V channels equals the master equation
+through the step and after it (Stern's own check). The V → C coupling is
+reciprocal to the C → V coupling within 5 %.
+
+**Calibration: Stern's couplon reproduced** (`python -m ip3r ec`, 200
+couplons, 100-ms steps from −90 mV). Stern's figure values are in brackets.
+
+| step | V plateau | C peak | C plateau | flux peak/plateau |
+|---|---|---|---|---|
+| 0 mV | 0.459 [0.457] | 0.644 at 5 ms [0.64, ~4 ms] | 0.117 [0.105] | 2.7 |
+| −30 mV | 0.053 [0.052] | 0.381 at 11 ms [0.39] | 0.088 [0.078] | 3.8 |
+| −50 mV | 0.003 [0.003] | 0.112 [0.123] | 0.042 [0.039] | 2.6 |
+
+After repolarisation the C channels shut (Po ≤ 0.005), which is Stern's
+"control". At −50 mV single C events last a median 11 ms (peak 7 open), and
+those reaching half the array last 20 ms, the same as the triggered cleft
+sparks of Round 6.3. The couplon is Stern's.
+
+**The question.** Round 6.5 left two candidate rows. Mg²⁺ at the
+activation site alone was physiological if the voltage sensor lifts the
+inactivation-site block (Laver 2018), but it was 5–70× too slow. Mg²⁺ at
+both sites ended sparks in 6 ms, but only 6 of 30 channels could open. In
+Stern's couplon the V channels carry no Mg²⁺ or Ca²⁺ action at all, which
+is exactly the lifted block. So the C channels were given the scheme fitted
+to Murayama's bell under the fibre's 1 mM Mg²⁺, and the couplon was
+stepped as above (200 couplons; K_Mg,A 769 µM, Meissner's reading):
+
+| C channels | C peak / plateau at 0 mV | flux peak/plateau (0 mV) | C after repolarisation (−30 mV) | −50 mV events |
+|---|---|---|---|---|
+| Stern 1997 | 0.64 / 0.12 | 2.7 | 0.004 | 11 ms; half-array ones 20 ms |
+| fitted, no Mg²⁺ | 0.76 / 0.73 | 1.01 | 0.72 | 199 of 210 never end |
+| fitted, Mg²⁺ activation site | 0.68 (at 54 ms) / 0.66 | 1.03 | 0.39 | 74 of 91 large never end |
+| fitted, Mg²⁺ both sites | 0.12 / 0.11 | 1.05 | 0.000 | 2 ms, one channel; none large |
+
+The other two K_Mg,A readings bracket it and change nothing qualitative
+(60 couplons). At 54 µM the activation site alone leaves the C channels
+nearly shut (Po 0.012 at 0 mV). At 521 µM they reach 0.60 with no peak (200 couplons at 0 mV: peak/plateau 1.02)
+and 0.03–0.05 is still open after repolarisation.
+
+**What it settles.** Real V channels confirm Round 6.5 and sharpen it.
+With the C channels fitted to the measured bell, **no Mg²⁺ arrangement gives
+the release waveform.** Either the C array amplifies and does not stop when
+the membrane repolarises (no Mg²⁺, or Mg²⁺ at the activation site only), or
+it stops but does not amplify (Mg²⁺ at both sites, where 80 % of the C
+channels are inactivated at rest). The flux never peaks: its peak/plateau
+ratio is 1.0–1.1, against 2.7 with Stern's constants and the transient peak
+measured in frog fibres. The peak in Stern's couplon comes from Ca²⁺
+inactivation that switches on during the pulse at the tens of µM the cleft
+holds (Ki 10 µM). The fitted inactivation (Ki 249 µM) is too weak to do
+that, and Mg²⁺ at the inactivation site only adds a fixed block present
+before the pulse. A time-dependent terminator is what is missing:
+inactivation stronger than the steady-state bell shows, or SR depletion
+under the couplon (Rios et al. correct their release for 50–60 % depletion
+by a single conditioning pulse, their Fig. 2).
+
+**Limits.** V channels have no Ca²⁺ or Mg²⁺ action (Stern's
+simplification). Stern chose the V and C unitary currents (0.1, 0.3 pA) to
+fit the peak/plateau ratio, so they are not independent evidence. There is
+no Iγ (Ca²⁺ feedback onto the sensors), no global cytosolic Ca²⁺ and no
+luminal depletion. Rios's model is from frog at ~10 °C; Murayama's bell is
+rabbit RyR1 at 25 °C.

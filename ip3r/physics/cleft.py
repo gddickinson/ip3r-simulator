@@ -47,7 +47,7 @@ from scipy.sparse.linalg import splu
 from ..parameters import PARAMETERS as _P
 
 __all__ = ["CleftGeometry", "Couplon", "couplon", "edge_transfer",
-           "coupling_matrix", "field", "nearest_coupling"]
+           "coupling_matrix", "v_coupling_matrix", "field", "nearest_coupling"]
 
 F_FARADAY = 96485.33212          # C/mol
 
@@ -90,6 +90,10 @@ class Couplon:
     @property
     def c_sites(self) -> np.ndarray:
         return self.sites[self.is_c]
+
+    @property
+    def v_sites(self) -> np.ndarray:
+        return self.sites[~self.is_c]
 
 
 def couplon(g: CleftGeometry) -> Couplon:
@@ -191,6 +195,21 @@ def coupling_matrix(g: CleftGeometry | None = None) -> np.ndarray:
     g = g or CleftGeometry.from_parameters()
     u, _ = _solved(g)
     return _sample(g, u, couplon(g).c_sites)
+
+
+@lru_cache(maxsize=8)
+def _solved_v(g: CleftGeometry):
+    src = np.stack([_source(g, c) for c in couplon(g).v_sites], axis=1)
+    return splu(_operator(g)).solve(src) * _scale(g)
+
+
+def v_coupling_matrix(v_current: float, g: CleftGeometry | None = None
+                      ) -> np.ndarray:
+    """H[i, k]: µM at C channel i's centre while V channel k is open and
+    passing ``v_current`` pA (Stern's V channels are not Ca2+-gated, so
+    nothing is needed at the V sites)."""
+    g = g or CleftGeometry.from_parameters()
+    return _sample(g, _solved_v(g), couplon(g).c_sites) * (v_current / g.current)
 
 
 def field(open_mask, g: CleftGeometry | None = None) -> np.ndarray:

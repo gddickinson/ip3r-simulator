@@ -1363,3 +1363,66 @@ sensor lifts the inactivation-site block, which is the V-channel item.
   matched at other Mg²⁺ levels.
 
 **Next:** the V-channel trigger from Ríos et al. 1993.
+
+## 2026-09-24 (5) — Round 6.6: the V channels
+
+**Sync.** Both repositories were up to date and the resources were in step
+with ip3r_genes, so no verdict moved.
+
+**Why.** Round 6.5 left one deciding question: does the voltage sensor
+lift the inactivation-site Mg²⁺ block? That needs the V channels, which
+Stern's couplon has and this one did not. The user supplied Rios et al.
+1993 as a PDF.
+
+**Reading the sources.**
+- Rios 1993 Table I gives four reference fibres. Fiber 827 is the one
+  whose equilibrium Po matches Stern's V plateaus at 0/−30/−50 mV (0.457
+  / 0.052 / 0.003). Its all-sensors ceiling, 0.716, is the paper's quoted
+  0.72.
+- Stern's text doubles every rate. I first set the factor to 1, because
+  their Fig. 11 (the stand-alone V check) fits ×1 and not ×2. Their
+  Fig. 12 (the couplon runs) then fitted ×2 and not ×1, so the factor is 2,
+  and Fig. 11 predates it. A test holds both readings.
+- Both figures print "0.0" where 0.1 belongs on the y axis. I first read
+  Stern's 0 mV C plateau as 0.01 and our 0.12 as a 12× discrepancy. It is
+  0.105. Suspect the reading first.
+
+**What.**
+- `physics/allosteric_v.py`: the ten states, Eqs. 6–7, and the master
+  equation.
+- `cleft.v_coupling_matrix`: V → C coupling from the same solve.
+- `sparks_cleft.c_rates` and `initial_states`: factored out so the couplon
+  shares them. The random stream is unchanged.
+- `physics/couplon.py`: V trajectories first (they are independent of
+  Ca²⁺), then the C Gillespie with the V openings as scheduled events.
+  Exact, and ~0.1 s per 300-ms couplon at 0 mV, so numba was not needed.
+- `physics/ec_release.py`: ensembles, summaries, the four C
+  configurations, and single events.
+- CLI `ec`. Seventeen `ec.*` parameters and the reference `rios1993`.
+- Tests: `test_allosteric_v` (9) and `test_couplon` (8).
+
+**Measured** (200 couplons):
+- Calibration: Stern's constants reproduce his Fig. 12 within 15 %, with
+  release stopping at repolarisation. Events at −50 mV last 11 ms (20 ms
+  for those reaching half the array).
+- Finding: fitted to Murayama's bell, the C array gives no peak under any
+  Mg²⁺ arrangement (flux peak/plateau 1.01–1.05, against 2.7):
+  - no Mg²⁺: C Po 0.72 persists after repolarisation;
+  - activation-site Mg²⁺ (769 µM): 0.39 persists after repolarisation;
+  - both sites: release stops, but the C channels barely open (0.12 at
+    0 mV, 0.014 at −30 mV) and events are single openings of 2 ms.
+- The 54 and 521 µM readings bracket this and change nothing
+  qualitatively.
+
+**What it means.** The lifted block does not rescue the fitted scheme. The
+C channels need a terminator that switches on during the pulse. Stern's
+Ki = 10 µM supplied one, and the measured bell does not allow it. The next
+candidate is luminal depletion, which Rios measured at 50–60 % per
+conditioning pulse.
+
+**Not done.** The GUI (recorded as emergent), so there are no screenshots
+this round. Stern's other protocols (the Fig. 2 B voltage bell and the
+quantal two-pulse release) and Rios's eight-charge Appendix model are
+also recorded as emergent.
+
+**Next:** luminal depletion under the couplon.

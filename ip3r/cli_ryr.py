@@ -8,6 +8,9 @@
                                               # cleft spark
     python -m ip3r spark-mg [--scan] [--reading R] [--spontaneous]  # Mg2+ and
                                               # the triggered cleft spark
+    python -m ip3r ec [--scan] [--reading R] [--trials N]  # the couplon under
+                                              # voltage clamp: V channels
+                                              # (Rios 1993) trigger C channels
 """
 
 from __future__ import annotations
@@ -130,6 +133,26 @@ def _spark_mg(args) -> int:
     return 0
 
 
+def _ec(args) -> int:
+    import numpy as np
+    from .physics import ec_release as er
+    from .physics.allosteric_v import open_probability
+    configs = er.configurations(args.reading)
+    if args.only:
+        configs = {k: v for k, v in configs.items() if args.only.lower() in k.lower()}
+    vs = er.voltages() if args.scan else np.array([0.0, -30.0, -50.0])
+    print("couplon: 30 V channels (Rios 1993 fiber 827, Stern's rates) and 30 "
+          f"C channels; V steady Po {', '.join(f'{v:.0f} mV {open_probability(v):.4f}' for v in vs)}")
+    print(f"activation-site Mg2+ reading: {args.reading}; 'after' = C open "
+          "probability over the second half of the time after repolarisation")
+    for label, sp in configs.items():
+        for v in vs:
+            e = er.ensemble(v, er.with_gating(sp), args.trials)
+            print(er.summarise(e, label).row(), flush=True)
+        print(er.event_stats(sp, label, trials=args.trials).row(), flush=True)
+    return 0
+
+
 def register(sub) -> None:
     p = sub.add_parser("mutants", help="RyR1 charge-neutralising mutants: "
                        "modelled vs measured conductance ratio")
@@ -180,3 +203,14 @@ def register(sub) -> None:
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--seeds", type=int, default=4)
     p.set_defaults(fn=_spark_mg)
+    p = sub.add_parser("ec", help="E-C coupling: the couplon under voltage "
+                       "clamp, V channels triggering C channels")
+    p.add_argument("--scan", action="store_true",
+                   help="over the registered voltage scan (default 0, -30, -50 mV)")
+    p.add_argument("--reading", choices=("measured", "selectivity", "meissner"),
+                   default="meissner", help="activation-site Mg2+ affinity")
+    p.add_argument("--only", default=None,
+                   help="only the configurations whose label contains this")
+    p.add_argument("--trials", type=int, default=None,
+                   help="couplons per ensemble (default ec.trials)")
+    p.set_defaults(fn=_ec)

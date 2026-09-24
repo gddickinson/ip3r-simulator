@@ -188,6 +188,11 @@ REFERENCES = [
     {"key": "laver2018", "authors": "Laver DR", "year": 2018,
      "title": "Regulation of the RyR channel gating by Ca2+ and Mg2+",
      "journal": "Biophys Rev 10:1087-1095", "doi": "10.1007/s12551-018-0433-4"},
+    {"key": "rios1993", "authors": "Rios E, Karhanek M, Ma J, Gonzalez A",
+     "year": 1993,
+     "title": "An allosteric model of the molecular interactions of "
+              "excitation-contraction coupling in skeletal muscle",
+     "journal": "J Gen Physiol 102:449-481", "doi": "10.1085/jgp.102.3.449"},
     {"key": "rios1999", "authors": "Rios E, Stern MD, Gonzalez A, Pizarro G, "
      "Shirokova N", "year": 1999,
      "title": "Calcium release flux underlying Ca2+ sparks of frog skeletal "

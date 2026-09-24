@@ -34,7 +34,7 @@ from .puffs import PuffTrace
 from .ryr_gating import OPEN, SternParams, stationary
 
 __all__ = ["CleftSparkParams", "native_coupling", "couplings_for",
-           "simulate_sparks_cleft", "DEST"]
+           "simulate_sparks_cleft", "DEST", "c_rates", "initial_states"]
 
 #: The two exits of each state (C, O, CI, I): activation gate, inactivation gate.
 DEST = np.array([[1, 2], [0, 3], [3, 0], [2, 1]])
@@ -58,6 +58,28 @@ class CleftSparkParams:
     gating: SternParams = field(default_factory=SternParams)
 
 
+def c_rates(state: np.ndarray, c: np.ndarray, sp: SternParams) -> np.ndarray:
+    """Exit rates of every C channel, activation gates then inactivation
+    gates (the order :data:`DEST` indexes), at each channel's own Ca2+."""
+    act_gate_shut = (state == 0) | (state == 2)
+    r_act = np.where(act_gate_shut, sp.k_act_on * sp.mg_factor * c * c,
+                     sp.k_act_off)
+    r_inact = np.where(state <= 1, sp.k_inact_on * (c + sp.mg_inact),
+                       sp.k_inact_off)
+    return np.concatenate([r_act, r_inact])
+
+
+def initial_states(pp: CleftSparkParams, n: int, rng: np.random.Generator,
+                   trigger: bool = False) -> np.ndarray:
+    """Each channel drawn from the stationary state at ``ca_rest``;
+    ``trigger`` opens the closed, uninactivated ones."""
+    pi = np.cumsum(stationary(pp.ca_rest, pp.gating))
+    state = np.searchsorted(pi, rng.random(n) * pi[-1])
+    if trigger:
+        state[state == 0] = OPEN
+    return state
+
+
 def couplings_for(pp: CleftSparkParams) -> np.ndarray:
     """``G`` for this cluster, off-diagonal scaled to ``ca_per_open``."""
     g = coupling_matrix(CleftGeometry.from_parameters(int(round(pp.n_channels))))
@@ -79,13 +101,9 @@ def simulate_sparks_cleft(p: float = 0.0, duration: float = 5.0, seed: int = 0,
     pp = pp or CleftSparkParams()
     sp = pp.gating
     rng = np.random.default_rng(seed)
-    k_on_a = sp.k_act_on * sp.mg_factor
     g = couplings_for(pp)
     n = g.shape[0]
-    pi = np.cumsum(stationary(pp.ca_rest, sp))
-    state = np.searchsorted(pi, rng.random(n) * pi[-1])
-    if trigger:
-        state[state == 0] = OPEN
+    state = initial_states(pp, n, rng, trigger)
     is_open = (state == OPEN).astype(float)
     c = pp.ca_rest + g @ is_open
     n_rec = int(np.floor(duration / pp.record_dt + 1e-9)) + 1
@@ -96,11 +114,7 @@ def simulate_sparks_cleft(p: float = 0.0, duration: float = 5.0, seed: int = 0,
     inact_out = np.zeros(n_rec, dtype=np.int32)
     t, k, n_open = 0.0, 0, int(is_open.sum())
     while True:
-        act_gate_shut = (state == 0) | (state == 2)
-        r_act = np.where(act_gate_shut, k_on_a * c * c, sp.k_act_off)
-        r_inact = np.where(state <= 1, sp.k_inact_on * (c + sp.mg_inact),
-                           sp.k_inact_off)
-        rates = np.concatenate([r_act, r_inact])
+        rates = c_rates(state, c, sp)
         total = rates.sum()
         t_next = t + rng.exponential(1.0 / total)
         # Record every bin that starts before the next event.

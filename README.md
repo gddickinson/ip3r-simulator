@@ -161,6 +161,13 @@ triggered spark in 32 ms at best (435 ms at the central value), against
 6.3 ms measured. With Mg²⁺ also at the inhibitory site, which holds ~80 %
 of channels shut before any trigger, sparks end in 6 ms under every
 reading.
+The V channels, the half of the couplon opposite the voltage sensors, are
+now simulated (`ec`; Rios 1993's allosteric model, Stern's rates). With
+Stern's constants the couplon reproduces his release under voltage clamp:
+a peak, a plateau, and a stop when the membrane repolarises. With the
+C channels fitted to the measured bell, no Mg²⁺ arrangement gives a peak.
+Either release goes on after repolarisation, or the C channels hardly
+open.
 
 ![RyR1 sparks](docs/img/gui_sparks.png)
 ![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
@@ -347,6 +354,7 @@ python -m ip3r sparks --cleft      # sparks with each channel's own Ca2+ in the 
 python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's bell
 python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
 python -m ip3r spark-mg [--scan] [--reading measured|selectivity|meissner]  # Mg2+ ends a triggered spark
+python -m ip3r ec [--scan] [--reading R]  # the couplon under voltage clamp (V + C channels)
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame;
