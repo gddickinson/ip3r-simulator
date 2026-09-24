@@ -870,3 +870,60 @@ the way: the charged solve for primed 9R8O did not converge but printed
 verdicts (44 confirmed, 2 discrepancies).
 
 **Next:** Round 6.2, RyR1 gating kinetics and sparks.
+
+
+## 2026-09-24 — Round 6.2: RyR1 gating and sparks
+
+**What.** `physics/ryr_gating.py` (Stern 1997 four-state scheme and
+Murayama 2015 bell), `physics/sparks.py` (RyR1 cluster), a third model in
+Dynamics → Gating and a third receptor in Puffs, `cli_ryr.py` (`mutants` moved
+there to keep `cli.py` well under budget, plus `ryr-gating` and `sparks`),
+20 registered constants and 3 references, `tests/test_ryr_gating.py`
+(13 tests; 278 total), and two smoke steps.
+
+**How the sources were chosen.** A research agent searched for RyR1 models
+whose constants can be read from the source's own text. JBC, Biophys J
+PDFs and several classics (Meissner 1997, Keizer–Levine, Copello 1997) are
+behind a script challenge. I re-checked every constant used against the
+downloaded text myself. Two corrections to the agent's report came out of
+that. "180 nM" in Stern's Table I is fura-2's Kd, not resting Ca²⁺. And
+"2N = 60" counts the voltage-coupled channels too, so the Ca²⁺-gated cluster
+is 30.
+
+**Decisions and why.**
+- Stern's k_i is printed as 2 × 10⁻⁶ M⁻¹ s⁻¹. The text's 10 µM Kd makes it
+  2 × 10⁶, so it is registered that way, with both the printed and the
+  corrected value in the source note. A test shows the printed value would
+  remove inhibition.
+- The coupling is derived from Stern's current, diffusivity and spacing,
+  not chosen, and a scan shows the answer holds down to about 0.2× of it.
+- `spark.dt` was first 1e-4 s. Measuring convergence showed 15–20 % longer
+  sparks than at 1e-5 or 2.5e-5 s, so it is 2.5e-5 s.
+
+**Measured.** The bells agree on half-activation (3.9 vs 4.4 µM). On
+half-inhibition the scheme is 6.7× too sensitive (48 vs 320 µM). Sparks:
+uncoupled, only blips; coupled, 1.5 per second reaching 25–30 of 30, Fano 4,
+switched on between 0.44 and 0.80 µM per open channel. They last ~120 ms
+against a measured release of 6.3 ms (frog). The trace and a direct
+calculation show why: the mean-field cluster has a self-sustaining point
+between 5 and 6 open. So the next physics step is a spatial Ca²⁺ field, not
+a new constant.
+
+**Found on the way: the GUI smoke test outgrew its budget.** It timed out
+at 540 s. Per-step timestamps (now printed) showed the RyR1 load as the
+largest step, and a profile put 14 of 15 s of a cartoon build in
+`parallel_transport_frames`, where `np.cross` ran on 436,000 single
+3-vectors. The loop is now plain-float arithmetic: identical to 4e-15 on
+random paths, 29× faster, and it speeds every structure. The smoke test
+dropped from 771 to 344 s, and its budget is 600 s. There was no test of
+the frames, so `tests/test_spline.py` adds three (orthonormal, a plane curve
+keeps its out-of-plane normal, a helix normal never turns faster than the
+tangent). Profiling also exposed a latent crash: ticking the Paper 6 modules
+on a RyR deposit raised `ModuleRefusal` inside a Qt slot, and it now draws
+nothing. 281 tests.
+
+**Not changed.** No `ip3r_genes` table moved, and the 46 checks are
+unchanged (44 confirmed, 2 discrepancies).
+
+**Next:** a spatial Ca²⁺ field for the clusters (it would test the IP3R
+puffs too), or the gate radius along the morph.

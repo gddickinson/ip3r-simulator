@@ -5,7 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 6.2 (RyR1 gating kinetics and sparks). Then, as before:
+**Next:** Round 6 is complete. Candidates: a spatial Ca²⁺ field for the
+cluster (Round 6.2 emergent; it also bears on IP3R puffs), and, as before:
 Pick from the emergent items; the strongest candidates are the gate radius
 along the morph (Round 2) and the 2.4× shortfall of the uncharged pore
 against the measured conductance, starting with RyR1 open deposits (Round 4).
@@ -297,10 +298,28 @@ Emergent (not scheduled):
     cross-section-averaged Donnan) and hold it to the five mutants, not to
     the wild-type number.
   - [ ] RyR2 (cardiac), whose closed/open deposits exist, by the same rules.
-- [ ] 6.2 RyR1 gating kinetics in Dynamics: a Ca²⁺-activated open
-  probability (bell against cytosolic Ca²⁺, beside DYK and Mak), and a
-  stochastic cluster for sparks read with the puff ruler. Constants read
-  from the source before registering.
+- [x] 6.2 RyR1 gating and sparks (`physics/ryr_gating.py`,
+  `physics/sparks.py`; Gating tab third model, Puffs tab third receptor;
+  `ryr-gating`, `sparks` CLI). The sources were found by a readable-
+  constants search: Murayama 2015's measured bell and Stern 1997's unfitted
+  two-gate scheme. Stern's printed k_i is a sign typo, corrected from the
+  text's 10 µM Kd; the printed value would remove inhibition (tested). The
+  scheme's half-activation matches (3.9 vs 4.4 µM), but its inactivation
+  is 6.7× too sensitive (48 vs 320 µM). Coupling is derived from Stern's
+  current, diffusivity and spacing (8.25 µM, not tuned). Sparks: uncoupled
+  only blips; coupled 1.5/s reaching 25–30 of 30, Fano 4; switched on at
+  0.05–0.1× the derived coupling. The step was measured (2.5e-5 s). Sparks
+  last ~120 ms against 6.3 ms measured (frog): the mean-field cluster sits
+  at a self-sustaining point (~5.5 open) until it closes by chance.
+  Emergent:
+  - [ ] A spatial Ca²⁺ field for the cluster (per-channel Ca²⁺ from its
+    open neighbours at their distances, with a buffer). The fixed point is
+    a mean-field artefact, and it is the obvious suspect for the spark
+    duration.
+  - [ ] Stern's inactivation against Murayama's bell: refit k_i (and k_i−)
+    to the measured flank, and see whether sparks still terminate.
+  - [ ] Murayama's S1 Table has 11 MH/CCD mutants (Amax, KA, KI at 25 and
+    37 °C). A mutant bell could be drawn beside the variant spheres.
 
 ## Deliberately not doing
 

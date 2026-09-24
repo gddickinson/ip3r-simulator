@@ -30,6 +30,13 @@ _NOTE = {
                   "receptor drives, its Ca²⁺ can pull the others into drive "
                   "mode. Event sizes split into blips and whole-cluster puffs "
                   "with a valley between.",
+    "ryr1": "A RyR1 cluster (Stern 1997's unfitted scheme; IP3 is ignored). "
+            "The coupling is the free-diffusion Ca²⁺ one open channel "
+            "delivers at 30 nm (an unbuffered upper estimate). Sparks recruit "
+            "most of the cluster, then settle at about 5 open (the mean-field "
+            "point where 30 × P_open(cluster Ca²⁺) equals the number open) "
+            "until they close by chance, so they last ~100 ms against a "
+            "measured release of about 6 ms (frog).",
 }
 
 
@@ -49,7 +56,7 @@ class PuffsPanel(QWidget):
         lay = QVBoxLayout(self)
         form = QFormLayout()
         self.model = QComboBox()
-        for m in pc.MODELS:
+        for m in pc.ALL_MODELS:
             self.model.addItem(pc.MODEL_LABELS[m], m)
         pp = pc.params_for(pc.MODELS[0])
         self.p = _spin(0.2, 0.0, 5.0, 0.05, " µM")
@@ -83,7 +90,10 @@ class PuffsPanel(QWidget):
         return self.model.currentData()
 
     def _model_changed(self):
-        self.coupling.setValue(pc.params_for(self.model_key).ca_per_open)
+        pp = pc.params_for(self.model_key)
+        self.coupling.setValue(pp.ca_per_open)
+        self.n.setValue(pp.n_channels)
+        self.p.setEnabled(self.model_key != pc.SPARK)       # RyR ignores IP3
 
     def run(self):
         self.text.setText("Simulating…")

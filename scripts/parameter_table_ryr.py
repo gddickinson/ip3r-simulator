@@ -38,3 +38,87 @@ RYR = [
     _mutant("D4945N", 737.0, 11, 6),
     _mutant("E4955Q", 812.0, 7, 4),
 ]
+
+# ------------------------------------------------------------ RyR1 gating
+_STERN = "Stern, Pizarro & Rios 1997 (PMC2229377), Table I"
+_MUR = ("Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 25 C "
+        "([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+)")
+
+RYR += [
+    _p("ryr.k_act_on", "RyR1 activation on rate", 10.0, "uM^-2 s^-1",
+       "empirical", "ryr", "stern1997", "Two-Ca2+ activation of the C "
+       "channel: rate k_o x c^2.", f"{_STERN}: 'k o Activating on rate 10^13 "
+       "M-2 s-1' = 10 uM^-2 s^-1. The authors: the model 'has not been "
+       "objectively fitted to data'", 0.01, 1e4),
+    _p("ryr.k_act_off", "RyR1 activation off rate", 500.0, "s^-1",
+       "empirical", "ryr", "stern1997", "Closing of the activation gate.",
+       f"{_STERN}: 'k o- Activating off rate 500 s-1'. With k_o this gives "
+       "Ka = 7.1 uM; the text says 'the activating site ... was 10 uM'",
+       1.0, 1e5),
+    _p("ryr.k_inact_on", "RyR1 inactivation on rate", 2.0, "uM^-1 s^-1",
+       "empirical", "ryr", "stern1997", "One-Ca2+ inactivation: rate k_i "
+       "x c.", f"{_STERN} prints 'k i Inactivating on rate 2 x 10-6 M-1s-1', "
+       "a sign typo: the text gives 'the K d for inactivation, also 10 uM', "
+       "and 20 s-1 / 10 uM = 2 x 10^6 M-1 s-1 = 2 uM^-1 s^-1", 0.001, 1e3),
+    _p("ryr.k_inact_off", "RyR1 inactivation off rate", 20.0, "s^-1",
+       "empirical", "ryr", "stern1997", "Recovery from inactivation.",
+       f"{_STERN}: 'k i- Inactivating off rate 20 s-1'", 0.01, 1e4),
+    _p("ryr.murayama_amax", "RyR1 bell: Amax", 0.031, "", "empirical", "ryr",
+       "murayama2015", "Peak binding activity (B/Bmax) of the fitted bell.",
+       f"{_MUR}: 'WT 25 ... 0.031 +/- 0.002'", 1e-4, 1.0),
+    _p("ryr.murayama_ka", "RyR1 bell: KA", 5.5, "uM", "empirical", "ryr",
+       "murayama2015", "Half-activation of the fitted bell.",
+       f"{_MUR}: KA 5.5 +/- 0.9 uM", 0.01, 1000.0),
+    _p("ryr.murayama_na", "RyR1 bell: nA", 1.2, "", "empirical", "ryr",
+       "murayama2015", "Hill coefficient of activation, fixed in the fit.",
+       "Murayama 2015 Methods: 'we used fixed values for n A (1.2) and n I "
+       "(1.5) for WT and all the mutants'", 0.1, 10.0),
+    _p("ryr.murayama_ki", "RyR1 bell: KI", 270.0, "uM", "empirical", "ryr",
+       "murayama2015", "Half-inhibition of the fitted bell.",
+       f"{_MUR}: KI 0.27 +/- 0.03 mM", 1.0, 1e5),
+    _p("ryr.murayama_ni", "RyR1 bell: nI", 1.5, "", "empirical", "ryr",
+       "murayama2015", "Hill coefficient of inhibition, fixed in the fit.",
+       "Murayama 2015 Methods: 'fixed values for n A (1.2) and n I (1.5)'",
+       0.1, 10.0),
+    # -------------------------------------------------------- spark cluster
+    _p("spark.n_channels", "Spark cluster size", 30.0, "", "empirical",
+       "spark", "stern1997", "Ca2+-gated RyR1s in one cluster.", "Stern 1997: "
+       "'the total number of channels, 2N, was 60', half V (voltage-coupled) "
+       "and half C (Ca2+-gated) channels; the C channels are the ones a "
+       "Ca2+-driven spark recruits", 1.0, 500.0),
+    _p("spark.unitary_current", "RyR1 unitary Ca2+ current", 0.3, "pA",
+       "empirical", "spark", "stern1997", "Current of one open channel, "
+       "for the derived coupling.", f"{_STERN}: 'i C C channel unitary "
+       "current 0.3 pA'", 0.01, 10.0),
+    _p("spark.d_ca", "Ca2+ diffusion coefficient", 5e-6, "cm^2/s",
+       "physical", "spark", "stern1997", "Free Ca2+ diffusivity, for the "
+       "derived coupling.", f"{_STERN}: 'D ca Ca2+ diffusion coefficient 5 x "
+       "10-6 cm2 s-1'", 1e-7, 1e-4),
+    _p("spark.channel_spacing", "RyR1 channel spacing", 30.0, "nm",
+       "empirical", "spark", "stern1997", "Distance at which the derived "
+       "coupling is evaluated.", f"{_STERN}: 'Channel spacing 30 nm'", 5.0,
+       500.0),
+    _p("spark.dt", "Spark cluster Ca2+ update step", 2.5e-5, "s", "method",
+       "spark", "method_choice", "How often the cluster Ca2+ is updated; "
+       "within a step the transition matrix is exact.", "Measured here (8 "
+       "seeds x 20 s): 1e-5 and 2.5e-5 s agree within noise (spark rate "
+       "1.56/1.48 s-1, median duration 125/116 ms), while 1e-4 s lengthens "
+       "sparks by 15-20 %", 1e-6, 1e-2),
+    _p("spark.published_release_duration", "Spark release duration (frog)",
+       6.3, "ms", "empirical", "spark", "rios1999", "Measured open time of "
+       "the release underlying a Ca2+ spark, compared with the model's "
+       "spark duration.", "Rios et al. 1999 (PMC2229636): 'a release "
+       "current of 16.9 pA, coming from a source of 0.5 um, with an open "
+       "time of 6.3 ms'. Frog skeletal muscle, not mammalian RyR1: a scale, "
+       "not a target", 0.1, 1000.0),
+    _p("spark.scan_low", "Spark scan: lowest coupling factor", 0.03, "",
+       "method", "spark", "method_choice", "Low end of the spark coupling "
+       "scan, as a multiple of the derived coupling.", "Buffers reduce the "
+       "free-diffusion estimate; a 30-fold band below it covers strong "
+       "buffering", 0.001, 1.0),
+    _p("spark.scan_high", "Spark scan: highest coupling factor", 1.0, "",
+       "method", "spark", "method_choice", "High end of the spark coupling "
+       "scan, as a multiple of the derived coupling.", "The derived value "
+       "is an unbuffered upper estimate, so the scan stops at it", 0.01,
+       10.0),
+]

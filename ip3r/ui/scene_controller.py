@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 
 from ..core.annotations import constraint_at, element_of, functional_sites
-from ..core.modules import MODULE_COLORS, MODULES_KEY, modules
+from ..core.modules import MODULE_COLORS, MODULES_KEY, ModuleRefusal, modules
 from ..physics.anm import ANM, atom_displacements, tetramer_sites
 from ..render import colormaps
 from ..render.representations import MolecularView, Style
@@ -142,11 +142,15 @@ class SceneController:
             fs = functional_sites(self.view.paralog)
             for k in classes:
                 mask |= np.isin(st.res_seq, fs.get(k, ()))
-            if MODULES_KEY in classes:
+            try:        # a numbering without the modules' sites (RyR1) has none
+                mods = modules(self.view.paralog) if MODULES_KEY in classes else ()
+            except ModuleRefusal:
+                mods = ()
+            if mods:
                 # Paper 6's two modules as a Cα trace, each in its own colour;
                 # drawn under the site balls, which keep the default colour.
                 ca = (st.atom_name == "CA") & ~st.hetero
-                for m in modules(self.view.paralog):
+                for m in mods:
                     sel = ca & np.isin(st.res_seq, m.residues) & ~mask
                     rgb[sel] = MODULE_COLORS[m.definition]
                     mask |= sel

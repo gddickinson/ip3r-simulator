@@ -248,6 +248,30 @@
    "title": "Two rings of negative charges in the cytosolic vestibule of type-1 ryanodine receptor modulate ion fluxes",
    "journal": "Biophys J 90:443-453",
    "doi": "10.1529/biophysj.105.072538"
+  },
+  {
+   "key": "stern1997",
+   "authors": "Stern MD, Pizarro G, Rios E",
+   "year": 1997,
+   "title": "Local control model of excitation-contraction coupling in skeletal muscle",
+   "journal": "J Gen Physiol 110:415-440",
+   "doi": "10.1085/jgp.110.4.415"
+  },
+  {
+   "key": "murayama2015",
+   "authors": "Murayama T, Kurebayashi N, Yamazawa T, et al.",
+   "year": 2015,
+   "title": "Divergent activity profiles of type 1 ryanodine receptor channels carrying malignant hyperthermia and central core disease mutations in the amino-terminal region",
+   "journal": "PLoS One 10:e0130606",
+   "doi": "10.1371/journal.pone.0130606"
+  },
+  {
+   "key": "rios1999",
+   "authors": "Rios E, Stern MD, Gonzalez A, Pizarro G, Shirokova N",
+   "year": 1999,
+   "title": "Calcium release flux underlying Ca2+ sparks of frog skeletal muscle",
+   "journal": "J Gen Physiol 114:31-48",
+   "doi": "10.1085/jgp.114.1.31"
   }
  ]
 }

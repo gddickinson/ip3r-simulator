@@ -120,6 +120,19 @@ neutralise that charge.
 
 ![RyR1 charge mutants](docs/img/gui_ryr_mutants.png)
 
+**RyR1 gating and sparks.** Dynamics → Gating → "RyR1" draws Stern et al.
+1997's two-gate scheme against Murayama et al. 2015's measured rabbit-RyR1
+bell. The scheme activates where RyR1 does (3.9 vs 4.4 µM) but inactivates
+6.7× too readily (48 vs 320 µM). Puffs → "RyR1 sparks" runs a 30-channel
+cluster with the Ca²⁺ coupling derived from one channel's current at 30 nm.
+Uncoupled it gives only blips. Coupled it gives 1.5 sparks per second that
+recruit nearly the whole cluster, read with the same ruler as IP3R puffs.
+The sparks last ~120 ms, against ~6 ms measured, because a single cluster
+Ca²⁺ has a self-sustaining point at ~5 open. That calls for a spatial Ca²⁺
+field, and it is on the roadmap.
+
+![RyR1 sparks](docs/img/gui_sparks.png)
+
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
@@ -295,6 +308,7 @@ python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
 python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
 python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
+python -m ip3r ryr-gating | sparks --scan   # RyR1 bells; sparks over the coupling band
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap
@@ -348,4 +362,6 @@ Hite 2018 (NSMB 25:660); Atilgan et al. 2001 (Biophys J 80:505); Yang, Song &
 Jernigan 2009 (PNAS 106:12347); Tama & Sanejouand 2001 (Protein Eng 14:1);
 Brüschweiler 1995 (J Chem Phys 102:3396); Kabsch 1976 (Acta Cryst A32:922); Hanley &
 McNeil 1982 (Radiology 143:29); Barlow & Thornton 1983 (J Mol Biol
-168:867); Xu et al. 2006 (Biophys J 90:443). Full entries: `ip3r/resources/references.json`.
+168:867); Xu et al. 2006 (Biophys J 90:443); Stern, Pizarro & Ríos 1997
+(J Gen Physiol 110:415); Murayama et al. 2015 (PLoS One 10:e0130606); Ríos
+et al. 1999 (J Gen Physiol 114:31). Full entries: `ip3r/resources/references.json`.

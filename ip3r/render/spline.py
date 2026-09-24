@@ -20,6 +20,8 @@ family constants.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 __all__ = ["catmull_rom", "resample_uniform", "parallel_transport_frames",
@@ -136,23 +138,32 @@ def parallel_transport_frames(path: np.ndarray,
     nv = np.linalg.norm(v)
     normal[0] = v / nv if nv > 1e-9 else np.array([0.0, 0.0, 1.0])
 
+    # The loop is sequential (each normal is carried from the last), so it
+    # runs on Python floats: numpy's per-call overhead on 3-vectors made it
+    # the whole cost of a cartoon (14 of 15 s on a RyR1 tetramer).
+    tl = tangent.tolist()
+    out = [normal[0].tolist()]
     for i in range(1, n):
-        t0, t1 = tangent[i - 1], tangent[i]
-        axis = np.cross(t0, t1)
-        s = np.linalg.norm(axis)
+        (ax0, ay0, az0), (ax1, ay1, az1) = tl[i - 1], tl[i]
+        vx, vy, vz = out[-1]
+        kx, ky, kz = ay0 * az1 - az0 * ay1, az0 * ax1 - ax0 * az1, ax0 * ay1 - ay0 * ax1
+        s = math.sqrt(kx * kx + ky * ky + kz * kz)
         if s < 1e-9:
-            normal[i] = normal[i - 1]
+            nx, ny, nz = vx, vy, vz
         else:
-            axis = axis / s
-            angle = np.arctan2(s, float(np.dot(t0, t1)))
-            c, sn = np.cos(angle), np.sin(angle)
-            v = normal[i - 1]
+            kx, ky, kz = kx / s, ky / s, kz / s
+            angle = math.atan2(s, ax0 * ax1 + ay0 * ay1 + az0 * az1)
+            c, sn = math.cos(angle), math.sin(angle)
             # Rodrigues rotation of the previous normal onto the new tangent.
-            normal[i] = (v * c + np.cross(axis, v) * sn
-                         + axis * np.dot(axis, v) * (1.0 - c))
-        normal[i] -= tangent[i] * np.dot(normal[i], tangent[i])
-        ln = np.linalg.norm(normal[i])
-        normal[i] = normal[i] / ln if ln > 1e-9 else normal[i - 1]
+            kv = kx * vx + ky * vy + kz * vz
+            nx = vx * c + (ky * vz - kz * vy) * sn + kx * kv * (1.0 - c)
+            ny = vy * c + (kz * vx - kx * vz) * sn + ky * kv * (1.0 - c)
+            nz = vz * c + (kx * vy - ky * vx) * sn + kz * kv * (1.0 - c)
+        d = nx * ax1 + ny * ay1 + nz * az1
+        nx, ny, nz = nx - ax1 * d, ny - ay1 * d, nz - az1 * d
+        ln = math.sqrt(nx * nx + ny * ny + nz * nz)
+        out.append([nx / ln, ny / ln, nz / ln] if ln > 1e-9 else out[-1])
+    normal = np.array(out, dtype=np.float64)
 
     binormal = np.cross(tangent, normal)
     return tangent, normal, binormal

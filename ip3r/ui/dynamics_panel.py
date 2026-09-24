@@ -25,6 +25,7 @@ from PyQt6.QtWidgets import (QComboBox, QDoubleSpinBox, QFormLayout, QHBoxLayout
 from ..physics.calcium import oscillation_metrics, oscillation_window, simulate
 from ..parameters import PARAMETERS as _P
 from ..physics import gating_mak as mk
+from ..physics import ryr_gating as rg
 from ..physics.gating import bell_at, h_inf, open_probability
 from .plot_canvas import PALETTE, PlotCanvas
 from .puffs_panel import PuffsPanel
@@ -47,7 +48,8 @@ class _Gating(QWidget):
     """The steady-state bell under either gating model, with the flank test
     that tells them apart (``gating_mak.compare_flanks``)."""
 
-    MODELS = ("De Young–Keizer (Li–Rinzel)", "Mak et al. 1998 (Hill)")
+    MODELS = ("De Young–Keizer (Li–Rinzel)", "Mak et al. 1998 (Hill)",
+              "RyR1: Stern 1997 scheme vs Murayama 2015 bell")
     LEVELS = ((0.1, 0.3, 1.0, 10.0), (0.01, 0.02, 0.033, 0.1, 10.0))
 
     def __init__(self):
@@ -72,6 +74,8 @@ class _Gating(QWidget):
         self.draw()
 
     def draw(self):
+        if self.model.currentIndex() == 2:
+            return self._draw_ryr()
         mak = self.model.currentIndex() == 1
         ax1, ax2 = self.canvas.reset(1, 2)[0]
         c = np.logspace(-2, 2.5, 400)
@@ -108,6 +112,43 @@ class _Gating(QWidget):
             "Steady-state P_open = (m∞ n∞ h∞)³ at clamped Ca²⁺ and IP3 "
             "(Li & Rinzel 1994; De Young & Keizer 1992 constants).")
         self.text.setText("; ".join(lines) + ". " + self._flank_sentence())
+
+    def _draw_ryr(self):
+        """RyR1 has no IP3: one kinetic scheme's bell against one measured
+        bell, each normalised to its own peak, flanks on one ruler."""
+        ax1, ax2 = self.canvas.reset(1, 2)[0]
+        c = np.logspace(-2, 4, 500)
+        bells = rg.compare_bells()
+        curves = (rg.open_probability(c), rg.murayama_activity(c))
+        for k, ((name, b), y) in enumerate(zip(bells.items(), curves)):
+            ax1.semilogx(c, y / b.po_peak, color=PALETTE[k], label=name)
+            for x in (b.c_half_act, b.c_half_inh):
+                ax1.axvline(x, color=PALETTE[k], ls=":", lw=0.8)
+        ax1.set_xlabel("Ca²⁺ (µM)")
+        ax1.set_ylabel("activity / own peak")
+        ax1.set_title("RyR1 bells; dotted: half-peak flanks")
+        occ = np.array([rg.stationary(x) for x in c])
+        for k, s in enumerate(rg.STATES):
+            ax2.semilogx(c, occ[:, k], color=PALETTE[k + 2], label=s)
+        ax2.set_xlabel("Ca²⁺ (µM)")
+        ax2.set_ylabel("stationary occupancy")
+        ax2.set_title("Stern 1997: two gates in series")
+        self.canvas.legend(ax1, loc="upper left")
+        self.canvas.legend(ax2, loc="center left")
+        self.canvas.draw_now()
+        s, m = bells.values()
+        self.note.setText(
+            "Stern, Pizarro & Ríos 1997: activation by two Ca²⁺ (k_o c², k_o−), "
+            "inactivation by one (k_i c, k_i−); the authors did not fit it to "
+            "data. Murayama et al. 2015: [³H]ryanodine binding of rabbit RyR1, "
+            "A = Amax fA (1 − fI) — an activity index, not P_open, so both are "
+            "drawn relative to their own peaks.")
+        self.text.setText(
+            f"Half-activation {s.c_half_act:.1f} µM (scheme) vs "
+            f"{m.c_half_act:.1f} µM (measured); half-inhibition "
+            f"{s.c_half_inh:.0f} vs {m.c_half_inh:.0f} µM. The scheme activates "
+            f"where RyR1 does but inactivates {m.c_half_inh / s.c_half_inh:.1f}× "
+            "too readily, as its authors said of their inactivation site.")
 
     @staticmethod
     def _flank_sentence() -> str:

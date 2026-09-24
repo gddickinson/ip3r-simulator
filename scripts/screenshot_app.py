@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -54,9 +55,15 @@ def main() -> int:
         state["errors"].append(msg)
         print("FAIL:", msg)
 
+    t0 = time.monotonic()
+    seen: set = set()
+
     def step():
         s = state["step"]
         state["step"] += 1
+        if s not in seen:                        # first entry: when each step began
+            seen.add(s)
+            print(f"step {s} at {time.monotonic() - t0:.0f} s", file=sys.stderr, flush=True)
         try:
             if s == 0:
                 win.structure_panel.select(args.structure)
@@ -408,6 +415,34 @@ def main() -> int:
                     raise RuntimeError(f"RyR1 mutants drawn wrong: {d.row()}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_ryr_mutants.png"))
+                win.tabs.setCurrentWidget(win.dynamics)
+                gt = win.dynamics.gating
+                gt.parent().parent().setCurrentWidget(gt)
+                gt.model.setCurrentIndex(2)                  # RyR1 bells
+                if "inactivates" not in gt.text.text():
+                    raise RuntimeError(f"RyR1 gating drew: {gt.text.text()[:120]}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_ryr_gating.png"))
+                pz = win.dynamics.puffs
+                pz.parent().parent().setCurrentWidget(pz)
+                pz.model.setCurrentIndex(pz.model.findData("ryr1"))
+                if pz.n.value() != 30 or pz.p.isEnabled():
+                    raise RuntimeError("the spark receptor did not take its cluster")
+                pz.result = None
+                pz.duration.setValue(10.0)
+                pz.run()
+            elif s == 22:
+                pz = win.dynamics.puffs
+                if pz.result is None:
+                    if not pz.text.text().startswith("Simulating"):
+                        raise RuntimeError(pz.text.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                c, u = pz.result["coupled"], pz.result["uncoupled"]
+                if pz.result["model"] != "ryr1" or c["large"] == 0 or u["multi"]:
+                    raise RuntimeError(f"RyR1 sparks drew {pz.result}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_sparks.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()
@@ -417,7 +452,7 @@ def main() -> int:
         QTimer.singleShot(1500, step)
 
     QTimer.singleShot(800, step)
-    QTimer.singleShot(540_000, lambda: (fail("timed out"), app.quit()))
+    QTimer.singleShot(600_000, lambda: (fail(f"timed out at step {state['step']}"), app.quit()))
     app.exec()
     return 1 if state["errors"] else 0
 

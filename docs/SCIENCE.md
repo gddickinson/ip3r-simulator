@@ -391,6 +391,61 @@ in the charged model and absent in the paired one. A continuum Donnan
 partition spread over 3 Å does not carry what a ring of four carboxylates
 does at a 5 Å filter.
 
+## RyR1 gating and sparks
+
+**Sources, and why these.** A search for RyR1 models whose constants can be
+read from the source's own text (many papers are behind a script
+challenge) found one measured bell and one kinetic scheme.
+
+- *Murayama et al. 2015* (PLoS One, S1 Table): recombinant rabbit RyR1,
+  Ca²⁺-dependent [³H]ryanodine binding, A = Amax fA (1 − fI) with
+  KA 5.5 µM, nA 1.2, KI 0.27 mM, nI 1.5 (wild type, 25 °C). Binding is an
+  activity index, not P_open, so it is compared by shape (flanks), never by
+  height.
+- *Stern, Pizarro & Ríos 1997* (J Gen Physiol, Table I): the skeletal "C
+  channel", two gates in series. Activation opens on two Ca²⁺
+  (k_o = 10 µM⁻² s⁻¹, k_o− = 500 s⁻¹) and inactivation closes on one
+  (k_i, k_i− = 20 s⁻¹). k_i is printed "2 × 10⁻⁶ M⁻¹ s⁻¹", a sign typo: the
+  text gives the inactivation Kd as 10 µM, so k_i = 2 µM⁻¹ s⁻¹. The printed
+  value would remove inhibition entirely (tested). The authors say the
+  model "has not been objectively 'fitted' to data".
+
+The best-constrained readable kinetic scheme, Zahradníková et al. 1999, is
+cardiac RyR2 and has no Ca²⁺ inhibition, so it was not used.
+
+**Bells on one ruler** (`python -m ip3r ryr-gating`). Half-activation: 3.9 µM
+(scheme) vs 4.4 µM (measured). Half-inhibition: 48 vs 320 µM. The scheme
+activates where RyR1 does, but inactivates 6.7× too readily. Stern et al.
+said as much of their inactivation site ("one or two orders of magnitude
+lower than in bilayers").
+
+**Sparks** (`physics/sparks.py`, `python -m ip3r sparks [--scan]`). The
+cluster is the 30 Ca²⁺-gated C channels of Stern's 60-channel couplon, with
+the mean-field coupling the IP3R puffs use. The coupling is derived:
+free-diffusion Ca²⁺ one channel spacing (30 nm) from one open channel
+(0.3 pA, D 5 × 10⁻⁶ cm² s⁻¹), which is 8.25 µM, an unbuffered upper bound.
+Each step is exact (expm of the generator, tabulated per number open). The
+step was measured: 1e-5 and 2.5e-5 s agree within noise, 1e-4 s lengthens
+sparks by 15–20 %, and a 5 ms step is caught.
+
+Read with the puff ruler (10 s):
+
+- Uncoupled: only single-channel blips.
+- Coupled: 1.5 sparks per second, most reaching 25–30 of 30 channels,
+  with a size gap between blips and sparks; Fano 4.
+- Coupling scan (× derived value): sparks switch on between 0.05× and 0.1×
+  (0.44–0.80 µM per open channel) and saturate by ~0.2×. So buffering
+  could cut the coupling five-fold without changing the answer.
+
+**Where it fails.** Sparks last ~120 ms (median), against a measured
+release of 6.3 ms (Ríos et al. 1999, frog). The trace shows why. After the
+first near-whole-cluster peak, the mean-field cluster settles at the point
+where 30 · P_open(0.1 + 8.25 n µM) = n (between 5 and 6 open). It stays
+there until the number open falls to zero by chance. Stern et al.'s
+termination relied on local geometry and voltage-sensor coupling, which a
+single cluster Ca²⁺ cannot represent. Measured spark durations need a
+spatial Ca²⁺ field, as they had, not a better constant.
+
 ## Paper 6: the module contrast
 
 The **ligand core** is the smallest span that holds all ten IP3 contacts. The

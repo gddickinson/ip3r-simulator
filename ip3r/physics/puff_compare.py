@@ -18,6 +18,11 @@ the most open at once within it. This module reads both with one ruler:
 
 ``coupling_scan`` runs both receptors over the same couplings, so the
 comparison does not rest on either model's chosen coupling.
+
+**Sparks.** A RyR1 cluster (:mod:`ip3r.physics.sparks`, key ``ryr1``) is
+read with the same ruler. It is not in ``MODELS`` (the IP3R pair the
+coupling scan compares at one IP3), because its natural coupling is ~8 µM,
+outside the IP3R scan; ``spark_scan`` sweeps a band around it instead.
 """
 
 from __future__ import annotations
@@ -29,15 +34,20 @@ import numpy as np
 from ..parameters import PARAMETERS as _P
 from .puffs import PuffParams, PuffTrace, detect_events, fano, simulate_cluster
 from .puffs_pd import ParkDrivePuffParams, simulate_cluster_pd
+from .sparks import SparkParams, simulate_sparks, spark_couplings
 
-__all__ = ["MODELS", "MODEL_LABELS", "params_for", "simulate", "event_sizes",
+__all__ = ["MODELS", "ALL_MODELS", "SPARK", "MODEL_LABELS", "spark_scan", "params_for", "simulate", "event_sizes",
            "recruitment", "coupling_effect", "scan_couplings", "coupling_scan"]
 
 MODELS = ("dyk", "park-drive")
+SPARK = "ryr1"
+ALL_MODELS = MODELS + (SPARK,)
 MODEL_LABELS = {"dyk": "De Young–Keizer subunits",
-                "park-drive": "Park/drive (Siekmann; Cao 2013)"}
+                "park-drive": "Park/drive (Siekmann; Cao 2013)",
+                SPARK: "RyR1 sparks (Stern 1997 scheme)"}
 _SIM = {"dyk": (simulate_cluster, PuffParams),
-        "park-drive": (simulate_cluster_pd, ParkDrivePuffParams)}
+        "park-drive": (simulate_cluster_pd, ParkDrivePuffParams),
+        SPARK: (simulate_sparks, SparkParams)}
 
 
 def params_for(model: str, coupling: float | None = None,
@@ -109,3 +119,12 @@ def coupling_scan(p: float = 0.2, duration: float = 10.0, seed: int = 0,
     return {m: [{"coupling": float(c),
                  **recruitment(simulate(m, p, duration, seed, params_for(m, c)))}
                 for c in cs] for m in models}
+
+
+def spark_scan(duration: float = 10.0, seed: int = 0, couplings=None) -> list[dict]:
+    """The RyR1 cluster over :func:`sparks.spark_couplings`: one
+    :func:`recruitment` row per coupling."""
+    cs = spark_couplings() if couplings is None else np.asarray(couplings, float)
+    return [{"coupling": float(c),
+             **recruitment(simulate(SPARK, 0.0, duration, seed, params_for(SPARK, c)))}
+            for c in cs]
