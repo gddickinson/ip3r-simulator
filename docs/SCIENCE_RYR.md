@@ -239,3 +239,70 @@ activation site and binds the low-affinity inhibitory site, so the bell a
 spark sees is not the one measured here. Mg²⁺, luminal Ca²⁺ depletion and
 the V channels are the mechanisms left. Each is recorded as emergent in
 the roadmap, not assumed.
+
+## Mg²⁺ and the cleft spark (Round 6.5; `physics/spark_mg.py`)
+
+**Sources.** No open RyR1 bell with Mg²⁺ could be read in full. Meissner
+et al. 1997 (JBC, [³H]ryanodine binding with Mg²⁺ and monovalent cations,
+the assay Murayama used) sits behind a browser challenge. The scheme
+therefore takes the two Mg²⁺ actions from sources that could be read:
+
+- *activation (A-) site*: Mg²⁺ competes with Ca²⁺ with affinity 54 ± 4 µM
+  (Laver, O'Neill & Lamb 2004, Table I; RyR1 in bilayers with 2 mM ATP,
+  1 mM luminal Ca²⁺). In the same condition the site's Ca²⁺ affinity is
+  0.51 µM, so its Mg²⁺/Ca²⁺ selectivity is ~106.
+- *inactivation (I1-) site*: "the inhibitory effects of Ca²⁺ and Mg²⁺
+  were virtually identical" in each channel (Laver et al. 1997, Biophys J
+  73:1913).
+- *free Mg²⁺ in the fibre*: 1 mM (Godt & Maughan 1988, as cited by Laver
+  2018).
+
+**Model.** Mg²⁺ binds the activation site in rapid equilibrium. The
+two-Ca²⁺ on rate is divided by (1 + Mg/K_Mg,A)², so Ka becomes
+Ka (1 + Mg/K_Mg,A), the competitive form of Laver 2004's Eq. 6. The
+inactivation gate binds c + Mg at the same Ki. Its Hill slope stays 1,
+where Laver measured ~2. The ATP condition of K_Mg,A does not match
+Murayama's bell, so there are two readings: the absolute 54 µM, and the
+selectivity carried onto the fitted Ka (4.9 × 106 = 521 µM). Both are
+reported.
+
+**The trigger.** Under fibre Mg²⁺ no spark starts on its own, and in the
+fibre the V channels start them. So a spark is triggered: at t = 0 every
+channel that is not inactivated is opened, and the array is timed until no
+channel is open (20 trials, 2 s window).
+
+**Measured** (fitted to Murayama 25 °C; 1 mM Mg²⁺; `spark-mg [--ratio]`):
+
+| Mg²⁺ acts at | opened | ended | median | inactivated before → after |
+|---|---|---|---|---|
+| nowhere | 30 | 0/20 | — | 0 → — |
+| activation site only (54 µM) | 30 | 20/20 | 17.5 ms | 0 → 0 |
+| activation site only (521 µM) | 30 | 20/20 | 49.5 ms | 0 → 1 |
+| inactivation site only | 6 | 20/20 | 25 ms | 24 → 25 |
+| both (54 µM) | 6 | 20/20 | 4.0 ms | 24 → 24 |
+| both (521 µM) | 6 | 20/20 | 6.0 ms | 24 → 25 |
+
+Scan (54 µM, both sites): the array never shuts up to 25 µM Mg²⁺. At
+63 µM it shuts in a median 131 ms, then in 15, 10.5 and 4 ms at 158, 398
+and 1,000 µM, while the number the trigger can open falls from 24 to 6.
+With the 521 µM reading, only 3 of 20 shut at 158 µM, and all of them do
+from 398 µM (31.5 ms). Spontaneous sparks stop between 25 and 158 µM.
+
+**What it means.** Mg²⁺ is the missing terminator, and it ends a spark
+without inactivating anything. At the activation site it raises the Ca²⁺
+each channel needs above what its neighbours supply, so the array's
+positive feedback falls below one and the spark decays stochastically:
+induction decay, the mechanism Laver, Cannell and colleagues proposed for
+RyR2. Mg²⁺ at the inactivation site holds ~80 % of the channels shut
+before any trigger. Laver 2018 proposes that the voltage sensor lifts
+exactly this block during E–C coupling. On that reading, the
+activation-site row is the physiological one: 17.5–49.5 ms, 3–8× the
+6.3 ms frog release. With both sites acting, 4–6 ms matches the
+measurement, but only 6 channels open. Stern's published constants
+cannot take Mg²⁺ at the inactivation site: with Ki = 10 µM, 1 mM Mg²⁺
+inactivates all 30 at rest.
+
+**Limits.** Mg²⁺ is assumed to bind in rapid equilibrium, and Laver 2004
+note that it may not reach equilibrium during an opening. K_Mg,A was
+measured with ATP. The trigger is a step, not a V channel that keeps
+releasing. Luminal depletion is still absent.

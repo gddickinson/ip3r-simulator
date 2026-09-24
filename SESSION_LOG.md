@@ -1018,3 +1018,72 @@ the verdicts are unchanged (44 confirmed, 2 discrepancies).
 
 **Next:** source a Mg²⁺-inclusive RyR1 bell or scheme with readable
 constants before modelling Mg²⁺.
+
+
+## 2026-09-24 — Round 6.5: Mg²⁺ ends a triggered cleft spark
+
+**What.** `SternParams` gains free Mg²⁺ (`mg`, default 0) with two
+sourced actions. At the activation site it competes in rapid
+equilibrium: the on rate is divided by (1 + Mg/K_Mg,A)², so Ka becomes
+Ka (1 + Mg/K_Mg,A). At the inactivation site it binds like Ca²⁺
+(`mg_i` = 1). `with_mg` builds a scheme under Mg²⁺. `fit_to_bell` now
+fits at Mg²⁺ 0, because the bell was measured without it.
+`simulate_sparks_cleft(trigger=True)` opens every channel that is not
+inactivated at t = 0. `physics/spark_mg.py` times triggered sparks,
+dissects the two sites and scans Mg²⁺, and the CLI gains `spark-mg`.
+There are 7 new parameters and 3 new references.
+`tests/test_spark_mg.py` has 10 tests (309 total). A planted fault that
+disables the activation-site competition fails 3 of them (checked, then
+restored).
+
+**Sources, and why these.** The roadmap asked for a Mg²⁺-inclusive RyR1
+bell with readable constants first. The best match is Meissner et al.
+1997 (JBC), which used the same [³H]ryanodine assay as Murayama. It sits
+behind a Cloudflare challenge, and Chrome was not connected. The open
+sources give the two Mg²⁺ actions separately, which a two-gate scheme
+needs anyway:
+- Laver 2004 Table I: K_Mg,A 54 µM, beside a Ca²⁺ affinity of 0.51 µM,
+  measured with ATP.
+- Laver 1997: Ca²⁺ and Mg²⁺ inhibit identically at the I1 site.
+- Laver 2018: 1 mM free Mg²⁺ in the fibre.
+
+Nothing was fitted. Because K_Mg,A's ATP condition does not match
+Murayama's, there is a second reading: Laver's selectivity carried onto
+the fitted Ka, 521 µM. Both are reported.
+
+**Why a trigger.** Under fibre Mg²⁺ no spark starts by itself, so the
+spontaneous ruler can only say "none". In the fibre, the V channels start
+sparks, and they are not simulated. Opening the available channels at
+t = 0 is the simplest stand-in that asks the question at hand: once lit,
+does the array shut?
+
+**Measured** (fitted to 25 °C, 1 mM Mg²⁺, 20 trials):
+- No Mg²⁺: never shuts (0/20 in 2 s).
+- Activation site only: 20/20 shut, 17.5 ms (54 µM) or 49.5 ms (521 µM),
+  with 0 channels inactivated.
+- Inactivation site only: 6 open, 25 ms.
+- Both sites: 6 open, 4–6 ms.
+- Scan (both sites, 54 µM): the array never shuts up to 25 µM, then
+  131 / 15 / 10.5 / 4 ms at 63 / 158 / 398 / 1,000 µM.
+
+**What it means.** Mg²⁺ is the missing terminator, but it does not work
+through inactivation. Competition at the activation site drops the
+array's positive feedback below one, so a spark decays stochastically
+(induction decay). The I1-site action mostly removes channels before
+the spark. Laver 2018 proposes that the voltage sensor lifts that block
+during E–C coupling. The activation-site row (17.5–49.5 ms) would then
+be the physiological one, still 3–8× the 6.3 ms frog release. The
+both-sites row matches the duration only by leaving 24 of 30 channels
+shut.
+
+**Process note.** The Unpaywall lookup for Meissner 1997 was made with
+the user's email address as its required `email` parameter. That should
+not have been sent. Future lookups use Crossref / Europe PMC / Semantic
+Scholar, which need no address.
+
+**Not changed.** `make sync-check` was clean, no checks were touched, and
+the verdicts are unchanged (44 confirmed, 2 discrepancies). No UI files
+changed, so no screenshots were needed.
+
+**Next:** pin K_Mg,A in Murayama's condition (Meissner 1997; the user
+may need to supply the PDF), then the V-channel trigger.

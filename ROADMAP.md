@@ -5,13 +5,15 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** fitted to the measured bell, Ca²⁺ inactivation cannot end a
-cleft spark at all (Round 6.4), so the terminator is a mechanism the
-scheme lacks. The lead candidate is Mg²⁺, since the bell was measured
-without it. Before modelling it, source a Mg²⁺-inclusive RyR1 bell with
-readable constants. Other strong candidates: the gate radius along the
-morph (Round 2), and the continuum's conductance shortfall on both
-receptors (Rounds 4 and 6.1).
+**Next:** Mg²⁺ ends a triggered cleft spark (Round 6.5), but under
+the physiological reading (voltage sensor lifts the inactivation-site
+block) it takes 17.5–49.5 ms, against 6.3 ms measured. The two readings
+of the activation-site affinity bracket that range. The next steps are to
+read Meissner et al. 1997 (JBC, the same [³H]ryanodine assay as Murayama,
+with Mg²⁺; behind a browser challenge, so the user may need to supply the
+PDF) to pin K_Mg,A in Murayama's condition, and to simulate the V channels
+as the trigger. Other strong candidates: the gate radius along the morph
+(Round 2) and the continuum's conductance shortfall (Rounds 4 and 6.1).
 
 ## Destination
 
@@ -365,9 +367,7 @@ Emergent (not scheduled):
   not caused by the inactivation. Stern's too-sensitive inactivation is
   what let sparks end at all.
   Emergent:
-  - [ ] Mg²⁺: Murayama's bell has none, and ~1 mM free Mg²⁺ in the fibre
-    both competes at activation and inhibits. First source a RyR1 bell
-    (or a scheme) with Mg²⁺ whose constants can be read, then refit.
+  - [x] Mg²⁺: done as Round 6.5.
   - [ ] Luminal Ca²⁺ depletion (the SR under the couplon empties during
     release) as a terminator. It needs an SR compartment with a sourced
     volume and refilling rate.
@@ -375,6 +375,36 @@ Emergent (not scheduled):
     simulated. Stern's own sparks were started and shaped by them.
   - [ ] A one-Ca²⁺ inactivation gate has Hill slope 1 against the
     measured 1.5. A two-site inactivation would fit the slope as well.
+
+- [x] 6.5 Mg²⁺ and the cleft spark (`physics/spark_mg.py`; `mg`,
+  `k_mg_a`, `mg_i` in `SternParams`; `spark-mg` CLI). No open RyR1 bell
+  with Mg²⁺ could be read (Meissner 1997 JBC is behind a browser
+  challenge). The two actions come from readable sources instead:
+  competition at the activation site, K_Mg,A 54 µM (Laver 2004 Table I,
+  with ATP), and equal Ca²⁺/Mg²⁺ inhibition at the I1 site (Laver 1997).
+  Fibre free Mg²⁺ is 1 mM. Nothing is fitted. Under Mg²⁺ no spark starts
+  by itself, so sparks are triggered (available channels opened at
+  t = 0). Fitted to the 25 °C bell, the array never shuts without Mg²⁺.
+  With 1 mM at the activation site alone it shuts every time, in 17.5 ms
+  (54 µM reading) or 49.5 ms (Laver's selectivity on the fitted Ka,
+  521 µM), with **no channel inactivated**. The mechanism is induction
+  decay, not inactivation. Adding the I1 site holds 24 of 30 channels
+  shut at rest; then 6 open and the spark lasts 4–6 ms. Scan: the array
+  never shuts up to 25 µM Mg²⁺, and does so in 131 ms at 63 µM and 4 ms
+  at 1 mM. Stern's published Ki (10 µM) cannot take Mg²⁺ at the I1 site:
+  all 30 are inactivated at rest.
+  Emergent:
+  - [ ] Pin K_Mg,A in Murayama's condition (no ATP): Meissner et al.
+    1997 JBC measured it by the same assay. The 54/521 µM bracket is
+    the largest uncertainty left.
+  - [ ] Mg²⁺ binding kinetics: rapid equilibrium is assumed; Laver 2004
+    say Mg²⁺ may not re-equilibrate within an opening.
+  - [ ] The V-channel trigger (Stern's own half of the couplon), with
+    the I1-site block lifted only on the V-coupled channels. This would
+    test whether the physiological row, not the both-sites row, is the
+    fibre's.
+  - [ ] Mg²⁺ in the GUI: a Mg²⁺ control on the fitted-cleft receptor in
+    the Puffs tab, and the Mg²⁺ bell in Gating.
 
 ## Deliberately not doing
 

@@ -6,6 +6,8 @@
                                               # read with the puff ruler
     python -m ip3r spark-termination [--scan fit|ki|rate]  # what ends a
                                               # cleft spark
+    python -m ip3r spark-mg [--scan] [--ratio] [--spontaneous]  # Mg2+ and
+                                              # the triggered cleft spark
 """
 
 from __future__ import annotations
@@ -104,6 +106,30 @@ def _spark_termination(args) -> int:
     return 0
 
 
+def _spark_mg(args) -> int:
+    from .physics import ryr_gating as rg
+    from .physics import spark_mg as sm
+    fit = rg.fit_to_bell()
+    k = sm.k_mg_a_by_ratio(fit) if args.ratio else None
+    base = rg.with_mg(fit, 0.0, k)
+    print(f"fitted to Murayama 25 C (Ka {fit.k_a:.2f}, Ki {fit.k_i:.0f} µM); "
+          f"activation-site Mg2+ affinity {base.k_mg_a:.0f} µM"
+          + (" (Laver 2004's selectivity on the fitted Ka)" if args.ratio else
+             " (Laver 2004, absolute)"))
+    if args.spontaneous:
+        rows = sm.spontaneous(base, k, args.duration, args.seeds)
+    elif args.scan:
+        rows = sm.mg_scan(base, k)
+    else:
+        rows = sm.dissect(base)
+    if not args.spontaneous:
+        print("triggered: every available channel opened at t = 0 and timed "
+              "until none is open")
+    for r in rows:
+        print(r.row())
+    return 0
+
+
 def register(sub) -> None:
     p = sub.add_parser("mutants", help="RyR1 charge-neutralising mutants: "
                        "modelled vs measured conductance ratio")
@@ -138,3 +164,16 @@ def register(sub) -> None:
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--seeds", type=int, default=4)
     p.set_defaults(fn=_spark_termination)
+    p = sub.add_parser("spark-mg", help="cytosolic Mg2+ and the cleft spark: "
+                       "the two sites dissected, or scanned")
+    p.add_argument("--scan", action="store_true",
+                   help="triggered sparks over free Mg2+ (default: the two "
+                   "sites dissected at the fibre's Mg2+)")
+    p.add_argument("--ratio", action="store_true",
+                   help="activation-site Mg2+ affinity from Laver 2004's "
+                   "Mg2+/Ca2+ selectivity instead of their absolute value")
+    p.add_argument("--spontaneous", action="store_true",
+                   help="untriggered runs over free Mg2+")
+    p.add_argument("--duration", type=float, default=10.0)
+    p.add_argument("--seeds", type=int, default=4)
+    p.set_defaults(fn=_spark_mg)

@@ -266,6 +266,30 @@
    "doi": "10.1371/journal.pone.0130606"
   },
   {
+   "key": "laver2004",
+   "authors": "Laver DR, O'Neill ER, Lamb GD",
+   "year": 2004,
+   "title": "Luminal Ca2+-regulated Mg2+ inhibition of skeletal RyRs reconstituted as isolated channels or coupled clusters",
+   "journal": "J Gen Physiol 124:741-758",
+   "doi": "10.1085/jgp.200409092"
+  },
+  {
+   "key": "laver1997mh",
+   "authors": "Laver DR, Owen VJ, Junankar PR, et al.",
+   "year": 1997,
+   "title": "Reduced inhibitory effect of Mg2+ on ryanodine receptor-Ca2+ release channels in malignant hyperthermia",
+   "journal": "Biophys J 73:1913-1924",
+   "doi": "10.1016/S0006-3495(97)78222-5"
+  },
+  {
+   "key": "laver2018",
+   "authors": "Laver DR",
+   "year": 2018,
+   "title": "Regulation of the RyR channel gating by Ca2+ and Mg2+",
+   "journal": "Biophys Rev 10:1087-1095",
+   "doi": "10.1007/s12551-018-0433-4"
+  },
+  {
    "key": "rios1999",
    "authors": "Rios E, Stern MD, Gonzalez A, Pizarro G, Shirokova N",
    "year": 1999,

@@ -68,17 +68,24 @@ def couplings_for(pp: CleftSparkParams) -> np.ndarray:
 
 
 def simulate_sparks_cleft(p: float = 0.0, duration: float = 5.0, seed: int = 0,
-                          pp: CleftSparkParams | None = None) -> PuffTrace:
+                          pp: CleftSparkParams | None = None,
+                          trigger: bool = False) -> PuffTrace:
     """Simulate the cleft array for ``duration`` s (``p`` is ignored, as in
     :func:`sparks.simulate_sparks`). ``PuffTrace.ca`` is the mean Ca2+ over
-    the C channels at each bin's start."""
+    the C channels at each bin's start. ``trigger`` opens every channel that
+    is closed but not inactivated at t = 0 (the resting draw is kept for the
+    inactivated ones): a stand-in for the V channels' stimulus, so that a
+    spark can be timed where none starts by itself."""
     pp = pp or CleftSparkParams()
     sp = pp.gating
     rng = np.random.default_rng(seed)
+    k_on_a = sp.k_act_on * sp.mg_factor
     g = couplings_for(pp)
     n = g.shape[0]
     pi = np.cumsum(stationary(pp.ca_rest, sp))
     state = np.searchsorted(pi, rng.random(n) * pi[-1])
+    if trigger:
+        state[state == 0] = OPEN
     is_open = (state == OPEN).astype(float)
     c = pp.ca_rest + g @ is_open
     n_rec = int(np.floor(duration / pp.record_dt + 1e-9)) + 1
@@ -90,8 +97,9 @@ def simulate_sparks_cleft(p: float = 0.0, duration: float = 5.0, seed: int = 0,
     t, k, n_open = 0.0, 0, int(is_open.sum())
     while True:
         act_gate_shut = (state == 0) | (state == 2)
-        r_act = np.where(act_gate_shut, sp.k_act_on * c * c, sp.k_act_off)
-        r_inact = np.where(state <= 1, sp.k_inact_on * c, sp.k_inact_off)
+        r_act = np.where(act_gate_shut, k_on_a * c * c, sp.k_act_off)
+        r_inact = np.where(state <= 1, sp.k_inact_on * (c + sp.mg_inact),
+                           sp.k_inact_off)
         rates = np.concatenate([r_act, r_inact])
         total = rates.sum()
         t_next = t + rng.exponential(1.0 / total)

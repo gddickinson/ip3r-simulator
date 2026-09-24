@@ -139,6 +139,11 @@ starts, it never ends. With inactivation made as weak as the measured bell
 says, the tens of µM in the cleft cannot shut the array at any
 inactivation rate. So what ends a real spark is missing from a Ca²⁺-only
 scheme.
+Adding the fibre's 1 mM free Mg²⁺ (`spark-mg`, CLI only), from open
+sources, supplies it. Competing at the activation site, Mg²⁺ shuts every
+triggered spark in 17.5–49.5 ms (two readings of its affinity) with no
+channel inactivated: the array's feedback falls below one. At the
+inhibitory site, Mg²⁺ also holds ~80 % of channels shut before any trigger.
 
 ![RyR1 sparks](docs/img/gui_sparks.png)
 ![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
@@ -323,6 +328,7 @@ python -m ip3r ryr-gating | sparks --scan   # RyR1 bells; sparks over the coupli
 python -m ip3r sparks --cleft      # sparks with each channel's own Ca2+ in the cleft
 python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's bell
 python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
+python -m ip3r spark-mg [--scan] [--ratio]  # Mg2+ ends a triggered spark
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap

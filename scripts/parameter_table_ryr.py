@@ -45,6 +45,9 @@ _MUR = ("Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 25 C "
         "([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+)")
 _MUR37 = _MUR.replace("at 25 C", "at 37 C") + "; read from the S1 Table .doc"
 
+_L04 = ("Laver, O'Neill & Lamb 2004 (PMC2234024), Table I: RyR1 (rabbit) in "
+        "bilayers, 2 mM ATP, luminal Ca2+ 1 mM, cytoplasmic Cs+ 250 mM")
+
 RYR += [
     _p("ryr.k_act_on", "RyR1 activation on rate", 10.0, "uM^-2 s^-1",
        "empirical", "ryr", "stern1997", "Two-Ca2+ activation of the C "
@@ -184,4 +187,46 @@ RYR += [
     _p("spark.rate_scan_points", "Termination scan: rate points", 7.0, "",
        "method", "spark", "method_choice", "Geometric steps of the rate "
        "scan.", "Two to three per decade", 2.0, 50.0),
+    # ------------------------------------------------------------ Mg2+
+    _p("ryr.mg_free", "Cytosolic free Mg2+ (muscle)", 1000.0, "uM",
+       "empirical", "ryr", "laver2018", "Free Mg2+ in the resting fibre "
+       "cytosol; the spark Mg2+ scan ends here.", "Laver 2018 review: "
+       "'physiological concentrations of Mg2+ (1 mM (Godt and Maughan "
+       "1988))'", 0.0, 1e5),
+    _p("ryr.k_mg_a", "RyR1 activation site: Mg2+ affinity", 54.0, "uM",
+       "empirical", "ryr", "laver2004", "Dissociation constant of Mg2+ at "
+       "the Ca2+ activation (A-) site, competitive with Ca2+.", f"{_L04}: "
+       "Kapp(Mg2+) 54 +/- 4 uM (DIDS-modified: 120 +/- 17 uM). Measured "
+       "with ATP present, which Murayama's bell lacks; the Laver 2018 review "
+       "gives '~50 uM' for the A-site", 1.0, 1e5),
+    _p("ryr.mg_i_relative", "RyR1 inactivation site: Mg2+/Ca2+ affinity",
+       1.0, "", "empirical", "ryr", "laver1997mh", "Mg2+ affinity of the "
+       "low-affinity inactivation (I1-) site relative to Ca2+'s: the "
+       "inactivation gate's ligand is c + ratio x Mg2+.", "Laver et al. "
+       "1997 abstract: 'the inhibitory effects of Ca2+ and Mg2+ were "
+       "virtually identical for the same conditions in any given channel'; "
+       "Hill coefficient ~2 there, 1 in this gate", 0.0, 100.0),
+    _p("ryr.k_ca_a_laver", "RyR1 activation site: Ca2+ affinity (Laver)",
+       0.51, "uM", "empirical", "ryr", "laver2004", "The A-site Ca2+ "
+       "affinity measured beside ryr.k_mg_a in the same condition; their "
+       "ratio is the Mg2+/Ca2+ selectivity of the site.", f"{_L04}: "
+       "Kapp(Ca2+)c 0.51 +/- 0.07 uM (ratio to Kapp(Mg2+) 106; DIDS 133)",
+       0.01, 1e3),
+    _p("spark.mg_scan_min", "Mg2+ scan: lowest non-zero Mg2+", 10.0, "uM",
+       "method", "spark", "method_choice", "Low end of the free Mg2+ scan "
+       "of cleft sparks (0 is always included).", "A fifth of the A-site "
+       "affinity: where Mg2+ begins to matter", 0.1, 1e4),
+    _p("spark.mg_scan_points", "Mg2+ scan: non-zero points", 6.0, "",
+       "method", "spark", "method_choice", "Geometric steps from "
+       "spark.mg_scan_min to ryr.mg_free.", "Two to three per decade",
+       2.0, 50.0),
+    _p("spark.trigger_trials", "Triggered spark: trials", 20.0, "",
+       "method", "spark", "method_choice", "Seeds per triggered-spark "
+       "measurement (every available channel opened at t = 0).", "Enough "
+       "for a median; each trial is one spark", 1.0, 1000.0),
+    _p("spark.trigger_window", "Triggered spark: window", 2.0, "s",
+       "method", "spark", "method_choice", "How long a triggered array is "
+       "followed; a spark still running then is counted as not ended.",
+       "300x the 6.3 ms measured release, 10x the longest ended spark seen",
+       0.01, 100.0),
 ]
