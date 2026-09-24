@@ -118,6 +118,18 @@ def _contact_shell_conserved(d: Path) -> None:
     _edit(d / CON3, lambda r: {**r, "deep_jsd": "0.99"} if r["resi"] in contact else r)
 
 
+def _drop_below_bar(d: Path) -> None:
+    """The least contiguous genome above the bar re-assembled just under it:
+    one genome and its cells move across the split."""
+    p = d / R / "methods/contiguity_cells.tsv"
+    with open(p, newline="") as fh:
+        rows = list(csv.DictReader(fh, delimiter="\t"))
+    bar = PARAMETERS.value("genomes.contiguity_bar_bp")
+    acc = min((r for r in rows if float(r["contig_n50"]) >= bar),
+              key=lambda r: float(r["contig_n50"]))["accession"]
+    _edit(p, _set({"accession": acc}, contig_n50=int(bar) - 1))
+
+
 PLANTS = {
     "P5.element_means": lambda d: _edit(d / R / "constraint/constraint_by_element.tsv",
                                         _set({"paralog": "ITPR1", "element": "MIR"}, mean_jsd=0.9)),
@@ -166,6 +178,15 @@ PLANTS = {
     "P3.false_negatives": lambda d: _edit(d / R / "methods/contiguity_cells.tsv",
                                           _first({"control": "itpr_present",
                                                   "false_negative": "0"}, false_negative=1)),
+    # Papers 3/4 grid checks: input plants in the per-cell tables.
+    "P3.miss_by_contiguity": _drop_below_bar,
+    "P3.contiguity_tests": lambda d: _edit(d / R / "methods/contiguity_cells.tsv",
+                                           _first({"control": "ryr_sister",
+                                                   "false_negative": "0"}, false_negative=1)),
+    "P4.recovery_channels": lambda d: _edit(
+        d / R / "methods/gene_recovery.tsv",
+        _first({"recovery_channel": "protein_database_and_genome"},
+               n_records_resolving_to_cell=0)),
     "P4.unreachable": lambda d: _edit(d / R / "methods/gene_recovery.tsv",
                                       _first({"cell": "ITPR1", "gene_present": "1"},
                                              recovery_channel="protein_db")),

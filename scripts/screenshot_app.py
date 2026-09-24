@@ -137,6 +137,31 @@ def main() -> int:
                 win.tree.zoom_vertebrates()
                 app.processEvents()
                 win.tree.canvas.grab().save(str(out / "tree_vertebrates.png"))
+                win.findings.tree.setCurrentItem(
+                    win.findings._items["P3.miss_by_contiguity"])
+                win.findings.show_btn.click()           # opens the Genomes tab
+                if win.tabs.currentWidget() is not win.genomes:
+                    raise RuntimeError("P3.miss_by_contiguity did not open the Genomes tab")
+            elif s == 9:
+                g = win.genomes
+                if g.grid is None or g.layer.currentData() != "miss":
+                    if g.status.text() != "Not loaded." and not g.status.text().startswith("Reading"):
+                        raise RuntimeError(g.status.text())
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                info = g.info
+                if info["genomes"] != 309 or info["counts"].get("missed") != 182 \
+                        or info["bar_row"] != 189:
+                    raise RuntimeError(f"genome grid drew {info}")
+                app.processEvents()
+                win.grab().save(str(out / "gui_genomes.png"))
+                g.layer.setCurrentIndex(g.layer.findData("recovery"))
+                g.order.setCurrentText("class, then N50")
+                from ip3r.analysis.genome_grid import REACHABLE
+                if g.info["counts"].get(REACHABLE) != 292:
+                    raise RuntimeError(f"recovery layer drew {g.info['counts']}")
+                app.processEvents()
+                g.canvas.grab().save(str(out / "genomes_recovery.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

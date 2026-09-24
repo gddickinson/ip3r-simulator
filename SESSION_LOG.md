@@ -277,3 +277,73 @@ stays pure") gives the same 19/13/19.
 
 **Next:** Round 3, item 4 (Paper 3/4: genome × paralog grid of the character
 matrix and the recovery channel).
+
+## 2026-09-23 — Session 6: Round 3, item 4 — Papers 3/4 genome × paralog grid
+
+**Sync.** Both repos were up to date and `make sync-check` was clean, so no
+verdicts moved.
+
+**Built.**
+- `analysis/genome_grid.py` joins the sweep's three per-cell tables into one
+  grid of 309 genomes × ITPR1/2/3 + RyR. The layers are search grade, known
+  genes missed, S15a state and protein-record recovery. The recovery channel
+  is rebuilt from the table's count columns, not read from its label. The
+  contiguity bar is a new registered parameter,
+  `genomes.contiguity_bar_bp` = 142,212 (D4's median ITPR span, cited to
+  ip3r_genes).
+- `analysis/stats.py` gains `fisher_exact` (two-sided, own hypergeometric
+  sum), `logistic_fit` (IRLS, Wald p) and `wilson`, and each is calibrated
+  on a known answer.
+- `analysis/checks_genomes.py` adds three rederived checks:
+  - `P3.miss_by_contiguity`: medians, chromosome-level misses, the counts
+    above and below the bar, and whether our bar split matches
+    `spans_gene`.
+  - `P3.contiguity_tests`: all 12 rows of `contiguity_tests.tsv`
+    recomputed.
+  - `P4.recovery_channels`: per-cell counts against
+    `gene_recovery_by_cell.tsv`, and the reason split against Paper 4's
+    ledger AR12–AR16.
+
+  Each is calibrated by an input plant: one genome moved just under the
+  bar, one RyR cell missed, one reachable gene's resolving count zeroed.
+- `analysis/grid_figure.py` draws the grid and the three exhibits.
+  `ui/genomes_panel.py` is the new Genomes tab, and "Show" on any P3/P4
+  check opens it on the right layer. The smoke test opens it from
+  `P3.miss_by_contiguity` and asserts 309 genomes, 182 misses and the bar at
+  row 189, then switches to the recovery layer (292 reachable). Tests:
+  148 → 164.
+
+**Why.** Paper 3's no-loss result rests on its method control: the search
+misses genes only where assemblies are fragmented. Paper 4's headline is
+that most genes are unreachable from protein records. Both are claims about
+*which* genomes, and until now this project had only checked their totals.
+The grid shows the misses sitting below the bar row by row. The checks now
+recompute each statistic and do not only count it.
+
+**Measured.** Everything reproduces:
+- Misses are 140/923 (ITPR) and 42/309 (RyR), Fisher p 0.578, odds 1.14.
+- Odds of finding the gene rise 8.10× (β 2.092, p 1.29e-22) and 19.99×
+  (β 2.995) per tenfold N50.
+- The Mann–Whitney U is 99,201 / 10,475. Chromosome-level assemblies miss
+  3/512 and 0/172.
+- Above the bar: 189 genomes and 5/563 misses. Our split and `spans_gene`
+  agree in all 1,236 cells.
+- Recovery: 257/309, 260/307, 227/307 and RyR 196/309. The reasons are
+  289/186/254/15, with 179 reachable. The rebuilt channel matches the label
+  in 1,236/1,236 cells.
+
+39 checks: 37 confirmed, 2 discrepancies (unchanged).
+
+**Where I was wrong first.**
+- My Mann–Whitney p came out exactly twice the published one (1.05e-52 vs
+  5.26e-53). The published test is one-sided (found N50 greater than
+  missed), and I had doubled it. It was the checker's error, not the
+  paper's.
+- The Paper 4 ledger's `expected` column is not all integers, so my first
+  version crashed parsing unrelated rows. It now reads only AR12–AR16.
+- My first tolerances on the odds ratios were a bare 1 %, which is not a
+  registered number. Values are now compared at the precision the table
+  prints them.
+
+**Next:** Round 3, item 5 (Paper 1: presence/absence across eukaryotic
+clades).

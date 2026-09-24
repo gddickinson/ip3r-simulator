@@ -23,6 +23,7 @@ from ..structure.channel import measure_channel
 from .channel_panel import ChannelPanel
 from .dynamics_panel import DynamicsPanel
 from .findings_panel import FindingsPanel
+from .genomes_panel import GenomesPanel
 from .gl_widget import ViewportWidget
 from .modes_panel import ModesPanel
 from .params_dialog import ParametersDialog
@@ -46,6 +47,10 @@ CHECK_SITES = {"S0.ip3_contacts": "ip3_contact", "S0.selectivity_filter": "filte
 #: Checks whose "Show" opens the Tree tab rather than the structure.
 CHECK_TREE = frozenset(("P2.sister_pair", "P2.paralog_clades", "P2.cyclostome_lineages",
                         "P2.support_bar"))
+#: Checks whose "Show" opens the Genomes tab, and the layer it shows.
+CHECK_GENOMES = {"P3.no_absent_cells": "state", "P3.false_negatives": "miss",
+                 "P3.miss_by_contiguity": "miss", "P3.contiguity_tests": "miss",
+                 "P4.unreachable": "recovery", "P4.recovery_channels": "recovery"}
 CHECK_COLOURS = {k: "ligand_shell" for k in ("P6.shell_distances", "P6.shell_constraint",
                                              "P6.shell_trend", "P6.no_contact_step")}
 
@@ -71,11 +76,13 @@ class MainWindow(QMainWindow):
         self.findings = FindingsPanel()
         self.variants = VariantsPanel()
         self.tree = TreePanel()
+        self.genomes = GenomesPanel()
         self.tabs = tabs = QTabWidget()
         for w, name in ((self.findings, "Findings"), (self.channel, "Channel"),
                         (self.modes, "Modes"), (self.transition, "Transition"),
                         (self.dynamics, "Dynamics"),
-                        (self.tree, "Tree"), (self.variants, "Variants")):
+                        (self.tree, "Tree"), (self.genomes, "Genomes"),
+                        (self.variants, "Variants")):
             tabs.addTab(w, name)
         self._dock("Analysis", tabs, Qt.DockWidgetArea.RightDockWidgetArea, scroll=False)
 
@@ -96,9 +103,8 @@ class MainWindow(QMainWindow):
         tp.stop_requested.connect(self.morph.stop)
         tp.paint_toggled.connect(self._paint_displacement)
         self.findings.show_structure.connect(self._show_check)
-        self.findings.showable = frozenset(CHECK_SITES) | CHECK_TREE
-        tabs.currentChanged.connect(
-            lambda i: self.tree.ensure_loaded() if tabs.widget(i) is self.tree else None)
+        self.findings.showable = frozenset(CHECK_SITES) | CHECK_TREE | frozenset(CHECK_GENOMES)
+        tabs.currentChanged.connect(self._tab_shown)
         self.variants.highlight_residue.connect(self._highlight_variant)
         self.viewport.atom_picked.connect(self._picked)
         self.viewport.scene_ready.connect(lambda _: self.scene.attach())
@@ -256,9 +262,18 @@ class MainWindow(QMainWindow):
                   on_error=lambda e: (self.channel.states_btn.setEnabled(True),
                                       QMessageBox.warning(self, "States failed", e)))
 
+    def _tab_shown(self, i: int) -> None:
+        w = self.tabs.widget(i)
+        if w is self.tree or w is self.genomes:
+            w.ensure_loaded()
+
     def _show_check(self, pdb_id: str, check_id: str) -> None:
         if check_id in CHECK_TREE:
             self.tabs.setCurrentWidget(self.tree)
+            return
+        if check_id in CHECK_GENOMES:
+            self.genomes.show_layer(CHECK_GENOMES[check_id])
+            self.tabs.setCurrentWidget(self.genomes)
             return
         # "" = the check has no structure of its own: use the one on screen
         # (painted only if it is in human numbering, as every site is).

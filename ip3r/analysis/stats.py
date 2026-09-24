@@ -13,7 +13,8 @@ import math
 import numpy as np
 
 __all__ = ["auc", "rank_average", "mean_by_group", "sign_test",
-           "signed_rank_test", "mann_whitney_greater", "spearman"]
+           "signed_rank_test", "mann_whitney_greater", "spearman",
+           "fisher_exact", "logistic_fit", "wilson"]
 
 
 def rank_average(values: np.ndarray) -> np.ndarray:
@@ -140,3 +141,65 @@ def spearman(x, y) -> dict:
         return {"rho": rho, "p": 0.0, "n": n}
     t = rho * math.sqrt((n - 2) / (1.0 - rho * rho))
     return {"rho": rho, "p": float(2.0 * stdtr(n - 2, -abs(t))), "n": n}
+
+
+def fisher_exact(table) -> dict:
+    """Two-sided Fisher exact test of a 2 × 2 table ``[[a, b], [c, d]]``.
+
+    The p-value sums the hypergeometric probabilities of every table with the
+    observed margins that is no more probable than the observed one (with a
+    relative tolerance of 1e-7 for ties, as R does). ``odds`` is the sample
+    odds ratio ad / bc (inf or 0 at a zero cell).
+    """
+    (a, b), (c, d) = [[int(v) for v in row] for row in table]
+    r1, c1, n = a + b, a + c, a + b + c + d
+    lo, hi = max(0, c1 - (n - r1)), min(r1, c1)
+
+    def logp(x):
+        return (math.lgamma(r1 + 1) - math.lgamma(x + 1) - math.lgamma(r1 - x + 1)
+                + math.lgamma(n - r1 + 1) - math.lgamma(c1 - x + 1)
+                - math.lgamma(n - r1 - c1 + x + 1)
+                - math.lgamma(n + 1) + math.lgamma(c1 + 1) + math.lgamma(n - c1 + 1))
+
+    obs = logp(a)
+    p = sum(math.exp(logp(x)) for x in range(lo, hi + 1)
+            if logp(x) <= obs + math.log1p(1e-7))
+    odds = (a * d / (b * c)) if b * c else (math.inf if a * d else float("nan"))
+    return {"odds": odds, "p": min(1.0, p)}
+
+
+def logistic_fit(x, y, iterations: int = 100) -> dict:
+    """Logistic regression ``logit P(y) = b0 + b1·x`` by iteratively
+    reweighted least squares; Wald z and two-sided normal p for the slope.
+    ``y`` is 0/1. Returns ``b0``, ``b1``, ``se``, ``z``, ``p`` and
+    ``converged``."""
+    x = np.asarray(x, float)
+    y = np.asarray(y, float)
+    a = np.column_stack([np.ones_like(x), x])
+    beta = np.zeros(2)
+    converged = False
+    for _ in range(iterations):
+        p = 1.0 / (1.0 + np.exp(-(a @ beta)))
+        info = a.T @ (a * (p * (1.0 - p))[:, None])
+        step = np.linalg.solve(info, a.T @ (y - p))
+        beta = beta + step
+        if np.max(np.abs(step)) < 1e-10:
+            converged = True
+            break
+    p = 1.0 / (1.0 + np.exp(-(a @ beta)))
+    cov = np.linalg.inv(a.T @ (a * (p * (1.0 - p))[:, None]))
+    se = math.sqrt(cov[1, 1])
+    z = float(beta[1] / se)
+    return {"b0": float(beta[0]), "b1": float(beta[1]), "se": se, "z": z,
+            "p": math.erfc(abs(z) / math.sqrt(2.0)), "converged": converged}
+
+
+def wilson(k: int, n: int, alpha: float) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion k/n at level
+    1 − alpha."""
+    from scipy.special import ndtri
+    z = float(ndtri(1.0 - alpha / 2.0))
+    p = k / n
+    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    return centre - half, centre + half

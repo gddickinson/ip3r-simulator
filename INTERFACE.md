@@ -92,11 +92,14 @@ headless (CLI, tests, notebooks).
 | `checks_shells.py` | `P6.shell_distances` (recomputed), `P6.shell_constraint`, `P6.shell_trend`, `P6.no_contact_step` |
 | `shell_constraint.py` | `measured_shells` (the 6-deposit pocket), `pocket(gene)` → `Pocket` (carried by own alignment, joined to deep JSD), `shell_rows`, `trend`, `contact_step`, `clear_caches` |
 | `module_contrast.py` | `read_alignment`, `reference_columns` (own residue → column map, refused on a sequence mismatch), `tip_identities`, `paired_contrast` → `PairedContrast`, `clear_caches` |
-| `stats.py` | `auc` (Mann-Whitney, ties ½), `rank_average`, `mean_by_group`, `sign_test` (exact), `signed_rank_test` (normal approx., tie-corrected), `mann_whitney_greater` (one-sided, tie + continuity corrected), `spearman` (t-distribution p) |
+| `stats.py` | `auc` (Mann-Whitney, ties ½), `rank_average`, `mean_by_group`, `sign_test` (exact), `signed_rank_test` (normal approx., tie-corrected), `mann_whitney_greater` (one-sided, tie + continuity corrected), `spearman` (t-distribution p), `fisher_exact` (two-sided), `logistic_fit` (IRLS, Wald p), `wilson` |
 | `newick.py` | `parse`, `leaves`, `mrca`, `smallest_clade_containing` |
 | `tree.py` | Paper 2's clade questions on `rooted.nwk`: `load_tree`, `group_of` (census prefix), `is_cyclostome`/`genus_of`, `support`, `is_supported` (registered bars), `bipartitions` (root's twin edge counted once), `paralog_clades` → `Clade` (MRCA of named tips; named/unnamed/foreign), `outgroup_clade`, `cyclostome_clades` → `CyclostomeClade` |
 | `tree_figure.py` | `layout` (ladderized phylogram), `draw_tree(ax, root, labels, supports)` — clades boxed, cyclostomes marked, supported nodes dotted; `CLADE_COLORS` |
 | `checks_tree.py` | `P2.paralog_clades`, `P2.cyclostome_lineages`, `P2.support_bar` (rederived from the tree; the Newick travels in the outcome for the exhibit) |
+| `genome_grid.py` | Papers 3/4 per cell: `load_grid(layers)` → `GenomeGrid` (309 genomes × `CELLS` ITPR1–3 + RYR; layers `search`/`miss`/`state`/`recovery`; `counts`, `row`, `subset`), `Genome` (N50, level, source, `above_bar`), `recovery_channel(row)` (rebuilt from counts), `above_bar` (registered `genomes.contiguity_bar_bp`), `order`/`ORDERS` |
+| `grid_figure.py` | `draw_grid(ax, grid, layer)` (fixed category colours, N50 strip on a fixed log scale, bar line, class blocks), `LAYER_STYLE`, `LAYER_TITLES`; exhibits `draw_misses`, `draw_logistic`, `draw_recovery` |
+| `checks_genomes.py` | `P3.miss_by_contiguity`, `P3.contiguity_tests` (every row of contiguity_tests.tsv), `P4.recovery_channels` (rederived) |
 | `exhibits.py` | `draw(ax, check_id, outcome)` — figures from a check's own numbers |
 
 ## `ip3r/render/` (moderngl, OpenGL 4.1)
@@ -114,7 +117,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | File | Purpose |
 |---|---|
 | `app.py` | `main()` — surface format, theme, window, initial load |
-| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab |
+| `main_window.py` | layout and wiring; menus; loads on workers; `CHECK_SITES` maps a check to what "Show on structure" highlights, `CHECK_COLOURS` to a colouring (the shell checks), `CHECK_TREE` to the Tree tab, `CHECK_GENOMES` to the Genomes tab and its layer |
 | `scene_controller.py` | what the viewport draws: `MolecularView`, pore spheres, site/variant highlights, side/top views, mode animation |
 | `gl_widget.py` | `ViewportWidget` (ported; viewport sized from the bound FBO every frame) |
 | `structure_panel.py` | deposition list, style, colour, layer, subunits, measured sites, legend |
@@ -125,6 +128,7 @@ for animation; `ColorBy.DISPLACEMENT` from a built transition; `ColorBy.LIGAND_S
 | `dynamics_panel.py` | Gating (bell), Oscillations (+ window scan), Puffs (coupled vs uncoupled) |
 | `findings_panel.py` | checks by paper, run on a worker, claim/method/verdict, exhibit, show on structure (`showable`: residue-keyed checks drawn on the displayed structure) |
 | `tree_panel.py` | Tree tab: `draw_tree` on a toolbar canvas, tip labels / support toggles, "Vertebrates" zoom, click names a tip; loaded on a worker when first shown |
+| `genomes_panel.py` | Genomes tab: `draw_grid` with layer / sort / class / above-bar controls, click names a genome; loaded on a worker when first shown; `show_layer` (from a check's "Show") |
 | `variants_panel.py` | S17 variants per paralog/class; highlight only in matching numbering |
 | `params_dialog.py`, `plot_canvas.py`, `workers.py`, `theme.py` | helpers |
 
@@ -149,7 +153,7 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit).
 Transition (`test_transition` synthetic calibrations; `test_transition_real`
 — the drawn end must be 8TKF as a shape, with a case that must fail), physics (`test_anm`, `test_gating`, `test_calcium`, `test_puffs`), geometry
 (`test_symmetry`, `test_pore`, `test_structures_real`), statistics
-(`test_stats`, `test_newick`), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
+(`test_stats` — Fisher vs scipy and the tea-tasting value, logistic slope = log OR for a binary predictor, Wilson vs Newcombe; `test_newick`), grid (`test_genome_grid` — the channel rule, the bar, ordering, the real grid's counts), alignment (`test_pairwise` — score equals a cell-by-cell reference DP), shells (`test_shells`), tree (`test_tree` — toy trees with known clades, root twin edge, a misplaced tip is foreign), modules (`test_modules` — spans hold their sites, column map lands on the residue, a tampered reference is refused), provenance (`test_parameters`,
 `test_resources`), rules (`test_sizes`), CLI, and
 **`test_checks_calibration.py`** — every check flipped by a planted input
 (`PLANTS`), sources proven complete, `not_run` without data, refusal under

@@ -276,4 +276,12 @@ P = [
        "its ultrafast bootstrap support is at least this.",
        "Hoang et al.'s threshold for a clade to be considered real, and the "
        "other half of Paper 2's joint bar", 0.0, 100.0),
+    # ------------------------------------------------------ genome grid
+    _p("genomes.contiguity_bar_bp", "Contiguity bar (contig N50)", 142212.0,
+       "bp", "method", "genomes", "ip3r_genes", "An assembly counts as able "
+       "to hold the gene when its contig N50 is at least this; the grid "
+       "splits genomes above and below it.", "ip3r_genes D4's bar, fixed "
+       "before any error rate was known: the median measured genomic span "
+       "of an ITPR gene (Paper 3, results/methods/contiguity_summary.json "
+       "d4_bar)", 1.0, 1e9),
 ]

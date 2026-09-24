@@ -98,13 +98,22 @@ def _tree(ax, d):
     draw_tree(ax, parse(d["newick"]))
 
 
+def _grid(name):
+    def draw(ax, d):
+        from . import grid_figure
+        getattr(grid_figure, name)(ax, d)
+    return draw
+
+
 EXHIBITS = {"S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
             "P6.loop_reverses": _modules, "P6.shell_trend": _shell_trend,
             "P6.shell_constraint": _shell_means, "P2.sister_pair": _tree,
             "P2.paralog_clades": _tree, "P2.cyclostome_lineages": _tree,
-            "P2.support_bar": _tree}
+            "P2.support_bar": _tree, "P3.miss_by_contiguity": _grid("draw_misses"),
+            "P3.contiguity_tests": _grid("draw_logistic"),
+            "P4.recovery_channels": _grid("draw_recovery")}
 
 
 def has_exhibit(check_id: str, outcome) -> bool:

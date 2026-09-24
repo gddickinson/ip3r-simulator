@@ -184,6 +184,29 @@ census prefix on its label. Cyclostomes are recognised by genus (*Myxine*,
   the published 91 of 131. The bars are the registered parameters
   `tree.alrt_min` (80, Guindon 2010) and `tree.ufboot_min` (95, Hoang 2018).
 
+## Papers 3 and 4: the genome × paralog grid
+
+The retention sweep asked 309 vertebrate assemblies for four cells each:
+ITPR1, ITPR2, ITPR3 and a ryanodine-receptor control. `analysis/genome_grid.py`
+joins three per-cell tables into one grid: what the search found
+(`contiguity_cells.tsv`), the S15a evidence state (`character_matrix.tsv`)
+and protein-record recovery (`gene_recovery.tsv`).
+
+- **The contiguity bar** is the registered `genomes.contiguity_bar_bp`
+  (142,212 bp, D4's median measured ITPR span). This project splits genomes
+  on contig N50 ≥ bar with its own comparison, and the check tests that the
+  split agrees with the table's `spans_gene` column in every cell.
+- **The method control** is recomputed with `analysis/stats.py`: Wilson
+  intervals, a two-sided Fisher exact test (hypergeometric sum, R's 1e-7
+  tie tolerance), and a logistic regression of found on log10 N50 (IRLS,
+  Wald p). The Mann–Whitney test of found against missed N50 is
+  **one-sided**. The first version doubled it and was off by exactly a
+  factor of 2, which was the checker's error.
+- **The recovery channel** is rebuilt from the table's count columns in
+  this order: gene present? reference proteome? any family record? any
+  full-length record resolving to a cell? one resolving to *this* cell?
+  It agrees with the table's own label in all 1,236 cells.
+
 ## What the findings checks establish
 
 | kind | what agreement means |

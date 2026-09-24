@@ -90,8 +90,25 @@ Emergent (not scheduled):
   ITPR2+ITPR3 at 83.1/77); 91 of 131 bipartitions clear both bars. The
   naive node count was 92/132 because the root's twin edge was counted
   twice. 36 checks: 34 confirmed, 2 discrepancies (unchanged).
-- [ ] Paper 3/4: a genome × paralog grid of the character matrix and the
-  recovery channel, sortable by contiguity.
+- [x] Paper 3/4 genome × paralog grid (Genomes tab: 309 genomes × ITPR1–3
+  + RyR). It has four layers (search grade, misses, S15a state, recovery
+  channel) and an N50 strip on a fixed scale. It sorts by N50, class or
+  name, and the contiguity bar is drawn. Three new rederived checks, all
+  confirmed. Every contiguity test reproduces from the per-cell table with
+  this project's statistics: the miss rate is 140/923 against 42/309
+  (Fisher p 0.578), and the odds of finding the gene rise 8.10× and 19.99×
+  per tenfold N50. The Mann–Whitney p is one-sided (the first checker
+  doubled it). Above the registered bar there are 189 genomes and 5/563
+  misses, and the split matches `spans_gene` in every cell. The recovery
+  channel rebuilt from counts matches the label in 1,236/1,236 cells, and
+  the reasons come to 289/186/254/15 with 179 reachable. 39 checks: 37
+  confirmed, 2 discrepancies (unchanged).
+Emergent (not scheduled):
+- [ ] The grid's miss layer shows *which* genomes fail, not only how many.
+  Paper 3 says the ITPR3 lesion excess is a bird result below the bar. That
+  could be drawn as another layer from `lesion_by_class.tsv` /
+  `integrity_pairs.tsv`, so the reader can see it sits in the same rows.
+
 - [ ] Paper 1: presence/absence across eukaryotic clades from the S20/S23
   tables.
 

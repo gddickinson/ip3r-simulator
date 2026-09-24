@@ -69,7 +69,7 @@ inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
 IP3), and stochastic clusters in which Ca²⁺ coupling turns independent blips
 into cooperative openings.
 
-**Check the publication.** The Findings tab re-derives 36 results from the
+**Check the publication.** The Findings tab re-derives 39 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
 different strength: `recomputed` from coordinates with code the two projects
 do not share, `rederived` from the publication's input tables with this
@@ -102,9 +102,21 @@ labels. "Show" on any tree check opens this tab.
 
 ![Paper 2's tree](docs/img/gui_tree.png)
 
+**See every genome.** The Genomes tab draws Papers 3 and 4 as a grid: a row
+for each of the 309 assemblies in the retention sweep and a column for each
+cell (ITPR1–3 and the RyR control). Each row sits beside a contig-N50 strip
+on a fixed log scale. You can colour the cells by what the sweep found, by
+the known genes it missed, by the S15a evidence state or by how a protein
+search could reach the gene. Rows sort by N50 (the contiguity bar is drawn),
+by class, or by name, and can be filtered to a class or to assemblies above
+the bar. Clicking a row names the genome and lists its four cells. "Show" on
+a P3 or P4 check opens this tab on the right layer.
+
+![Misses against contiguity](docs/img/gui_genomes.png)
+
 ## The checks, as of Round 3
 
-34 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+37 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts
@@ -155,6 +167,9 @@ touches a published paper's headline:
 | `P3.dollo_zero` | read | confirmed | 0 losses |
 | `P3.false_negatives` | rederived | confirmed | 140/923, 5/563 contiguous |
 | `P4.unreachable` | rederived | confirmed | 744 / 923 |
+| `P3.miss_by_contiguity` | rederived | confirmed | median N50 23,460 vs 3,396,515; chromosome 3/512 and 0/172; above bar 189 genomes, 5/563; below 0.3917/0.4333/0.3000 |
+| `P3.contiguity_tests` | rederived | confirmed | all 12 tests: OR per 10× 8.10 / 19.99, ITPR vs RyR Fisher p 0.578 |
+| `P4.recovery_channels` | rederived | confirmed | 257/309, 260/307, 227/307, RyR 196/309; reasons 289/186/254/15, 179 reachable |
 | `P1.absences` | rederived | confirmed | 35 clades |
 | `LEDGER.claims` | read | confirmed | 287 + 245 + 713 ledger rows all ok |
 

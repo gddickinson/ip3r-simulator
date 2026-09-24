@@ -98,3 +98,50 @@ def test_spearman_matches_scipy():
     assert got["p"] == pytest.approx(ref.pvalue, rel=1e-9)
     assert got["n"] == 125
     assert spearman([1, 2, 3, 4], [4, 3, 2, 1])["rho"] == -1.0
+
+
+def test_fisher_exact_known_and_scipy():
+    from scipy.stats import fisher_exact as ref
+    from ip3r.analysis.stats import fisher_exact
+    # Fisher's lady tasting tea: 3/1 vs 1/3, two-sided p = 34/70
+    assert fisher_exact([[3, 1], [1, 3]])["p"] == pytest.approx(34 / 70, rel=1e-12)
+    for t in ([[140, 783], [42, 267]], [[3, 509], [137, 274]], [[0, 172], [42, 95]],
+              [[10, 2], [3, 15]]):
+        got, want = fisher_exact(t), ref(t)
+        assert got["p"] == pytest.approx(want.pvalue, rel=1e-9)
+        if np.isfinite(want.statistic) and want.statistic > 0:
+            assert got["odds"] == pytest.approx(want.statistic, rel=1e-12)
+    assert fisher_exact([[0, 172], [42, 95]])["odds"] == 0.0
+
+
+def test_logistic_fit_binary_predictor_is_log_odds_ratio():
+    from ip3r.analysis.stats import logistic_fit
+    # With a 0/1 predictor the MLE slope is exactly log(ad / bc) and its
+    # standard error sqrt(1/a + 1/b + 1/c + 1/d).
+    a, b, c, d = 30, 10, 12, 28            # y=1|x=1, y=0|x=1, y=1|x=0, y=0|x=0
+    x = [1] * (a + b) + [0] * (c + d)
+    y = [1] * a + [0] * b + [1] * c + [0] * d
+    f = logistic_fit(x, y)
+    assert f["converged"]
+    assert f["b1"] == pytest.approx(np.log(a * d / (b * c)), rel=1e-9)
+    assert f["se"] == pytest.approx(np.sqrt(1 / a + 1 / b + 1 / c + 1 / d), rel=1e-9)
+    assert f["b0"] == pytest.approx(np.log(c / d), rel=1e-9)
+
+
+def test_logistic_fit_recovers_a_planted_slope():
+    from ip3r.analysis.stats import logistic_fit
+    rng = np.random.default_rng(7)
+    x = rng.uniform(3, 8, 20000)
+    y = rng.uniform(size=x.size) < 1 / (1 + np.exp(-(-9.0 + 2.0 * x)))
+    f = logistic_fit(x, y)
+    assert f["b1"] == pytest.approx(2.0, abs=4 * f["se"])
+    assert f["p"] < 1e-100 or f["p"] == 0.0
+
+
+def test_wilson_known_value():
+    from ip3r.analysis.stats import wilson
+    # Newcombe 1998, Table I: 81/263 → 0.2553–0.3662 at 95 %
+    lo, hi = wilson(81, 263, 0.05)
+    assert (round(lo, 4), round(hi, 4)) == (0.2553, 0.3662)
+    lo, hi = wilson(0, 10, 0.05)
+    assert lo == pytest.approx(0.0, abs=1e-15) and hi == pytest.approx(0.2775, abs=1e-4)
