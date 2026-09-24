@@ -403,8 +403,14 @@ Emergent (not scheduled):
     the I1-site block lifted only on the V-coupled channels. This would
     test whether the physiological row, not the both-sites row, is the
     fibre's.
-  - [ ] Mg²⁺ in the GUI: a Mg²⁺ control on the fitted-cleft receptor in
-    the Puffs tab, and the Mg²⁺ bell in Gating.
+  - [x] Mg²⁺ in the GUI. Puffs: free Mg²⁺ and the K_Mg,A reading on
+    every RyR1 receptor, plus "Triggered sparks vs Mg²⁺" on the cleft
+    receptors (never shuts ≤ 25 µM; 131 → 4 ms from 63 µM to 1 mM, with
+    6 of 30 opened and 24 inactivated before the trigger at 1 mM). Gating:
+    the fitted bell under 1 mM Mg²⁺ keeps 17 % of its Mg²⁺-free peak, with
+    half-activation at 77 µM (54 µM reading) or 21 % and 13 µM (521 µM).
+    The smoke test found that a silent cluster crashed the event-size
+    plot (log axis with no data); fixed, and now a step.
 
 ## Deliberately not doing
 

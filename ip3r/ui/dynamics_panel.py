@@ -26,6 +26,7 @@ from ..physics.calcium import oscillation_metrics, oscillation_window, simulate
 from ..parameters import PARAMETERS as _P
 from ..physics import gating_mak as mk
 from ..physics import ryr_gating as rg
+from ..physics import spark_mg as sm
 from ..physics.gating import bell_at, h_inf, open_probability
 from .plot_canvas import PALETTE, PlotCanvas
 from .puffs_panel import PuffsPanel
@@ -127,7 +128,10 @@ class _Gating(QWidget):
         fit = rg.fit_to_bell()
         y = rg.open_probability(c, fit)
         ax1.semilogx(c, y / y.max(), color=PALETTE[0], ls="--",
-                     label="scheme fitted to the measured flanks")
+                     label="Stern, fitted to it")
+        mg = rg.with_mg(fit)                   # the fibre's free Mg2+, K_Mg,A measured
+        ax1.semilogx(c, rg.open_probability(c, mg) / y.max(), color=PALETTE[0],
+                     ls="-.", label=f"fitted, {mg.mg / 1e3:g} mM Mg²⁺")
         ax1.set_xlabel("Ca²⁺ (µM)")
         ax1.set_ylabel("activity / own peak")
         ax1.set_title("RyR1 bells; dotted: half-peak flanks")
@@ -137,7 +141,7 @@ class _Gating(QWidget):
         ax2.set_xlabel("Ca²⁺ (µM)")
         ax2.set_ylabel("stationary occupancy")
         ax2.set_title("Stern 1997: two gates in series")
-        self.canvas.legend(ax1, loc="upper left")
+        self.canvas.legend(ax1, loc="upper left")       # the empty low-Ca2+ side
         self.canvas.legend(ax2, loc="center left")
         self.canvas.draw_now()
         s, m = bells.values()
@@ -156,7 +160,23 @@ class _Gating(QWidget):
             f"Fitted to both flanks (dashed; off rates moved, on rates kept): "
             f"Ka {fit.k_a:.1f} µM and Ki {fit.k_i:.0f} µM, against "
             f"{rg.SternParams().k_a:.1f} and {rg.SternParams().k_i:.0f}. "
-            "In the cleft, sparks under the fitted scheme never end.")
+            "In the cleft, sparks under the fitted scheme never end. "
+            + self._mg_sentence(fit, mg, y.max()))
+
+    @staticmethod
+    def _mg_sentence(fit, mg, peak) -> str:
+        """What the fibre's Mg2+ does to the fitted bell, at both K_Mg,A
+        readings (``spark_mg.READINGS``)."""
+        sel = rg.with_mg(fit, k_mg_a=sm.k_mg_a_reading(fit, "selectivity"))
+        b, bs = rg.bell_at(mg), rg.bell_at(sel)
+        return (f"Under {mg.mg:g} µM free Mg²⁺ (dash-dot, drawn relative "
+                f"to the Mg²⁺-free peak; Laver 2004's two sites) the peak falls to {100 * b.po_peak / peak:.0f} % of "
+                f"its Mg²⁺-free height and half-activation moves to "
+                f"{b.c_half_act:.0f} µM with K_Mg,A {mg.k_mg_a:.0f} µM "
+                f"(measured), or {100 * bs.po_peak / peak:.0f} % and "
+                f"{bs.c_half_act:.0f} µM with {sel.k_mg_a:.0f} µM (Laver's "
+                "selectivity on the fitted Ka). Under Mg²⁺ triggered sparks "
+                "do end (Puffs: Triggered sparks vs Mg²⁺).")
 
     @staticmethod
     def _flank_sentence() -> str:

@@ -33,6 +33,7 @@ from .spark_termination import Termination, measure
 from .sparks_cleft import CleftSparkParams, simulate_sparks_cleft
 
 __all__ = ["Triggered", "triggered", "mg_values", "k_mg_a_by_ratio",
+           "READINGS", "k_mg_a_reading",
            "mg_scan", "dissect", "spontaneous"]
 
 
@@ -86,6 +87,22 @@ def k_mg_a_by_ratio(base: SternParams) -> float:
     """The activation-site Mg2+ affinity if Laver 2004's Mg2+/Ca2+
     selectivity (54 / 0.51) holds and only Ca2+'s affinity is Murayama's."""
     return base.k_a * _P.value("ryr.k_mg_a") / _P.value("ryr.k_ca_a_laver")
+
+
+#: The two readings of the activation-site Mg2+ affinity (the largest
+#: uncertainty left: Laver's absolute value was measured with ATP, which
+#: Murayama's bell was not).
+READINGS = {"measured": "measured (Laver 2004, with ATP)",
+            "selectivity": "Laver 2004's Mg²⁺/Ca²⁺ selectivity on this Ka"}
+
+
+def k_mg_a_reading(base: SternParams, reading: str) -> float:
+    """K_Mg,A under one of :data:`READINGS` for the scheme ``base``."""
+    if reading == "measured":
+        return _P.value("ryr.k_mg_a")
+    if reading == "selectivity":
+        return k_mg_a_by_ratio(base)
+    raise ValueError(f"unknown K_Mg,A reading {reading!r}; one of {list(READINGS)}")
 
 
 def _base(base: SternParams | None) -> SternParams:

@@ -110,7 +110,7 @@ def _spark_mg(args) -> int:
     from .physics import ryr_gating as rg
     from .physics import spark_mg as sm
     fit = rg.fit_to_bell()
-    k = sm.k_mg_a_by_ratio(fit) if args.ratio else None
+    k = sm.k_mg_a_reading(fit, "selectivity" if args.ratio else "measured")
     base = rg.with_mg(fit, 0.0, k)
     print(f"fitted to Murayama 25 C (Ka {fit.k_a:.2f}, Ki {fit.k_i:.0f} µM); "
           f"activation-site Mg2+ affinity {base.k_mg_a:.0f} µM"

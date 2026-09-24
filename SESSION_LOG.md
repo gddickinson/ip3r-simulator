@@ -1087,3 +1087,61 @@ changed, so no screenshots were needed.
 
 **Next:** pin K_Mg,A in Murayama's condition (Meissner 1997; the user
 may need to supply the PDF), then the V-channel trigger.
+
+
+## 2026-09-24 — Round 6.5 closed; Mg²⁺ in the GUI
+
+**Closed 6.5.** The Round 6.5 work had been written up but not committed.
+Tests (309), lint and sizes passed as left, so it was committed and pushed
+as it stood.
+
+**Why not the logged next step.** Pinning K_Mg,A needs Meissner et al.
+1997 (JBC 272:1628). Its abstract confirms Mg²⁺ competes at the Ca²⁺
+activation site in the [³H]ryanodine assay, and the article is CC-BY. But
+the Elsevier API returns metadata only, and jbc.org, ScienceDirect and the
+Semantic Scholar PDF link all sit behind Cloudflare. Chrome was not
+connected. The V-channel trigger needs the 10-state allosteric model of
+Ríos, Karhanek, Ma & González 1993 (J Gen Physiol 102:449), whose
+constants Stern 1997 cites but does not print (Table I is C channels
+only). That PMC record is a page scan whose PDF sits behind the
+download challenge, and so are its 1993–94 companions. Both items
+therefore need the user to supply PDFs, so this session took the next
+self-contained item: Mg²⁺ in the GUI.
+
+**What.**
+- `puff_compare.params_for(mg=, k_mg_a=)` puts any spark receptor under
+  Mg²⁺ and refuses an IP3R receptor.
+- `spark_mg.READINGS` / `k_mg_a_reading` resolve the two K_Mg,A readings
+  in one place, now used by both the CLI and the GUI.
+- Puffs: a free-Mg²⁺ spin box, the reading, and "Triggered sparks vs Mg²⁺"
+  (cleft receptors; worker; median duration, opened and inactivated
+  against Mg²⁺). Values are read on the main thread and passed to the
+  worker.
+- Gating: the fitted bell under 1 mM Mg²⁺ is drawn relative to the
+  Mg²⁺-free peak, and the text gives both readings. The peak falls to 17 %
+  with half-activation at 77 µM (54 µM reading), or 21 % and 13 µM (521 µM).
+- 2 new tests (311 total).
+
+**Found by the smoke test.** A cluster with no events (the fitted cleft
+under 1 mM Mg²⁺: nothing starts by itself) crashed the Puffs panel. The
+event-size axis was set to log with no positive data. The panel now says
+"no events". That was a real bug for any silent cluster, not only under
+Mg²⁺.
+
+**Structure.** `scripts/screenshot_app.py` was at 485 lines, so the spark
+steps moved to `scripts/screenshot_sparks.py` (`spark_step`). That file
+adds two steps: the fitted cleft under Mg²⁺ must be silent, and the
+triggered scan must never shut at Mg²⁺ 0 and always shut at 1 mM.
+New screenshot: `gui_sparks_mg.png`. The overall hang timeout rose from
+600 to 900 s. Unloaded, the full run takes ~130 s, but this afternoon the
+GUI process got ~35 % of a core (macOS throttling a background window;
+`caffeinate` did not help) and reached the new scan at ~560 s. Leftover
+instances from killed runs had also been competing: check `pgrep -f
+screenshot_app` before rerunning. The passing run took 620 s.
+
+**Not changed.** `make sync-check` was clean, no checks were touched, and
+the verdicts are unchanged.
+
+**Next:** the user supplies Meissner 1997 (K_Mg,A without ATP) and Ríos
+et al. 1993 (the V-channel model). Without them, the next open item is
+Round 2's gate radius along the morph.

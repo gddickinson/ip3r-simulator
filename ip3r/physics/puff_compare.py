@@ -27,7 +27,9 @@ The cleft cluster (:mod:`ip3r.physics.sparks_cleft`, key ``ryr1-cleft``)
 is the same receptor with a spatial Ca2+ field; its coupling is the
 nearest-neighbour value, and ``spark_ends`` measures how each spark ends.
 ``ryr1-cleft-fit`` is the cleft with Stern's Ka and Ki fitted to
-Murayama's measured bell (``ryr_gating.fit_to_bell``).
+Murayama's measured bell (``ryr_gating.fit_to_bell``). Any spark receptor
+can be given free Mg2+ (``params_for(..., mg=, k_mg_a=)``, through
+``ryr_gating.with_mg``).
 """
 
 from __future__ import annotations
@@ -40,7 +42,7 @@ from ..parameters import PARAMETERS as _P
 from .puffs import PuffParams, PuffTrace, detect_events, fano, simulate_cluster
 from .puffs_pd import ParkDrivePuffParams, simulate_cluster_pd
 from .sparks import SparkParams, simulate_sparks, spark_couplings
-from .ryr_gating import fit_to_bell
+from .ryr_gating import fit_to_bell, with_mg
 from .sparks_cleft import CleftSparkParams, native_coupling, simulate_sparks_cleft
 
 __all__ = ["MODELS", "ALL_MODELS", "SPARK", "SPARK_CLEFT", "SPARK_FIT", "SPARKS",
@@ -73,9 +75,17 @@ _SIM = {"dyk": (simulate_cluster, PuffParams),
 
 
 def params_for(model: str, coupling: float | None = None,
-               n_channels: float | None = None):
-    """The model's default cluster parameters, optionally re-coupled/resized."""
+               n_channels: float | None = None, mg: float | None = None,
+               k_mg_a: float | None = None):
+    """The model's default cluster parameters, optionally re-coupled/resized.
+    ``mg`` (µM free) and ``k_mg_a`` (µM) put a spark receptor's gating under
+    Mg2+; an IP3R receptor refuses them."""
     pp = _SIM[model][1]()
+    if mg is not None or k_mg_a is not None:
+        if model not in SPARKS:
+            raise ValueError(f"{model} has no Mg2+ sites")
+        pp.gating = with_mg(pp.gating, mg if mg is not None else pp.gating.mg,
+                            k_mg_a)
     if coupling is not None:
         pp.ca_per_open = coupling
     if n_channels is not None:

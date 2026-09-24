@@ -6,6 +6,9 @@
   activation gate's half point moves to Ka (1 + Mg/K_Mg,A), and at rest the
   inactivation gate holds Mg/(Mg + Ki) of the channels (the Ca2+-equal rule).
 * The trigger opens exactly the channels that are not inactivated.
+* The GUI's route (``puff_compare.params_for(mg=, k_mg_a=)`` and the two
+  K_Mg,A readings) builds the same scheme as ``with_mg``, and an IP3R
+  receptor refuses Mg2+.
 * The finding: fitted to the 25 C bell, a triggered array never shuts
   without Mg2+. Fibre Mg2+ at the activation site alone shuts every one, with
   no channel inactivated, so the spark ends by losing its feedback.
@@ -15,6 +18,7 @@ import numpy as np
 import pytest
 
 from ip3r.parameters import PARAMETERS as P
+from ip3r.physics import puff_compare as pc
 from ip3r.physics import ryr_gating as rg
 from ip3r.physics import spark_mg as sm
 from ip3r.physics.sparks_cleft import CleftSparkParams, simulate_sparks_cleft
@@ -84,3 +88,21 @@ def test_the_ratio_reading_is_a_weaker_competitor(fit):
     k = sm.k_mg_a_by_ratio(fit)
     assert k == pytest.approx(fit.k_a * 54.0 / 0.51)
     assert rg.with_mg(fit, 1000.0, k).k_a_eff < rg.with_mg(fit, 1000.0).k_a_eff
+
+
+def test_readings_are_the_registered_value_and_the_selectivity(fit):
+    assert sm.k_mg_a_reading(fit, "measured") == P.value("ryr.k_mg_a")
+    ratio = P.value("ryr.k_mg_a") / P.value("ryr.k_ca_a_laver")
+    assert sm.k_mg_a_reading(fit, "selectivity") == pytest.approx(fit.k_a * ratio)
+    with pytest.raises(ValueError, match="reading"):
+        sm.k_mg_a_reading(fit, "fitted")
+
+
+def test_the_puff_route_builds_the_same_scheme(fit):
+    k = sm.k_mg_a_reading(fit, "selectivity")
+    sp = pc.params_for(pc.SPARK_FIT, mg=1000.0, k_mg_a=k).gating
+    assert sp == rg.with_mg(fit, 1000.0, k)
+    assert sp.k_a_eff == pytest.approx(fit.k_a * (1 + 1000.0 / k))
+    assert pc.params_for(pc.SPARK_FIT).gating.mg == 0.0       # default untouched
+    with pytest.raises(ValueError, match="Mg2"):
+        pc.params_for("dyk", mg=1000.0)

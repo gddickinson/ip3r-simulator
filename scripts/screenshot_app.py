@@ -17,6 +17,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from screenshot_sparks import SPARK_STEPS, spark_step  # noqa: E402
 
 
 def main() -> int:
@@ -431,42 +434,10 @@ def main() -> int:
                 pz.result = None
                 pz.duration.setValue(10.0)
                 pz.run()
-            elif s == 22:
-                pz = win.dynamics.puffs
-                if pz.result is None:
-                    if not pz.text.text().startswith("Simulating"):
-                        raise RuntimeError(pz.text.text())
+            elif s < 22 + SPARK_STEPS:            # RyR1 sparks, with and without Mg2+
+                if spark_step(s - 22, win, app, out):
                     state["step"] -= 1
                     return QTimer.singleShot(500, step)
-                c, u = pz.result["coupled"], pz.result["uncoupled"]
-                if pz.result["model"] != "ryr1" or c["large"] == 0 or u["multi"]:
-                    raise RuntimeError(f"RyR1 sparks drew {pz.result}")
-                app.processEvents()
-                win.grab().save(str(out / "gui_sparks.png"))
-                pz.model.setCurrentIndex(pz.model.findData("ryr1-cleft"))
-                pz.result = None
-                pz.run()
-            elif s == 23:                          # the same RyR1s, in the cleft
-                pz = win.dynamics.puffs
-                if pz.result is None:
-                    state["step"] -= 1
-                    return QTimer.singleShot(500, step)
-                c, u = pz.result["coupled"], pz.result["uncoupled"]
-                if pz.result["model"] != "ryr1-cleft" or c["large"] == 0 or u["multi"]:
-                    raise RuntimeError(f"cleft sparks drew {pz.result}")
-                app.processEvents()
-                win.grab().save(str(out / "gui_sparks_cleft.png"))
-                pz.model.setCurrentIndex(pz.model.findData("ryr1-cleft-fit"))
-                pz.result = None
-                pz.run()
-            elif s == 24:                 # fitted to the measured bell: no end
-                pz = win.dynamics.puffs
-                if pz.result is None:
-                    state["step"] -= 1
-                    return QTimer.singleShot(500, step)
-                if pz.result["coupled"]["open_fraction"] < 0.3:
-                    raise RuntimeError(f"fitted cleft drew {pz.result}")
-                win.grab().save(str(out / "gui_sparks_fitted.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()
@@ -476,7 +447,9 @@ def main() -> int:
         QTimer.singleShot(1500, step)
 
     QTimer.singleShot(800, step)
-    QTimer.singleShot(600_000, lambda: (fail(f"timed out at step {state['step']}"), app.quit()))
+    # A hang detector, not a speed test: the Mg2+ scan (~45 s unloaded) made a
+    # throttled run (background GUI, ~560 s to reach it) overrun 600 s.
+    QTimer.singleShot(900_000, lambda: (fail(f"timed out at step {state['step']}"), app.quit()))
     app.exec()
     return 1 if state["errors"] else 0
 

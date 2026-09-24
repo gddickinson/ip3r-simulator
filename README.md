@@ -139,7 +139,8 @@ starts, it never ends. With inactivation made as weak as the measured bell
 says, the tens of µM in the cleft cannot shut the array at any
 inactivation rate. So what ends a real spark is missing from a Ca²⁺-only
 scheme.
-Adding the fibre's 1 mM free Mg²⁺ (`spark-mg`, CLI only), from open
+Adding the fibre's 1 mM free Mg²⁺ (`spark-mg`; in the GUI, Puffs → Mg²⁺
+and "Triggered sparks vs Mg²⁺", and the dash-dot bell in Gating), from open
 sources, supplies it. Competing at the activation site, Mg²⁺ shuts every
 triggered spark in 17.5–49.5 ms (two readings of its affinity) with no
 channel inactivated: the array's feedback falls below one. At the
@@ -148,6 +149,7 @@ inhibitory site, Mg²⁺ also holds ~80 % of channels shut before any trigger.
 ![RyR1 sparks](docs/img/gui_sparks.png)
 ![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
 ![RyR1 in the cleft, fitted to the measured bell](docs/img/gui_sparks_fitted.png)
+![Triggered sparks against free Mg²⁺](docs/img/gui_sparks_mg.png)
 
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
