@@ -186,3 +186,56 @@ suspect is the gating scheme itself: Stern's inactivation, which the
 Murayama bell says is 6.7× too sensitive at steady state. Mobile buffers
 (their fura-2 runs) need time-dependent diffusion and are not modelled.
 Fixed fast buffers leave a steady field unchanged.
+
+## What ends a cleft spark (Round 6.4)
+
+**The suspicion.** Round 6.3 left cleft sparks at ~20 ms, 3× the measured
+release, and named Stern's inactivation as the suspect. At steady state
+it is 6.7× more sensitive than Murayama's measured bell.
+
+**The refit** (`ryr_gating.fit_to_bell`). The steady state fixes only two
+ratios, Ka = √(k_o−/k_o) and Ki = k_i−/k_i. The fit moves the off rates,
+keeps Stern's on rates, and solves for both half-peak points exactly. A
+one-Ca²⁺ gate has a Hill slope of 1 where Murayama fixed nI at 1.5, so the
+slopes are not matched.
+
+| Target | Ka (µM) | Ki (µM) |
+|---|---|---|
+| Stern 1997 as published | 7.1 | 10 |
+| Murayama, 25 °C (KA 5.5 µM, KI 0.27 mM) | 4.9 | 249 |
+| Murayama, 37 °C (KA 20.5 µM, KI 0.41 mM; S1 Table) | 16.9 | 358 |
+
+**The cleft array with each** (`physics/spark_termination.py`,
+`python -m ip3r spark-termination`; 4 seeds × 10 s). A spark still running
+when the trace ends is counted as unended, and its duration is only a lower
+bound.
+
+- Stern: 38 sparks, median 19 ms, all ended, 16 of 30 channels
+  inactivated at the end.
+- Fitted to 25 °C: after the first spark the array never shuts. All 4
+  sparks are unended (one per run), and 70 % of channel-time is open.
+- Fitted to 37 °C: no sparks. With Ka 17 µM, a neighbour's ~11 µM cannot
+  recruit.
+
+**Ki scan** (Stern's Ka and on rate): median duration 19/18/17 ms at Ki
+3/5.5/10 µM, then 25, 33 and 89 ms at 19, 35 and 64 µM, then 1.4 s at 118 µM
+with most sparks unended. From 217 µM up, every spark is unended.
+Termination by inactivation needs a Ki comparable to the Ca²⁺ a channel
+sees in the cleft (tens of µM). The measured bell puts it 5–10× higher.
+
+**Rate scan** (Ki fixed; steady state leaves the rate free). At Stern's
+Ki, slower inactivation lengthens sparks (162 ms at 1/30×). Faster
+inactivation shortens them only to ~13–15 ms, and by then almost none
+start (0.1/s at 3×, none at 30×): inactivation wins before recruitment
+does. At the fitted Ka and Ki, no rate from 1/30× to 30× ends a spark.
+
+**What this settles.** The 6.3 ms release cannot come from this scheme's
+Ca²⁺ inactivation. Values that agree with the measured bell do not end
+sparks at all. Values that end them never reach 6 ms while sparks still
+fire. Stern's too-sensitive inactivation was not an error that made sparks
+long. It was what let them end. Murayama's bell was measured without Mg²⁺
+(1 mM AMP, 0.17 M NaCl). In the fibre, ~1 mM free Mg²⁺ both competes at the
+activation site and binds the low-affinity inhibitory site, so the bell a
+spark sees is not the one measured here. Mg²⁺, luminal Ca²⁺ depletion and
+the V channels are the mechanisms left. Each is recorded as emergent in
+the roadmap, not assumed.

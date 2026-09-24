@@ -132,10 +132,17 @@ measured. "RyR1 sparks in the cleft" puts the same channels in Stern's
 junctional cleft (two rows, 60 × 15 nm, edges leaking), where each channel
 sees its own Ca²⁺ from a steady diffusion solve. Sparks there end by local
 inactivation after ~20 ms: six times shorter, still 3× the measurement, and
-no geometric uncertainty closes the gap.
+no geometric uncertainty closes the gap. The Gating tab also draws the
+scheme fitted to both measured flanks (dashed: Ka 4.9, Ki 249 µM), and
+"RyR1 in the cleft, gating fitted to Murayama 2015" runs it. Once a spark
+starts, it never ends. With inactivation made as weak as the measured bell
+says, the tens of µM in the cleft cannot shut the array at any
+inactivation rate. So what ends a real spark is missing from a Ca²⁺-only
+scheme.
 
 ![RyR1 sparks](docs/img/gui_sparks.png)
 ![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
+![RyR1 in the cleft, fitted to the measured bell](docs/img/gui_sparks_fitted.png)
 
 **Check the publication.** The Findings tab re-derives 45 results from the
 six `ip3r_genes` papers and its structural baseline, by three routes of
@@ -314,6 +321,8 @@ python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
 python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
 python -m ip3r ryr-gating | sparks --scan   # RyR1 bells; sparks over the coupling band
 python -m ip3r sparks --cleft      # sparks with each channel's own Ca2+ in the cleft
+python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's bell
+python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap

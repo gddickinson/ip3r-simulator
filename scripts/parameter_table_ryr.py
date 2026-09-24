@@ -43,6 +43,7 @@ RYR = [
 _STERN = "Stern, Pizarro & Rios 1997 (PMC2229377), Table I"
 _MUR = ("Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 25 C "
         "([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+)")
+_MUR37 = _MUR.replace("at 25 C", "at 37 C") + "; read from the S1 Table .doc"
 
 RYR += [
     _p("ryr.k_act_on", "RyR1 activation on rate", 10.0, "uM^-2 s^-1",
@@ -80,6 +81,16 @@ RYR += [
        "murayama2015", "Hill coefficient of inhibition, fixed in the fit.",
        "Murayama 2015 Methods: 'fixed values for n A (1.2) and n I (1.5)'",
        0.1, 10.0),
+    _p("ryr.murayama_amax_37", "RyR1 bell at 37 C: Amax", 0.107, "",
+       "empirical", "ryr", "murayama2015", "Peak binding activity of the "
+       "wild-type bell at 37 C.", f"{_MUR37}: 'WT 37 ... 0.107 +/- 0.006'",
+       1e-4, 1.0),
+    _p("ryr.murayama_ka_37", "RyR1 bell at 37 C: KA", 20.5, "uM", "empirical",
+       "ryr", "murayama2015", "Half-activation of the wild-type bell at "
+       "37 C.", f"{_MUR37}: KA 20.5 +/- 2.5 uM", 0.01, 1000.0),
+    _p("ryr.murayama_ki_37", "RyR1 bell at 37 C: KI", 410.0, "uM",
+       "empirical", "ryr", "murayama2015", "Half-inhibition of the wild-type "
+       "bell at 37 C.", f"{_MUR37}: KI 0.41 +/- 0.04 mM", 1.0, 1e5),
     # -------------------------------------------------------- spark cluster
     _p("spark.n_channels", "Spark cluster size", 30.0, "", "empirical",
        "spark", "stern1997", "Ca2+-gated RyR1s in one cluster.", "Stern 1997: "
@@ -152,4 +163,25 @@ RYR += [
        "diffusion solve that gives the coupling coefficients.", "Measured "
        "here: the coupling coefficients at 1 nm and 0.5 nm agree to < 1 %",
        0.1, 10.0),
+    # ------------------------------------ what terminates a cleft spark
+    _p("spark.ki_scan_min", "Termination scan: lowest Ki", 3.0, "uM",
+       "method", "spark", "method_choice", "Low end of the inactivation "
+       "constant scan (on-rate held at Stern's k_i, off-rate moved).",
+       "Below Stern's 10 uM, to see whether a still more sensitive "
+       "inactivation shortens sparks", 0.1, 1e4),
+    _p("spark.ki_scan_max", "Termination scan: highest Ki", 400.0, "uM",
+       "method", "spark", "method_choice", "High end of the inactivation "
+       "constant scan.", "Covers Murayama's measured KI at 25 C (270 uM) "
+       "and 37 C (410 uM)", 1.0, 1e5),
+    _p("spark.ki_scan_points", "Termination scan: Ki points", 9.0, "",
+       "method", "spark", "method_choice", "Geometric steps of the Ki scan.",
+       "Two to three per decade", 2.0, 50.0),
+    _p("spark.rate_scan_max", "Termination scan: fastest inactivation", 30.0,
+       "", "method", "spark", "method_choice", "Largest multiple of Stern's "
+       "inactivation rates (on and off together, Ki fixed) in the rate scan; "
+       "the scan runs from its inverse to it.", "Steady state fixes only the "
+       "ratio k_i-/k_i, so the rate is scanned over 3 decades", 1.0, 1e3),
+    _p("spark.rate_scan_points", "Termination scan: rate points", 7.0, "",
+       "method", "spark", "method_choice", "Geometric steps of the rate "
+       "scan.", "Two to three per decade", 2.0, 50.0),
 ]

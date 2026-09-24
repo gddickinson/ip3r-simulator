@@ -2063,6 +2063,45 @@
    "maximum": 10.0
   },
   {
+   "key": "ryr.murayama_amax_37",
+   "name": "RyR1 bell at 37 C: Amax",
+   "value": 0.107,
+   "unit": "",
+   "kind": "empirical",
+   "category": "ryr",
+   "citation": "murayama2015",
+   "description": "Peak binding activity of the wild-type bell at 37 C.",
+   "source_note": "Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 37 C ([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+); read from the S1 Table .doc: 'WT 37 ... 0.107 +/- 0.006'",
+   "minimum": 0.0001,
+   "maximum": 1.0
+  },
+  {
+   "key": "ryr.murayama_ka_37",
+   "name": "RyR1 bell at 37 C: KA",
+   "value": 20.5,
+   "unit": "uM",
+   "kind": "empirical",
+   "category": "ryr",
+   "citation": "murayama2015",
+   "description": "Half-activation of the wild-type bell at 37 C.",
+   "source_note": "Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 37 C ([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+); read from the S1 Table .doc: KA 20.5 +/- 2.5 uM",
+   "minimum": 0.01,
+   "maximum": 1000.0
+  },
+  {
+   "key": "ryr.murayama_ki_37",
+   "name": "RyR1 bell at 37 C: KI",
+   "value": 410.0,
+   "unit": "uM",
+   "kind": "empirical",
+   "category": "ryr",
+   "citation": "murayama2015",
+   "description": "Half-inhibition of the wild-type bell at 37 C.",
+   "source_note": "Murayama et al. 2015 (PMC4482644), S1 Table, wild type at 37 C ([3H]ryanodine binding, 0.17 M NaCl, 1 mM AMP, no Mg2+); read from the S1 Table .doc: KI 0.41 +/- 0.04 mM",
+   "minimum": 1.0,
+   "maximum": 100000.0
+  },
+  {
    "key": "spark.n_channels",
    "name": "Spark cluster size",
    "value": 30.0,
@@ -2230,6 +2269,71 @@
    "source_note": "Measured here: the coupling coefficients at 1 nm and 0.5 nm agree to < 1 %",
    "minimum": 0.1,
    "maximum": 10.0
+  },
+  {
+   "key": "spark.ki_scan_min",
+   "name": "Termination scan: lowest Ki",
+   "value": 3.0,
+   "unit": "uM",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "Low end of the inactivation constant scan (on-rate held at Stern's k_i, off-rate moved).",
+   "source_note": "Below Stern's 10 uM, to see whether a still more sensitive inactivation shortens sparks",
+   "minimum": 0.1,
+   "maximum": 10000.0
+  },
+  {
+   "key": "spark.ki_scan_max",
+   "name": "Termination scan: highest Ki",
+   "value": 400.0,
+   "unit": "uM",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "High end of the inactivation constant scan.",
+   "source_note": "Covers Murayama's measured KI at 25 C (270 uM) and 37 C (410 uM)",
+   "minimum": 1.0,
+   "maximum": 100000.0
+  },
+  {
+   "key": "spark.ki_scan_points",
+   "name": "Termination scan: Ki points",
+   "value": 9.0,
+   "unit": "",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "Geometric steps of the Ki scan.",
+   "source_note": "Two to three per decade",
+   "minimum": 2.0,
+   "maximum": 50.0
+  },
+  {
+   "key": "spark.rate_scan_max",
+   "name": "Termination scan: fastest inactivation",
+   "value": 30.0,
+   "unit": "",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "Largest multiple of Stern's inactivation rates (on and off together, Ki fixed) in the rate scan; the scan runs from its inverse to it.",
+   "source_note": "Steady state fixes only the ratio k_i-/k_i, so the rate is scanned over 3 decades",
+   "minimum": 1.0,
+   "maximum": 1000.0
+  },
+  {
+   "key": "spark.rate_scan_points",
+   "name": "Termination scan: rate points",
+   "value": 7.0,
+   "unit": "",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "Geometric steps of the rate scan.",
+   "source_note": "Two to three per decade",
+   "minimum": 2.0,
+   "maximum": 50.0
   }
  ]
 }

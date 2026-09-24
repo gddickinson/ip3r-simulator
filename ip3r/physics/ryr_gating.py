@@ -22,6 +22,13 @@ Because the two gates are independent, the stationary open probability is
 the product ``fA (1 - fI)`` with ``Ka = sqrt(k_o-/k_o)`` and
 ``Ki = k_i-/k_i``. :func:`stationary` computes it from the generator's null
 space instead, and the test holds the two to each other.
+
+**Fitted to the measured bell** (:func:`fit_to_bell`). The steady state
+fixes only the two ratios ``Ka`` and ``Ki``, so the fit moves the off
+rates and keeps Stern's on rates. How fast inactivation is remains free:
+``spark_termination`` scans it. A one-Ca2+ gate has a Hill slope of 1
+against Murayama's fixed nI 1.5, so the fit matches the two half-peak
+points, not the slopes.
 """
 
 from __future__ import annotations
@@ -30,13 +37,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy.linalg import null_space
+from scipy.optimize import fsolve
 
 from ..parameters import PARAMETERS as _P
 from .bell import Bell, measure_bell
 
 __all__ = ["STATES", "OPEN", "SternParams", "MurayamaParams", "generator",
            "stationary", "open_probability", "bell_at", "murayama_activity",
-           "murayama_bell", "compare_bells"]
+           "murayama_bell", "compare_bells", "fit_to_bell", "with_constants"]
 
 #: C closed, O open, CI closed and inactivated, I open-gate but inactivated.
 STATES = ("C", "O", "CI", "I")
@@ -71,6 +79,13 @@ class MurayamaParams:
     n_a: float = _v("ryr.murayama_na")
     k_i: float = _v("ryr.murayama_ki")            # µM
     n_i: float = _v("ryr.murayama_ni")
+
+    @classmethod
+    def at_37(cls) -> "MurayamaParams":
+        """The wild-type row at 37 C (the Hill coefficients are shared)."""
+        return cls(a_max=_P.value("ryr.murayama_amax_37"),
+                   k_a=_P.value("ryr.murayama_ka_37"),
+                   k_i=_P.value("ryr.murayama_ki_37"))
 
 
 def generator(c: float, sp: SternParams | None = None) -> np.ndarray:
@@ -122,3 +137,37 @@ def murayama_bell(mp: MurayamaParams | None = None) -> Bell:
 def compare_bells() -> dict[str, Bell]:
     """Both bells on one ruler (peak and half-peak flanks)."""
     return {"Stern 1997 scheme": bell_at(), "Murayama 2015 fit": murayama_bell()}
+
+
+def with_constants(k_a: float, k_i: float, sp: SternParams | None = None,
+                   rate: float = 1.0) -> SternParams:
+    """Stern's scheme with half-activation ``k_a`` and inactivation constant
+    ``k_i`` µM. Only the off rates move, so the activation and inactivation
+    on rates stay Stern's; ``rate`` scales both inactivation rates at once
+    (Ki unchanged)."""
+    sp = sp or SternParams()
+    k_on = sp.k_inact_on * rate
+    return SternParams(k_act_on=sp.k_act_on,
+                       k_act_off=float(sp.k_act_on * k_a * k_a),
+                       k_inact_on=float(k_on), k_inact_off=float(k_on * k_i))
+
+
+def fit_to_bell(target: Bell | None = None, sp: SternParams | None = None
+                ) -> SternParams:
+    """Ka and Ki such that the scheme's half-peak flanks are ``target``'s
+    (default: Murayama's 25 C bell). Solved in log space; raises if the
+    solve does not reach both flanks to 1e-6."""
+    target = target or murayama_bell()
+    sp = sp or SternParams()
+
+    def resid(x):
+        b = bell_at(with_constants(*np.exp(x), sp))
+        return [np.log(b.c_half_act / target.c_half_act),
+                np.log(b.c_half_inh / target.c_half_inh)]
+
+    x, _, ok, msg = fsolve(resid, np.log([sp.k_a, sp.k_i * target.c_half_inh
+                                          / bell_at(sp).c_half_inh]),
+                           full_output=True)
+    if ok != 1 or max(abs(r) for r in resid(x)) > 1e-6:
+        raise RuntimeError(f"bell fit did not converge: {msg}")
+    return with_constants(*np.exp(x), sp)

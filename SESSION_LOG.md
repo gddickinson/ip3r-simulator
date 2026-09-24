@@ -976,3 +976,45 @@ the verdicts are unchanged (44 confirmed, 2 discrepancies).
 
 **Next:** refit Stern's inactivation to Murayama's bell and rerun the
 cleft. The geometry cannot close the remaining 3×.
+
+
+## 2026-09-24 — Round 6.4: what ends a cleft spark
+
+**What.** `ryr_gating.fit_to_bell` fits Stern's Ka and Ki to both half-peak
+flanks of Murayama's measured bell, moving the off rates and keeping the on
+rates. `ryr_gating.with_constants` builds a scheme from Ka, Ki and an
+inactivation rate scale. `physics/spark_termination.py` runs the cleft
+array under Stern, the 25 °C fit and the 37 °C fit, and scans Ki and the
+inactivation rate. `spark_ends` now flags an `unterminated` spark (still
+running at the trace's end). The CLI gains `spark-termination` and
+`sparks --cleft --fit`, and the GUI gains a fifth Puffs receptor and the
+fitted bell (dashed) in Gating. 8 new parameters: Murayama's 37 °C WT row,
+read from the S1 Table .doc via the PLoS supplement URL, and the scan
+grids. `tests/test_spark_termination.py` has 9 tests (299 total). A planted
+fit that returns Stern unchanged fails 6 of them (checked, then restored).
+
+**Why a scan and not just a refit.** A steady-state bell fixes only Ka and
+Ki. How fast inactivation is stays free, and a refit at one arbitrary rate
+could have hidden a rate that works. So Ki and the rate were both scanned.
+
+**Measured** (4 seeds × 10 s). Stern: median 19 ms, all ended. Fitted to
+25 °C (Ka 4.9, Ki 249 µM): the array never shuts once it fires (4/4
+unended, 70 % of channel-time open). Fitted to 37 °C (Ka 16.9, Ki 358 µM):
+no sparks at all. Ki scan: 19/18/17 ms at 3/5.5/10 µM, 25/33/89 ms at
+19/35/64 µM, 1.4 s at 118 µM, unended from 217 µM. Rate scan at Ki 10:
+162 ms at 1/30×, down to 13–15 ms at 3–10×, where sparks nearly stop
+starting (none at 30×). At the fitted Ka and Ki, no rate ends a spark.
+
+**What it means.** The roadmap's suspect was wrong in direction. Stern's
+over-sensitive inactivation did not lengthen sparks. It is the only
+thing in the scheme that ends them. With the measured sensitivity, the
+tens of µM a channel sees in the cleft cannot inactivate enough of the
+array. The measured bell has no Mg²⁺, which is the obvious missing
+terminator (with luminal depletion and the V channels). All three are
+recorded as emergent rather than assumed.
+
+**Not changed.** `make sync-check` was clean, no checks were touched, and
+the verdicts are unchanged (44 confirmed, 2 discrepancies).
+
+**Next:** source a Mg²⁺-inclusive RyR1 bell or scheme with readable
+constants before modelling Mg²⁺.

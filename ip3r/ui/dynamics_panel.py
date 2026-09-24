@@ -124,6 +124,10 @@ class _Gating(QWidget):
             ax1.semilogx(c, y / b.po_peak, color=PALETTE[k], label=name)
             for x in (b.c_half_act, b.c_half_inh):
                 ax1.axvline(x, color=PALETTE[k], ls=":", lw=0.8)
+        fit = rg.fit_to_bell()
+        y = rg.open_probability(c, fit)
+        ax1.semilogx(c, y / y.max(), color=PALETTE[0], ls="--",
+                     label="scheme fitted to the measured flanks")
         ax1.set_xlabel("Ca²⁺ (µM)")
         ax1.set_ylabel("activity / own peak")
         ax1.set_title("RyR1 bells; dotted: half-peak flanks")
@@ -148,7 +152,11 @@ class _Gating(QWidget):
             f"{m.c_half_act:.1f} µM (measured); half-inhibition "
             f"{s.c_half_inh:.0f} vs {m.c_half_inh:.0f} µM. The scheme activates "
             f"where RyR1 does but inactivates {m.c_half_inh / s.c_half_inh:.1f}× "
-            "too readily, as its authors said of their inactivation site.")
+            "too readily, as its authors said of their inactivation site. "
+            f"Fitted to both flanks (dashed; off rates moved, on rates kept): "
+            f"Ka {fit.k_a:.1f} µM and Ki {fit.k_i:.0f} µM, against "
+            f"{rg.SternParams().k_a:.1f} and {rg.SternParams().k_i:.0f}. "
+            "In the cleft, sparks under the fitted scheme never end.")
 
     @staticmethod
     def _flank_sentence() -> str:

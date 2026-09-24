@@ -9,7 +9,7 @@ testable and scriptable:
     python -m ip3r checks           # re-derive the ip3r_genes findings
     python -m ip3r states           # pore of every ITPR3 gating state (--paralog RYR1)
     python -m ip3r unitary          # K+ conductance of each state (--paralog RYR1)
-    python -m ip3r mutants | ryr-gating | sparks   # RyR1 (cli_ryr.py)
+    python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
     python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)

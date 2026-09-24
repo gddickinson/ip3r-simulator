@@ -419,7 +419,7 @@ def main() -> int:
                 gt = win.dynamics.gating
                 gt.parent().parent().setCurrentWidget(gt)
                 gt.model.setCurrentIndex(2)                  # RyR1 bells
-                if "inactivates" not in gt.text.text():
+                if "never end" not in gt.text.text():
                     raise RuntimeError(f"RyR1 gating drew: {gt.text.text()[:120]}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_ryr_gating.png"))
@@ -456,6 +456,17 @@ def main() -> int:
                     raise RuntimeError(f"cleft sparks drew {pz.result}")
                 app.processEvents()
                 win.grab().save(str(out / "gui_sparks_cleft.png"))
+                pz.model.setCurrentIndex(pz.model.findData("ryr1-cleft-fit"))
+                pz.result = None
+                pz.run()
+            elif s == 24:                 # fitted to the measured bell: no end
+                pz = win.dynamics.puffs
+                if pz.result is None:
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                if pz.result["coupled"]["open_fraction"] < 0.3:
+                    raise RuntimeError(f"fitted cleft drew {pz.result}")
+                win.grab().save(str(out / "gui_sparks_fitted.png"))
             else:
                 print("screenshots written to", out)
                 return app.quit()

@@ -5,11 +5,13 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** the spark duration is now 3× the measurement, and no geometric
-number closes it, so the gating scheme is the suspect: refit Stern's
-inactivation to Murayama's bell and rerun the cleft (Round 6.3 emergent).
-Other strong candidates: the gate radius along the morph (Round 2), and the
-continuum's conductance shortfall on both receptors (Rounds 4 and 6.1).
+**Next:** fitted to the measured bell, Ca²⁺ inactivation cannot end a
+cleft spark at all (Round 6.4), so the terminator is a mechanism the
+scheme lacks. The lead candidate is Mg²⁺, since the bell was measured
+without it. Before modelling it, source a Mg²⁺-inclusive RyR1 bell with
+readable constants. Other strong candidates: the gate radius along the
+morph (Round 2), and the continuum's conductance shortfall on both
+receptors (Rounds 4 and 6.1).
 
 ## Destination
 
@@ -313,9 +315,8 @@ Emergent (not scheduled):
   at a self-sustaining point (~5.5 open) until it closes by chance.
   Emergent:
   - [x] A spatial Ca²⁺ field for the cluster: done as Round 6.3.
-  - [ ] Stern's inactivation against Murayama's bell: refit k_i (and k_i−)
-    to the measured flank, and see whether sparks still terminate. This is
-    now the lead suspect for the 3× spark duration (Round 6.3).
+  - [x] Stern's inactivation against Murayama's bell: done as Round 6.4.
+    Fitted, sparks do not terminate.
   - [ ] Murayama's S1 Table has 11 MH/CCD mutants (Amax, KA, KI at 25 and
     37 °C). A mutant bell could be drawn beside the variant spheres.
 
@@ -347,6 +348,33 @@ Emergent (not scheduled):
   - [ ] IP3R puffs with a spatial field: the cluster has no cleft, so the
     field is open cytosol (point sources with buffers). The geometry of an
     IP3R cluster would have to be sourced first.
+
+- [x] 6.4 What ends a cleft spark (`physics/spark_termination.py`,
+  `ryr_gating.fit_to_bell`; `spark-termination` and `sparks --cleft --fit`
+  in the CLI; a fifth Puffs receptor; the fitted bell dashed in Gating).
+  Stern's Ka and Ki were fitted to Murayama's two flanks, with off rates
+  moved, on rates kept, and flanks exact. That gives Ka 4.9 µM and Ki
+  249 µM at 25 °C, and Ka 16.9 µM and Ki 358 µM at 37 °C (S1 Table, now
+  registered), against 7.1 and 10. In the cleft (4 seeds × 10 s), Stern's
+  sparks last 19 ms and all end. Fitted to 25 °C, the array never shuts
+  after the first spark (4/4 unended, 70 % open). Fitted to 37 °C, no
+  spark starts. Ki scan: 17–19 ms up to 10 µM, 89 ms at 64 µM, 1.4 s at
+  118 µM, unended from 217 µM. Rate scan: at Ki 10 the shortest is
+  13–15 ms, reached only as sparks stop starting (none at 30×). At the
+  fitted constants no rate from 1/30× to 30× ends a spark. The 3× gap was
+  not caused by the inactivation. Stern's too-sensitive inactivation is
+  what let sparks end at all.
+  Emergent:
+  - [ ] Mg²⁺: Murayama's bell has none, and ~1 mM free Mg²⁺ in the fibre
+    both competes at activation and inhibits. First source a RyR1 bell
+    (or a scheme) with Mg²⁺ whose constants can be read, then refit.
+  - [ ] Luminal Ca²⁺ depletion (the SR under the couplon empties during
+    release) as a terminator. It needs an SR compartment with a sourced
+    volume and refilling rate.
+  - [ ] The V channels (voltage-gated, half the couplon) are not
+    simulated. Stern's own sparks were started and shaped by them.
+  - [ ] A one-Ca²⁺ inactivation gate has Hill slope 1 against the
+    measured 1.5. A two-site inactivation would fit the slope as well.
 
 ## Deliberately not doing
 

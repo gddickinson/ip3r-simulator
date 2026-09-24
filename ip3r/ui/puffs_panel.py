@@ -4,7 +4,8 @@ with and without the Ca2+ coupling that lets one opening recruit the next.
 Two receptors can fill the same cluster: De Young-Keizer subunits and the
 park/drive scheme (Siekmann; Cao et al. 2013). RyR1 sparks come in two
 forms: one mean-field cluster Ca2+, or each channel's own Ca2+ in the
-junctional cleft. Both are read with one ruler
+junctional cleft, or in the cleft with the gating fitted to Murayama's
+measured bell. All are read with one ruler
 (``physics.puff_compare``): traces, the Fano factor, and the event-size
 distribution, where a clean blip/puff split shows as a valley. "Scan
 coupling" runs both receptors over the registered coupling range.
@@ -46,6 +47,14 @@ _NOTE = {
                   "nearest-neighbour value). Sparks now end by local "
                   "inactivation after about 20 ms, not ~130 ms, still about "
                   "3× the measured release (frog).",
+    "ryr1-cleft-fit": "The cleft array with Stern's Ka and Ki fitted to "
+                      "Murayama 2015's measured bell (Ka 4.9, Ki 249 µM, "
+                      "against 7.1 and 10). Once a spark starts it never "
+                      "ends: at the tens of µM a channel sees in the cleft, "
+                      "a Ki of 249 µM inactivates too few channels. No "
+                      "inactivation rate changes this (spark-termination "
+                      "in the CLI). What terminates real sparks is missing "
+                      "from a Ca²⁺-only scheme fitted without Mg²⁺.",
 }
 
 

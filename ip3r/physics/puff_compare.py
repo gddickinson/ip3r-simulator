@@ -26,6 +26,8 @@ outside the IP3R scan; ``spark_scan`` sweeps a band around it instead.
 The cleft cluster (:mod:`ip3r.physics.sparks_cleft`, key ``ryr1-cleft``)
 is the same receptor with a spatial Ca2+ field; its coupling is the
 nearest-neighbour value, and ``spark_ends`` measures how each spark ends.
+``ryr1-cleft-fit`` is the cleft with Stern's Ka and Ki fitted to
+Murayama's measured bell (``ryr_gating.fit_to_bell``).
 """
 
 from __future__ import annotations
@@ -38,25 +40,36 @@ from ..parameters import PARAMETERS as _P
 from .puffs import PuffParams, PuffTrace, detect_events, fano, simulate_cluster
 from .puffs_pd import ParkDrivePuffParams, simulate_cluster_pd
 from .sparks import SparkParams, simulate_sparks, spark_couplings
+from .ryr_gating import fit_to_bell
 from .sparks_cleft import CleftSparkParams, native_coupling, simulate_sparks_cleft
 
-__all__ = ["MODELS", "ALL_MODELS", "SPARK", "SPARK_CLEFT", "SPARKS", "MODEL_LABELS",
+__all__ = ["MODELS", "ALL_MODELS", "SPARK", "SPARK_CLEFT", "SPARK_FIT", "SPARKS",
+           "MODEL_LABELS", "fitted_cleft_params",
            "spark_scan", "params_for", "simulate", "event_sizes", "recruitment",
            "spark_ends", "coupling_effect", "scan_couplings", "coupling_scan"]
 
 MODELS = ("dyk", "park-drive")
 SPARK = "ryr1"
 SPARK_CLEFT = "ryr1-cleft"
-SPARKS = (SPARK, SPARK_CLEFT)
+SPARK_FIT = "ryr1-cleft-fit"
+SPARKS = (SPARK, SPARK_CLEFT, SPARK_FIT)
 ALL_MODELS = MODELS + SPARKS
 MODEL_LABELS = {"dyk": "De Young–Keizer subunits",
                 "park-drive": "Park/drive (Siekmann; Cao 2013)",
                 SPARK: "RyR1 sparks (Stern 1997 scheme)",
-                SPARK_CLEFT: "RyR1 sparks in the cleft (Stern 1997 geometry)"}
+                SPARK_CLEFT: "RyR1 sparks in the cleft (Stern 1997 geometry)",
+                SPARK_FIT: "RyR1 in the cleft, gating fitted to Murayama 2015"}
+
+
+def fitted_cleft_params() -> CleftSparkParams:
+    """The cleft array with Ka and Ki fitted to Murayama's 25 C bell."""
+    return CleftSparkParams(gating=fit_to_bell())
+
 _SIM = {"dyk": (simulate_cluster, PuffParams),
         "park-drive": (simulate_cluster_pd, ParkDrivePuffParams),
         SPARK: (simulate_sparks, SparkParams),
-        SPARK_CLEFT: (simulate_sparks_cleft, CleftSparkParams)}
+        SPARK_CLEFT: (simulate_sparks_cleft, CleftSparkParams),
+        SPARK_FIT: (simulate_sparks_cleft, fitted_cleft_params)}
 
 
 def params_for(model: str, coupling: float | None = None,
@@ -101,7 +114,8 @@ def recruitment(tr: PuffTrace, large_fraction: float | None = None) -> dict:
 def spark_ends(tr: PuffTrace, large_fraction: float | None = None) -> list[dict]:
     """Every event reaching the large size: duration, peak, and how many
     channels were inactivated (CI or I) at its first and after its last bin.
-    Needs a RyR1 trace (``n_inactivated``)."""
+    ``unterminated``: still running when the trace ends, so its duration is
+    only a lower bound. Needs a RyR1 trace (``n_inactivated``)."""
     large_at = recruitment(tr, large_fraction)["large_at"]
     step = float(tr.t[1] - tr.t[0])
     out = []
@@ -110,8 +124,10 @@ def spark_ends(tr: PuffTrace, large_fraction: float | None = None) -> list[dict]
             continue
         a = int(round((e["start"] - tr.t[0]) / step))
         b = min(a + int(round(e["duration"] / step)), len(tr.t) - 1)
+        running = b == len(tr.t) - 1 and tr.peaks[-1] > 0
         out.append({**e, "inactivated_start": int(tr.n_inactivated[a]),
-                    "inactivated_end": int(tr.n_inactivated[b])})
+                    "inactivated_end": int(tr.n_inactivated[b]),
+                    "unterminated": bool(running)})
     return out
 
 
@@ -153,7 +169,7 @@ def spark_scan(duration: float = 10.0, seed: int = 0, couplings=None,
     band's factors times its own nearest-neighbour coupling): one
     :func:`recruitment` row per coupling."""
     if couplings is None:
-        couplings = spark_couplings(native_coupling() if model == SPARK_CLEFT else None)
+        couplings = spark_couplings(native_coupling() if model != SPARK else None)
     return [{"coupling": float(c),
              **recruitment(simulate(model, 0.0, duration, seed, params_for(model, c)))}
             for c in np.asarray(couplings, float)]
