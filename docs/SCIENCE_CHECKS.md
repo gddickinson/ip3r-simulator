@@ -133,6 +133,36 @@ and protein-record recovery (`gene_recovery.tsv`).
   full-length record resolving to a cell? one resolving to *this* cell?
   It agrees with the table's own label in all 1,236 cells.
 
+### The lesion strata (S15b §8.2–8.3)
+
+S15a scored every located locus for frameshifts and internal stops and
+compared each cell with its own genome's other family loci, so a
+genome-wide indel rate cancels. S15b stratified that identity-matched sign
+test by class and called ITPR3's excess a bird result.
+`analysis/lesion_strata.py` rebuilds it from `integrity_loci.tsv`, reading
+neither the pair table nor the test tables:
+
+- a locus is scored at coverage ≥ `lesion.coverage_bar` (0.70). Lesions per
+  kilo-residue come from the frameshift and stop counts, and agree with the
+  table's density on all 2,109 loci. The genome's best-covered scored locus
+  stands for a cell (the first, on a tie).
+- a cell is compared with the median of its siblings within
+  `lesion.identity_window` (0.02) of its own identity to the bait. The
+  window is inclusive, so the difference is taken after rounding.
+- the exact sign test runs per cell × class. A stratum with fewer than
+  `lesion.min_untied` (8) untied pairs gets no p and stays out of the BH
+  family. Each significant stratum is split at this project's contiguity
+  bar (not at `contig_spans_gene`), and its siblings are named: the same
+  class's other significant cells, which are one comparison read from the
+  other side.
+
+`P3.lesion_strata` reproduces all 744 matched pairs (and the 1,031
+unmatched ones), all 38 strata with p and q, and all five bar splits. ITPR3
+in Aves is 25:2 (q 4.52e-05) against 7:6 in Actinopteri. Below the bar it
+is 19:2 (p 0.0002), and above it 6:0. The Genomes tab's lesion layer
+draws the same pairs genome by genome. The check's "Show" opens it on the
+birds in N50 order, so the reader can see the excess sit below the bar.
+
 ## Paper 1: presence and absence across eukaryotes
 
 `analysis/range_table.py` joins the S20 proteome sweep (per-proteome
@@ -215,7 +245,25 @@ The viewer computes the same stratification from the committed resources
 (`constraint.json`, `variants.json`), and a test proves that it reproduces
 S17's table.
 
-## Every check, as of Round 7.7
+**How firm is a stratum?** The thresholds are medians of a few positions
+each, and ITPR2's P/LP median is one position. The Variants tab draws each
+median's exact order-statistic interval (`stats.median_interval`,
+`vus.median_level` = 0.95). The interval is x₍ₖ₎ to x₍ₙ₋ₖ₊₁₎, with k the
+largest rank whose binomial tail stays within 2.5 %, and its coverage is
+≥ 95 % for any distribution. With five positions or fewer, no k exists and
+the interval is unbounded. A percentile bootstrap was the roadmap's first
+idea and was rejected: resampling one value gives a zero-width interval,
+the most certain-looking threshold for the least-known median (a test
+records this). A VUS is *near* a median when some threshold inside that
+median's interval would put it on the other side.
+
+At 95 %, only ITPR1's P/LP median is bounded (39 positions). ITPR2's (1)
+and ITPR3's (5) are not, so **no ITPR2 or ITPR3 VUS is firmly
+pathogenic-like on any layer**. The B/LB medians (9–17 positions) are
+bounded for all three genes. This is not a discrepancy: S17 calls §8 a
+stratification, not a call. It is a statement of how far the strata carry.
+
+## Every check, as of Round 7.8
 
 | check | kind | verdict | re-derived |
 |---|---|---|---|
@@ -259,6 +307,7 @@ S17's table.
 | `P4.unreachable` | rederived | confirmed | 744 / 923 |
 | `P3.miss_by_contiguity` | rederived | confirmed | median N50 23,460 vs 3,396,515; chromosome 3/512 and 0/172; above bar 189 genomes, 5/563; below 0.3917/0.4333/0.3000 |
 | `P3.contiguity_tests` | rederived | confirmed | all 12 tests: OR per 10× 8.10 / 19.99, ITPR vs RyR Fisher p 0.578 |
+| `P3.lesion_strata` | rederived | confirmed | 744 pairs, 38 strata, p and q; ITPR3 Aves 25:2 (q 4.52e-05), Actinopteri 7:6; below the bar 19:2, above 6:0 |
 | `P4.recovery_channels` | rederived | confirmed | 257/309, 260/307, 227/307, RyR 196/309; reasons 289/186/254/15, 179 reachable |
 | `P1.presence_range` | rederived | confirmed | 662/6,928 proteomes, 45/135 clades; Archaea 0/634, Bacteria 0/3,537 |
 | `P1.kingdom_absences` | rederived | confirmed | Streptophyta 0/384, Ascomycota 0/1034, Basidiomycota 0/319, Apicomplexa 0/60 |

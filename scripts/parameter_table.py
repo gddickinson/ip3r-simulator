@@ -22,6 +22,7 @@ from parameter_table_domain import DOMAIN
 from parameter_table_pka import PKA
 from parameter_table_pore3d import PORE3D
 from parameter_table_bench import BENCH
+from parameter_table_views import VIEWS
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -400,3 +401,4 @@ P += DOMAIN
 P += PKA
 P += PORE3D
 P += BENCH
+P += VIEWS

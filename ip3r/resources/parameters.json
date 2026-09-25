@@ -4492,6 +4492,58 @@
    "source_note": "Roadmap decision D7 ('two baits within ~10 % is no call'), applied by S1's sister test",
    "minimum": 0.0,
    "maximum": 1.0
+  },
+  {
+   "key": "lesion.coverage_bar",
+   "name": "Lesion scoring coverage bar",
+   "value": 0.7,
+   "unit": "",
+   "kind": "method",
+   "category": "lesion",
+   "citation": "ip3r_genes",
+   "description": "A located locus is scored for frameshifts and internal stops only at or above this coverage of the bait; the genome's best-covered scored locus stands for the cell.",
+   "source_note": "ip3r_genes S15a COV_FULL (scripts/s15_integrity.py), the sweep's own COV_FOUND",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
+   "key": "lesion.identity_window",
+   "name": "Sibling identity window",
+   "value": 0.02,
+   "unit": "",
+   "kind": "method",
+   "category": "lesion",
+   "citation": "ip3r_genes",
+   "description": "A sibling locus enters a cell's within-genome comparison only if its identity to its own bait is within this of the cell's (D47's identity matching).",
+   "source_note": "ip3r_genes S15a IDENTITY_WINDOW (scripts/s15_integrity.py)",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
+   "key": "lesion.min_untied",
+   "name": "Minimum untied pairs for a p",
+   "value": 8,
+   "unit": "pairs",
+   "kind": "convention",
+   "category": "lesion",
+   "citation": "ip3r_genes",
+   "description": "A class stratum with fewer untied pairs is reported with its counts and no p-value, and stays out of the Benjamini-Hochberg family.",
+   "source_note": "ip3r_genes S15b MIN_CLASS_N (scripts/s15b_fossils.py)",
+   "minimum": 1,
+   "maximum": 1000
+  },
+  {
+   "key": "vus.median_level",
+   "name": "Threshold interval level",
+   "value": 0.95,
+   "unit": "",
+   "kind": "convention",
+   "category": "variants",
+   "citation": "convention",
+   "description": "Coverage of the exact order-statistic interval drawn around each labelled class's median (Paper 5 \u00a78's thresholds); a VUS inside an interval is 'near a median'. Too few positions for this level leave the interval unbounded.",
+   "source_note": "Conover, Practical Nonparametric Statistics \u00a73.2: the distribution-free binomial interval for a median; 0.95 by convention",
+   "minimum": 0.5,
+   "maximum": 0.999
   }
  ]
 }

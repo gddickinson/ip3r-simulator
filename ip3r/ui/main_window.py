@@ -55,7 +55,8 @@ CHECK_TREE = frozenset(("P2.sister_pair", "P2.paralog_clades", "P2.cyclostome_li
 #: Checks whose "Show" opens the Genomes tab, and the layer it shows.
 CHECK_GENOMES = {"P3.no_absent_cells": "state", "P3.false_negatives": "miss",
                  "P3.miss_by_contiguity": "miss", "P3.contiguity_tests": "miss",
-                 "P4.unreachable": "recovery", "P4.recovery_channels": "recovery"}
+                 "P4.unreachable": "recovery", "P4.recovery_channels": "recovery",
+                 "P3.lesion_strata": "lesion"}
 #: Checks whose "Show" opens the Range tab (Paper 1).
 CHECK_RANGE = frozenset(("P1.presence_range", "P1.kingdom_absences", "P1.relaxed_controls",
                          "P1.absence_targets", "P1.absences", "P1.copy_number",

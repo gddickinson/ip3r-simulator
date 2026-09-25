@@ -244,6 +244,11 @@ PLANTS = {
     "P3.contiguity_tests": lambda d: _edit(d / R / "methods/contiguity_cells.tsv",
                                            _first({"control": "ryr_sister",
                                                    "false_negative": "0"}, false_negative=1)),
+    # an input plant: the bird ITPR3 loci lose their lesions, so the excess
+    # the paper names cannot be rebuilt from the loci
+    "P3.lesion_strata": lambda d: _edit(
+        d / R / "loss_dynamics/integrity_loci.tsv",
+        _set({"vclass": "Aves", "cell": "ITPR3"}, frameshifts=0, stop_codons=0)),
     "P4.recovery_channels": lambda d: _edit(
         d / R / "methods/gene_recovery.tsv",
         _first({"recovery_channel": "protein_database_and_genome"},

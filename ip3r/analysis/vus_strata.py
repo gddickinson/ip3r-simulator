@@ -16,6 +16,12 @@ The rule is rebuilt here from S17's sentence and code comments, not imported:
   here, although the classifier test (``P5.variant_auc``) is ClinVar only.
   ``sources=("clinvar",)`` gives the ClinVar-only variant for comparison.
 
+A median from a few positions is itself uncertain (ITPR2's P/LP median is
+one position's score). :func:`bands` draws an exact order-statistic
+interval round each median (``vus.median_level``; unbounded when a class has
+too few positions for that level), and :meth:`Bands.firm` says whether a
+VUS's stratum survives any threshold inside them or sits *near a median*.
+
 ``score`` is any ``(gene, layer, resi) -> float`` (NaN = not scored), so the
 check can use the publication's per-residue tables and the GUI the committed
 resource without either importing the other.
@@ -29,9 +35,15 @@ from typing import Callable, Iterable
 
 import numpy as np
 
+from .stats import median_interval
+
 __all__ = ["STRATA", "STRATUM_LABELS", "CLASS_COLORS", "STRATUM_COLORS",
            "Stratification", "position_scores",
-           "stratify", "stratum_of"]
+           "stratify", "stratum_of", "Bands", "bands", "NEAR"]
+
+#: What the Variants table appends to a stratum that a threshold inside its
+#: median's interval could change (followed by which median).
+NEAR = "near"
 
 #: What a VUS can be on one layer; "not scored" is grey, never low.
 STRATA = ("pathogenic-like", "between", "benign-like", "both", "not scored")
@@ -128,6 +140,52 @@ def stratify(rows: Iterable[dict], score: Score, gene: str, layer: str,
     strata = {r: stratum_of(x, pm, bm) for r, x in vus.items()}
     return Stratification(gene, layer, path, ben, vus, pm, bm,
                           statistics.median(vus.values()), strata)
+
+
+@dataclass(frozen=True)
+class Bands:
+    """Each labelled median's interval (± inf = unbounded) at ``level``."""
+    pathogenic: tuple[float, float]
+    benign: tuple[float, float]
+    level: float
+
+    @property
+    def bounded(self) -> bool:
+        return all(np.isfinite(self.pathogenic + self.benign))
+
+    def unsure(self, x: float) -> tuple[str, ...]:
+        """The thresholds ("P/LP", "B/LB") a value inside their interval
+        could put ``x`` on either side of; empty = the stratum is firm."""
+        if not np.isfinite(x):
+            return ()                                # "not scored" is no threshold call
+        (plo, phi), (blo, bhi) = self.pathogenic, self.benign
+        out = []
+        if (x >= phi) != (x >= plo):                 # pathogenic-like is x ≥ median
+            out.append("P/LP")
+        if (x <= blo) != (x <= bhi):                 # benign-like is x ≤ median
+            out.append("B/LB")
+        return tuple(out)
+
+    def firm(self, x: float) -> bool:
+        """Is the stratum of a score ``x`` the same for every pair of
+        thresholds inside the two intervals?"""
+        return not self.unsure(x)
+
+    def near(self, s: "Stratification", threshold: str | None = None) -> list[int]:
+        """VUS positions whose stratum is not firm (about ``threshold`` only,
+        if given)."""
+        return sorted(r for r, x in s.vus.items() if (
+            threshold in self.unsure(x) if threshold else not self.firm(x)))
+
+
+def bands(s: "Stratification", level: float | None = None) -> Bands:
+    """The two thresholds' intervals for one stratification
+    (``vus.median_level`` unless given)."""
+    if level is None:
+        from ..parameters import PARAMETERS
+        level = PARAMETERS.value("vus.median_level")
+    return Bands(median_interval(list(s.pathogenic.values()), level),
+                 median_interval(list(s.benign.values()), level), level)
 
 
 #: Class colours for the variant spheres and the figures. P/LP and B/LB take

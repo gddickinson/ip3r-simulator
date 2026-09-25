@@ -2,8 +2,9 @@
 
 One row per assembly in the retention sweep (309), one column per cell
 (ITPR1-3 and the RyR control), coloured by a chosen layer: what the sweep
-found, which known genes it missed, the S15a evidence state, or how a
-protein-database search could reach the gene. A contig-N50 strip on a fixed
+found, which known genes it missed, the S15a evidence state, how a
+protein-database search could reach the gene, or whether the cell carries
+more lesions than its own genome's identity-matched siblings (S15b §8). A contig-N50 strip on a fixed
 log scale runs beside the grid, and sorting by N50 draws the contiguity bar.
 Clicking a row names the genome and lists its four cells.
 """
@@ -22,6 +23,9 @@ from .workers import run_async
 __all__ = ["GenomesPanel"]
 
 _ALL = "all classes"
+#: The class a layer's published statement is about: a check's "Show"
+#: opens the layer on it (the lesion excess is a bird result).
+LAYER_FOCUS = {"lesion": "Aves"}
 
 
 class GenomesPanel(QWidget):
@@ -91,6 +95,9 @@ class GenomesPanel(QWidget):
     def _apply_pending(self) -> None:
         if self._pending_layer is not None:
             self.order.setCurrentText("contig N50")
+            focus = LAYER_FOCUS.get(self._pending_layer)
+            self.vclass.setCurrentText(focus if focus and self.vclass.findText(focus) >= 0
+                                       else _ALL)
             self.layer.setCurrentIndex(self.layer.findData(self._pending_layer))
             self._pending_layer = None
             self.redraw()

@@ -17,9 +17,10 @@ from matplotlib.colors import LogNorm, to_rgb
 from matplotlib.patches import Patch
 
 from . import genome_grid as GG
+from . import lesion_strata as L
 
 __all__ = ["LAYER_STYLE", "LAYER_TITLES", "MISSING", "N50_RANGE", "draw_grid",
-           "draw_misses", "draw_logistic", "draw_recovery"]
+           "draw_misses", "draw_logistic", "draw_recovery", "draw_lesions"]
 
 MISSING = "#6b7079"
 N50_RANGE = (1e3, 1e8)          # fixed, never auto-ranged (bp)
@@ -46,10 +47,16 @@ LAYER_STYLE = {
                  (GG.OTHER_PARALOG, _PURPLE, "no record resolves to this paralogue"),
                  (GG.NO_RECORD, _RED, "no family record for the species"),
                  (GG.NO_GENE, _NONE, "no gene")),
+    "lesion": ((L.EXCESS, _RED, "more lesions than its matched siblings"),
+               (L.DEFICIT, _BLUE, "fewer lesions than its matched siblings"),
+               (L.TIE, "#c9ccd2", "as many (a tie)"),
+               (L.NO_SIBLING, _PURPLE, "scored, no identity-matched sibling"),
+               (L.NOT_SCORED, _NONE, "located, below the coverage bar")),
 }
 
 LAYER_TITLES = {"search": "What the sweep found", "miss": "Missed genes (method control)",
-                "state": "S15a evidence state", "recovery": "Protein-record recovery"}
+                "state": "S15a evidence state", "recovery": "Protein-record recovery",
+                "lesion": "Lesions vs own-genome siblings"}
 
 
 def _n50_rgb(values) -> np.ndarray:
@@ -172,3 +179,25 @@ def draw_recovery(ax, d) -> None:
     ax.set_xlabel("genes demonstrated in the genome")
     ax.legend(fontsize=6, frameon=False, labelcolor=_TEXT, loc="upper left",
               bbox_to_anchor=(0.0, -0.18), ncol=2)
+
+
+def draw_lesions(ax, d) -> None:
+    """P3.lesion_strata: each testable cell × class stratum as excess
+    (right) against deficit (left) genomes, q beside it; the significant
+    strata split at the contiguity bar underneath."""
+    rows = d["strata"]
+    y = np.arange(len(rows))
+    ax.barh(y, [r["pos"] for r in rows], color=_RED, label="excess")
+    ax.barh(y, [-r["neg"] for r in rows], color=_BLUE, label="deficit")
+    for i, r in enumerate(rows):
+        ax.text(max(r["pos"], 0) + 0.5, i, f"q {r['q']:.2g}", va="center",
+                fontsize=6, color=_TEXT)
+    ax.set_yticks(y, [f"{r['cell']} {r['vclass']}" for r in rows], fontsize=6)
+    ax.invert_yaxis()
+    ax.axvline(0, color=_TEXT, lw=0.6)
+    ax.set_xlabel("genomes (deficit ← → excess); ties left out")
+    split = "; ".join(f"{s['cell']} {s['vclass']}: above {s['above'][0]}:{s['above'][1]}, "
+                      f"below {s['below'][0]}:{s['below'][1]}" for s in d["splits"])
+    ax.text(0.0, -0.2, "at the contiguity bar — " + split, transform=ax.transAxes,
+            fontsize=5.5, color=_TEXT, va="top", wrap=True)
+    ax.legend(fontsize=6, frameon=False, labelcolor=_TEXT, loc="lower right")

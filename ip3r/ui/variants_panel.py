@@ -9,7 +9,11 @@ drawn rather than lighting up whatever residue carries that number.
 class on all four subunits. With a layer chosen under "VUS by layer", each
 VUS is placed against its gene's labelled medians on that layer (Paper 5
 §8): the table gains a stratum column, the plot shows the three classes and
-both medians, and the VUS spheres take the stratum's colour.
+both medians, and the VUS spheres take the stratum's colour. Each median's
+exact interval (``vus.median_level``) is shaded, and a VUS whose stratum a
+threshold inside those intervals could change is marked "near a median"
+(hollow in the plot); a class too small for the level has an unbounded
+interval, said so in the legend.
 """
 
 from __future__ import annotations
@@ -20,13 +24,13 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QHBoxLayout, QLabel,
                              QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from ..analysis.vus_figure import draw_strip
-from ..analysis.vus_strata import (CLASS_COLORS, STRATUM_COLORS, STRATUM_LABELS,
-                                   stratum_of)
+from ..analysis.vus_strata import (CLASS_COLORS, NEAR, STRATUM_COLORS, STRATUM_LABELS,
+                                   bands, stratum_of)
 from ..config import PARALOGS
 from ..core.annotations import LAYERS, constraint_at, element_of, variants
 from ..render.variant_spheres import CLASS_ORDER, resource_stratification
 from .plot_canvas import PlotCanvas
-from .view_state import set_check
+from .view_state import ParameterFollower, set_check
 
 __all__ = ["VariantsPanel"]
 
@@ -84,6 +88,9 @@ class VariantsPanel(QWidget):
         self.status.setWordWrap(True)
         lay.addWidget(self.status)
         self.strat = None
+        self.bands = None
+        self.follower = ParameterFollower(self)        # vus.median_level edits redraw
+        self.follower.changed.connect(self.refresh)
         self.refresh()
 
     def classes(self) -> tuple[str, ...]:
@@ -95,6 +102,7 @@ class VariantsPanel(QWidget):
         want = self.bucket.currentText()
         layer = self.layer.currentData()
         self.strat = resource_stratification(gene, layer) if layer else None
+        self.bands = bands(self.strat) if self.strat is not None else None
         rows = [v for v in variants(gene) if want == "all" or v["class_bucket"] == want]
         resi = np.array([v["resi"] for v in rows], int)
         deep = constraint_at(gene, resi, "deep") if len(rows) else []
@@ -120,15 +128,34 @@ class VariantsPanel(QWidget):
         self._plot()
         self.status.setText(f"{len(rows)} variant(s) in {gene} "
                             f"({'all classes' if want == 'all' else want}), "
-                            "from the ip3r_genes S17 harvest (ClinVar + curated UniProt).")
+                            "from the ip3r_genes S17 harvest (ClinVar + curated UniProt)."
+                            + self._near_text())
         self.emit_draw()
 
     def _stratum(self, v: dict) -> str:
         if self.strat is None or v["class_bucket"] != "VUS":
             return ""
         s = self.strat
-        return stratum_of(s.vus.get(int(v["resi"]), np.nan), s.median_pathogenic,
-                          s.median_benign)
+        x = s.vus.get(int(v["resi"]), np.nan)
+        text = stratum_of(x, s.median_pathogenic, s.median_benign)
+        unsure = self.bands.unsure(x)
+        return f"{text} ({NEAR} {' and '.join(unsure)} median)" if unsure else text
+
+    def _near_text(self) -> str:
+        if self.strat is None:
+            return ""
+        s, b = self.strat, self.bands
+        unbounded = [f"{name} (n={n})" for name, n, iv in
+                     (("P/LP", len(s.pathogenic), b.pathogenic),
+                      ("B/LB", len(s.benign), b.benign)) if not np.isfinite(iv[0])]
+        text = (f" Of {s.n_vus} scored VUS positions, {len(b.near(s, 'P/LP'))} sit "
+                f"near the P/LP median and {len(b.near(s, 'B/LB'))} near the B/LB "
+                f"median ({100 * b.level:.0f} % intervals).")
+        if unbounded:
+            text += (" Unbounded: " + ", ".join(unbounded)
+                     + " — too few positions to bound that median, so no VUS is "
+                     "firmly on either side of it.")
+        return text
 
     def _legend(self) -> None:
         parts = [f"{_swatch(CLASS_COLORS[c])} {c}" for c in self.classes()
@@ -149,7 +176,7 @@ class VariantsPanel(QWidget):
                     fontsize=8, transform=ax.transAxes)
             ax.set_axis_off()
         else:
-            draw_strip(ax, self.strat)
+            draw_strip(ax, self.strat, self.bands)
         self.canvas.draw_now()
 
     def emit_draw(self) -> None:

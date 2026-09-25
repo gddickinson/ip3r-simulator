@@ -2346,3 +2346,66 @@ plants reuse them.
 `make screenshots` passes with the new `--bnni` step.
 
 **Next:** Round 7.8 (publication views in the GUI).
+
+## 2026-09-25 (23) — Round 7.8: publication views in the GUI
+
+**Why.** Three results could be read in the GUI but not seen:
+- Paper 3's claim that ITPR3's lesion excess is a bird result below the
+  contiguity bar;
+- S23's genomes, one by one, inside the clades the Range tab draws;
+- how firm a VUS stratum is when its threshold is the median of a handful
+  of positions (ITPR2's P/LP median is one).
+
+**What.**
+- `analysis/lesion_strata.py` + `checks_lesions.py`: `P3.lesion_strata`
+  (rederived). S15b §8.2–8.3 are rebuilt from `integrity_loci.tsv` only:
+  scoring, best-covered locus, identity-matched siblings, the sign test by
+  class, BH, and the bar split. Three parameters are registered
+  (`lesion.coverage_bar`, `lesion.identity_window`, `lesion.min_untied`).
+  The Genomes grid has a fifth layer, `lesion`. "Show" opens it on Aves
+  (`LAYER_FOCUS`). There is a calibration plant (the bird ITPR3 loci lose
+  their lesions) and a new exhibit, `draw_lesions`.
+- `analysis/range_genomes.py` + `range_figure.draw_genomes`: the Range
+  tab's "Genomes (S23)" view. Double-click a clade to open it, and click
+  a genome to name it.
+- `stats.median_interval`, `vus_strata.bands` → `Bands`: each threshold's
+  exact interval at `vus.median_level`, drawn in the Variants strip. The
+  table marks "near P/LP median" / "near B/LB median", the status line
+  counts them and names an unbounded median, and a parameter edit redraws
+  the panel.
+
+**Choice: no bootstrap.** The roadmap said "bootstrap the medians". A
+percentile bootstrap of one value has zero width, so it would make the
+least-known threshold look the most certain. `test_vus_bands` records
+this. The distribution-free order-statistic interval says the true thing
+instead: with five positions or fewer, the median cannot be bounded at
+95 %.
+
+**Found.**
+- Lesions: every pair (744 matched, 1,031 unmatched), stratum, p, q and
+  split reproduces. The paper's reading holds. ITPR3 Aves is 25:2,
+  Actinopteri 7:6; below the bar 19:2 (p 0.0002), above 6:0. The bird
+  ITPR1/ITPR2 deficits are its siblings.
+- S23: 194 genomes. 109 are placed by taxid; 13 are in phyla S20 never
+  swept (e.g. Chaetognatha, Nemertea, Nematomorpha). The copy count from
+  `copies.tsv` equals the ledger's `n_full` for all 194, and `spans_gene`
+  = N50 ≥ the genome's own bar for all 194.
+- VUS (a finding about Paper 5 §8's reach, not a discrepancy; reported to
+  the user). At 95 %, only ITPR1's P/LP median is bounded (39 positions:
+  deep 0.785–0.821). ITPR2 (1 position) and ITPR3 (5) have unbounded P/LP
+  medians. So none of their VUS, on any layer, is firmly pathogenic-like
+  (the table's 68 and 100 on deep, for example). ITPR1 keeps 136 of 185
+  on deep. The B/LB medians (9–17 positions) are bounded everywhere; firm
+  benign-like counts are 102/335 (ITPR1 deep), 18/33 (ITPR2), and 18/143
+  (ITPR3).
+
+**Checker error caught on the way.** The first `Bands.unsure` applied
+both comparisons (≥ and ≤) to each threshold, so a VUS exactly at a
+bound's edge read as unsure. The edge case in `test_vus_bands` caught it.
+
+**Not changed.** `make sync-check` clean; no verdict moved. 51 → 52
+checks (`python -m ip3r checks`: 50 confirmed, 2 discrepancies). Round
+7.7 recorded "49"; it had added five to 46, so it was 51. Tests 531 →
+552; `make screenshots` passes with the three new steps.
+
+**Next:** Round 7.9 (fills).

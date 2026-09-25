@@ -138,6 +138,26 @@ def mann_whitney_two_sided(a, b) -> dict:
             "p": min(1.0, 2.0 * min(g["p"], lo["p"]))}
 
 
+def median_interval(values, level: float = 0.95) -> tuple[float, float]:
+    """Distribution-free interval for a median from order statistics: the
+    k-th smallest and k-th largest values, with k the largest rank whose
+    binomial(n, ½) tail stays within (1 − level)/2 — coverage ≥ level
+    whatever the distribution (Conover §3.2). Too few values for the level
+    (k = 0, e.g. n ≤ 5 at 0.95) give (−inf, inf): the median is unbounded,
+    never a zero-width interval around one observation."""
+    x = np.sort(np.asarray(values, float))
+    n = len(x)
+    alpha, k, tail = (1.0 - level) / 2.0, 0, 0.0
+    while k < n // 2:
+        tail += math.comb(n, k) / 2.0 ** n          # P(B ≤ k)
+        if tail > alpha:
+            break
+        k += 1
+    if k == 0:
+        return -math.inf, math.inf
+    return float(x[k - 1]), float(x[n - k])
+
+
 def benjamini_hochberg(pvalues) -> np.ndarray:
     """Benjamini-Hochberg q-values in input order; NaN takes no rank and
     stays NaN."""

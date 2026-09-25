@@ -5,8 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.8, publication views in the GUI (Round 7
-below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.9, fills (Round 7 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -126,7 +125,7 @@ Emergent (not scheduled):
   the reasons come to 289/186/254/15 with 179 reachable. 39 checks: 37
   confirmed, 2 discrepancies (unchanged).
 Emergent (not scheduled):
-- [ ] The grid's miss layer shows *which* genomes fail, not only how many.
+- [x] The grid's miss layer shows *which* genomes fail, not only how many.
   Paper 3 says the ITPR3 lesion excess is a bird result below the bar. That
   could be drawn as another layer from `lesion_by_class.tsv` /
   `integrity_pairs.tsv`, so the reader can see it sits in the same rows.
@@ -145,7 +144,7 @@ Emergent (not scheduled):
   18, Stentor 13, Dysidea 8 and Cymbomonas 3. Chase: 47 real genes, 52
   fragments. 46 checks: 44 confirmed, 2 discrepancies (unchanged).
 Emergent (not scheduled):
-- [ ] The Range tab stops at clade level. S23's 194 genomes (copy number,
+- [x] The Range tab stops at clade level. S23's 194 genomes (copy number,
   control verdict) could be drawn per genome inside a clicked clade, the way
   the Genomes tab draws Paper 3.
 - [ ] Paper 1's profile calibration (11,875 agree, 1 disagree) is not yet
@@ -295,7 +294,7 @@ Emergent (not scheduled):
   Emergent:
   - [x] The variants view (class, layer, drawn) is not in a session
     (Round 7.5).
-  - [ ] Per-paralog: ITPR2's P/LP median is one position's score. Draw the
+  - [x] Per-paralog: ITPR2's P/LP median is one position's score. Draw the
     thresholds' uncertainty (bootstrap the medians) so a stratum near a
     median is shown as such.
 - [x] AlphaFold models for the unresolved stretches, seams shown
@@ -484,9 +483,26 @@ item carried over from round n; it stays listed there too.
     and there iplA reads −0.002. The fly Itpr miss (0.342 vs the 0.35 bar)
     reads 0.361 pairwise, so the 0.008 is inside aligner noise. Scores
     rebuilt with registered points and our own caps: 24/25, 31/31, 6/6.
-- [ ] **7.8 GUI: publication views.** A Genomes lesion layer for Paper 3's
-  ITPR3 bird result, the Range tab per genome, and bootstrapped VUS stratum
-  medians (R3, R5).
+- [x] **7.8 GUI: publication views.** 52 checks: 50 confirmed, 2
+  discrepancies (unchanged). Round 7.7's "49" was a miscount of 51.
+  - **Lesions** (`P3.lesion_strata`, new, rederived). S15b §8's class
+    strata are rebuilt from `integrity_loci.tsv` alone: all 744 matched
+    pairs, all 38 strata with p and q, and all five bar splits reproduce.
+    ITPR3 Aves is 25:2 (q 4.52e-05) against Actinopteri 7:6; below the bar
+    19:2, above 6:0. The Genomes tab's new lesion layer draws those pairs,
+    and "Show" opens it on the birds in N50 order.
+  - **Range per genome.** View → "Genomes (S23)", or double-click a clade.
+    Each of the 194 genomes is filed under its S20 clade by taxid (109),
+    else phylum or class; 13 sit in phyla S20 never swept and are shown as
+    such. Each is drawn with its control verdict, copy-ledger status, its
+    contiguity against its own bar, and its gene models on a fixed 0–20
+    scale.
+  - **VUS thresholds.** An exact order-statistic interval, not a
+    bootstrap: a percentile bootstrap of ITPR2's single P/LP position has
+    zero width. At 95 %, the P/LP medians of ITPR2 (1 position) and ITPR3
+    (5) are unbounded. No ITPR2 or ITPR3 VUS is firmly pathogenic-like on
+    any layer, while ITPR1 keeps 136 of its 185 on deep. The B/LB medians
+    are bounded for all three genes.
 - [ ] **7.9 Fills.** Calibrate on long stretches, and fill 7LHF from rat
   isoform 8 through an alignment (R5).
 

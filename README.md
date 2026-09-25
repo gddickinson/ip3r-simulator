@@ -277,13 +277,19 @@ supported) fell from 47.8/95 to 47.5/73.
 for each of the 309 assemblies in the retention sweep and a column for each
 cell (ITPR1–3 and the RyR control). Each row sits beside a contig-N50 strip
 on a fixed log scale. You can colour the cells by what the sweep found, by
-the known genes it missed, by the S15a evidence state or by how a protein
-search could reach the gene. Rows sort by N50 (the contiguity bar is drawn),
+the known genes it missed, by the S15a evidence state, by how a protein
+search could reach the gene, or by lesions: whether the cell carries more
+frameshifts and stops than its own genome's identity-matched siblings
+(S15b §8, rebuilt from the per-locus table). Rows sort by N50 (the contiguity bar is drawn),
 by class, or by name, and can be filtered to a class or to assemblies above
 the bar. Clicking a row names the genome and lists its four cells. "Show" on
-a P3 or P4 check opens this tab on the right layer.
+a P3 or P4 check opens this tab on the right layer. `P3.lesion_strata`
+opens it on the birds, where ITPR3's excess (25 genomes to 2) sits mostly
+below the bar.
 
 ![Misses against contiguity](docs/img/gui_genomes.png)
+
+![ITPR3's lesion excess in the birds](docs/img/gui_genomes_lesion.png)
 
 **See where the receptor is.** The Range tab draws Paper 1 as one bar per
 clade of the 6,928-proteome sweep. Each bar shows the fraction of swept
@@ -292,9 +298,15 @@ supergroup; archaea and bacteria are collapsed to one row each. A red cross
 marks a clade whose absence held in controlled genome assemblies (a small
 one where it held for a class inside the clade). You can hide small clades
 or expand the prokaryotes. Clicking a row lists its genome-level absences.
-"Show" on any P1 check opens this tab.
+Double-clicking a clade (or View → "Genomes (S23)") draws its S23 genome
+assemblies one by one: each genome's control verdict, what the copy ledger
+found, whether its contig N50 reaches its own contiguity bar, and its
+complete gene models on a fixed 0–20 scale. "Show" on any P1 check opens
+this tab.
 
 ![Paper 1's range](docs/img/gui_range.png)
+
+![One clade's S23 genomes](docs/img/gui_range_genomes.png)
 
 **See the variants, and where the uncertain ones sit.** The Variants tab lists
 the S17 harvest for one paralog and class. "Draw on structure" puts a sphere
@@ -308,7 +320,17 @@ median is *pathogenic-like* (pale red), one at or below the B/LB median is
 stratum column and the plot shows the three classes with both medians. This
 is a stratification, not a call.
 
+Each median is itself uncertain, so the plot shades its exact 95 % interval
+(a distribution-free interval from order statistics). A VUS that a
+threshold inside an interval could move is drawn hollow and marked "near
+the P/LP (or B/LB) median" in the table. A class with five positions or
+fewer cannot bound its median: ITPR2's P/LP median is one position and
+ITPR3's is five. The panel says so, and no VUS of theirs counts as firmly
+pathogenic-like.
+
 ![Variants and the VUS stratification](docs/img/gui_variants.png)
+
+![ITPR2's thresholds, one of them unbounded](docs/img/gui_variants_bands.png)
 
 **See what the map leaves out, as a prediction.** Representation →
 Completeness adds the AlphaFold model's residues where a deposit has none.
@@ -330,7 +352,7 @@ median 1.1 Å, against 5.5 Å for a straight line (`python -m ip3r graft 8TKG --
 
 ## The checks, as of Round 7.7
 
-49 checks: 47 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+52 checks: 50 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts

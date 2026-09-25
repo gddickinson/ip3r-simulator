@@ -183,6 +183,7 @@ EXHIBITS = {"P5.vus_stratification": _vus, "S0.pore_profile": _pore, "P5.deep_ra
             "P2.paralog_clades": _tree, "P2.cyclostome_lineages": _tree,
             "P2.support_bar": _tree, "P2.bnni_robustness": _tree_pair, "P3.miss_by_contiguity": _grid("draw_misses"),
             "P3.contiguity_tests": _grid("draw_logistic"),
+            "P3.lesion_strata": _grid("draw_lesions"),
             "P4.recovery_channels": _grid("draw_recovery"),
             "P1.presence_range": _range("draw_presence"), "P1.bait_margin": _bait_margin,
             "P1.kingdom_absences": _range("draw_presence"),

@@ -11,7 +11,10 @@ describe each of those 1,236 cells from different sides:
   ITPR cell (the character Paper 3's parsimony is run on);
 * ``methods/gene_recovery.tsv`` — whether any protein record reaches the gene
   (Paper 4). The *channel* is re-derived here from the table's count columns
-  by :func:`recovery_channel`, not read from its label.
+  by :func:`recovery_channel`, not read from its label;
+* ``loss_dynamics/integrity_loci.tsv`` — each located locus's lesions; the
+  ``lesion`` layer is the cell's identity-matched within-genome sign
+  (S15b §8.2), rebuilt by :func:`.lesion_strata.layer`.
 
 :func:`load_grid` joins them into a :class:`GenomeGrid` of per-cell layers;
 :func:`order` sorts its genomes. Nothing here draws (see ``grid_figure``).
@@ -26,6 +29,7 @@ import numpy as np
 
 from ..core import genes_data as G
 from ..parameters import PARAMETERS as _P
+from . import lesion_strata as _L
 
 __all__ = ["CONTIG", "MATRIX", "RECOVERY", "CELLS", "Genome", "GenomeGrid",
            "load_grid", "recovery_channel", "above_bar", "order", "ORDERS",
@@ -42,6 +46,7 @@ LAYERS = {
     "miss": (CONTIG, "a gene known to be present, missed by the search"),
     "state": (MATRIX, "S15a evidence state (ITPR cells only)"),
     "recovery": (RECOVERY, "how a protein-database search could reach the gene"),
+    "lesion": (_L.LOCI, "lesions against the genome's identity-matched siblings"),
 }
 
 #: The recovery channels, in the order Paper 4 lists the reasons.
@@ -146,6 +151,10 @@ def load_grid(layers=tuple(LAYERS)) -> GenomeGrid:
     col = {c: j for j, c in enumerate(CELLS)}
     grid = GenomeGrid(genomes)
     for key in layers:
+        if key == "lesion":
+            grid.layers[key] = _L.layer([g.accession for g in genomes], CELLS,
+                                        tables[_L.LOCI])
+            continue
         m = np.full((len(genomes), len(CELLS)), "", dtype=object)
         for r in tables[LAYERS[key][0]]:
             i, j = index.get(r["accession"]), col.get(r["cell"])

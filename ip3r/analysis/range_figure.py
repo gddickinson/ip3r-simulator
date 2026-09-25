@@ -14,16 +14,28 @@ from __future__ import annotations
 import numpy as np
 from matplotlib.patches import Patch
 
+from . import range_genomes as RG
 from .range_table import SUPERGROUPS
 
 __all__ = ["GROUP_COLORS", "draw_range", "draw_presence", "draw_relaxed",
-           "draw_absences", "draw_copies", "draw_chase"]
+           "draw_absences", "draw_copies", "draw_chase", "draw_genomes",
+           "VERDICT_COLORS", "STATUS_COLORS", "COPIES_MAX"]
 
 _TEXT, _TRACK, _RED, _GREY = "#d7dbe3", "#3a3e47", "#e05a5a", "#8a8f99"
 #: One fixed colour per eukaryotic supergroup (prokaryotes never have a bar).
 GROUP_COLORS = dict(zip(SUPERGROUPS, ("#5b9ef2", "#f28c4d", "#72cc80", "#cc80e6",
                                       "#f2cc4d", "#66d9d9", "#e6a0b4", _GREY, _GREY)))
 _PROK = ("Archaea", "Bacteria")
+_MISSING = "#6b7079"
+#: Fixed, never auto-ranged: the most copies S23 counts is 18 (Macrostomum).
+COPIES_MAX = 20
+VERDICT_COLORS = {"controlled_cross_kingdom": "#5b9ef2", "controlled_by_target": "#66d9d9",
+                  "controlled_partial": "#f28c4d", "no_control_bait": "#e05a5a"}
+STATUS_COLORS = {"found_annotated": "#72cc80", "found_no_annotation": "#a8e0a0",
+                 "found_unannotated": "#a8e0a0", "fragment_only": "#f2cc4d",
+                 "assembly_gap": "#f28c4d", "tblastn_trace": "#cc80e6",
+                 "no_locus": "#20232a"}
+_SPANS = {True: "#72cc80", False: "#f28c4d"}
 
 
 def _rows(clades, min_n: int, collapse: bool) -> list[tuple]:
@@ -149,3 +161,50 @@ def draw_chase(ax, d) -> None:
     ax.set_ylabel("identity to nearest relative outside the kingdom (%)")
     ax.text(50, d["contaminant"] - 5, "contaminant bar", color=_RED, fontsize=6)
     ax.legend(fontsize=6, frameon=False, labelcolor=_TEXT, loc="center right")
+
+
+def draw_genomes(ax, rows, title: str = "") -> dict:
+    """S23's genomes of one clade: control verdict, copy-ledger status and
+    contiguity against the genome's own bar as cells, complete gene models
+    as bars on a fixed 0–:data:`COPIES_MAX` scale. Unknown values are grey."""
+    from matplotlib.colors import to_rgb
+    n = len(rows)
+    img = np.empty((n, 3, 3))
+    for i, r in enumerate(rows):
+        span = _SPANS[r.spans_gene] if np.isfinite(r.contig_n50) else _MISSING
+        for j, c in enumerate((VERDICT_COLORS.get(r.verdict, _MISSING),
+                               STATUS_COLORS.get(r.status, _MISSING), span)):
+            img[i, j] = to_rgb(c)
+    ax.imshow(img, aspect="auto", interpolation="nearest",
+              extent=(-0.5, 2.5, n - 0.5, -0.5))
+    ax.set_xticks(range(3), ["control", "copy\nledger", "contig\n≥ bar"], fontsize=7)
+    ax.set_yticks(range(n), [r.organism for r in rows] if n <= 60 else [""] * n,
+                  fontsize=6 if n <= 30 else 4)
+    bars = ax.inset_axes([1.04, 0.0, 0.3, 1.0], sharey=ax)
+    bars.set_facecolor(ax.get_facecolor())          # the theme's, not matplotlib's white
+    for side in bars.spines.values():
+        side.set_color(ax.spines["left"].get_edgecolor())
+    bars.tick_params(colors=ax.xaxis.label.get_color())
+    bars.xaxis.label.set_color(ax.xaxis.label.get_color())
+    bars.barh(range(n), [r.copies for r in rows], color=_GREY)
+    for i, r in enumerate(rows):
+        if r.copies:
+            bars.text(r.copies + 0.3, i, str(r.copies), va="center", fontsize=6, color=_TEXT)
+    bars.set_xlim(0, COPIES_MAX)
+    bars.tick_params(labelleft=False, labelsize=6)
+    bars.set_xlabel("complete gene models", fontsize=7)
+    seen_v = {r.verdict for r in rows}
+    seen_s = {r.status for r in rows}
+    handles = ([Patch(color=VERDICT_COLORS[v], label=v.replace("_", " "))
+                for v in RG.VERDICT_ORDER if v in seen_v]
+               + [Patch(color=STATUS_COLORS[s], label=s.replace("_", " "))
+                  for s in RG.STATUS_ORDER if s in seen_s]
+               + [Patch(color=_SPANS[True], label="contig N50 ≥ own bar"),
+                  Patch(color=_SPANS[False], label="contig N50 < own bar")])
+    ax.legend(handles=handles, fontsize=6, frameon=False, labelcolor=_TEXT,
+              loc="upper left", bbox_to_anchor=(0.0, -0.08), ncol=2)
+    if title:
+        ax.set_title(title, fontsize=9)
+    return {"genomes": n, "controlled": sum(r.controlled for r in rows),
+            "with_gene": sum(r.copies > 0 for r in rows),
+            "copies": sum(r.copies for r in rows)}
