@@ -64,19 +64,27 @@ class PoreVolume:
         region of conducting voxels holding the open voxel nearest the axis
         (crevices reached only through another plane are left out). Zero
         where no conducting voxel lies within ``pore3d.seal_radius``."""
+        return np.array([0.0 if r is None else np.count_nonzero(r) * self.spacing ** 2
+                         for r in self.axis_regions()])
+
+    def axis_regions(self) -> list[np.ndarray | None]:
+        """Per z plane, the (nx, nx) mask of :meth:`slice_area`'s region, or
+        None where the plane has no conducting voxel within the seal."""
         rho = self.radius()
         seal = _P.value("pore3d.seal_radius")
-        out = np.zeros(len(self.zs))
+        out: list[np.ndarray | None] = []
         for k in range(len(self.zs)):
             plane = self.mask[:, :, k]
             if not plane.any():
+                out.append(None)
                 continue
             where = np.where(plane, rho, np.inf)
             i = np.unravel_index(np.argmin(where), where.shape)
             if where[i] > seal:
+                out.append(None)
                 continue
             labels, _ = ndimage.label(plane)
-            out[k] = np.count_nonzero(labels == labels[i]) * self.spacing ** 2
+            out.append(labels == labels[i])
         return out
 
     def radius(self) -> np.ndarray:

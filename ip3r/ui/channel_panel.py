@@ -24,6 +24,7 @@ __all__ = ["ChannelPanel"]
 
 class ChannelPanel(QWidget):
     pore_toggled = pyqtSignal(bool)
+    lumen_toggled = pyqtSignal(bool)
     states_requested = pyqtSignal()
     unitary_requested = pyqtSignal()
     mutants_requested = pyqtSignal()
@@ -38,6 +39,18 @@ class ChannelPanel(QWidget):
                                    "(probe radius = r_free)")
         self.show_pore.toggled.connect(self.pore_toggled.emit)
         lay.addWidget(self.show_pore)
+        self.show_lumen = QCheckBox("Draw the lumen (3-D, coloured by the "
+                                    "potential) and plot where the voltage falls")
+        self.show_lumen.setToolTip(
+            "The ion-accessible volume of Round 7.6's 3-D solve, K+ (Cl- not "
+            "drawn), coloured by the potential with the cytosol at 1 (red) and "
+            "the lumen at 0 (blue). Solved on the deposit, so it is hidden on "
+            "a morph or mode frame.")
+        self.show_lumen.toggled.connect(self.lumen_toggled.emit)
+        lay.addWidget(self.show_lumen)
+        self.lumen_info = QLabel("")
+        self.lumen_info.setWordWrap(True)
+        lay.addWidget(self.lumen_info)
         self.states_btn = QPushButton("")
         self.states_btn.clicked.connect(self.states_requested.emit)
         lay.addWidget(self.states_btn)
@@ -104,6 +117,44 @@ class ChannelPanel(QWidget):
         ax.set_ylim(0, 20)
         self.canvas.legend(ax, loc="upper left")
         self.canvas.draw_now()
+
+    def set_lumen_info(self, html: str) -> None:
+        self.lumen_info.setText(html)
+
+    def show_lumen_field(self, f, s) -> None:
+        """The lumen's area and the potential along the window, 3-D against
+        the 1-D model's inscribed circle; constrictions marked."""
+        from ..parameters import PARAMETERS as _P
+        axes = self.canvas.reset(2, 1)
+        top, bottom = axes[0, 0], axes[1, 0]
+        top.plot(f.z, f.area_3d, color=PALETTE[0], lw=1.4, label="3-D: lumen region")
+        top.plot(f.z, f.area_1d, color=PALETTE[2], lw=1.0,
+                 label="1-D: π (r_free − r_ion)²")
+        top.set_ylabel(f"{f.species} area (Å²)")
+        top.set_title(f"{f.name}: where the voltage falls, S0's window", fontsize=8)
+        bottom.plot(f.z, f.drop_3d, color=PALETTE[0], lw=1.4, label="3-D (Laplace)")
+        bottom.plot(f.z, f.drop_1d, color=PALETTE[2], lw=1.0, label="1-D (∫dz/A)")
+        bottom.set_ylabel("φ, share of the\nwindow's drop")
+        bottom.set_xlabel("z along the four-fold axis (Å; luminal ← → cytosolic)")
+        bottom.set_ylim(-0.02, 1.02)
+        w = _P.value("lumen.constriction_half_width")
+        lines = [f.summary() + "."]
+        for c in s.constrictions.values():
+            for ax in (top, bottom):
+                ax.axvline(c.z, color="#8a8f99", lw=0.6, ls=":")
+            d3, d1 = f.drop_across(c.z, w)
+            bottom.annotate(c.name, (c.z, 0.05), xytext=(3, 0),
+                            textcoords="offset points", color="#d7dbe3", fontsize=7)
+            if f.conducts:
+                lines.append(f"{c.name} (z {c.z:+.1f} ± {w:.0f} Å): {d3:.0%} of "
+                             f"the drop in 3-D, " + (f"{d1:.0%} in 1-D" if
+                                                     np.isfinite(d1) else "1-D shut"))
+        self.canvas.legend(top, loc="upper left")
+        self.canvas.legend(bottom, loc="upper left")
+        self.canvas.draw_now()
+        self.set_lumen_info("<br>".join(lines) + "<br><i>Neutral pore, the "
+                            "family's bath; each curve normalised to its own "
+                            "drop across the window.</i>")
 
     def set_paralog(self, paralog: str | None) -> None:
         """Point the state and conductance buttons at the loaded deposit's

@@ -79,6 +79,7 @@ class SceneController:
         if self.view is not None:
             self.view.clear()
         self.scene.remove("pore")
+        self.scene.remove("lumen")
         self.scene.remove("variants")
         self.fill.clear()
         self._variants, self._variant_atoms = None, np.zeros(0, int)
@@ -221,6 +222,23 @@ class SceneController:
             batch.upload(xyz, r, col, np.zeros(len(r), np.float32))
         self.viewport.update()
 
+    def show_lumen(self, mesh) -> None:
+        """Draw the lumen surface (a :class:`~ip3r.render.lumen_mesh.LumenMesh`;
+        None clears). It is the deposit's: hidden on a morph or mode frame."""
+        self.scene.remove("lumen")
+        if mesh is not None and self.scene is not None:
+            from ..parameters import PARAMETERS as _P
+            batch = self.scene.mesh("lumen", two_sided=True, transparent=True)
+            batch.upload(mesh.positions, mesh.normals, mesh.colors, mesh.indices,
+                         alpha=_P.value("display.lumen_alpha"))
+            if self.view is not None:
+                batch.visible = self._at_deposit(self.view.structure.xyz)
+        self.viewport.update()
+
+    def _at_deposit(self, xyz) -> bool:
+        return self.structure is not None and np.array_equal(
+            np.asarray(xyz, np.float32), np.asarray(self.structure.xyz, np.float32))
+
     def highlight_sites(self, classes: list[str]) -> None:
         self._sites = classes
         if self.view is None:
@@ -293,10 +311,14 @@ class SceneController:
 
     def move_overlays(self, xyz: np.ndarray) -> None:
         """Follow a morph or mode frame: the variant spheres ride their Cα, and
-        each AlphaFold fill is re-fitted on its own anchors."""
+        each AlphaFold fill is re-fitted on its own anchors; the lumen, solved
+        on the deposit, shows only when the deposit's coordinates are back."""
         batch = self.scene.get("variants")
         if batch is not None and len(self._variant_atoms):
             batch.update_centers(np.asarray(xyz, np.float32)[self._variant_atoms])
+        lumen = self.scene.get("lumen")
+        if lumen is not None:
+            lumen.visible = self._at_deposit(xyz)
         self.fill.move(xyz)
 
     def show_fill(self, model) -> None:

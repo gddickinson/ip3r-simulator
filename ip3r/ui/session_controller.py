@@ -59,6 +59,7 @@ class SessionController:
                             else sorted(chains)),
             sites=[k for k, b in sp.site_boxes.items() if b.isChecked()],
             show_pore=win.channel.show_pore.isChecked(),
+            show_lumen=win.channel.show_lumen.isChecked(),
             completeness=sp.current_completeness(),
             tab=win.tabs.tabText(win.tabs.currentIndex()),
             dynamics=win.dynamics.view_state(), variants=win.variants.view_state(),
@@ -216,6 +217,10 @@ class SessionController:
         win.channel.show_pore.setChecked(s.show_pore)
         win.channel.show_pore.blockSignals(False)
         win.scene.show_pore(s.show_pore)
+        win.channel.show_lumen.blockSignals(True)
+        win.channel.show_lumen.setChecked(s.show_lumen)
+        win.channel.show_lumen.blockSignals(False)
+        win.lumen.request(s.show_lumen)
         sp._update_legend()
         win.fills.request(sp.current_completeness())
         self._set_camera(s)

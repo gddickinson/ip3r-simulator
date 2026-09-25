@@ -141,6 +141,15 @@ answer by 2 %. At bulk diffusivity and a 1 Å K+ exclusion, RyR1's open
 deposit gives 787 pS against 801 measured, and ITPR3 gives 261–278 pS
 against 358–545.
 
+The corners change how much current flows, but not where the voltage
+falls (`python -m ip3r lumen`; Channel panel → "Draw the lumen"). In 8TKF,
+7T3T and RyR1's 9HEO, the 3-D potential puts the half-drop point within
+1.3 Å of the 1-D model's, and the filter's share within 4 points (8TKF: 32 %
+against 35 %). The viewer draws the lumen coloured by that potential, and
+the panel plots both curves.
+
+![8TKF's lumen coloured by the potential, and where the voltage falls](docs/img/gui_lumen.png)
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of
@@ -404,6 +413,7 @@ python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
+python -m ip3r lumen [8TKF ...]     # where the voltage falls: 3-D potential vs the 1-D model
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)

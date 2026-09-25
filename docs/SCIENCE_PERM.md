@@ -167,6 +167,38 @@ pore that concentrates K+ should instead raise it. Whether the junctions
 survive when the charges sit in the lumen's corners rather than in a
 cylinder is the next question.
 
+### Where the voltage falls (Round 7.10)
+
+The 3-D solve also returns the potential φ in the lumen
+(`physics/lumen_field.py`, `python -m ip3r lumen`; drawn in the viewer from
+the Channel panel). It is read over S0's window for the bath's cation and
+set beside the 1-D model's φ, which is the cumulative `∫ dz / A` of the
+inscribed circle. Each curve is normalised to its own drop across the
+window, so the comparison is of *where*, not how much.
+
+**Calibration** (`tests/test_lumen_field.py`):
+- a uniform cylinder drops linearly on both routes, and the share left
+  outside the window is Hall's two access terms;
+- a 6 Å neck of radius 2 in a radius-5 pore holds the share the 1-D sum
+  gives by hand, on both routes, and pulls the half-drop point into itself;
+- a blocked pore has no field and no drawn surface.
+
+**Measured** (K⁺, neutral wall, ± 3 Å about each constriction):
+
+| Deposit | In window | Half-drop z, 3-D / 1-D (Å) | Filter, 3-D / 1-D | Gate, 3-D / 1-D |
+|---|---|---|---|---|
+| 8TKF | 99 % | −83.2 / −83.8 | 32 % / 35 % | 12 % / 11 % |
+| 7T3T | 99 % | −83.6 / −83.8 | 32 % / 35 % | 14 % / 17 % |
+| 9HEO (RyR1) | 99 % | −78.1 / −79.4 | 24 % / 25 % | 22 % / 24 % |
+
+**What it means.** The lumen's corners raise the conductance 1.3–2.0×, but
+they do so almost evenly along the pore. Where the field falls moves by at
+most 1.3 Å, and the filter's share by at most 4 points. So the 1-D model's
+*profile* of the field is sound, even where its magnitude is not. A charge
+or a blocker placed on the 1-D axis feels roughly the voltage it would feel
+in 3-D. This does not settle the wall charge in 3-D. There the question is
+the charges' distance from the ions, not the field of a neutral pore.
+
 ## Selectivity and the unitary Ca²⁺ current (Vais 2010)
 
 `physics/selectivity.py`, `python -m ip3r selectivity [8TKF]`.

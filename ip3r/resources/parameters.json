@@ -4351,6 +4351,58 @@
    "maximum": 1000000
   },
   {
+   "key": "lumen.constriction_half_width",
+   "name": "Drop read across a constriction",
+   "value": 3.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Half-width of the z interval about a constriction over which the share of the window's voltage drop is read (Round 7.10).",
+   "source_note": "About one ion diameter either side; the 1-D and 3-D shares are read over the same interval, so the comparison does not depend on it",
+   "minimum": 0.5,
+   "maximum": 15.0
+  },
+  {
+   "key": "display.lumen_radius",
+   "name": "Lumen drawn within",
+   "value": 15.0,
+   "unit": "A",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "The lumen surface is drawn for conducting voxels this close to the axis, inside S0's window.",
+   "source_note": "A view choice: beyond it the cytosolic side opens into the space between domains, which would hide the pore; the solve itself uses the whole box",
+   "minimum": 3.0,
+   "maximum": 30.0
+  },
+  {
+   "key": "display.lumen_smoothing",
+   "name": "Lumen surface smoothing",
+   "value": 0.7,
+   "unit": "voxel",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "Gaussian width applied to the voxel mask before the surface is contoured at one half.",
+   "source_note": "Removes the voxel staircase. Drawing only: a one-voxel neck may look closed, but every number is read from the unsmoothed mask",
+   "minimum": 0.0,
+   "maximum": 2.0
+  },
+  {
+   "key": "display.lumen_alpha",
+   "name": "Lumen surface opacity",
+   "value": 0.6,
+   "unit": "",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "Opacity of the drawn lumen.",
+   "source_note": "Lets the lining side chains show through",
+   "minimum": 0.1,
+   "maximum": 1.0
+  },
+  {
    "key": "bench.points_outlier",
    "name": "Score: twilight-zone outlier",
    "value": 20,

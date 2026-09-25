@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.10 (to be chosen from the open IP3R items below; Round 7.9, fills, done). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.11 (science, to be chosen from the open IP3R items below; the wall charge in 3-D is the natural follow-on to 7.10). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -456,8 +456,7 @@ item carried over from round n; it stays listed there too.
     the lumen's corners? A Donnan-partitioned conductivity per voxel
     first, then (if it matters) 3-D PNP. RyR1's mutants are the
     calibration.
-  - [ ] Show the lumen and its potential in the viewer (a voxel surface
-    coloured by φ; Channel panel beside the 1-D profile).
+  - [x] Show the lumen and its potential in the viewer (Round 7.10).
 - [x] **7.7 Publication: re-derive what is still read.** Five new checks,
   all confirmed (49: 47 confirmed, 2 discrepancies, unchanged).
   - **S22 §8** (`P6.shell_rates`, `P6.module_rates`): S17's FEL sites
@@ -528,6 +527,25 @@ item carried over from round n; it stays listed there too.
     not positions, but it is one stretch.
   - [ ] Two fills of the same span in different deposits (e.g. 8TKG vs
     8TKF) as a consistency measure where no truth exists.
+
+- [x] **7.10 GUI: the lumen and where the voltage falls.** Channel panel
+  → "Draw the lumen": Round 7.6's voxelised lumen, solved on a worker, is
+  drawn as a surface (`render/lumen_mesh.py`) coloured by the 3-D Laplace
+  potential on a fixed 0–1 ramp. It is hidden on any morph or mode frame,
+  because it was solved on the deposit. The panel plots the lumen's area and
+  the normalised φ along S0's window, 3-D against the 1-D model's inscribed
+  circle (`physics/lumen_field.py`, `python -m ip3r lumen`). Calibrated on
+  a cylinder (a linear drop, Hall's access share outside), a neck (the 1-D
+  share by hand on both routes) and a blocked pore. **Found:** the corners
+  that give the 3-D shape its 1.3–2.0× conductance do not move the field.
+  In 8TKF, 7T3T and 9HEO, 99 % of the voltage falls in the window, and the
+  half-drop point is within 1.3 Å of the 1-D model's. The filter's ±3 Å
+  holds 32/32/24 % in 3-D against 35/35/25 % in 1-D. So the 1-D field
+  profile is sound where its magnitude is not.
+  Emergent:
+  - [ ] Colour the lumen by the charged reading's potential once the wall
+    charge is solved in 3-D (Round 7.6's open item); the neutral φ is only
+    geometry.
 
 ## Round 6 — ryanodine receptors
 

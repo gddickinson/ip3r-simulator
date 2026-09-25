@@ -30,3 +30,9 @@ def test_microdomain(capsys):
     assert main(["microdomain", "--duration", "2", "--clamp", "none"]) == 0
     out = capsys.readouterr().out
     assert "store free" in out and "blip dF/F0" in out
+
+
+@needs_structure("8TKG")
+def test_lumen_of_a_shut_pore(capsys):
+    assert main(["lumen", "8TKG"]) == 0
+    assert "no K+ path joins the two baths" in capsys.readouterr().out

@@ -3,7 +3,8 @@ three IP3R gating models side by side, the A-subspace headline of the
 Transition tab, and the park/drive cluster in its microdomain; Round
 7.7's reported tree beside the ``--bnni`` re-search; and Round 7.8's
 publication views (the Genomes lesion layer opened from its check, a Range
-clade's S23 genomes, the VUS thresholds' intervals).
+clade's S23 genomes, the VUS thresholds' intervals); Round 7.9's rat fill;
+Round 7.10's lumen and where the voltage falls.
 
 ``ip3r_step`` follows the spark steps' contract: True means a worker is
 still running (call again), and a wrong result raises.
@@ -183,8 +184,53 @@ def _rat_fill(win, app, out) -> bool:
     return False
 
 
+def _lumen_start(win, app, out) -> None:
+    win.structure_panel.set_completeness("none")
+    win.tabs.setCurrentWidget(win.channel)
+    win.channel.show_lumen.setChecked(True)
+    win.structure_panel.select("8TKF")
+
+
+def _lumen(win, app, out) -> bool:
+    """Round 7.10: 8TKF's lumen drawn, coloured by the potential, and the
+    Channel panel's plot of where the voltage falls; hidden off the deposit."""
+    import numpy as np
+    from ip3r.physics.lumen_field import lumen_field
+    lc, sc = win.lumen, win.scene
+    if sc.structure is None or sc.structure.name != "8TKF" or lc.field is None:
+        if lc.message.startswith("lumen not built"):
+            raise RuntimeError(lc.message)
+        return True
+    f, batch = lc.field, sc.scene.get("lumen")
+    if f.name != "8TKF" or not f.conducts or batch is None or not batch.count \
+            or not batch.visible:
+        raise RuntimeError(f"8TKF lumen not drawn: {lc.message}")
+    if not np.ptp(lc.mesh.phi) > 0.5:
+        raise RuntimeError("the lumen's colour does not span the drop")
+    labels = [ln.get_label() for ln in win.channel.canvas.axes[1, 0].get_lines()]
+    if not any("3-D" in t for t in labels) or not any("1-D" in t for t in labels):
+        raise RuntimeError(f"lumen plot drew {labels}")
+    head = lumen_field(sc.structure, sc.summary)      # the panel = the headless field
+    if f"{head.half_z('3d'):+.1f}" not in win.channel.lumen_info.text() \
+            or "filter" not in win.channel.lumen_info.text():
+        raise RuntimeError(f"lumen text: {win.channel.lumen_info.text()[:160]}")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen.png"))
+    xyz = sc.structure.xyz
+    sc.move_overlays(xyz + 1.0)                          # a morph or mode frame
+    if batch.visible:
+        raise RuntimeError("the deposit's lumen stayed up on a moved frame")
+    sc.move_overlays(xyz)
+    if not batch.visible:
+        raise RuntimeError("the lumen did not come back with the deposit")
+    win.channel.show_lumen.setChecked(False)
+    if sc.scene.get("lumen") is not None:
+        raise RuntimeError("unticking left the lumen drawn")
+    return False
+
+
 _STEPS = (_gating, _domain, _tree_pair_start, _tree_pair, _lesion_start, _lesion,
-          _range_genomes, _vus_bands, _rat_fill_start, _rat_fill)
+          _range_genomes, _vus_bands, _rat_fill_start, _rat_fill, _lumen_start, _lumen)
 IP3R_STEPS = len(_STEPS)
 
 

@@ -63,6 +63,8 @@ class Session:
     visible_chains: list[str] = field(default_factory=list)
     sites: list[str] = field(default_factory=list)
     show_pore: bool = False
+    #: The 3-D lumen drawn (the choice; it is re-solved on restore).
+    show_lumen: bool = False
     #: The Completeness choice (``structure.graft.FILL_MODES`` key): which
     #: AlphaFold fill is drawn. The choice only; the fill is rebuilt on restore.
     completeness: str = "none"

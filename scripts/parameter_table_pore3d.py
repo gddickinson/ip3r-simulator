@@ -36,4 +36,24 @@ PORE3D = [
        "", "method", "pore3d", "method_choice", "Iterations before the solve "
        "is reported unconverged.", "A 0.5 A deposit grid converges in a few "
        "thousand", 100, 1000000),
+    _p("lumen.constriction_half_width", "Drop read across a constriction",
+       3.0, "A", "method", "pore3d", "method_choice", "Half-width of the "
+       "z interval about a constriction over which the share of the "
+       "window's voltage drop is read (Round 7.10).", "About one ion "
+       "diameter either side; the 1-D and 3-D shares are read over the same "
+       "interval, so the comparison does not depend on it", 0.5, 15.0),
+    _p("display.lumen_radius", "Lumen drawn within", 15.0, "A",
+       "convention", "display", "convention", "The lumen surface is drawn "
+       "for conducting voxels this close to the axis, inside S0's window.",
+       "A view choice: beyond it the cytosolic side opens into the space "
+       "between domains, which would hide the pore; the solve itself uses "
+       "the whole box", 3.0, 30.0),
+    _p("display.lumen_smoothing", "Lumen surface smoothing", 0.7, "voxel",
+       "convention", "display", "convention", "Gaussian width applied to "
+       "the voxel mask before the surface is contoured at one half.",
+       "Removes the voxel staircase. Drawing only: a one-voxel neck may "
+       "look closed, but every number is read from the unsmoothed mask", 0.0, 2.0),
+    _p("display.lumen_alpha", "Lumen surface opacity", 0.6, "",
+       "convention", "display", "convention", "Opacity of the drawn lumen.",
+       "Lets the lining side chains show through", 0.1, 1.0),
 ]

@@ -2466,3 +2466,57 @@ touches fills).
 
 **Next:** Round 7.10, to be chosen from the open IP3R items (Round 7's
 list is done).
+
+## 2026-09-25 (25) — Round 7.10: the lumen in the viewer, and where the voltage falls
+
+**Why.** Rounds alternate science and GUI, and 7.9 was science. Round 7.6
+left one GUI item open: show the lumen its 3-D solve works in, coloured by
+the potential. The potential is also a measurement the project had not
+read. The 1-D model puts the voltage drop wherever the inscribed circle is
+narrowest. If the corners it misses moved the drop to another
+constriction, every 1-D charge or blocker argument would be placed wrongly.
+
+**What.**
+- `PoreVolume.axis_regions` (`slice_area` now uses it): the in-plane lumen
+  region per plane, shared by the area and the new plane-mean φ.
+- `physics/lumen_field.py`: `LumenField`, where φ comes from the existing
+  Laplace solve, and over S0's window the 3-D and 1-D areas and φ are each
+  normalised to their own drop. It adds `half_z`, `drop_across`,
+  `window_share` and `summary`.
+- `render/lumen_mesh.py`: marching cubes (scikit-image) of the conducting
+  voxels in the window within `display.lumen_radius`. The mask is smoothed
+  for drawing only, and vertex φ is taken from the nearest voxel on the
+  fixed ramp.
+- `ui/lumen_controller.py` (the fill controller's pattern: worker, latest
+  request wins, rebuilt on load); the Channel panel's box, status line and
+  two-axis plot; `SceneController.show_lumen`. It is hidden whenever the
+  shown coordinates are not the deposit's (morph or mode frame).
+- `Session.show_lumen` (the choice only; re-solved on restore).
+- `python -m ip3r lumen [PDB ...]`.
+- Four parameters: `lumen.constriction_half_width` (3 Å) and
+  `display.lumen_radius` / `_smoothing` / `_alpha`.
+
+**Choices.** The drawn surface stops at 15 Å from the axis and at S0's
+window. The solve uses the whole box, but the cytosolic side opens into
+the space between domains, which would bury the pore. Each curve is
+normalised to its own window drop, because the question is *where*, and
+the magnitudes already differ by Round 7.6's 1.3–2×.
+
+**Found on the way.** Three test-construction faults: a neck of radius 0
+leaves the axis voxel column open (ρ ≤ 0 holds at ρ = 0); an interval
+whose edges fall on the neck's voxel edges splits half cells; the mesh's
+normals needed no sign flip (skimage's already point down the gradient,
+out of the lumen).
+
+**Found.** 8TKF, 7T3T and 9HEO: 99 % of the voltage falls in the window.
+The half-drop point is at −83.2 / −83.6 / −78.1 Å in 3-D against −83.8 /
+−83.8 / −79.4 Å in 1-D. The filter's ±3 Å holds 32 / 32 / 24 % against 35 /
+35 / 25 %, and the gate's 12 / 14 / 22 % against 11 / 17 / 24 %. So the
+corners raise the conductance evenly along the pore, and the 1-D field
+profile is sound where its magnitude is not. This is only the neutral
+field. The wall charge in 3-D is still open, and is the natural 7.11.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check
+touches the pore's potential).
+
+**Next:** Round 7.11 (science).

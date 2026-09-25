@@ -24,6 +24,7 @@ from ..structure.channel import measure_channel
 from .channel_panel import ChannelPanel
 from .dynamics_panel import DynamicsPanel
 from .fill_controller import FillController
+from .lumen_controller import LumenController
 from .findings_panel import FindingsPanel
 from .genomes_panel import GenomesPanel
 from .gl_widget import ViewportWidget
@@ -140,6 +141,8 @@ class MainWindow(QMainWindow):
         sp.sites_toggled.connect(lambda *_: self._apply_sites())
         self.fills = FillController(self.scene, sp, self.statusBar().showMessage)
         self.channel.pore_toggled.connect(self.scene.show_pore)
+        self.lumen = LumenController(self.scene, self.channel,
+                                     self.statusBar().showMessage)
         self.channel.states_requested.connect(self._compare_states)
         self.channel.unitary_requested.connect(self._unitary_states)
         self.channel.mutants_requested.connect(self._ryr_mutants)
@@ -252,6 +255,7 @@ class MainWindow(QMainWindow):
                                   if summary.numbering else None)
         self._apply_sites()
         self.fills.loaded(st)
+        self.lumen.loaded(st)
         self.variants.follow(summary.numbering.paralog if summary.numbering else None)
         self.statusBar().showMessage(
             f"{st.name} loaded — numbering "

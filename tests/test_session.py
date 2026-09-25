@@ -16,6 +16,7 @@ from ip3r.parameters import PARAMETERS
 def _session() -> Session:
     return Session(structure="8TKG", n_atoms=12345, style="tube", color_by="chain",
                    visible_chains=["A", "C"], sites=["ip3_contact"], show_pore=True,
+                   show_lumen=True,
                    tab="Channel", camera_rotation=[0.5, 0.5, 0.5, 0.5],
                    camera_pivot=[1.0, 2.0, 3.0], camera_distance=420.0,
                    camera_pan=[0.0, -4.0, 0.0],
@@ -41,7 +42,7 @@ def test_holds_the_view_and_its_inputs_only():
     """A new field is a decision: a result stored here would go stale."""
     assert {f.name for f in fields(Session)} == {
         "structure", "n_atoms", "style", "color_by", "layer", "show_ligands",
-        "visible_chains", "sites", "show_pore", "completeness", "tab", "camera_rotation",
+        "visible_chains", "sites", "show_pore", "show_lumen", "completeness", "tab", "camera_rotation",
         "camera_pivot", "camera_distance", "camera_pan", "camera_slab", "orthographic",
         "transition", "dynamics", "modes", "variants", "parameters", "notes", "format_version",
         "software_version", "saved_at"}
@@ -56,7 +57,7 @@ def test_unknown_keys_are_dropped_newer_format_refused():
 
 @pytest.mark.parametrize("key, value", [
     ("camera_distance", "far"), ("camera_distance", float("nan")),
-    ("show_pore", 1), ("sites", ["ok", 3]), ("camera_pivot", [0, 0, True]),
+    ("show_pore", 1), ("show_lumen", "yes"), ("sites", ["ok", 3]), ("camera_pivot", [0, 0, True]),
     ("n_atoms", 1.5), ("structure", 6)])
 def test_wrong_type_is_refused_by_name(key, value):
     with pytest.raises(ValueError, match=key):

@@ -2,6 +2,7 @@
 
     python -m ip3r shortfall            # every open deposit, three geometries
     python -m ip3r shortfall --scan     # + window, seal and grid scans on 8TKF
+    python -m ip3r lumen [PDB ...]      # where the voltage falls (Round 7.10)
 """
 
 from __future__ import annotations
@@ -48,7 +49,36 @@ def _shortfall(args) -> int:
     return 0
 
 
+def _lumen(args) -> int:
+    from .io import loader
+    from .parameters import PARAMETERS as _P
+    from .physics.lumen_field import lumen_field
+    from .physics.shortfall import open_entries
+    from .structure.channel import measure_channel
+    loader.ALLOW_FETCH = args.fetch
+    w = _P.value("lumen.constriction_half_width")
+    print("Where the applied voltage falls in the neutral pore: the 3-D Laplace "
+          "potential (Round 7.6's lumen) against the 1-D model's inscribed "
+          "circle, each normalised to its drop across S0's window; share of "
+          f"that drop within ±{w:g} A of each constriction.")
+    for pdb in args.pdb or [e.pdb_id for e in open_entries()]:
+        st = loader.load(pdb)
+        s = measure_channel(st)
+        f = lumen_field(st, s)
+        print(f.summary())
+        for c in s.constrictions.values():
+            d3, d1 = f.drop_across(c.z, w)
+            print(f"  {c.name:6s} z {c.z:+7.1f} A, r_min {c.radius:.2f} A: "
+                  f"3-D {d3:.1%}, 1-D {d1:.1%}")
+    return 0
+
+
 def register(sub) -> None:
+    q = sub.add_parser("lumen", help="where the voltage falls: 3-D potential "
+                       "against the 1-D model")
+    q.add_argument("pdb", nargs="*", help="deposits (default: every open one)")
+    q.add_argument("--fetch", action="store_true")
+    q.set_defaults(fn=_lumen)
     p = sub.add_parser("shortfall", help="the open pore in 1-D and 3-D against "
                        "the measured conductance")
     p.add_argument("pdb", nargs="?", default="8TKF",
