@@ -99,6 +99,29 @@ def _spark_termination(args) -> int:
         rows = st.refit(args.duration, args.seeds)
     elif args.scan == "ki":
         rows = st.ki_scan(args.duration, args.seeds)
+    elif args.scan == "use":
+        from .physics import ryr_use as ru
+        b = rg.murayama_bell()
+        print(f"Murayama 25 C: half-peak {b.c_half_act:.2f} - "
+              f"{b.c_half_inh:.1f} µM, width {b.width_decades:.2f} decades. "
+              "Below, the Ca2+ gate is refitted WITH the use gate present, "
+              "so the bell is not counted twice")
+        for r in ru.bell_panel():
+            print(r.row())
+        if args.bell:
+            return 0
+        rows = ([st.measure(rg.SternParams(), "Stern 1997", args.duration,
+                            args.seeds),
+                 st.measure(rg.fit_to_bell(), "fitted, Ca2+ gate only",
+                            args.duration, args.seeds)]
+                + st.use_scan(args.duration, args.seeds)
+                + [st.no_inactivation(args.duration, args.seeds)])
+    elif args.scan == "recovery":
+        print("the use gate's recovery rate, which could not be sourced. The "
+              "Ca2+ gate is refitted at every point, so Ki moves with it: "
+              "faster recovery leaves the use gate less of the bell's "
+              "descending limb and puts Ki back where Round 6.8 had it")
+        rows = st.recovery_scan(None, args.duration, args.seeds)
     else:
         base = rg.fit_to_bell() if args.fitted else None
         rows = st.rate_scan(base, args.duration, args.seeds)
@@ -142,7 +165,12 @@ def _ec(args) -> int:
     import numpy as np
     from .physics import ec_release as er
     from .physics.allosteric_v import open_probability
-    configs = er.configurations(args.reading, two_site=args.two_site)
+    if args.use and args.two_site:
+        print("--use and --two-site are different schemes for the same gate; "
+              "run them separately")
+        return 1
+    configs = er.configurations(args.reading, two_site=args.two_site,
+                                use=args.use)
     if args.only:
         configs = {k: v for k, v in configs.items() if args.only.lower() in k.lower()}
     vs = er.voltages() if args.scan else np.array([0.0, -30.0, -50.0])
@@ -208,9 +236,13 @@ def register(sub) -> None:
     p.set_defaults(fn=_sparks)
     p = sub.add_parser("spark-termination", help="cleft spark duration as the "
                        "inactivation gate is refitted and scanned")
-    p.add_argument("--scan", choices=("fit", "ki", "rate"), default="fit",
+    p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "recovery"),
+                   default="fit",
                    help="fit: Stern vs fitted to Murayama (25, 37 C); ki: Ki "
                    "scan; rate: inactivation rate scan at fixed Ki")
+    p.add_argument("--bell", action="store_true",
+                   help="use-gate speeds against the measured bell only "
+                        "(no simulation): where a Ca2+ gate still fits")
     p.add_argument("--fitted", action="store_true",
                    help="with --scan rate: scan at the fitted Ka and Ki")
     p.add_argument("--duration", type=float, default=10.0)
@@ -247,6 +279,10 @@ def register(sub) -> None:
     p.add_argument("--two-site", action="store_true",
                    help="the C scheme fitted with a two-site inactivation gate "
                         "(the bell's inhibitory slope matched too)")
+    p.add_argument("--use", action="store_true",
+                   help="the use-dependent (flux-driven) inactivation gate, "
+                        "with the Ca2+ gate refitted beside it at each of the "
+                        "speeds the measured bell permits")
     p.add_argument("--depletion", action="store_true",
                    help="with the SR emptying (Stern's Fig. 20 pool)")
     p.add_argument("--large", action="store_true",

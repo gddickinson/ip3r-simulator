@@ -51,7 +51,7 @@ from dataclasses import dataclass, field, replace
 from typing import ClassVar
 
 import numpy as np
-from scipy.linalg import null_space
+
 from scipy.optimize import fsolve
 
 from ..parameters import PARAMETERS as _P
@@ -112,7 +112,12 @@ class SternParams:
 
     @property
     def k_i(self) -> float:
-        return self.k_inact_off / self.k_inact_on
+        """Inactivation constant, µM: off/on. Infinite when the gate is
+        removed (``k_inact_on`` 0), which is how a scheme with no Ca2+
+        inactivation is written without an off rate large enough to swamp
+        the Gillespie step."""
+        on = self.k_inact_on
+        return self.k_inact_off / on if on > 0 else float("inf")
 
     def exit_rates(self, state: np.ndarray, c: np.ndarray) -> np.ndarray:
         """Exit rates of channels in ``state`` at their own Ca2+ ``c``:
@@ -138,10 +143,12 @@ class SternParams:
         return q
 
     def open_probability(self, c) -> np.ndarray:
-        """Closed form of :func:`stationary`'s O: fA (1 - fI)."""
+        """Closed form of :func:`stationary`'s O: fA (1 - fI). Written as
+        ``f_a / (1 + x/Ki)`` rather than ``f_a Ki/(x + Ki)`` so that a
+        removed gate (``Ki`` infinite) gives ``f_a`` instead of 0/0."""
         c = np.asarray(c, float)
         f_a = c ** 2 / (c ** 2 + self.k_a_eff ** 2)
-        return f_a * self.k_i / (c + self.mg_inact + self.k_i)
+        return f_a / (1.0 + (c + self.mg_inact) / self.k_i)
 
 
 @dataclass
@@ -166,9 +173,26 @@ def generator(c: float, sp: SternParams | None = None) -> np.ndarray:
 
 
 def stationary(c: float, sp: SternParams | None = None) -> np.ndarray:
-    """Stationary occupancy of the four states (the null space of Q^T)."""
-    v = null_space(generator(c, sp).T)[:, 0]
-    return v / v.sum()
+    """Stationary occupancy of the scheme's states: ``Q^T pi = 0`` with
+    ``sum(pi) = 1``.
+
+    Solved as that constrained system rather than as the null space of
+    ``Q^T``, because an SVD null space loses accuracy when the rates span
+    many decades (the activation on rate goes as ``c^2``) and when some
+    states are unreachable, as they are in a scheme with a gate removed.
+    The normalisation is then exact rather than applied afterwards. Any
+    residual negative occupancy is numerical and is clipped.
+    """
+    q = generator(c, sp).T
+    n = q.shape[0]
+    a = np.vstack([q, np.ones(n)])
+    b = np.zeros(n + 1)
+    b[-1] = 1.0
+    pi = np.linalg.lstsq(a, b, rcond=None)[0]
+    total = np.clip(pi, 0.0, None).sum()
+    if not np.isfinite(total) or total <= 0:      # a degenerate generator
+        raise FloatingPointError(f"no stationary state at Ca2+ {c:g} µM")
+    return np.clip(pi, 0.0, None) / total
 
 
 def open_probability(c, sp: SternParams | None = None) -> np.ndarray:

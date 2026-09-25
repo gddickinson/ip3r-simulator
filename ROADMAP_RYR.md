@@ -211,8 +211,45 @@ with what it measured.
   couplon.** Stern's works because its Ki (10 µM) lies inside the cleft's
   range.
   Emergent:
-  - [ ] Why the fibre's effective Ki would be ~30× below the bell's: RyR1
-    bilayer Po under ATP/Mg²⁺/luminal Ca²⁺ against [³H]ryanodine binding
-    (a sourced comparison; the 37 °C bell is further away still).
-  - [ ] A flux-driven (non-equilibrium) inactivation, which a binding
-    bell cannot show, as the remaining mechanism, if a source exists.
+  - [x] Why the fibre's effective Ki would be ~30× below the bell's:
+    answered in Round 6.9, and not by the bell's conditions. Crediting
+    part of the descending limb to a use-dependent gate puts Ki at
+    21-59 µM.
+  - [x] A flux-driven (non-equilibrium) inactivation, which a binding
+    bell cannot show, as the remaining mechanism, if a source exists: done
+    as Round 6.9 (Laver & Lamb 1998).
+
+- [x] 6.9 Use-dependent (flux-driven) inactivation (`physics/ryr_use.py`;
+  `spark-termination --scan use [--bell] | --scan recovery`, `ec --use`).
+  Laver & Lamb 1998's inactivation, whose rate is set by how much the
+  channel is *open* and not by any ligand: a third gate entered only from
+  the conducting state, eight states, a cycle with no detailed balance.
+  **The two inactivations partly cancel**, because shutting the channel by
+  the Ca²⁺ route protects it from the use gate; so the gate does not hide
+  in a bell but widens it (1.86 -> 2.90 decades at the measured τ), and
+  the Ca²⁺ gate must be refitted *beside* it or the bell is counted twice.
+  Doing that: the fastest use gate the bell permits is τ ≈ 1 s, the fast
+  end of the measured 1-3 s (an independent agreement), and the refitted
+  Ki is 21-59 µM rather than 249 — within 2-6× of Stern's 10 µM, which is
+  where the "30×" came from. The composite scheme is the first in Rounds
+  6.3-6.9 that reproduces the bell *and* terminates cleft sparks (9-23 ms
+  against a measured 6.3) *and* keeps couplon control (C after
+  repolarisation 0.0002-0.0094 against 0.7265) *and* shows a release peak
+  (flux peak/plateau 1.3-1.8 against Stern's 2.71, measured ~4.6). But it
+  holds only for a recovery τ near 10 s, which **could not be sourced**:
+  faster and Ki climbs back to 249 and nothing terminates, slower and no
+  spark starts. Round 6.9 therefore yields a mechanism with a falsifiable
+  requirement, not a settled answer.
+  Emergent:
+  - [ ] Laver & Lamb 1998's recovery rate, from the full text (a paywalled
+    page scan; the Chrome extension was not connected) or a fresh
+    measurement. One number decides the round's finding.
+  - [ ] Per-channel heterogeneity: only half to two-thirds of RyRs
+    inactivate, stably, so a cluster keeps channels that never do. Every
+    simulator here treats the channels as identical; it can only make
+    termination harder.
+  - [ ] A time-dependent cleft field, for Laver et al. 2013's induction
+    decay. With neither inactivation gate this model's sparks never end
+    (open fraction 0.942), because `sparks_cleft` holds the field at its
+    steady state between events, and induction decay lives in the time
+    course of the gradients.

@@ -1652,3 +1652,81 @@ Donnan, so every earlier number is unchanged.
 **Next:** unchanged in ROADMAP.md (the RyR bell-vs-fibre item). For IP3R,
 a pKa estimate for the lining lysines and carboxylates, or the RyR1
 selectivity control.
+
+## 2026-09-24 (10) — Round 6.9: use-dependent inactivation, and what it rests on
+
+**Why.** ROADMAP's **Next:** named the Round 6.8 emergent — a sourced reason
+why the couplon's effective Ki sits ~30× below Murayama's bell, or failing
+that a flux-driven inactivation that an equilibrium bell cannot show. The
+user chose the second. Laver & Lamb 1998 is the source: an RyR1
+inactivation whose rate is set by how much the channel is *open*, not by
+any ligand ("depended on P(OL) and not on the particular activator ...
+inhibitor ... or gating mode"), τ ≈ 1–3 s.
+
+**What.**
+- `physics/ryr_use.py`: a third gate entered **only from the conducting
+  state**, on Stern's two. `s = a + 2i + 4u`, eight states, each gate's
+  exit flipping its own bit, so every existing simulator runs it unchanged
+  (they read `dest`/`open_mask`/`inact_mask`/`trigger_map`). The cycle
+  C → O → OU → CU → C has zero reverse rate, so the scheme has a net
+  stationary cycle flux and no detailed balance, and the stationary open
+  probability is not a product of the gates.
+- `fit_with_use`: Ka and Ki fitted *beside* the use gate. Needed because if
+  the channel has both gates, the measured bell is already their composite,
+  and fitting the Ca²⁺ gate alone then adding a use gate counts the
+  measurement twice. `bell_panel` scans it.
+- `spark_termination.use_scan` / `recovery_scan` / `no_inactivation`;
+  `ec_release.configurations(use=True)`; CLI `spark-termination --scan
+  use [--bell] | --scan recovery` and `ec --use`.
+- 5 parameters (`ryr.k_use_on` from the measured 1–3 s; `ryr.k_use_off`
+  **unverified**, with the reason; three scan grids). 16 tests.
+- Two algebra-preserving edits to `ryr_gating.SternParams` so a removed
+  gate (Ki → ∞) is well defined, and `stationary` now solves
+  `Q^T π = 0, Σπ = 1` as a constrained system instead of an SVD null
+  space: the rates span `c²`, and the old route lost ~8 digits at 1 mM and
+  leaked into unreachable states.
+
+**Wrong on the first pass.** I predicted the use gate would hide inside a
+bell, leaving the flanks and lowering the peak. It does the opposite, and
+the test that asserted it failed. The gate bites only while the channel
+conducts, so Ca²⁺ inactivation *protects* the channel from it: the two
+inactivations partly cancel, the peak is crushed, the inhibitory flank is
+pushed out, and Murayama's 1.86 decades become 2.90. The corrected
+statement is the round's key mechanism and it is now a test.
+
+**Measured.**
+- The bell is a two-sided constraint. Below τ ≈ 0.3 s no Ca²⁺ gate
+  reproduces it at all (no falling flank under 10 mM). **The fastest gate
+  it permits is τ ≈ 1 s — the fast end of Laver & Lamb's measured 1–3 s,
+  and nothing in the fit used their number.**
+- Refitting beside the gate puts Ki at **21–59 µM**, not 249: within 2–6×
+  of Stern's 10 µM. *That is where the "30×" came from* — attributing all
+  of a measured bell's inhibition to Ca²⁺ binding.
+- Cleft sparks end in 9–23 ms (0 unended) at the measured τ, where the
+  Ca²⁺-gate-only fit runs 9796 ms with 4 of 4 unended. Couplon control
+  returns: C after repolarisation 0.0002–0.0094 against 0.7265, and a flux
+  peak/plateau of 1.3–1.8 against 1.01. First scheme in Rounds 6.3–6.9 to
+  reproduce the bell *and* terminate *and* keep control.
+- Still not the fibre: 6.3 ms measured against 9–23, peak/plateau ~4.6
+  measured against 1.3–1.8.
+
+**What it rests on.** The gate's *recovery* rate could not be sourced, and
+the result depends on it strongly, because recovery sets how much of the
+bell the gate explains and so where Ki lands. At τ_use 3.2 s: recovery
+τ 33 s and no spark starts; 10 s and sparks end in 23 ms; 3.3 s → 266 ms;
+1 s → 3.6 s; 0.33 s → 9.5 s, Ki back at 225. The band is about a decade
+wide around 10 s. So Round 6.9 gives **a mechanism with a falsifiable
+requirement, not a settled answer**, and says exactly which number decides
+it.
+
+**Not done.** No GUI change, so no screenshots. Per-channel heterogeneity
+(only half to two-thirds of RyRs inactivate) is not modelled and can only
+make termination harder. With neither gate, sparks never end (open fraction
+0.942), so this model cannot show Laver 2013's induction decay: its cleft
+field is held at steady state between events, and induction decay lives in
+the time course of the gradients. Both recorded as emergent.
+
+**Next:** Laver & Lamb 1998's recovery rate. PMC has the paper only as a
+paywalled page scan, Europe PMC and the ptpmcrender route 403, it is not in
+the Mendeley library, and the Chrome extension was not connected — so the
+PDF has to come from the user.

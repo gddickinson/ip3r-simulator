@@ -246,3 +246,125 @@ the fibre's ([³H]ryanodine binding as a Po index; ATP, luminal Ca²⁺,
 temperature, where the 37 °C Ki of 358 µM is further away still), or
 inactivation that an equilibrium bell cannot show, such as a gate whose
 cycle breaks detailed balance because the flux itself drives it.
+
+## Use-dependent inactivation (Round 6.9; `physics/ryr_use.py`)
+
+The thing the bell does not see, made concrete. Laver & Lamb 1998 stepped
+RyR1 in bilayers in voltage and in cytosolic Ca²⁺ and found an inactivation
+that takes hold with τ ≈ 1–3 s, affects half to two-thirds of channels, and
+proceeds at a rate set by how much the channel is *open*: it "depended on
+P(OL) and not on the particular activator (Ca²⁺ (microM), ATP, caffeine,
+and ryanodine), inhibitor (mM Ca²⁺ and Mg²⁺), or gating mode".
+
+**The gate.** Stern's two gates, unchanged, plus a third that is entered
+**only from the conducting state**, at a Ca²⁺-independent rate. State
+`s = a + 2i + 4u`, so eight states, each gate's exit flipping its own bit.
+Around the cycle C → O → OU → CU → C the forward rates are
+`a k_use a₋ k_use₋` and the reverse are zero, because there is no way into
+the gate except through conduction: the scheme has a net stationary cycle
+flux and no detailed balance (tested, and calibrated against a variant that
+may also be entered when shut, which falls into detailed balance). The
+stationary open probability is therefore *not* a product of the three gates'
+equilibria and is solved from the null space.
+
+**The two inactivations partly cancel** — the result everything else
+follows from. The use gate bites only while the channel conducts, so
+shutting it by the Ca²⁺ route *protects* it. The share of channels the use
+gate holds down rises with Ca²⁺ to the bell's peak and then falls away
+(tested). So the gate does not hide inside a bell: it crushes the peak and
+pushes the inhibitory flank out, widening Murayama's 1.86 decades to 2.90 at
+the measured τ of 2 s.
+
+**So the bell must not be counted twice.** If the channel has both gates,
+Murayama's bell is already their composite, and fitting the Ca²⁺ gate alone
+and then bolting a use gate on is wrong. `fit_with_use` fits Ka and Ki
+*beside* the use gate, and the question becomes whether any Ca²⁺ gate
+reproduces the measured bell at a given use-gate speed
+(`spark-termination --scan use --bell`):
+
+| use τ | ceiling on P_open | half-peak points | width | Ca²⁺ gate that fits |
+|---|---|---|---|---|
+| ≤ 0.1 s | ≤ 0.010 | no falling flank < 10 mM | — | **none** |
+| 0.32 s | 0.031 | 0.87 – 8197 µM | 3.98 dec | **none** |
+| 1 s | 0.091 | 1.47 – 2811 µM | 3.28 dec | Ka 15.5, Ki 21.4 µM |
+| 3.2 s | 0.240 | 2.35 – 1108 µM | 2.67 dec | Ka 9.9, Ki 58.7 µM |
+| 10 s | 0.500 | 3.29 – 569 µM | 2.24 dec | Ka 6.9, Ki 123.8 µM |
+
+The bell is a two-sided constraint, and **the fastest use gate it permits
+is τ ≈ 1 s — the fast end of the range Laver & Lamb measured.** Nothing in
+the fit used their number, so the agreement is independent.
+
+**Where the 30× discrepancy came from.** Crediting part of the descending
+limb to the use gate lowers the Ca²⁺ gate's Ki from 249 µM to **21–59 µM**
+across the measured τ — within 2–6× of Stern's 10 µM, not 30×. The
+discrepancy Rounds 6.3–6.8 chased is what you get by attributing all of a
+measured bell's inhibition to Ca²⁺ binding.
+
+**Cleft sparks** (`spark-termination --scan use`, 4 seeds × 10 s):
+
+| C channels | Ka | Ki | sparks | median | unended | open |
+|---|---|---|---|---|---|---|
+| Stern 1997 | 7.1 | 10.0 | 0.95/s | 19 ms | 0 | 0.007 |
+| fitted, Ca²⁺ gate only | 4.9 | 249.1 | 0.10/s | 9796 ms | 4 of 4 | 0.701 |
+| + use τ 1 s | 15.5 | 21.4 | 0.05/s | 9 ms | 0 | 0.000 |
+| + use τ 3.2 s | 9.9 | 58.7 | 0.90/s | 23 ms | 0 | 0.007 |
+| + use τ 10 s | 6.9 | 123.8 | 0.80/s | 658 ms | 2 | 0.256 |
+| no inactivation | 4.9 | ∞ | 0.10/s | 9709 ms | 4 of 4 | 0.942 |
+
+**The couplon** (`ec --use`, 200 couplons):
+
+| C channels | Po peak / plateau, 0 mV | after repolarisation | flux peak/plateau | −50 mV events |
+|---|---|---|---|---|
+| Stern 1997 | 0.644 / 0.117 | 0.0040 | 2.71 | 20 ms, 0 unended |
+| fitted, Ca²⁺ gate only | 0.763 / 0.727 | 0.7265 | 1.01 | 185 ms, 199 of 199 unended |
+| + use τ 1 s | 0.445 / 0.154 | 0.0002 | 1.80 | 8 ms, 0 unended |
+| + use τ 3.2 s | 0.615 / 0.369 | 0.0094 | 1.34 | 22 ms, 0 unended |
+| + use τ 10 s | 0.715 / 0.566 | 0.4731 | 1.11 | 184 ms, 193 of 201 unended |
+
+For the first time in Rounds 6.3–6.9, a C-channel scheme that reproduces
+Murayama's measured bell also terminates cleft sparks, stops releasing at
+repolarisation, and shows a release peak. It is still not the fibre: the
+measured release is 6.3 ms against 9–23 ms, and the flux peak/plateau is
+1.3–1.8 against Stern's 2.71 and the measured ~4.6.
+
+**What it rests on, and this is the finding.** The use gate's *recovery*
+rate could not be sourced — Laver & Lamb report recovery only
+qualitatively, and the full text is a paywalled page scan — and the result
+depends on it strongly, because recovery sets how much of the bell's
+descending limb the gate accounts for, and so where the refitted Ki lands
+(`spark-termination --scan recovery`, τ_use 3.2 s):
+
+| recovery τ | ceiling | Ka | Ki | cleft sparks |
+|---|---|---|---|---|
+| 33 s | 0.087 | 15.8 | 20.3 µM | **none start** |
+| 10 s | 0.240 | 9.9 | 58.7 µM | 0.82/s, 23 ms, 0 unended |
+| 3.3 s | 0.487 | 7.0 | 120.5 µM | 1.10/s, 266 ms, 1 unended |
+| 1 s | 0.760 | 5.6 | 189.0 µM | 0.22/s, 3629 ms, 4 unended |
+| 0.33 s | 0.905 | 5.2 | 225.3 µM | 0.10/s, 9506 ms, 4 unended |
+
+Faster recovery leaves the use gate less of the bell to explain, Ki climbs
+back towards 249 µM, and termination fails as it did in Round 6.8. Slower
+recovery holds the ceiling so low that the cluster never fires. The
+mechanism works in a band about a decade wide around a recovery τ of 10 s.
+
+So Round 6.9 does not settle what terminates the couplon. It produces a
+**mechanism with a falsifiable requirement**: use-dependent inactivation
+is the couplon's terminator only if RyR1 recovers from it with τ of roughly
+10 s (within a factor of ~2), and the same scheme must then have
+τ_inactivation of 1–3 s, which is measured. A recovery rate read from
+Laver & Lamb's full text, or measured afresh, decides it.
+
+**Not modelled.** That only half to two-thirds of channels inactivate, as a
+stable property of the channel, so that a cluster keeps a subpopulation
+that never inactivates: every simulator here treats the channels as
+identical, and heterogeneity can only make termination harder.
+
+**The induction-decay control.** With *neither* inactivation gate, cleft
+sparks never end (open fraction 0.942, 4 of 4 unended at 9.7 s). This model
+therefore cannot exhibit Laver et al. 2013's "induction decay", in which
+the cleft's geometry terminates release on its own, and the reason is
+structural: `sparks_cleft` holds the cleft field at its steady state
+between gating events, while induction decay lives in the time course of
+the nanoscopic gradients — "the closed RyRs do not respond in the timescale
+over which the very local [Ca²⁺] is maintained". Testing it needs a
+time-dependent cleft, which is recorded as emergent.

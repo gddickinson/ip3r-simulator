@@ -5,14 +5,17 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** where the bell and the fibre differ (Round 6.8 emergent). Round
-6.8 ruled out any steady-state Ca²⁺ inactivation consistent with Murayama's
-bell. A steeper gate inactivates less at cleft Ca²⁺, and control was lost
-further. The couplon terminates only with an effective Ki near 10 µM
-(Stern's), 30× below the bell. The first step is a sourced reason for
-that: RyR1 Po from bilayers under fibre-like conditions (ATP, Mg²⁺,
-luminal Ca²⁺) against [³H]ryanodine binding. Failing a source, the next
-step is a non-equilibrium (flux-driven) inactivation.
+**Next:** Laver & Lamb 1998's recovery rate from use-dependent
+inactivation (Round 6.9 emergent). Round 6.9 found the mechanism that
+reconciles Murayama's bell with couplon control: a gate entered only while
+the channel conducts partly cancels Ca²⁺ inactivation, so refitting the
+Ca²⁺ gate beside it puts Ki at 21-59 µM rather than 249, and the composite
+terminates sparks and keeps control. It holds only for a recovery τ near
+10 s, which could not be sourced — the paper's full text is a paywalled
+page scan and the Chrome extension was not connected. **Ask the user for
+the PDF**; one number decides the finding. Failing that, per-channel
+heterogeneity (half to two-thirds of RyRs inactivate) or a time-dependent
+cleft field for Laver 2013's induction decay.
 Other candidates: the A-subspace headline in the Transition tab (Round 2),
 the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
 selectivity control on RyR1, or the pKa of the lining lysines and

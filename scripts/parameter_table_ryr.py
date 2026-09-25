@@ -52,6 +52,10 @@ _M97 = ("Meissner, Rios, Tripathy & Pasek 1997 (JBC 272:1628), Table IV: "
 _L04 = ("Laver, O'Neill & Lamb 2004 (PMC2234024), Table I: RyR1 (rabbit) in "
         "bilayers, 2 mM ATP, luminal Ca2+ 1 mM, cytoplasmic Cs+ 250 mM")
 
+_LL98 = ("Laver & Lamb 1998 (PMC1299578), abstract (the full text is a "
+         "paywalled page scan): rabbit skeletal and sheep cardiac RyRs in "
+         "bilayers, inactivation after steps in voltage and in cytosolic Ca2+")
+
 RYR += [
     _p("ryr.k_act_on", "RyR1 activation on rate", 10.0, "uM^-2 s^-1",
        "empirical", "ryr", "stern1997", "Two-Ca2+ activation of the C "
@@ -259,4 +263,52 @@ RYR += [
        "followed; a spark still running then is counted as not ended.",
        "300x the 6.3 ms measured release, 10x the longest ended spark seen",
        0.01, 100.0),
+    # ------------------------------- use-dependent (flux-driven) inactivation
+    _p("ryr.k_use_on", "RyR1 use-dependent inactivation rate", 0.5, "s^-1",
+       "empirical", "ryr", "laverlamb1998", "Rate at which a conducting RyR1 "
+       "enters use-dependent inactivation. Entered only from the open state, "
+       "so it is Ca2+-independent and the macroscopic rate is proportional "
+       "to the open probability, as measured.", f"{_LL98}: 'two "
+       "voltage-dependent inactivation processes (tau approximately 1-3 s at "
+       "+40 mV)'; 2 s is the middle. The paper's tau is macroscopic, and "
+       "'inactivation rates increased with intraburst open probability (Po) "
+       "and in proportion to the probability of a long-lived, RyR open state "
+       "(P(OL))', so 1/tau is the rate at Po = 1 and a LOWER bound on this "
+       "rate. Scanned by spark.use_scan_*", 1e-4, 1e4),
+    _p("ryr.k_use_off", "RyR1 use-dependent recovery rate", 0.1, "s^-1",
+       "empirical", "ryr", "unverified", "Recovery from use-dependent "
+       "inactivation. Only its size relative to ryr.k_use_on matters for the "
+       "steady state (the fraction left available).", f"{_LL98} reports "
+       "recovery only qualitatively: the inactivation was not 'RyRs "
+       "adapting to steady [Ca2+] after the step, because a subsequent step "
+       "from 1 to 100 microM failed to reactivate RyRs', i.e. recovery is "
+       "slower than their record. 0.1 s^-1 (tau 10 s) is slower than "
+       "inactivation, as that implies, but is not a measured value: the full "
+       "text is a paywalled scan and no rate could be read. The conclusions "
+       "of Round 6.9 are drawn from the scan, not from this value", 1e-6,
+       1e4),
+    _p("spark.use_scan_min", "Use-gate scan: fastest time constant", 0.001,
+       "s", "method", "spark", "method_choice", "Low end of the scan of the "
+       "use gate's time constant from the open state; also the fastest use "
+       "gate the couplon is run with.", "1 ms: below the 6.3 ms measured "
+       "release, so a gate this fast could end a spark on its own", 1e-6,
+       1e3),
+    _p("spark.use_scan_max", "Use-gate scan: slowest time constant", 10.0,
+       "s", "method", "spark", "method_choice", "High end of the scan.",
+       "Beyond Laver & Lamb's measured 1-3 s, so the measured range lies "
+       "inside the scan", 1e-4, 1e4),
+    _p("spark.use_scan_points", "Use-gate scan: points", 9.0, "", "method",
+       "spark", "method_choice", "Geometric steps of the use-gate scan.",
+       "Two per decade over the four decades from 1 ms to 10 s", 2.0, 50.0),
+    _p("spark.use_recovery_scan_max", "Use-gate recovery scan: widest factor",
+       30.0, "", "method", "spark", "method_choice", "Largest multiple of "
+       "ryr.k_use_off in the recovery scan; the scan runs from its inverse "
+       "to it. ryr.k_use_off could not be sourced and the round's result "
+       "depends on it, so its effect is measured rather than assumed.",
+       "Three decades around the unverified value, enough to bracket both "
+       "failures (a cluster that never fires, and one that never stops)",
+       1.0, 1e3),
+    _p("spark.use_recovery_scan_points", "Use-gate recovery scan: points",
+       7.0, "", "method", "spark", "method_choice", "Geometric steps of the "
+       "recovery scan.", "Two to three per decade", 2.0, 50.0),
 ]

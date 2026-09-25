@@ -290,6 +290,22 @@
    "doi": "10.1016/S0006-3495(97)78222-5"
   },
   {
+   "key": "laverlamb1998",
+   "authors": "Laver DR, Lamb GD",
+   "year": 1998,
+   "title": "Inactivation of Ca2+ release channels (ryanodine receptors RyR1 and RyR2) with rapid steps in [Ca2+] and voltage",
+   "journal": "Biophys J 74:2352-2364",
+   "doi": "10.1016/S0006-3495(98)77944-5"
+  },
+  {
+   "key": "laver2013",
+   "authors": "Laver DR, Kong CHT, Imtiaz MS, Cannell MB",
+   "year": 2013,
+   "title": "Termination of calcium-induced calcium release by induction decay: an emergent property of stochastic channel gating and molecular scale architecture",
+   "journal": "J Mol Cell Cardiol 54:98-100",
+   "doi": "10.1016/j.yjmcc.2012.10.009"
+  },
+  {
    "key": "laver2018",
    "authors": "Laver DR",
    "year": 2018,

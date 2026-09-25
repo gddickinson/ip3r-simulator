@@ -27,6 +27,7 @@ from .puff_compare import spark_ends
 from .puffs import PuffTrace, detect_events
 from .ryr_gating import SternParams, fit_to_bell, with_mg
 from .ryr_two_site import fit_two_site
+from .ryr_use import fit_with_use, tau_values
 from .spark_mg import k_mg_a_reading
 
 __all__ = ["Ensemble", "Summary", "ensemble", "summarise", "voltages",
@@ -107,10 +108,31 @@ def summarise(e: Ensemble, label: str = "") -> Summary:
 
 
 def configurations(reading: str = "meissner", mg: float | None = None,
-                   two_site: bool = False) -> dict[str, SternParams]:
+                   two_site: bool = False, use: bool = False
+                   ) -> dict[str, SternParams]:
     """The C-channel schemes compared (V channels are the same in all).
     ``two_site``: the fit is :func:`ryr_two_site.fit_two_site` (slope
-    matched too) instead of the one-site :func:`fit_to_bell`."""
+    matched too) instead of the one-site :func:`fit_to_bell`.
+
+    ``use``: the use-dependent gate of :mod:`ip3r.physics.ryr_use`, at every
+    speed the measured bell permits, with the Ca2+ gate refitted beside it
+    at each one so that every row still reproduces Murayama's half-peak
+    points. Mg2+ plays no part in these rows (the gate is Ca2+-independent
+    by construction), so they are compared against Stern's scheme and the
+    Ca2+-gate-only fit rather than against the Mg2+ rows.
+    """
+    if use:
+        if two_site:
+            raise ValueError("--use and --two-site are different schemes for "
+                             "the same gate; run them separately")
+        rows = {"Stern 1997": SternParams(),
+                "fitted, Ca2+ gate only": fit_to_bell()}
+        for tau in tau_values():
+            try:
+                rows[f"fitted + use tau {tau:.3g} s"] = fit_with_use(1.0 / tau)
+            except (RuntimeError, FloatingPointError):
+                continue          # the bell excludes a gate this fast
+        return rows
     fit = fit_two_site() if two_site else fit_to_bell()
     name = "two-site" if two_site else "fitted"
     mg = _P.value("ryr.mg_free") if mg is None else mg
