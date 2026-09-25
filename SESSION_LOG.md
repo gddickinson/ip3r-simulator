@@ -1923,3 +1923,20 @@ peak/plateau 1.9 against a measured ≥ 4.
 were equal. They are Stern's 0.3/0.1 pA (ratio 3). Rios's is 5.
 
 **Next:** R_C/V 5 against the couplon's peak/plateau (Round 6.14).
+
+## 2026-09-25 (15) — Priorities: IP3R and the GUI first
+
+**Why.** At the user's request the RyR work is parked after Round 6.13
+(resume at 6.14, the C/V flux ratio). The next rounds go to IP3R science
+and GUI upgrades.
+
+**What.** `ROADMAP.md` gains Round 7, which alternates GUI and science
+rounds and carries over the open IP3R items of Rounds 2-5. The order:
+7.1 viewport and navigation; 7.2 IP3R puffs in a microdomain; 7.3 the
+gating models side by side and the A-subspace headline; 7.4 protonation in
+the pore; 7.5 sessions and live parameters; 7.6 the conductance shortfall;
+7.7 re-deriving what is still read; 7.8 publication views; 7.9 fills. The
+screenshots motivated 7.1: the molecule fills about a quarter of the view,
+and RyR1-only controls appear for IP3R receptors.
+
+**Next:** Round 7.1.

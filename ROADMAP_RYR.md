@@ -370,6 +370,9 @@ cardiac termination is induction decay with *no* Ca2+ inactivation gate
 6.3-6.8's negative result -- that no bell-consistent Ca2+ inactivation
 terminates -- is the consensus position rather than an anomaly.
 
+> **Parked 2026-09-25** after 6.13 in favour of Round 7 (`ROADMAP.md`).
+> Resume at 6.14.
+
 - [x] 6.13 The use gate in the millisecond regime (`physics/use_speed.py`;
   `spark-termination --scan speed`). Rios & Pizarro's I1_ht 3.5 ms and
   R1_ht 20 ms registered (`ryr.rios_*_half_time`). At rho 0.175, 3500x

@@ -5,16 +5,11 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 6.14 -- the couplon's C/V unitary flux ratio. Round 6.13
-(`ROADMAP_RYR.md`) found that at Rios & Pizarro 2026's millisecond speed
-the use gate ends a cleft spark alone in 6 ms and rescues the 0.8 mixed
-cluster, while the bell barely changes. What still misses is the
-couplon's flux peak/plateau (1.9 against a measured >= 4). Rios gets the
-peak/plateau with R_C/V 5; ours is Stern's 3. Other candidates: Copello's
-low-activity channels in the ms regime, the A-subspace headline in the
-Transition tab (Round 2), the continuum's conductance shortfall (Rounds 4
-and 6.1), and for IP3R the selectivity control on RyR1 or the pKa of the
-lining residues (Round 4).
+**Next:** Round 7.1, the viewport and the deposition list (Round 7
+below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+`ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
+flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
+upgrades, drawing on the open IP3R items of Rounds 2-5.
 
 ## Destination
 
@@ -330,6 +325,47 @@ Emergent (not scheduled):
   - [ ] The Completeness choice is in a session; the transition spec does not
     say whether the fill was drawn while the frame was saved (it is simply
     rebuilt).
+
+## Round 7: IP3R first, and the GUI (planned 2026-09-25)
+
+The user reprioritised after Round 6.13: IP3R science and GUI upgrades
+come before any more RyR work. GUI rounds alternate with science rounds,
+so each new result lands somewhere it can be seen. (Rn) marks an open
+item carried over from round n; it stays listed there too.
+
+- [ ] **7.1 GUI: viewport and navigation.** The molecule fills about a
+  quarter of its column, so fit the camera to the structure on load and
+  on a subunit change. Add a camera preset centred on one IP3 site for
+  "Show on structure" (shells, contacts) (R3). Group the deposition list
+  by family, with RyR1 collapsed. Hide the RyR-only Puffs controls (Mg2+,
+  K_Mg,A, triggered sparks) while an IP3R receptor is selected.
+- [ ] **7.2 Science: the IP3R puff in a microdomain.** Add Cao 2013's
+  microdomain Ca2+ ODE with fluo-4 in place of instantaneous mean-field
+  Ca2+ (R4). Targets: their inter-puff-interval distribution and the
+  amplitude-vs-N saturation. Also settle whether park/drive's sustained
+  9 % open above ~0.5 uM coupling is missing store depletion or the
+  model (R4).
+- [ ] **7.3 GUI: the gating models side by side.** Show park/drive's
+  stationary bell in the Gating panel beside DYK and Mak (R4). Make the
+  A-subspace overlap the Transition tab's headline plot (R2).
+- [ ] **7.4 Science: protonation in the IP3R pore.** Estimate pKa shifts
+  for the D2518/D2522 carboxylates and K2482/K2529 (R4). Rerun
+  selectivity under each reading against Vais 2010's P_Ca:P_K 15.2, with
+  RyR1's open deposit as the control (R4).
+- [ ] **7.5 GUI: sessions and live parameters.** Save the Dynamics
+  settings, mode animation and variants view in sessions (R5). Audit the
+  panels that read a parameter only when they are built (R5).
+- [ ] **7.6 Science: the conductance shortfall.** 8TKF is 2.4x short even
+  uncharged (R4). Test the candidates one at a time: a subconductance
+  deposit, the continuum at 3 A, and where the exit window ends.
+- [ ] **7.7 Publication: re-derive what is still read.** The S22 section 8
+  shell FEL table, Paper 2's NNI robustness trees side by side, and Paper
+  1's family-call benchmark (R3).
+- [ ] **7.8 GUI: publication views.** A Genomes lesion layer for Paper 3's
+  ITPR3 bird result, the Range tab per genome, and bootstrapped VUS stratum
+  medians (R3, R5).
+- [ ] **7.9 Fills.** Calibrate on long stretches, and fill 7LHF from rat
+  isoform 8 through an alignment (R5).
 
 ## Round 6 — ryanodine receptors
 
