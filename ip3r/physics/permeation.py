@@ -37,7 +37,11 @@ from ._pnp_kernels import (F_FARADAY, R_GAS, _charge_diagnostics,
 
 __all__ = ["IonSpecies", "PermeationResult", "solve_pnp", "series_conductance",
            "access_resistance", "potassium_species", "blocking_mechanisms",
-           "debye_length", "bulk_conductivity", "F_FARADAY", "R_GAS"]
+           "debye_length", "bulk_conductivity", "F_FARADAY", "R_GAS",
+           "CLOSURES"]
+
+#: The charged closures :func:`solve_pnp` offers.
+CLOSURES = ("donnan", "radial")
 
 
 @dataclass(frozen=True)
@@ -201,7 +205,8 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
               species: list[IonSpecies] | None = None,
               fixed_charge: np.ndarray | None = None,
               max_iterations: int = 400, tol: float = 1e-10,
-              relaxation: float = 0.4) -> PermeationResult:
+              relaxation: float = 0.4,
+              closure: str = "donnan") -> PermeationResult:
     """Solve 1-D drift-diffusion over a profile (``z_A``, ``radius_A`` in A).
 
     ``fixed_charge`` is the wall charge per slice as a signed molar-equivalent
@@ -211,7 +216,15 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
     :func:`series_conductance`; with charge the closure is local
     electroneutrality (the ohmic operator has no term the charge could enter
     through).
+
+    ``closure`` chooses how a charged slice is neutralised: ``"donnan"``
+    (uniform across the slice, the default and every number before Round 4's
+    vestibule item) or ``"radial"`` (cylindrical Poisson-Boltzmann across
+    each slice, :mod:`ip3r.physics.radial_pb`, whose ``R << lambda_D``
+    limit is the Donnan one). It does nothing to a neutral pore between equal baths.
     """
+    if closure not in CLOSURES:
+        raise ValueError(f"closure must be one of {CLOSURES}, not {closure!r}")
     voltage = _P.value("permeation.test_voltage") if voltage is None else voltage
     species = species or potassium_species()
     temperature = _P.value("permeation.temperature")
@@ -236,6 +249,11 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
     charged = fixed is not None and bool(np.any(fixed != 0.0))
     symmetric = all(s.symmetric for s in species)
 
+    radial = closure == "radial" and (charged or not symmetric)
+    if radial:
+        return _solve_radial(z, radius, voltage, species, areas, fixed,
+                             thermal, temperature, max_iterations, tol,
+                             relaxation, charged, symmetric)
     if charged or not symmetric:
         reference = np.array([[0.5 * (s.concentration + s.right) * 1000.0] * len(z)
                               for s in species])
@@ -297,6 +315,15 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
             converged = True
             break
 
+    return _assemble(z, radius, voltage, species, temperature, potential,
+                     concentrations, fluxes, converged, used, charged,
+                     symmetric, excluded, fixed, psi)
+
+
+def _assemble(z, radius, voltage, species, temperature, potential,
+              concentrations, fluxes, converged, used, charged, symmetric,
+              excluded, fixed, psi, extra=None) -> PermeationResult:
+    """Currents, access resistance and diagnostics from a converged state."""
     current = sum(s.valence * F_FARADAY * fluxes[s.name] for s in species)
     sigma = bulk_conductivity(species, temperature)
     lam = debye_length(species, temperature,
@@ -316,6 +343,8 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
             "excluded": excluded}
     if charged or not symmetric:
         meta.update(_charge_diagnostics(concentrations, species, fixed, psi))
+    meta["closure"] = "donnan" if extra is None else "radial"
+    meta.update(extra or {})
     return PermeationResult(
         current=voltage / total_ohm if np.isfinite(total_ohm) else 0.0,
         conductance=1.0 / total_ohm if np.isfinite(total_ohm) else 0.0,
@@ -323,3 +352,77 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
         concentrations=concentrations, fluxes=fluxes, access_ohm=access_ohm,
         pore_ohm=pore_ohm, pore_current=float(current), converged=converged,
         iterations=used, meta=meta)
+
+
+def _solve_radial(z, radius, voltage, species, areas, fixed, thermal,
+                  temperature, max_iterations, tol, relaxation, charged,
+                  symmetric) -> PermeationResult:
+    """The Gummel loop with the radial Poisson-Boltzmann closure.
+
+    Each species carries its own offset ``w_i`` (the radial solution's
+    cross-section partition, as a potential). One step: Nernst-Planck for
+    each species in ``applied + w_i``; the reservoir each slice is in radial
+    equilibrium with, ``cbar_i = c_i exp(z_i w_i / phi_T)``; the radial
+    solve on it; ``w_i`` relaxed towards the new partition. With a uniform
+    radial potential every ``w_i`` is the same and the step is exactly the
+    Donnan loop's, which is what ``tests/test_radial_pb.py`` checks.
+    """
+    from .radial_pb import radial_partition
+    valences = np.array([s.valence for s in species], dtype=float)
+    wall = np.zeros_like(z) if fixed is None else fixed
+    # The slice the charge sits on: the same floor map_charge divides by.
+    slice_r = np.maximum(radius, _P.value("permeation.radius_potassium") * 1e-10)
+    reference = np.array([[0.5 * (s.concentration + s.right) * 1000.0] * len(z)
+                          for s in species])
+    part = radial_partition(valences, reference, wall, slice_r, thermal)
+    offset = part.offset.copy()
+    warm = part.psi
+    for end, bath_of in ((0, lambda s: s.concentration), (-1, lambda s: s.right)):
+        own = np.array([[bath_of(s) * 1000.0] for s in species])
+        offset[:, end] = radial_partition(valences, own, wall[[end]],
+                                          slice_r[[end]], thermal).offset[:, 0]
+    left = {s.name: s.concentration * 1000.0
+            * float(np.exp(-s.valence * offset[i, 0] / thermal))
+            for i, s in enumerate(species)}
+    right = {s.name: s.right * 1000.0
+             * float(np.exp(-s.valence * offset[i, -1] / thermal))
+             for i, s in enumerate(species)}
+    applied = np.linspace(0.0, voltage, len(z))
+    excluded = [s.name for s in species if float(areas[s.name].min()) <= 0.0]
+    threshold = tol * max(abs(voltage), thermal)
+    concentrations, fluxes = {}, {}
+    converged, used, radial_ok = False, 0, part.converged
+    for used in range(1, max_iterations + 1):  # noqa: B007 - read after the loop
+        for i, s in enumerate(species):
+            if s.name in excluded:
+                concentrations[s.name] = np.full_like(z, left[s.name])
+                fluxes[s.name] = 0.0
+                continue
+            concentrations[s.name], fluxes[s.name] = _nernst_planck(
+                z, areas[s.name], applied + offset[i], s.valence,
+                s.diffusivity, thermal, left[s.name], right[s.name])
+        cbar = np.array([
+            np.maximum(concentrations[s.name], 0.0)
+            * np.exp(np.clip(s.valence * offset[i] / thermal, -40.0, 40.0))
+            for i, s in enumerate(species)])
+        part = radial_partition(valences, cbar, wall, slice_r, thermal,
+                                initial=warm)
+        warm, radial_ok = part.psi, radial_ok and part.converged
+        step = part.offset - offset
+        step[:, [0, -1]] = 0.0
+        offset = offset + relaxation * step
+        change = float(np.max(np.abs(step)))
+        if change < threshold:
+            converged = True
+            break
+    extra = {"species_offset_mV": {s.name: (offset[i] * 1e3).tolist()
+                                   for i, s in enumerate(species)},
+             "radial_axis_mV": [float(part.axis.min() * 1e3),
+                                float(part.axis.max() * 1e3)],
+             "radial_wall_mV": [float(part.wall.min() * 1e3),
+                                float(part.wall.max() * 1e3)],
+             "radial_converged": radial_ok}
+    return _assemble(z, radius, voltage, species, temperature,
+                     applied + offset[0], concentrations, fluxes,
+                     converged and radial_ok, used, charged, symmetric,
+                     excluded, fixed, offset[0], extra)

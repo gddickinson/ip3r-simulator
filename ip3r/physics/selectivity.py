@@ -123,14 +123,15 @@ def ghk_reversal(ratios: dict[str, float], lumen: dict, cytosol: dict) -> float:
 
 # ------------------------------------------------------------- the model
 def reversal_potential(z_A, radius_A, species, fixed_charge=None,
-                       bracket: float = 0.1) -> tuple[float, bool]:
+                       bracket: float = 0.1,
+                       closure: str = "donnan") -> tuple[float, bool]:
     """Voltage at which the model's pore current is zero, V; and whether
     every solve on the way converged."""
     ok = [True]
 
     def current(v):
         r = solve_pnp(z_A, radius_A, voltage=v, species=species,
-                      fixed_charge=fixed_charge)
+                      fixed_charge=fixed_charge, closure=closure)
         ok[0] &= r.converged
         return r.pore_current
     lo, hi = -bracket, bracket
@@ -168,14 +169,17 @@ class Selectivity:
 
 
 def selectivity(z_A, radius_A, fixed_charge=None, label: str = "",
-                cation_radius: float | None = None) -> Selectivity:
+                cation_radius: float | None = None,
+                closure: str = "donnan") -> Selectivity:
     """Vais's two bi-ionic experiments on one profile and wall charge."""
     cyt, kcl_lum, ca_lum = _conditions()
     v_kcl, ok1 = reversal_potential(
-        z_A, radius_A, ions(kcl_lum, cyt, cation_radius), fixed_charge)
+        z_A, radius_A, ions(kcl_lum, cyt, cation_radius), fixed_charge,
+        closure=closure)
     pcl = ghk_ratio(v_kcl, "Cl-", kcl_lum, cyt, {})
     v_ca, ok2 = reversal_potential(
-        z_A, radius_A, ions(ca_lum, cyt, cation_radius), fixed_charge)
+        z_A, radius_A, ions(ca_lum, cyt, cation_radius), fixed_charge,
+        closure=closure)
     pca = ghk_ratio(v_ca, "Ca2+", ca_lum, cyt, {"Cl-": pcl})
     return Selectivity(label, v_kcl, v_ca, pcl, pca, ok1 and ok2)
 
@@ -198,7 +202,8 @@ class CalciumCurrent:
 
 
 def calcium_current(z_A, radius_A, fixed_charge=None, label: str = "",
-                    conductance: float = float("nan")) -> CalciumCurrent:
+                    conductance: float = float("nan"),
+                    closure: str = "donnan") -> CalciumCurrent:
     """Vais's i_Ca protocol: symmetric KCl, a luminal Ca2+ step, 0 mV."""
     kcl = _P.value("permeation.bath_concentration")
     ca_cyt = _P.value("selectivity.ca_cytosol")
@@ -209,7 +214,7 @@ def calcium_current(z_A, radius_A, fixed_charge=None, label: str = "",
         ca = _P.value(key)
         lum = {"K+": kcl, "Cl-": kcl + 2.0 * ca, "Ca2+": ca}
         r = solve_pnp(z_A, radius_A, voltage=0.0, species=ions(lum, cyt),
-                      fixed_charge=fixed_charge)
+                      fixed_charge=fixed_charge, closure=closure)
         ok &= r.converged
         deltas.append(ca - ca_cyt)
         currents.append(r.pore_current)
@@ -257,21 +262,24 @@ class Reading:
                 f"   wall {self.net_charge:+.0f} e")
 
 
-def _reading(label, z, radius, fixed, net) -> Reading:
-    g = solve_pnp(z, radius, fixed_charge=fixed).conductance
-    sel = selectivity(z, radius, fixed, label)
-    ca = calcium_current(z, radius, fixed, label, conductance=g)
+def _reading(label, z, radius, fixed, net, closure="donnan") -> Reading:
+    g = solve_pnp(z, radius, fixed_charge=fixed, closure=closure).conductance
+    sel = selectivity(z, radius, fixed, label, closure=closure)
+    ca = calcium_current(z, radius, fixed, label, conductance=g,
+                         closure=closure)
     _, ghk = ghk_calcium_permeability(
         g, max(sel.pcl_pk, 0.0), max(sel.pca_pk, 0.0),
         _P.value("permeation.bath_concentration"))
     return Reading(label, net, g, sel, ca, ghk)
 
 
-def selectivity_panel(st, summary=None) -> list[Reading]:
+def selectivity_panel(st, summary=None,
+                      closure: str = "donnan") -> list[Reading]:
     """A deposit under every wall-charge reading: none (neutral), its lining
     charges (charged), less salt bridges (paired), and acidic only (every
     lining base neutralised, which is where the charged reading's Ca2+
-    barriers turned out to be)."""
+    barriers turned out to be). ``closure`` is the charged slice's closure
+    (:data:`ip3r.physics.permeation.CLOSURES`)."""
     from ..structure.channel import measure_channel
     from .pore_charge import pore_charge
     from .unitary import permeation_profile
@@ -282,10 +290,11 @@ def selectivity_panel(st, summary=None) -> list[Reading]:
     paired = pore_charge(st, summary.frame, prof, pair_bridges=True)
     bases = frozenset(g.res_seq for g in charged.groups if g.charge > 0)
     acidic = pore_charge(st, summary.frame, prof, neutralise=bases)
-    rows = [_reading("neutral", prof.z, radius, None, 0.0)]
+    rows = [_reading("neutral", prof.z, radius, None, 0.0, closure)]
     for label, ch in (("charged", charged), ("paired", paired),
                       ("acidic", acidic)):
-        rows.append(_reading(label, prof.z, radius, ch.density, ch.net_charge))
+        rows.append(_reading(label, prof.z, radius, ch.density, ch.net_charge,
+                             closure))
     return rows
 
 

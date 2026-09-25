@@ -54,9 +54,15 @@ PERM = [
        "ion radius it is what the answer is most sensitive to, so it is "
        "swept (permeation.sweep_*), never tuned", 0.01, 1.0),
     _p("permeation.permittivity_pore", "In-pore relative permittivity", 40.0,
-       "", "method", "permeation", "unverified", "Enters only the reported "
-       "Debye length.", "Nanopore water is less polarisable than bulk (80); "
+       "", "method", "permeation", "unverified", "Enters the reported "
+       "Debye length and, in the radial closure only, the Poisson-Boltzmann "
+       "screening across each slice.", "Nanopore water is less polarisable than bulk (80); "
        "40 is a common compromise (as PIEZO1)", 2.0, 80.0),
+    _p("permeation.radial_cells", "Radial PB cells per slice", 64, "",
+       "method", "permeation", "method_choice", "Finite-volume cells across "
+       "each slice in the radial Poisson-Boltzmann closure.", "Doubling it "
+       "moves 8TKF's selectivity by less than the reported precision "
+       "(tests/test_radial_pb.py pins the grid convergence)", 8, 1024),
     _p("permeation.sweep_scale_low", "Sweep: lowest diffusivity fraction",
        0.25, "", "method", "permeation", "method_choice", "Low end of the "
        "in-pore diffusivity sweep.", "PIEZO1's plausible range, 0.25-1.0 of "

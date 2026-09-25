@@ -175,3 +175,84 @@ screening within a wide vestibule, where the Debye length (5.8 Å at the model's
 ε = 40; 8 Å in bulk water) is comparable to the radius. The last of these is exactly why K2529's ring
 counts as a +2.9 M wall. The same comparison on RyR1, also Ca²⁺-selective, is the natural
 control and is not yet run.
+
+## Screening across the slice: the radial Poisson–Boltzmann closure
+
+**Question.** Local Donnan spreads each slice's counter-charge uniformly over
+the cross-section. At K2529 the slice is 9.9 Å wide (r_free; the charge
+centres are at 11.6 Å) and R/λ_D = 1.7, so the ring should be screened
+near the wall and leave a core the ions pass through. How much of the Ca²⁺
+barrier is that closure?
+
+**Model** (`physics/radial_pb.py`, `solve_pnp(..., closure="radial")`,
+`python -m ip3r selectivity --closure radial`). In each slice, the
+cylindrical Poisson–Boltzmann equation
+
+  (1/r) d/dr (r dψ/dr) = −(F/ε) Σᵢ zᵢ c̄ᵢ e^{−zᵢψ/φ_T},  ψ′(0) = 0,  ψ′(R) = F X R / 2ε
+
+with X the same fixed-charge density the Donnan closure uses (charge per
+πR², R floored at the K⁺ radius) and c̄ᵢ the reservoir the slice is in
+radial equilibrium with. Integrating over the disc gives Σ zᵢ⟨cᵢ⟩ + X = 0
+for any c̄: the slice is neutral as a whole, as in Donnan, but its potential
+varies across it. Each species sees its cross-section average
+Γᵢ = ⟨e^{−zᵢψ/φ_T}⟩, which enters the axial Nernst–Planck as its own
+potential wᵢ = −φ_T ln Γᵢ / zᵢ. A flat ψ makes every wᵢ the Donnan
+potential, and the Gummel step then reduces to the Donnan loop's. The
+reduction to 1-D assumes radial equilibrium and a wall charge that varies
+slowly along z against R. The second is the weaker assumption, since the
+charge is smoothed over 3 Å. Ions are points, as in the closure it replaces,
+so the comparison isolates the closure.
+
+Finite volume on 64 equal-width cells in r/R. The discrete Gauss law is
+exact, and every slice's Newton system is solved in one banded call.
+The permittivity (ε = 40, `permeation.permittivity_pore`) now enters the
+answer, not only the reported Debye length.
+
+**Calibration** (`tests/test_radial_pb.py`):
+
+- R ≪ λ_D gives local Donnan in every species.
+- A weak wall matches the Debye–Hückel cylinder, ψ = A I₀(κr) with
+  A κ I₁(κR) = F X R / 2ε, to 0.1 %.
+- Gauss's law holds to 10⁻⁸ in every slice.
+- Ca²⁺ sits deeper than K⁺ in a wide negative wall's potential, which
+  Donnan cannot show.
+- 64 cells agree with 256 to 10⁻⁴ V.
+- Near the Donnan limit, the solver gives the Donnan solve's conductance.
+  A neutral pore is unchanged. On a wide charged pore the radial answer lies
+  between the Donnan and uncharged ones.
+
+**Measured (8TKF, charged reading, Ca²⁺ protocol at 0 mV).** Offsets are
+per unit charge. The Ca²⁺ energy is twice the value shown.
+
+| Ring | R (Å) | R/λ_D | X (M) | Donnan ψ (mV) | radial w_K (mV) | radial w_Ca (mV) |
+|---|---|---|---|---|---|---|
+| E2398 | 5.7 | 0.99 | −4.5 | −63 | −61 | −64 |
+| K2482 | 6.7 | 1.15 | +3.9 | +82 | +71 | +67 |
+| D2478 | 5.3 | 0.91 | −10.0 | −88 | −86 | −93 |
+| D2518 | 4.4 | 0.76 | −17.9 | −98 | −96 | −103 |
+| D2522 | 6.4 | 1.11 | −8.4 | −85 | −84 | −91 |
+| K2529 | 9.9 | 1.71 | +2.9 | +78 | +60 | +55 |
+
+The closure lowers K2529's Ca²⁺ barrier from +155 to +111 mV, a factor of
+about 6 in partition. It lowers K2482's by 30 mV. That is not enough:
+
+| Reading | P_Ca:P_K Donnan | P_Ca:P_K radial (ε 80 / 40 / 20 / 10) | g Donnan → radial (ε 40) |
+|---|---|---|---|
+| charged | 0.00 | 0.01 / **0.04** / 0.08 / 0.16 | 33 → 46 pS |
+| charged − K2529 | 0.03 | 0.04 / 0.06 / 0.10 / 0.18 | — |
+| acidic only | 0.69 | 0.69 / 0.69 / 0.69 / 0.70 | 174 → 172 pS |
+| measured | 15.2 | | 545 pS |
+
+The paired reading gives −0.04 (Donnan −0.07). P_Cl:P_K stays ≤ 0.07 on
+every charged reading, against 0.27 measured.
+
+**What it means.** Vestibule screening is real, but it is not the Ca²⁺
+barrier. Even at ε = 10, where the ring is screened hardest, the charged
+wall gives 0.16, a hundredth of the measurement. K2482 still sits in a
+narrow slice (R/λ_D ≈ 1.1), and removing K2529 alone changes almost
+nothing. The acidic rings are all in slices narrower than the Debye length,
+where Donnan is already the right limit, so the closure leaves the
+acidic-only reading exactly where it was (0.69). What the previous section
+listed as missing narrows to three things: whether the two lysine rings
+are charged at all (their pKa in that environment), ion size and crowding,
+and dielectric exclusion.

@@ -116,7 +116,10 @@ with its lining charges, 0.69 with only the acidic rings. The model's i_Ca
 is at most 0.046 against 0.30 pA/mM. Under a local Donnan partition, the
 lining lysines act as Ca²⁺ barriers. The calibration shows that charge in
 discrete rings cannot make a continuum pore Ca²⁺-selective; a charged
-tract can (`docs/SCIENCE_PERM.md`).
+tract can (`docs/SCIENCE_PERM.md`). Solving Poisson–Boltzmann across each
+slice instead of assuming local Donnan (`selectivity --closure radial`)
+screens the vestibule's K2529 ring, but lifts the charged reading only to
+0.04 (0.01–0.16 over ε 80–10), so the closure is not the Ca²⁺ barrier.
 
 ![Unitary conductance](docs/img/gui_unitary.png)
 

@@ -1,6 +1,7 @@
 """Permeation commands beyond the K+ conductance, ``register(sub)``:
 
     python -m ip3r selectivity [8TKF]   # Vais 2010's P_Cl:P_K, P_Ca:P_K, i_Ca
+    python -m ip3r selectivity --closure radial   # PB across each slice
 """
 
 from __future__ import annotations
@@ -19,10 +20,10 @@ def _selectivity(args) -> int:
     loader.ALLOW_FETCH = args.fetch
     st = loader.load(args.pdb)
     summary = measure_channel(st)
-    rows = sel.selectivity_panel(st, summary)
+    rows = sel.selectivity_panel(st, summary, closure=args.closure)
     pub = sel.published()
     print(f"{st.name}: Vais 2010's lum-out protocols through the drift-diffusion "
-          "pore (V_rev: KCl gradient / luminal CaCl2)")
+          f"pore, {args.closure} closure (V_rev: KCl gradient / luminal CaCl2)")
     for r in rows:
         print(r.row())
     prof = permeation_profile(st, summary)
@@ -45,4 +46,7 @@ def register(sub) -> None:
                        "the pore, against Vais 2010")
     p.add_argument("pdb", nargs="?", default="8TKF")
     p.add_argument("--fetch", action="store_true")
+    p.add_argument("--closure", choices=("donnan", "radial"), default="donnan",
+                   help="how a charged slice is neutralised: uniformly (local "
+                   "Donnan) or by Poisson-Boltzmann across it")
     p.set_defaults(fn=_selectivity)

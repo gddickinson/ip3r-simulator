@@ -1601,3 +1601,54 @@ are recorded as emergent.
 
 **Next:** unchanged in ROADMAP.md (the RyR bell-vs-fibre item). For IP3R,
 the RyR1 selectivity control.
+
+## 2026-09-24 (9) — Round 4: vestibule screening is not the Ca²⁺ barrier
+
+**Why.** The user asked for an IP3R topic. The last round found the charged
+wall anion-tight and not Ca²⁺-selective, and named the local-Donnan closure
+as a suspect. K2529's ring sits in a slice wider than the Debye length,
+where Donnan (uniform counter-charge) overstates a wall charge. A closure
+resolved across the slice says how much of the barrier is that assumption.
+
+**What.**
+- `physics/radial_pb.py`: cylindrical Poisson–Boltzmann in every slice, with
+  Gauss's law at the wall and the same X the Donnan closure uses. Each
+  species gets its own cross-section partition, entered in Nernst–Planck as
+  a potential. It is finite volume with exact discrete Gauss, and all
+  slices go into one banded Newton solve.
+- `solve_pnp(..., closure="radial")`, a Gummel loop per species that
+  reduces to the Donnan loop step for step when ψ is flat. `closure` is
+  threaded through `selectivity`, `calcium_current` and `selectivity_panel`.
+  New CLI flag: `selectivity --closure radial`.
+- A new parameter, `permeation.radial_cells` (64). `permittivity_pore` now
+  enters the answer, and its description says so.
+- `tests/test_radial_pb.py` (9 tests): the Donnan limit, the Debye–Hückel
+  Bessel cylinder (0.1 %), exact Gauss, divalent enrichment at a negative
+  wall, grid convergence, the solver's Donnan limit, a neutral pore
+  unchanged, radial lying between Donnan and uncharged, and the 8TKF
+  finding.
+- Wrong on the first pass: I wrote the Donnan limit as ε → 0. It is
+  ε → ∞ (R ≪ λ_D). ε → 0 is a Gouy–Chapman layer around an unperturbed
+  core. The first test run caught it, and the docstrings were fixed.
+
+**Measured (8TKF).**
+- At K2529 (R 9.9 Å, R/λ_D 1.7), the Ca²⁺ barrier falls from +155 to
+  +111 mV, about 6× in partition. At K2482 (R/λ_D 1.15) it falls by 30 mV.
+- Charged P_Ca:P_K goes from 0.00 to 0.04 (0.01 / 0.04 / 0.08 / 0.16 at
+  ε 80 / 40 / 20 / 10), against 15.2 measured. Neutralising K2529 as well
+  gives 0.06. g goes from 33 to 46 pS.
+- Acidic-only stays at 0.69, because every acidic ring is in a slice
+  narrower than λ_D. P_Cl:P_K stays ≤ 0.07.
+- 64 and 256 cells give identical ratios.
+
+**What it means.** The closure explains a factor of a few in partition,
+not the two orders of magnitude of selectivity the model is missing. The
+lysines' charge state is now the largest single assumption left in the Ca²⁺
+barrier, followed by ion size and crowding and dielectric exclusion.
+
+**Not done.** No GUI change, so no screenshots. The default closure stays
+Donnan, so every earlier number is unchanged.
+
+**Next:** unchanged in ROADMAP.md (the RyR bell-vs-fibre item). For IP3R,
+a pKa estimate for the lining lysines and carboxylates, or the RyR1
+selectivity control.

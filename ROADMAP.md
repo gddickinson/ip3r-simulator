@@ -15,8 +15,9 @@ luminal Ca²⁺) against [³H]ryanodine binding. Failing a source, the next
 step is a non-equilibrium (flux-driven) inactivation.
 Other candidates: the A-subspace headline in the Transition tab (Round 2),
 the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
-selectivity control on RyR1 or the vestibule's screening (Round 4, emergent
-from the selectivity item).
+selectivity control on RyR1, or the pKa of the lining lysines and
+carboxylates (Round 4; the vestibule's screening was ruled out as the Ca²⁺
+barrier).
 
 ## Destination
 
@@ -242,10 +243,22 @@ Emergent (not scheduled):
     Emergent:
     - [ ] The same protocols on RyR1's open deposit (also Ca²⁺-selective;
       its conductance model already meets its mutants), as the control.
-    - [ ] Screening in the wide vestibule: K2529's ring sits at 11.6 Å
-      where the Debye length is 6–8 Å, so local Donnan overstates it. A
-      radially resolved (2-D Poisson–Boltzmann) partition there would say
-      how much of the Ca²⁺ barrier is the closure.
+    - [x] Screening in the wide vestibule (`physics/radial_pb.py`,
+      `selectivity --closure radial`). Cylindrical Poisson–Boltzmann across
+      every slice, with Gauss's law at the wall, replaces local Donnan. Each
+      species sees its own cross-section partition. Calibrated against the
+      Donnan limit, the Debye–Hückel Bessel closed form (0.1 %), exact
+      discrete Gauss and grid convergence. At K2529 (R 9.9 Å, R/λ_D 1.7)
+      the Ca²⁺ barrier falls from +155 to +111 mV, a factor of ~6 in
+      partition. Charged P_Ca:P_K goes from 0.00 to 0.04 (0.01–0.16 over
+      ε 80–10), and g from 33 to 46 pS. Acidic-only stays at 0.69, since
+      those rings sit in slices narrower than λ_D. **The closure is not the
+      Ca²⁺ barrier.**
+      Emergent:
+      - [ ] The lysines' own protonation: K2482 and K2529 are now the
+        whole Ca²⁺ barrier under either closure. A pKa shift for them (and
+        the eight D2518/D2522 carboxylates, the item above) is the next
+        assumption to test.
 
 ## Round 5 — usability
 

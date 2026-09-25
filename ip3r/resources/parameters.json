@@ -1654,10 +1654,23 @@
    "kind": "method",
    "category": "permeation",
    "citation": "unverified",
-   "description": "Enters only the reported Debye length.",
+   "description": "Enters the reported Debye length and, in the radial closure only, the Poisson-Boltzmann screening across each slice.",
    "source_note": "Nanopore water is less polarisable than bulk (80); 40 is a common compromise (as PIEZO1)",
    "minimum": 2.0,
    "maximum": 80.0
+  },
+  {
+   "key": "permeation.radial_cells",
+   "name": "Radial PB cells per slice",
+   "value": 64,
+   "unit": "",
+   "kind": "method",
+   "category": "permeation",
+   "citation": "method_choice",
+   "description": "Finite-volume cells across each slice in the radial Poisson-Boltzmann closure.",
+   "source_note": "Doubling it moves 8TKF's selectivity by less than the reported precision (tests/test_radial_pb.py pins the grid convergence)",
+   "minimum": 8,
+   "maximum": 1024
   },
   {
    "key": "permeation.sweep_scale_low",
