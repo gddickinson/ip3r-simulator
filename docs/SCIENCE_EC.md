@@ -273,7 +273,7 @@ shutting it by the Ca²⁺ route *protects* it. The share of channels the use
 gate holds down rises with Ca²⁺ to the bell's peak and then falls away
 (tested). So the gate does not hide inside a bell: it crushes the peak and
 pushes the inhibitory flank out, widening Murayama's 1.86 decades to 2.90 at
-the measured τ of 2 s.
+ρ = k_use₋/k_use = 0.2 (Round 6.9's τ 2 s against recovery 0.1 s⁻¹).
 
 **So the bell must not be counted twice.** If the channel has both gates,
 Murayama's bell is already their composite, and fitting the Ca²⁺ gate alone
@@ -290,13 +290,17 @@ reproduces the measured bell at a given use-gate speed
 | 3.2 s | 0.240 | 2.35 – 1108 µM | 2.67 dec | Ka 9.9, Ki 58.7 µM |
 | 10 s | 0.500 | 3.29 – 569 µM | 2.24 dec | Ka 6.9, Ki 123.8 µM |
 
-The bell is a two-sided constraint, and **the fastest use gate it permits
-is τ ≈ 1 s — the fast end of the range Laver & Lamb measured.** Nothing in
-the fit used their number, so the agreement is independent.
+*Corrected in Round 6.10.* The two "none" rows were a stalled solver, not
+the bell: with several starting points a Ca²⁺ gate fits beside every gate
+down to a recovery ratio of 0.002. The claim that stood here — "the fastest
+use gate the bell permits is τ ≈ 1 s, the fast end of Laver & Lamb's
+range, an independent agreement" — is withdrawn. At the fixed recovery of
+0.1 s⁻¹ used, τ and the recovery ratio were the same scan, and the
+agreement was an artefact of that unsourced rate.
 
 **Where the 30× discrepancy came from.** Crediting part of the descending
 limb to the use gate lowers the Ca²⁺ gate's Ki from 249 µM to **21–59 µM**
-across the measured τ — within 2–6× of Stern's 10 µM, not 30×. The
+across the τ scanned — within 2–6× of Stern's 10 µM, not 30×. The
 discrepancy Rounds 6.3–6.8 chased is what you get by attributing all of a
 measured bell's inhibition to Ca²⁺ binding.
 
@@ -353,6 +357,68 @@ is the couplon's terminator only if RyR1 recovers from it with τ of roughly
 10 s (within a factor of ~2), and the same scheme must then have
 τ_inactivation of 1–3 s, which is measured. A recovery rate read from
 Laver & Lamb's full text, or measured afresh, decides it.
+
+### What Laver & Lamb's full text says (Round 6.10)
+
+The full paper settles *what* the model needed from it, but it does not
+give the number.
+
+**No recovery rate at a fixed potential is reported.** Inactivated channels
+recovered only when the bilayer voltage was reversed ("reactivated in
+milliseconds by voltage steps to negative potentials"); at +40 mV a channel
+"remained closed until it was reactivated by a brief voltage pulse to
+−40 mV" (Fig. 10), and further Ca²⁺ steps never reopened it.
+
+**The 1–3 s is at +40 mV, not at the SR's ~0 mV.** Fig. 4 plots log₁₀ of
+the inactivation rate against voltage (cardiac RyRs, Po > 0.8); the
+positive limb is 20 V⁻¹ with intercept 0.056 s⁻¹ at 0 mV. The reading is
+checked against the paper twice (tested): the line gives τ 2.8 s at +40 mV
+(the abstract's 1–3 s) and z δ 1.18 (the text's 1.14 ± 0.25); a
+natural-log reading fails both. So at 0 mV the entry rate is ~0.056 s⁻¹
+(τ ≈ 18 s), an extrapolation below data that start near +20 mV, and
+`ryr.k_use_on` is now that. Skeletal RyRs were not measured against voltage.
+
+**The result rests on a ratio, not a rate.** Both use-gate rates are
+seconds; a spark is milliseconds and the Ca²⁺ gate sub-millisecond. The
+stationary bell, the refitted Ca²⁺ gate and spark termination therefore
+depend on ρ = k_use₋/k_use alone (tested: a 7× slower gate at the same ρ
+fits identically; sparks at ρ 0.32 last 19–20 ms at entry rates from 0.3
+to 0.045 s⁻¹). `ryr.k_use_off` is replaced by `ryr.use_recovery_ratio`
+(unverified, 0.2), and the scans run over ρ
+(`spark-termination --scan ratio`, entry rate 0.056 s⁻¹, 4 seeds × 10 s):
+
+| ρ | ceiling | Ka | Ki | cleft sparks |
+|---|---|---|---|---|
+| 0.02 – 0.063 | 0.02 – 0.06 | 27 – 18 | 4 – 14 µM | **none start** |
+| 0.11 | 0.10 | 14.7 | 23.9 µM | 0.03/s, 9 ms |
+| 0.20 | 0.17 | 11.7 | 40.3 µM | 0.35/s, 12.5 ms, 0 unended |
+| 0.36 | 0.26 | 9.5 | 64.2 µM | 1.10/s, 26.5 ms, 0 unended |
+| 0.63 | 0.39 | 7.8 | 95.6 µM | 1.38/s, 88 ms, 0 unended |
+| 1.1 | 0.53 | 6.7 | 131.1 µM | 0.68/s, 452 ms, 1 unended |
+| 2 | 0.67 | 6.0 | 165.6 µM | 0.25/s, 1160 ms, 4 unended |
+
+Below ρ ≈ 0.1 the refitted Ka is too high for the cluster to fire; above
+≈ 0.6 Ki climbs back towards 249 µM and sparks stop ending. Sparks of the
+fibre's order (≤ 30 ms) need **ρ ≈ 0.1 – 0.4**. The couplon at ρ 0.2
+(`ec --use`, every speed from τ 1 ms to 10 s) keeps control: C after
+repolarisation 0.0004–0.0029 against the Ca²⁺-gate-only fit's 0.7265, −50 mV
+events 3–14 ms, none unended, flux peak/plateau 1.1–2.4 (1.5 for τ ≥ 0.3 s,
+where the speed no longer matters).
+
+**What the paper does bound.** Fig. 8 gives each channel's ensemble
+activity 5 s after a step to +40 mV relative to its peak. A residual R
+bounds the ratio: a channel held at Po keeps ρ/(ρ + Po) available, so
+ρ ≤ R/(1 − R). The skeletal RyRs that inactivated had R 0.03–0.34 (three of
+six did not inactivate: the heterogeneity), so **at +40 mV ρ ≤ 0.03–0.52
+across channels.** The band the model needs, 0.1–0.4, lies inside that
+span, above its most inactivating channels. But the bound is at +40 mV,
+where inactivation is voltage-driven, and recovery is steeply voltage
+dependent the other way (milliseconds at −40 mV): ρ at 0 mV can lie above
+the +40 mV bound. So Round 6.9's requirement is restated, not met: **the
+use gate terminates the couplon if RyR1 at 0 mV keeps ρ ≈ 0.1–0.4 — a
+steady residual activity of roughly 10–30 % in channels held open**, a
+number a bilayer at 0 mV, or a longer record at +40 mV than Fig. 8's 5 s,
+can measure.
 
 **Not modelled.** That only half to two-thirds of channels inactivate, as a
 stable property of the channel, so that a cluster keeps a subpopulation

@@ -105,7 +105,9 @@ def _spark_termination(args) -> int:
         print(f"Murayama 25 C: half-peak {b.c_half_act:.2f} - "
               f"{b.c_half_inh:.1f} µM, width {b.width_decades:.2f} decades. "
               "Below, the Ca2+ gate is refitted WITH the use gate present, "
-              "so the bell is not counted twice")
+              "so the bell is not counted twice. Rows scan the recovery "
+              "ratio k_use-/k_use; the speed does not enter")
+        _print_residual_bound()
         for r in ru.bell_panel():
             print(r.row())
         if args.bell:
@@ -116,12 +118,13 @@ def _spark_termination(args) -> int:
                             args.duration, args.seeds)]
                 + st.use_scan(args.duration, args.seeds)
                 + [st.no_inactivation(args.duration, args.seeds)])
-    elif args.scan == "recovery":
-        print("the use gate's recovery rate, which could not be sourced. The "
-              "Ca2+ gate is refitted at every point, so Ki moves with it: "
-              "faster recovery leaves the use gate less of the bell's "
-              "descending limb and puts Ki back where Round 6.8 had it")
-        rows = st.recovery_scan(None, args.duration, args.seeds)
+    elif args.scan == "ratio":
+        print("the use gate's recovery ratio k_use-/k_use at the registered "
+              "0 mV rate. The Ca2+ gate is refitted at every point, so Ki "
+              "moves with it: a larger ratio leaves the use gate less of the "
+              "bell's descending limb and puts Ki back where Round 6.8 had it")
+        _print_residual_bound()
+        rows = st.ratio_scan(None, args.duration, args.seeds)
     else:
         base = rg.fit_to_bell() if args.fitted else None
         rows = st.rate_scan(base, args.duration, args.seeds)
@@ -130,6 +133,16 @@ def _spark_termination(args) -> int:
     for r in rows:
         print(r.row())
     return 0
+
+
+def _print_residual_bound() -> None:
+    from .parameters import PARAMETERS as _P
+    from .physics.ryr_use import residual_bound
+    lo, hi = (residual_bound(_P.value(f"ryr.use_residual_40mv_{k}"))
+              for k in ("min", "max"))
+    print(f"Laver & Lamb 1998 Fig. 8 bounds the ratio at +40 mV only: at most "
+          f"{lo:.2g}-{hi:.2g} across the skeletal RyRs that inactivated; "
+          "at 0 mV it is unmeasured")
 
 
 def _spark_mg(args) -> int:
@@ -236,12 +249,14 @@ def register(sub) -> None:
     p.set_defaults(fn=_sparks)
     p = sub.add_parser("spark-termination", help="cleft spark duration as the "
                        "inactivation gate is refitted and scanned")
-    p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "recovery"),
+    p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "ratio"),
                    default="fit",
                    help="fit: Stern vs fitted to Murayama (25, 37 C); ki: Ki "
-                   "scan; rate: inactivation rate scan at fixed Ki")
+                   "scan; rate: inactivation rate scan at fixed Ki; use: the "
+                   "use gate's speed; ratio: its recovery/inactivation ratio")
     p.add_argument("--bell", action="store_true",
-                   help="use-gate speeds against the measured bell only "
+                   help="with --scan use: recovery ratios against the measured "
+                        "bell only "
                         "(no simulation): where a Ca2+ gate still fits")
     p.add_argument("--fitted", action="store_true",
                    help="with --scan rate: scan at the fitted Ka and Ki")

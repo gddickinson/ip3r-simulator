@@ -53,14 +53,18 @@ that a shut channel never inactivates; a real channel presumably has a
 small entry rate from the closed states, and the model takes the limit in
 which that rate is negligible beside entry from the open state.
 
-**What is sourced and what is not.** ``ryr.k_use_on`` comes from the
-measured 1-3 s, and is a *lower* bound on the rate from the open state
-because the measured tau is macroscopic (rate ~ Po). ``ryr.k_use_off``
-could not be read: the paper's full text is a paywalled page scan and
-recovery is reported only qualitatively. Neither number is trusted here.
-The question is answered by scanning the time constant over four decades
-(:func:`spark_termination.use_scan`) and asking where termination lives,
-not by running the model at one value.
+**What is sourced and what is not** (Round 6.10, from the full text).
+The 1-3 s is at +40 mV. Laver & Lamb's Fig. 4 puts the rate at the SR's
+resting ~0 mV at 0.056 s^-1 (tau ~18 s, an extrapolation below their
+data): that is ``ryr.k_use_on``. They report **no recovery rate at a fixed
+potential** -- inactivated channels recovered only when the voltage was
+reversed. What the model needs is not a recovery rate anyway: both rates
+are seconds, a spark is milliseconds, so the bell, the refitted Ca2+ gate
+and spark termination depend only on the ratio ``rho = k_use-/k_use``
+(``ryr.use_recovery_ratio``; tested). The paper bounds rho only at +40 mV,
+through the residual activity of its Fig. 8 (:func:`residual_bound`). At
+0 mV rho is unmeasured, so it is scanned (:func:`bell_panel`,
+:func:`spark_termination.ratio_scan`), not trusted.
 
 The per-channel heterogeneity — that only half to two-thirds of channels
 inactivate at all, stably, so that a cluster keeps a subpopulation that
@@ -81,7 +85,8 @@ from .ryr_gating import SternParams, stationary
 
 __all__ = ["STATES", "OPEN", "UseParams", "with_use", "no_ca_gate",
            "open_probability_no_ca_gate", "cycle_flux", "fit_with_use",
-           "BellRow", "bell_panel", "tau_values"]
+           "BellRow", "bell_panel", "tau_values", "ratio_values",
+           "use_rate_at", "residual_bound"]
 
 #: ``s = a + 2 i + 4 u``: activation gate open, Ca2+-inactivated, used up.
 STATES = ("C", "O", "CI", "I", "CU", "OU", "CIU", "IU")
@@ -104,7 +109,8 @@ class UseParams(SternParams):
     trigger_map: ClassVar[np.ndarray] = np.array([1, 1, 2, 3, 4, 5, 6, 7])
 
     k_use_on: float = _v("ryr.k_use_on")      # s^-1, from the open state
-    k_use_off: float = _v("ryr.k_use_off")    # s^-1
+    k_use_off: float = field(default_factory=lambda: _P.value(
+        "ryr.use_recovery_ratio") * _P.value("ryr.k_use_on"))   # s^-1
 
     @property
     def tau_use(self) -> float:
@@ -159,24 +165,44 @@ class UseParams(SternParams):
 
 
 def with_use(sp: SternParams | None = None, k_use_on: float | None = None,
-             k_use_off: float | None = None) -> UseParams:
+             k_use_off: float | None = None,
+             ratio: float | None = None) -> UseParams:
     """``sp``'s activation and Ca2+ inactivation gates (Stern's, or a gate
     fitted to a bell) with the use gate added. Defaults are the registered
-    rates. ``sp`` must be a one-site scheme: a ``TwoSiteParams``'s second
-    site is not carried, so passing one is refused rather than silently
-    dropped."""
+    rate and ratio; without ``k_use_off`` the recovery is ``ratio`` (default
+    ``ryr.use_recovery_ratio``) times the entry rate, so changing the speed
+    keeps the steady state. ``sp`` must be a one-site scheme: a
+    ``TwoSiteParams``'s second site is not carried, so passing one is
+    refused rather than silently dropped."""
     sp = sp or SternParams()
     if type(sp) is not SternParams:
         raise TypeError("with_use takes the one-site Ca2+ gate "
                         f"(SternParams), not {type(sp).__name__}")
     base = {f: getattr(sp, f) for f in ("k_act_on", "k_act_off", "k_inact_on",
                                         "k_inact_off", "mg", "k_mg_a", "mg_i")}
-    kw = {}
-    if k_use_on is not None:
-        kw["k_use_on"] = float(k_use_on)
-    if k_use_off is not None:
-        kw["k_use_off"] = float(k_use_off)
-    return UseParams(**base, **kw)
+    on = _P.value("ryr.k_use_on") if k_use_on is None else float(k_use_on)
+    if k_use_off is None:
+        rho = _P.value("ryr.use_recovery_ratio") if ratio is None else ratio
+        k_use_off = rho * on
+    return UseParams(**base, k_use_on=on, k_use_off=float(k_use_off))
+
+
+def use_rate_at(v: float) -> float:
+    """Laver & Lamb's Fig. 4 line at bilayer potential ``v`` (volts,
+    cytosol relative to lumen, positive limb): the macroscopic inactivation
+    rate, s^-1. Exists so the tests can hold the reading of the figure to
+    the paper's abstract (tau 1-3 s at +40 mV) and charge (z delta 1.14)."""
+    return _P.value("ryr.k_use_on") * 10.0 ** (_P.value("ryr.use_rate_slope")
+                                               * v)
+
+
+def residual_bound(residual: float) -> float:
+    """Upper bound on the recovery ratio from a residual activity ``R``
+    (activity long after the step over its peak): a channel held at open
+    probability ``Po`` keeps ``rho / (rho + Po)`` available, so
+    ``rho = R Po / (1 - R) <= R / (1 - R)``; and a residual read before
+    steady state is itself an upper bound."""
+    return residual / (1.0 - residual)
 
 
 def no_ca_gate(sp: SternParams) -> SternParams:
@@ -235,7 +261,8 @@ def cycle_flux(c: float, sp: UseParams) -> float:
 
 def fit_with_use(k_use_on: float | None = None, target=None,
                  sp: SternParams | None = None,
-                 k_use_off: float | None = None) -> UseParams:
+                 k_use_off: float | None = None,
+                 ratio: float | None = None) -> UseParams:
     """Ka and Ki of the Ca2+ gate such that the *composite* scheme's
     half-peak points are ``target``'s (default Murayama's 25 C bell), with a
     use gate of rate ``k_use_on`` already present.
@@ -252,7 +279,7 @@ def fit_with_use(k_use_on: float | None = None, target=None,
     target = target or murayama_bell()
     sp = replace(sp or SternParams(), mg=0.0)
     scheme = lambda ka, ki: with_use(with_constants(ka, ki, sp), k_use_on,
-                                     k_use_off)
+                                     k_use_off, ratio)
 
     def resid(x):
         with np.errstate(over="ignore"):
@@ -274,20 +301,31 @@ def fit_with_use(k_use_on: float | None = None, target=None,
         return [np.log(b.c_half_act / target.c_half_act),
                 np.log(b.c_half_inh / target.c_half_inh)]
 
-    x, _, ok, msg = fsolve(resid, np.log([target.c_half_act,
-                                          target.c_half_inh]),
-                           full_output=True)
-    if ok != 1 or max(abs(r) for r in resid(x)) > 1e-6:
-        raise RuntimeError(
-            f"no Ca2+ gate reproduces the bell beside a use gate of "
-            f"{k_use_on:g} s^-1: {msg}")
-    return scheme(*np.exp(x))
+    # Several starts: one stalled solve is not evidence that no gate fits
+    # (a single start stalled at rho 0.18 between two that fitted).
+    x0 = np.log([target.c_half_act, target.c_half_inh])
+    msg = ""
+    for shift in _STARTS:
+        x, _, ok, msg = fsolve(resid, x0 + np.asarray(shift), full_output=True)
+        if ok == 1 and max(abs(r) for r in resid(x)) <= 1e-6:
+            return scheme(*np.exp(x))
+    raise RuntimeError(
+        f"no Ca2+ gate reproduces the bell beside this use gate "
+        f"(k_use {k_use_on}, k_use- {k_use_off}, ratio {ratio}): {msg}")
+
+
+#: fsolve starting offsets in (log Ka, log Ki) around the measured half-peak
+#: points, nearest first. A small recovery ratio drives the fitted Ka up and
+#: Ki down by decades (ratio 0.002: Ka x8, Ki /900), so the grid reaches
+#: there; the first start that lands is kept, so a fit is usually one solve.
+_STARTS = tuple((a, i) for i in (0.0, -1.0, -2.0, -3.5, -5.0, -7.0, 1.0)
+                for a in (0.0, 1.0, 2.0, -0.5))
 
 
 @dataclass(frozen=True)
 class BellRow:
-    """One use-gate speed against the measured bell."""
-    tau_use: float              # s, from the open state
+    """One recovery ratio against the measured bell."""
+    ratio: float                # k_use- / k_use
     available: float            # ceiling the gate leaves on P_open
     po_peak: float
     c_half_act: float           # µM
@@ -300,7 +338,7 @@ class BellRow:
     def row(self) -> str:
         fit = (f"Ka {self.k_a:6.2f} Ki {self.k_i:7.1f}" if self.fitted
                else "no Ca2+ gate fits  ")
-        return (f"use tau {self.tau_use:8.4g} s  ceiling {self.available:7.4f}"
+        return (f"ratio {self.ratio:7.4g}  ceiling {self.available:7.4f}"
                 f"  peak {self.po_peak:7.4f}  half {self.c_half_act:6.2f} -"
                 f" {self.c_half_inh:9.1f} µM  width {self.width_decades:5.2f}"
                 f" dec  {fit}")
@@ -313,27 +351,35 @@ def tau_values() -> np.ndarray:
                         int(round(_P.value("spark.use_scan_points"))))
 
 
-def bell_panel(taus=None, sp: SternParams | None = None) -> list[BellRow]:
-    """Each use-gate speed measured two ways: the bell it gives beside the
+def ratio_values() -> np.ndarray:
+    """The registered grid of recovery ratios around ``ryr.use_recovery_ratio``."""
+    hi = _P.value("spark.use_ratio_scan_max")
+    n = int(round(_P.value("spark.use_ratio_scan_points")))
+    return _P.value("ryr.use_recovery_ratio") * np.geomspace(1.0 / hi, hi, n)
+
+
+def bell_panel(ratios=None, sp: SternParams | None = None) -> list[BellRow]:
+    """Each recovery ratio measured two ways: the bell it gives beside the
     Ca2+ gate fitted *without* it (the double-counting Round 6.9 avoids), and
-    whether any Ca2+ gate reproduces the measured bell beside it."""
+    whether any Ca2+ gate reproduces the measured bell beside it. The speed
+    is the registered one; it does not enter (tested)."""
     from .bell import Bell, measure_bell
     from .ryr_gating import fit_to_bell
     base = sp or fit_to_bell()
     rows = []
-    for tau in (tau_values() if taus is None else taus):
-        scheme = with_use(base, 1.0 / tau)
+    for rho in (ratio_values() if ratios is None else ratios):
+        scheme = with_use(base, ratio=rho)
         try:
             b = measure_bell(scheme.open_probability)
         except (ValueError, FloatingPointError):
             b = Bell(float("nan"), float("nan"), float("nan"), float("nan"))
         try:
-            fit = fit_with_use(1.0 / tau)
+            fit = fit_with_use(ratio=rho)
             k_a, k_i, ok = fit.k_a, fit.k_i, True
         except (RuntimeError, FloatingPointError):
             k_a = k_i = float("nan")
             ok = False
-        rows.append(BellRow(float(tau), scheme.available, b.po_peak,
+        rows.append(BellRow(float(rho), scheme.available, b.po_peak,
                             b.c_half_act, b.c_half_inh,
                             b.width_decades, ok, k_a, k_i))
     return rows

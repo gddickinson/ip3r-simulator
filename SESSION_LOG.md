@@ -1730,3 +1730,53 @@ the time course of the gradients. Both recorded as emergent.
 paywalled page scan, Europe PMC and the ptpmcrender route 403, it is not in
 the Mendeley library, and the Chrome extension was not connected — so the
 PDF has to come from the user.
+
+## 2026-09-25 (11) — Round 6.10: Laver & Lamb 1998 in full; the result rests on a ratio
+
+**Why.** ROADMAP's **Next:** — Round 6.9's finding held only for a use-gate
+recovery τ near 10 s, which could not be sourced. The user supplied the
+PDF (`pdfs/laver_lamb_1998.pdf`, text-extractable).
+
+**What the paper says.**
+- **No recovery rate at a fixed potential.** Recovery happened only on
+  reversing the voltage ("reactivated in milliseconds"); at +40 mV an
+  inactivated channel "remained closed until ... reactivated by a brief
+  voltage pulse to −40 mV".
+- **The 1–3 s is at +40 mV.** Fig. 4 is log₁₀ rate vs voltage: slope
+  20 V⁻¹, intercept 0.056 s⁻¹ at 0 mV (cardiac, Po > 0.8, extrapolated below
+  data from ~+20 mV). The reading reproduces the abstract (τ 2.8 s at
+  +40 mV) and the text's zδ (1.18 vs 1.14 ± 0.25); a ln reading fails both.
+  `ryr.k_use_on` 0.5 → 0.056 s⁻¹.
+- Fig. 8: skeletal channels that inactivated kept 0.03–0.34 of peak
+  activity 5 s after a step to +40 mV; three of six did not inactivate.
+
+**What it changed.**
+- **Only ρ = k_use₋/k_use matters** — both rates are seconds, sparks are
+  ms. Measured: identical Ka/Ki at four entry rates for each ρ; sparks at
+  ρ 0.32 last 19–20 ms from 0.3 to 0.045 s⁻¹. So `ryr.k_use_off` is
+  replaced by `ryr.use_recovery_ratio` (0.2, unverified), and the recovery
+  scan by `spark-termination --scan ratio`; the bell panel scans ρ;
+  `with_use(k_use_on=x)` keeps ρ.
+- New registered numbers: `ryr.use_rate_slope`, `ryr.use_residual_40mv_min/max`.
+  `residual_bound`: R bounds ρ ≤ R/(1−R) → ρ(+40 mV) ≤ 0.03–0.52.
+- Band at 0 mV: none fire below ρ ≈ 0.1 (Ka too high); 9–27 ms at
+  0.11–0.36; 88 ms at 0.63; unended from ~1. Couplon at ρ 0.2: control kept
+  at every speed (after-repolarisation 0.0004–0.0029, events 3–14 ms,
+  0 unended).
+
+**Wrong in Round 6.9, found this round.** `fit_with_use` used one fsolve
+start; it stalled at ρ 0.18 between two ρ that fitted, and was reported as
+"no Ca²⁺ gate reproduces the bell". With a start grid a fit exists down to
+ρ 0.002 (Ka ×8, Ki /900). So Round 6.9's "the bell permits τ ≥ 1 s,
+independently matching Laver & Lamb's 1–3 s" was a solver artefact and the
+agreement was an artefact of the fixed recovery rate — withdrawn in
+SCIENCE_EC.md and ROADMAP_RYR.md, with a test calibrated on the stalling
+case. Suspect the instrument first held again.
+
+**Standing.** Not settled, sharpened: the use gate terminates the couplon
+if RyR1 at 0 mV keeps ρ ≈ 0.1–0.4, i.e. ~10–30 % steady residual activity
+while held open. Fig. 8's +40 mV span contains that band; 0 mV is
+unmeasured. No GUI change (no screenshots). 428 tests pass (+6).
+
+**Next:** per-channel heterogeneity (a mixed cluster), or ρ at 0 mV if a
+source (Sitsapesan 1995, Laver & Curtis 1996b) gives it.

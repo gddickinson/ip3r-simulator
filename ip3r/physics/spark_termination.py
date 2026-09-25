@@ -13,9 +13,11 @@ measurement rather than by one refit:
   the one thing a steady-state bell cannot fix.
 * :func:`use_scan` (Round 6.9) puts a use-dependent gate
   (:mod:`ip3r.physics.ryr_use`) beside the Ca2+ gate and fits *both* to the
-  measured bell, so the bell is not counted twice. Only the speeds the bell
-  permits are run. :func:`no_inactivation` is the control beneath them all:
-  neither gate, so only the cleft's geometry can end a spark.
+  measured bell, so the bell is not counted twice. It scans the gate's
+  speed at the registered recovery ratio; :func:`ratio_scan` (Round 6.10)
+  scans the ratio, the quantity the result actually rests on.
+  :func:`no_inactivation` is the control beneath them all: neither gate, so
+  only the cleft's geometry can end a spark.
 
 Each row reads the sparks with :func:`puff_compare.spark_ends`. A spark
 that is still running when the trace ends is counted as ``unterminated``,
@@ -32,12 +34,12 @@ from ..parameters import PARAMETERS as _P
 from .puff_compare import recruitment, spark_ends
 from .ryr_gating import (MurayamaParams, SternParams, fit_to_bell,
                          murayama_bell, with_constants)
-from .ryr_use import fit_with_use, no_ca_gate, tau_values
+from .ryr_use import fit_with_use, no_ca_gate, ratio_values, tau_values
 from .sparks_cleft import CleftSparkParams, simulate_sparks_cleft
 
 __all__ = ["Termination", "measure", "refit", "ki_scan", "rate_scan",
            "ki_values", "rate_values", "use_scan", "no_inactivation",
-           "recovery_scan", "recovery_values"]
+           "ratio_scan"]
 
 
 @dataclass(frozen=True)
@@ -116,15 +118,15 @@ def rate_scan(base: SternParams | None = None, duration: float = 10.0,
 
 def use_scan(duration: float = 10.0, seeds: int = 4, taus=None
              ) -> list[Termination]:
-    """The cleft array under a use-dependent gate, at every speed the
-    measured bell permits.
+    """The cleft array under a use-dependent gate at each speed, recovery
+    held at the registered ratio to it.
 
     For each time constant the Ca2+ gate is refitted *with the use gate
     present* (:func:`ryr_use.fit_with_use`), so the scheme reproduces
     Murayama's half-peak points as the fitted one-site scheme does and the
-    two rows are comparable. Speeds the bell excludes are skipped and named
-    in the label of nothing — they simply do not appear, because there is no
-    scheme to run.
+    two rows are comparable. At a fixed ratio every speed gives the same
+    fit; the rows differ only where the gate is fast enough to act within a
+    spark. A speed with no fit is skipped.
     """
     rows = []
     for tau in (tau_values() if taus is None else taus):
@@ -145,31 +147,22 @@ def no_inactivation(duration: float = 10.0, seeds: int = 4) -> Termination:
                    seeds)
 
 
-def recovery_values() -> np.ndarray:
-    """The registered grid of use-gate recovery rates, s^-1."""
-    hi = _P.value("spark.use_recovery_scan_max")
-    n = int(round(_P.value("spark.use_recovery_scan_points")))
-    return _P.value("ryr.k_use_off") * np.geomspace(1.0 / hi, hi, n)
+def ratio_scan(k_use_on: float | None = None, duration: float = 10.0,
+               seeds: int = 4, ratios=None) -> list[Termination]:
+    """The cleft array against the use gate's recovery ratio
+    ``k_use- / k_use`` -- the one number Round 6.9's result rests on, and
+    one Laver & Lamb 1998 bound only at +40 mV.
 
-
-def recovery_scan(tau_use: float | None = None, duration: float = 10.0,
-                  seeds: int = 4, offs=None) -> list[Termination]:
-    """The cleft array against the use gate's *recovery* rate, which
-    :mod:`ip3r.physics.ryr_use` could not source.
-
-    Recovery is load-bearing and not a free knob: it sets how much of the
+    The ratio is load-bearing and not a free knob: it sets how much of the
     measured bell's descending limb the use gate accounts for, so the Ca2+
-    gate is refitted at every point and ``Ki`` moves with it. That is the
-    coupling this scan exists to show. ``tau_use`` defaults to the middle of
-    Laver & Lamb's measured 1-3 s.
+    gate is refitted at every point and ``Ki`` moves with it. ``k_use_on``
+    defaults to the registered rate at 0 mV; it does not change the fit.
     """
-    tau_use = float(np.sqrt(1.0 * 3.162)) if tau_use is None else tau_use
     rows = []
-    for off in (recovery_values() if offs is None else offs):
+    for rho in (ratio_values() if ratios is None else ratios):
         try:
-            sp = fit_with_use(1.0 / tau_use, k_use_off=off)
+            sp = fit_with_use(k_use_on, ratio=rho)
         except (RuntimeError, FloatingPointError):
             continue
-        rows.append(measure(sp, f"recovery tau {1.0 / off:.3g} s", duration,
-                            seeds))
+        rows.append(measure(sp, f"ratio {rho:.3g}", duration, seeds))
     return rows

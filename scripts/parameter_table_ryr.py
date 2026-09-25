@@ -52,6 +52,8 @@ _M97 = ("Meissner, Rios, Tripathy & Pasek 1997 (JBC 272:1628), Table IV: "
 _L04 = ("Laver, O'Neill & Lamb 2004 (PMC2234024), Table I: RyR1 (rabbit) in "
         "bilayers, 2 mM ATP, luminal Ca2+ 1 mM, cytoplasmic Cs+ 250 mM")
 
+_LL98_FULL = ("Laver & Lamb 1998, full text (rabbit skeletal and sheep "
+              "cardiac RyRs in bilayers, 250 mM Cs+)")
 _LL98 = ("Laver & Lamb 1998 (PMC1299578), abstract (the full text is a "
          "paywalled page scan): rabbit skeletal and sheep cardiac RyRs in "
          "bilayers, inactivation after steps in voltage and in cytosolic Ca2+")
@@ -264,29 +266,56 @@ RYR += [
        "300x the 6.3 ms measured release, 10x the longest ended spark seen",
        0.01, 100.0),
     # ------------------------------- use-dependent (flux-driven) inactivation
-    _p("ryr.k_use_on", "RyR1 use-dependent inactivation rate", 0.5, "s^-1",
-       "empirical", "ryr", "laverlamb1998", "Rate at which a conducting RyR1 "
-       "enters use-dependent inactivation. Entered only from the open state, "
-       "so it is Ca2+-independent and the macroscopic rate is proportional "
-       "to the open probability, as measured.", f"{_LL98}: 'two "
-       "voltage-dependent inactivation processes (tau approximately 1-3 s at "
-       "+40 mV)'; 2 s is the middle. The paper's tau is macroscopic, and "
-       "'inactivation rates increased with intraburst open probability (Po) "
-       "and in proportion to the probability of a long-lived, RyR open state "
-       "(P(OL))', so 1/tau is the rate at Po = 1 and a LOWER bound on this "
-       "rate. Scanned by spark.use_scan_*", 1e-4, 1e4),
-    _p("ryr.k_use_off", "RyR1 use-dependent recovery rate", 0.1, "s^-1",
-       "empirical", "ryr", "unverified", "Recovery from use-dependent "
-       "inactivation. Only its size relative to ryr.k_use_on matters for the "
-       "steady state (the fraction left available).", f"{_LL98} reports "
-       "recovery only qualitatively: the inactivation was not 'RyRs "
-       "adapting to steady [Ca2+] after the step, because a subsequent step "
-       "from 1 to 100 microM failed to reactivate RyRs', i.e. recovery is "
-       "slower than their record. 0.1 s^-1 (tau 10 s) is slower than "
-       "inactivation, as that implies, but is not a measured value: the full "
-       "text is a paywalled scan and no rate could be read. The conclusions "
-       "of Round 6.9 are drawn from the scan, not from this value", 1e-6,
-       1e4),
+    _p("ryr.k_use_on", "RyR1 use-dependent inactivation rate at 0 mV", 0.056,
+       "s^-1", "empirical", "ryr", "laverlamb1998", "Rate at which a "
+       "conducting RyR1 enters use-dependent inactivation, at the SR's "
+       "resting potential (taken as 0 mV). Entered only from the open state, "
+       "so it is Ca2+-independent. Only ryr.use_recovery_ratio decides the "
+       "steady state, the fitted Ca2+ gate and spark termination; this rate "
+       "sets how fast the gate relaxes, far slower than a spark.",
+       f"{_LL98_FULL}, Fig. 4: log10 of the macroscopic inactivation rate "
+       "against bilayer potential, cardiac RyRs at Po > 0.8, the fit at "
+       "positive potentials having 'slope and intercept at V = 0' of 20 V^-1 "
+       "and 0.056 s^-1. The intercept is an extrapolation: the data start "
+       "near +20 mV. The abstract's 'tau approximately 1-3 s' is at +40 mV "
+       "(the same line gives 0.35 s^-1 there, tau 2.8 s), which Round 6.9 "
+       "took for this rate. Skeletal RyRs were not measured against voltage",
+       1e-4, 1e4),
+    _p("ryr.use_rate_slope", "Use-gate rate: voltage slope", 20.0, "V^-1",
+       "empirical", "ryr", "laverlamb1998", "log10 of the inactivation rate "
+       "per volt of bilayer potential (cytosol relative to lumen), positive "
+       "limb. Used only to check the reading of Fig. 4 against the paper's "
+       "own abstract and charge estimate.", f"{_LL98_FULL}, Fig. 4 legend; "
+       "20 V^-1 in log10 is z delta 1.18, as the text's 1.14 +- 0.25",
+       0.0, 100.0),
+    _p("ryr.use_recovery_ratio", "RyR1 use-gate recovery / inactivation",
+       0.2, "", "empirical", "ryr", "unverified", "k_use-/k_use: the use "
+       "gate's recovery rate relative to its rate from the open state. The "
+       "one number Round 6.9's result rests on: with both rates far slower "
+       "than a spark, the steady state, the refitted Ca2+ gate and spark "
+       "termination depend on this ratio and not on either rate.",
+       f"{_LL98_FULL} report no recovery rate at a fixed potential: "
+       "inactivated channels recovered only when the voltage was reversed "
+       "('reactivated in milliseconds'), and at +40 mV 'remained closed "
+       "until ... reactivated by a brief voltage pulse to -40 mV'. Their "
+       "Fig. 8 bounds the ratio at +40 mV only (ryr.use_residual_40mv_*: at "
+       "most 0.03-0.52). 0.2 lies inside that span; at 0 mV nothing is "
+       "measured, so the value is unverified and the ratio is scanned",
+       1e-4, 1e4),
+    _p("ryr.use_residual_40mv_min", "Use gate: least residual at +40 mV",
+       0.03, "", "empirical", "ryr", "laverlamb1998", "Ensemble activity 5 s "
+       "after a step from -40 to +40 mV, relative to its peak: the most "
+       "inactivated skeletal RyR. A residual R bounds the recovery ratio by "
+       "R/(1-R) (Po <= 1, and 5 s is not quite steady state).",
+       f"{_LL98_FULL}, Fig. 8 (skeletal, open circles, y axis), read from "
+       "the figure to about +-0.02; three of the six skeletal channels did "
+       "not inactivate (residual 1) and are the heterogeneity, not this "
+       "bound", 0.0, 1.0),
+    _p("ryr.use_residual_40mv_max", "Use gate: largest residual at +40 mV",
+       0.34, "", "empirical", "ryr", "laverlamb1998", "As "
+       "ryr.use_residual_40mv_min, for the least inactivated skeletal RyR "
+       "that inactivated at all.", f"{_LL98_FULL}, Fig. 8, read to about "
+       "+-0.02", 0.0, 1.0),
     _p("spark.use_scan_min", "Use-gate scan: fastest time constant", 0.001,
        "s", "method", "spark", "method_choice", "Low end of the scan of the "
        "use gate's time constant from the open state; also the fastest use "
@@ -300,15 +329,15 @@ RYR += [
     _p("spark.use_scan_points", "Use-gate scan: points", 9.0, "", "method",
        "spark", "method_choice", "Geometric steps of the use-gate scan.",
        "Two per decade over the four decades from 1 ms to 10 s", 2.0, 50.0),
-    _p("spark.use_recovery_scan_max", "Use-gate recovery scan: widest factor",
-       30.0, "", "method", "spark", "method_choice", "Largest multiple of "
-       "ryr.k_use_off in the recovery scan; the scan runs from its inverse "
-       "to it. ryr.k_use_off could not be sourced and the round's result "
-       "depends on it, so its effect is measured rather than assumed.",
-       "Three decades around the unverified value, enough to bracket both "
-       "failures (a cluster that never fires, and one that never stops)",
-       1.0, 1e3),
-    _p("spark.use_recovery_scan_points", "Use-gate recovery scan: points",
-       7.0, "", "method", "spark", "method_choice", "Geometric steps of the "
-       "recovery scan.", "Two to three per decade", 2.0, 50.0),
+    _p("spark.use_ratio_scan_max", "Use-gate ratio scan: widest factor",
+       10.0, "", "method", "spark", "method_choice", "Largest multiple of "
+       "ryr.use_recovery_ratio in the ratio scan; the scan runs from its "
+       "inverse to it. The ratio is load-bearing and unmeasured at 0 mV, so "
+       "its effect is measured rather than assumed.", "Two decades around "
+       "the unverified value: brackets a cluster that never fires and one "
+       "that never stops", 1.0, 1e3),
+    _p("spark.use_ratio_scan_points", "Use-gate ratio scan: points", 9.0, "",
+       "method", "spark", "method_choice", "Geometric steps of the ratio "
+       "scan.", "Four per decade: the working band is under a decade wide",
+       2.0, 50.0),
 ]

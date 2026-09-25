@@ -131,7 +131,7 @@ def configurations(reading: str = "meissner", mg: float | None = None,
             try:
                 rows[f"fitted + use tau {tau:.3g} s"] = fit_with_use(1.0 / tau)
             except (RuntimeError, FloatingPointError):
-                continue          # the bell excludes a gate this fast
+                continue          # no Ca2+ gate fits beside this one
         return rows
     fit = fit_two_site() if two_site else fit_to_bell()
     name = "two-site" if two_site else "fitted"

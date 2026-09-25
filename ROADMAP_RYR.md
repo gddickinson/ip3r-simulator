@@ -220,7 +220,7 @@ with what it measured.
     as Round 6.9 (Laver & Lamb 1998).
 
 - [x] 6.9 Use-dependent (flux-driven) inactivation (`physics/ryr_use.py`;
-  `spark-termination --scan use [--bell] | --scan recovery`, `ec --use`).
+  `spark-termination --scan use [--bell] | --scan ratio`, `ec --use`).
   Laver & Lamb 1998's inactivation, whose rate is set by how much the
   channel is *open* and not by any ligand: a third gate entered only from
   the conducting state, eight states, a cycle with no detailed balance.
@@ -241,9 +241,8 @@ with what it measured.
   spark starts. Round 6.9 therefore yields a mechanism with a falsifiable
   requirement, not a settled answer.
   Emergent:
-  - [ ] Laver & Lamb 1998's recovery rate, from the full text (a paywalled
-    page scan; the Chrome extension was not connected) or a fresh
-    measurement. One number decides the round's finding.
+  - [x] Laver & Lamb 1998's recovery rate: read from the full text in
+    Round 6.10. It is not reported; the round rests on a ratio instead.
   - [ ] Per-channel heterogeneity: only half to two-thirds of RyRs
     inactivate, stably, so a cluster keeps channels that never do. Every
     simulator here treats the channels as identical; it can only make
@@ -253,3 +252,25 @@ with what it measured.
     (open fraction 0.942), because `sparks_cleft` holds the field at its
     steady state between events, and induction decay lives in the time
     course of the gradients.
+
+- [x] 6.10 Laver & Lamb 1998 read in full (`ryr_use`: `use_rate_at`,
+  `residual_bound`, `ratio_values`; `spark-termination --scan ratio`). The
+  paper reports **no recovery rate at a fixed potential** (recovery only on
+  voltage reversal, in ms). Its 1-3 s is at +40 mV; Fig. 4 (log10, checked
+  against the abstract and z delta) puts the entry rate at 0 mV at
+  0.056 s^-1, now `ryr.k_use_on`. Because both use-gate rates are seconds,
+  the bell, the refitted Ca2+ gate and termination depend only on
+  **rho = k_use-/k_use** (tested), now `ryr.use_recovery_ratio`. Sparks of
+  the fibre's order need rho 0.1-0.4 (none fire below 0.1; >0.6 they stop
+  ending); the couplon at rho 0.2 keeps control at every speed. Fig. 8's
+  residuals bound rho <= 0.03-0.52 at +40 mV only, a span containing the
+  band; at 0 mV rho is unmeasured. **Corrected:** Round 6.9's "no Ca2+
+  gate fits beside a gate faster than tau ~0.3 s, so the bell permits
+  tau >= 1 s, independently matching 1-3 s" was a stalled single-start
+  solver (a fit exists down to rho 0.002); `fit_with_use` is now
+  multi-start and the claim is withdrawn.
+  Emergent:
+  - [ ] rho at 0 mV: the steady residual activity of RyR1 held open at
+    0 mV (the model needs ~10-30 %), from the literature (Sitsapesan 1995,
+    Laver & Curtis 1996b are the cited Ca2+-step records) or a longer
+    +40 mV record than Fig. 8's 5 s.

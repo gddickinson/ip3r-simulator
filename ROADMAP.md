@@ -5,17 +5,14 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Laver & Lamb 1998's recovery rate from use-dependent
-inactivation (Round 6.9 emergent). Round 6.9 found the mechanism that
-reconciles Murayama's bell with couplon control: a gate entered only while
-the channel conducts partly cancels Ca²⁺ inactivation, so refitting the
-Ca²⁺ gate beside it puts Ki at 21-59 µM rather than 249, and the composite
-terminates sparks and keeps control. It holds only for a recovery τ near
-10 s, which could not be sourced — the paper's full text is a paywalled
-page scan and the Chrome extension was not connected. **Ask the user for
-the PDF**; one number decides the finding. Failing that, per-channel
-heterogeneity (half to two-thirds of RyRs inactivate) or a time-dependent
-cleft field for Laver 2013's induction decay.
+**Next:** per-channel heterogeneity in the use gate (Round 6.9 emergent,
+Round 6.10 sharpened it): half to two-thirds of RyR1s inactivate and the
+rest never do (Laver & Lamb's Fig. 8: three of six skeletal channels at
+residual 1). Round 6.10 found the use gate works only for a recovery ratio
+rho ~0.1-0.4 at 0 mV, which no paper measures; a mixed cluster is the
+paper's own next constraint and can only make termination harder. Or, if
+a source turns up, rho at 0 mV (Sitsapesan 1995; Laver & Curtis 1996b).
+Failing both, a time-dependent cleft field for Laver 2013's induction decay.
 Other candidates: the A-subspace headline in the Transition tab (Round 2),
 the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
 selectivity control on RyR1, or the pKa of the lining lysines and
