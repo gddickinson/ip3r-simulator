@@ -64,9 +64,9 @@ class VariantsPanel(QWidget):
                         ("VUS by layer", self.layer)):
             row.addWidget(QLabel(text))
             row.addWidget(w)
-        row.addWidget(self.draw)
         row.addStretch(1)
         lay.addLayout(row)
+        lay.addWidget(self.draw)          # its own line: the dock stays narrow
         self.legend = QLabel("")
         self.legend.setWordWrap(True)
         lay.addWidget(self.legend)

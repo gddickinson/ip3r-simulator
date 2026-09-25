@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.1, the viewport and the deposition list (Round 7
+**Next:** Round 7.2, the IP3R puff in a microdomain (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -78,8 +78,9 @@ Emergent (not scheduled):
 - [ ] The JSD falls most at 11.5 Å, but the FEL purifying fraction falls
   after the second shell (S22 §8). Is that the instruments or the residues?
   Re-derive the §8 shell FEL table and compare residue by residue.
-- [ ] "Show on structure" for the shells frames the whole tetramer, so the
+- [x] "Show on structure" for the shells frames the whole tetramer, so the
   pocket is small on screen. Add a camera preset centred on one IP3 site.
+  (Round 7.1: `SceneController.site_view`, Ctrl+3.)
 - [ ] Paper 2's model-robustness claim ("nine claim clades held, none
   weakened" under the extra NNI round) can be re-derived the same way from
   `itpr_ml_bnni.contree` and `claim_members.tsv`, with the two trees shown
@@ -333,12 +334,20 @@ come before any more RyR work. GUI rounds alternate with science rounds,
 so each new result lands somewhere it can be seen. (Rn) marks an open
 item carried over from round n; it stays listed there too.
 
-- [ ] **7.1 GUI: viewport and navigation.** The molecule fills about a
-  quarter of its column, so fit the camera to the structure on load and
-  on a subunit change. Add a camera preset centred on one IP3 site for
-  "Show on structure" (shells, contacts) (R3). Group the deposition list
-  by family, with RyR1 collapsed. Hide the RyR-only Puffs controls (Mg2+,
-  K_Mg,A, triggered sparks) while an IP3R receptor is selected.
+- [x] **7.1 GUI: viewport and navigation.** The fit itself was right. The
+  viewport was the problem: the Analysis dock's minimum was 851 px (one
+  row of Genomes controls), so the view got 209-319 px of a 1512 px
+  window. Wide rows now split, wide combos may shrink, and the docks
+  start at 380/580 px. The viewport gets 36 % of the window and the
+  molecule reaches 0.94 of it. The fit is redone on resize and on a
+  subunit change until the user moves the camera. Ctrl+3 and "Show" for
+  the contact and shell checks centre on one IP3 site: side-on from
+  outside, the 15 Å pocket filling the view, the front clipped at the
+  pocket, and the clip saved in sessions. Deposits without IP3 fall back
+  to the whole structure and say so. The deposition list is a tree by
+  family with RyR1 collapsed. The Puffs rows for Mg²⁺, K_Mg,A and
+  triggered sparks are hidden for IP3R, and IP3 is hidden for RyR1. All
+  of this is held by the smoke test (`scripts/screenshot_view.py`).
 - [ ] **7.2 Science: the IP3R puff in a microdomain.** Add Cao 2013's
   microdomain Ca2+ ODE with fluo-4 in place of instantaneous mean-field
   Ca2+ (R4). Targets: their inter-puff-interval distribution and the

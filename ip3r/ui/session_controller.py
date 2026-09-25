@@ -62,6 +62,7 @@ class SessionController:
             s.camera_pivot = [float(v) for v in cam.pivot]
             s.camera_distance = float(cam.distance)
             s.camera_pan = [float(v) for v in cam.pan]
+            s.camera_slab = -1.0 if cam.slab_front is None else float(cam.slab_front)
             s.orthographic = bool(cam.orthographic)
         r = win.morph.result
         if r is not None:
@@ -211,7 +212,9 @@ class SessionController:
         cam.pivot = np.array(s.camera_pivot, dtype=float)
         cam.distance = float(s.camera_distance)
         cam.pan = np.array(s.camera_pan, dtype=float)
+        cam.slab_front = None if s.camera_slab < 0 else float(s.camera_slab)
         cam.orthographic = bool(s.orthographic)
+        self.win.scene.fit_target = None      # a saved camera, not a fit to redo on resize
         self.win.viewport.update()
 
     def _restore_transition(self, s: Session) -> None:

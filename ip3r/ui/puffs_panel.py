@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import numpy as np
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QComboBox, QDoubleSpinBox, QFormLayout, QHBoxLayout,
+from PyQt6.QtWidgets import (QComboBox, QDoubleSpinBox, QFormLayout, QGridLayout,
                              QLabel, QPushButton, QVBoxLayout, QWidget)
 
 from ..parameters import PARAMETERS as _P
@@ -113,17 +113,18 @@ class PuffsPanel(QWidget):
                          ("Mg²⁺ at the activation site", self.reading)):
             form.addRow(label, w)
         self.model.currentIndexChanged.connect(self._model_changed)
+        self.form = form
         lay.addLayout(form)
-        row = QHBoxLayout()
+        row = QGridLayout()               # two columns: the dock stays narrow
         run = QPushButton("Simulate cluster (coupled vs uncoupled, same seed)")
         run.clicked.connect(self.run)
         scan = QPushButton("Scan coupling (both receptors)")
         scan.clicked.connect(self.scan)
         self.mg_scan_btn = QPushButton("Triggered sparks vs Mg²⁺")
         self.mg_scan_btn.clicked.connect(self.scan_mg)
-        row.addWidget(run)
-        row.addWidget(scan)
-        row.addWidget(self.mg_scan_btn)
+        row.addWidget(run, 0, 0, 1, 2)
+        row.addWidget(scan, 1, 0)
+        row.addWidget(self.mg_scan_btn, 1, 1)
         lay.addLayout(row)
         self.canvas = PlotCanvas(self, height=4.2, rows=3)
         lay.addWidget(self.canvas, 1)
@@ -143,9 +144,15 @@ class PuffsPanel(QWidget):
         self.coupling.setValue(pp.ca_per_open)
         self.n.setValue(pp.n_channels)
         ryr = self.model_key in pc.SPARKS
-        self.p.setEnabled(not ryr)                          # RyR ignores IP3
-        self.mg.setEnabled(ryr)                             # IP3R: no Mg2+ sites
+        # A control that cannot act on this receptor is hidden, not greyed:
+        # RyR ignores IP3, and the IP3R models have no Mg2+ sites.
+        self.p.setEnabled(not ryr)
+        self.mg.setEnabled(ryr)
         self.reading.setEnabled(ryr)
+        self.form.setRowVisible(self.p, not ryr)
+        self.form.setRowVisible(self.mg, ryr)
+        self.form.setRowVisible(self.reading, ryr)
+        self.mg_scan_btn.setVisible(ryr)
         self.mg_scan_btn.setEnabled(self.model_key in _CLEFT)
 
     def run(self):

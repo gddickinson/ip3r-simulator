@@ -37,7 +37,7 @@ def test_holds_the_view_and_its_inputs_only():
     assert {f.name for f in fields(Session)} == {
         "structure", "n_atoms", "style", "color_by", "layer", "show_ligands",
         "visible_chains", "sites", "show_pore", "completeness", "tab", "camera_rotation",
-        "camera_pivot", "camera_distance", "camera_pan", "orthographic",
+        "camera_pivot", "camera_distance", "camera_pan", "camera_slab", "orthographic",
         "transition", "parameters", "notes", "format_version",
         "software_version", "saved_at"}
 

@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from screenshot_sparks import SPARK_STEPS, spark_step  # noqa: E402
+import screenshot_view as sv  # noqa: E402
 
 
 def main() -> int:
@@ -74,6 +75,9 @@ def main() -> int:
                 if win.scene.structure is None:
                     state["step"] -= 1           # still loading
                     return QTimer.singleShot(500, step)
+                print(sv.check_fit(win, app), file=sys.stderr)
+                sv.check_list(win)
+                sv.check_subunit_refit(win, app)
                 win.structure_panel.site_boxes["ip3_contact"].setChecked(True)
                 win.grab().save(str(out / "gui_element.png"))
                 win.viewport.grabFramebuffer().save(str(out / "viewport_element.png"))
@@ -118,6 +122,7 @@ def main() -> int:
                 if n < 5:
                     raise RuntimeError(f"ligand shells drew {n} colours, not 4 + grey")
                 app.processEvents()                     # let the legend re-lay out
+                sv.check_site_view(win, app)
                 win.grab().save(str(out / "gui_shells.png"))
                 tabs = win.transition.parentWidget().parentWidget()
                 tabs.setCurrentWidget(win.transition)
@@ -212,6 +217,7 @@ def main() -> int:
                 pz = win.dynamics.puffs
                 pz.parent().parent().setCurrentWidget(pz)
                 pz.model.setCurrentIndex(pz.model.findData("park-drive"))
+                sv.check_puff_rows(pz)
                 if abs(pz.coupling.value() - 0.1) > 1e-9:
                     raise RuntimeError(f"park/drive coupling {pz.coupling.value()}")
                 pz.duration.setValue(5.0)

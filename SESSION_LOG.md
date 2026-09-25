@@ -1940,3 +1940,49 @@ screenshots motivated 7.1: the molecule fills about a quarter of the view,
 and RyR1-only controls appear for IP3R receptors.
 
 **Next:** Round 7.1.
+
+## 2026-09-25 (16) — Round 7.1: the viewport and navigation
+
+**Why.** The screenshots showed the molecule in a narrow strip of the
+window. The plan assumed the camera fit was wrong. Measuring showed it was
+not: the molecule already reached the edge of a viewport 209-319 px wide.
+Qt sized the Analysis dock from its widest page. The Genomes controls in
+one row forced 845 px, the Puffs buttons 612, Variants 656. The
+Structure dock also scrolled sideways, which hid subunit D's checkbox.
+
+**What.**
+- *Space.* The wide rows are split in two (Genomes, Variants, Puffs
+  buttons in a grid). `compact_combos` lets a combo wider than 160 px
+  shrink, since the size policy alone left macOS's minimumSizeHint wide
+  and an explicit minimum width was needed. The docks start at
+  `DOCK_WIDTHS` (380, 580). The left dock scrolls only vertically, and
+  two long labels became tooltips. Result: the viewport gets 36 % of a
+  1512 px window, not 14-21 %.
+- *Fit.* `SceneController.fit_target` ("all" / "site" / None) is re-fitted
+  on every viewport resize and subunit change until the user drags, zooms
+  or pans (the new `navigated` signal). A session restore sets it to None
+  so a saved camera is not overwritten. `Camera.screen_extent` measures
+  the fit. The molecule reaches 0.94 (margin 1.06).
+- *IP3 site view* (Ctrl+3; "Show" on the contact and shell checks). It
+  frames `ligand.neighbourhood` (ligand + 15 Å, S22's pocket) from outside
+  the tetramer along the radial direction, cytosol up. The first view hid
+  the pocket behind the tetramer, so `Camera.frame(slab=True)` clips the
+  front at the pocket (it follows zoom), and the clip planes come from the
+  whole scene. `camera_slab` joins the session fields.
+- *List.* The deposition list is a tree by family (IP3 receptors open,
+  RyR1 collapsed; selecting a RyR1 deposit opens its group).
+- *Puffs.* The Mg²⁺, K_Mg,A and triggered-spark controls are hidden
+  rather than greyed for IP3R, and IP3 is hidden for RyR1.
+
+**Checks.** `tests/test_camera.py` (7 tests). The smoke test's new
+`scripts/screenshot_view.py` asserts the viewport share, the molecule
+extent, a one-subunit refit, the site view's extent and slab, the
+grouped list and the hidden Puffs rows. It failed first on the dock width
+(26 %), which is how the dock minimums were found.
+
+**Next:** Round 7.2.
+
+*Smoke-test note.* Two runs hit the 900 s hang detector (steps 25/26,
+the triggered Mg²⁺ scan), with load average 7-12 from other processes.
+Headless, the scan took 47 s. The third run passed in 170 s with the
+scan at 46 s. This was throttling, not a hang.

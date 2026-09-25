@@ -1,7 +1,8 @@
 """Left dock: choose a deposition, and how it is drawn.
 
-The list is the curated registry (``resources/structures.json``), marked by
-whether each file is already downloaded. Loading happens on a worker thread;
+The list is the curated registry (``resources/structures.json`` and
+``ryr1.json``), grouped by family with RyR1 collapsed until one of its
+deposits is chosen, and marked by whether each file is already downloaded. Loading happens on a worker thread;
 the panel emits :attr:`load_requested` and the main window does the rest.
 """
 
@@ -9,8 +10,8 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (QCheckBox, QComboBox, QFormLayout, QGroupBox,
-                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-                             QPushButton, QVBoxLayout, QWidget)
+                             QHBoxLayout, QLabel, QPushButton, QTreeWidget,
+                             QTreeWidgetItem, QVBoxLayout, QWidget)
 
 from ..core.annotations import ELEMENT_COLORS, ELEMENT_LABELS, ELEMENT_ORDER, LAYER_LABELS
 from ..core.modules import MODULES_KEY
@@ -22,7 +23,11 @@ from ..render.representations import COLOR_LABELS, STYLE_LABELS, ColorBy, Style
 from ..structure.graft import FILL_MODES
 from ..structure.shells import SHELLS
 
-__all__ = ["StructurePanel"]
+__all__ = ["StructurePanel", "FAMILY_LABELS"]
+
+#: Headings of the deposition list, by registry family.
+FAMILY_LABELS = {"IP3R": "IP3 receptors", "RyR": "RyR1 (rabbit)"}
+_FAMILY_ROLE = Qt.ItemDataRole.UserRole + 1
 
 
 def _swatch(rgb) -> str:
@@ -40,10 +45,13 @@ class StructurePanel(QWidget):
         super().__init__(parent)
         lay = QVBoxLayout(self)
 
-        box = QGroupBox("Depositions (IP3R: ip3r_genes S0/S11/S22; RyR1: curated)")
+        box = QGroupBox("Depositions")
+        box.setToolTip("IP3R: from ip3r_genes S0/S11/S22; RyR1: curated here")
         bl = QVBoxLayout(box)
-        self.list = QListWidget()
-        self.list.itemDoubleClicked.connect(lambda it: self._load(it))
+        self.list = QTreeWidget()
+        self.list.setHeaderHidden(True)
+        self.list.setRootIsDecorated(True)
+        self.list.itemDoubleClicked.connect(lambda it, _col: self._load(it))
         bl.addWidget(self.list)
         row = QHBoxLayout()
         self.load_btn = QPushButton("Load")
@@ -103,9 +111,10 @@ class StructurePanel(QWidget):
         for key, label in (("ip3_contact", "Ten IP3 contacts (S0)"),
                            ("filter_lining", "Filter lining (S0)"),
                            ("gate_lining", "Gate lining (S0)"),
-                           (MODULES_KEY, "Paper 6 modules: ligand core (green) "
-                                         "and pore less the loop (magenta), Cα")):
+                           (MODULES_KEY, "Paper 6 modules (Cα)")):
             cb = QCheckBox(label)
+            if key == MODULES_KEY:
+                cb.setToolTip("Ligand core (green) and pore less the luminal loop (magenta)")
             cb.toggled.connect(lambda on, k=key: self.sites_toggled.emit(k, on))
             sl.addWidget(cb)
             self.site_boxes[key] = cb
@@ -123,33 +132,65 @@ class StructurePanel(QWidget):
 
     def refresh_list(self) -> None:
         current = self.current_id()
+        expanded = {self.list.topLevelItem(i).data(0, _FAMILY_ROLE)
+                    for i in range(self.list.topLevelItemCount())
+                    if self.list.topLevelItem(i).isExpanded()}
+        first = not self.list.topLevelItemCount()
         self.list.clear()
+        groups: dict[str, QTreeWidgetItem] = {}
         for e in load_registry():
+            fam = e.family
+            if fam not in groups:
+                groups[fam] = QTreeWidgetItem(self.list, [fam])
+                groups[fam].setFlags(Qt.ItemFlag.ItemIsEnabled)   # a heading, not a deposit
+                groups[fam].setData(0, _FAMILY_ROLE, fam)
             mark = "●" if is_local(e.pdb_id) else "○"
-            item = QListWidgetItem(f"{mark} {e.label}")
-            item.setData(Qt.ItemDataRole.UserRole, e.pdb_id)
-            item.setToolTip(f"{e.title}\nroles: {', '.join(e.roles)}"
-                            f"\n{'IP3 bound' if e.ip3_bound else 'no IP3'}"
-                            f"\n{'downloaded' if is_local(e.pdb_id) else 'will be fetched from RCSB'}")
-            self.list.addItem(item)
+            item = QTreeWidgetItem(groups[fam], [f"{mark} {e.label}"])
+            item.setData(0, Qt.ItemDataRole.UserRole, e.pdb_id)
+            item.setToolTip(0, f"{e.title}\nroles: {', '.join(e.roles)}"
+                               f"\n{'IP3 bound' if e.ip3_bound else 'no IP3'}"
+                               f"\n{'downloaded' if is_local(e.pdb_id) else 'will be fetched from RCSB'}")
             if e.pdb_id == current:
                 self.list.setCurrentItem(item)
+        for fam, g in groups.items():
+            g.setText(0, f"{FAMILY_LABELS.get(fam, fam)} ({g.childCount()})")
+            # IP3R open on first build, RyR1 collapsed; afterwards as the user left them.
+            g.setExpanded(fam == "IP3R" if first else fam in expanded)
+        if current is not None:
+            it = self._item(current)
+            if it is not None:
+                it.parent().setExpanded(True)
+
+    def _item(self, pdb_id: str):
+        """The list item of a deposit, or None."""
+        for i in range(self.list.topLevelItemCount()):
+            g = self.list.topLevelItem(i)
+            for j in range(g.childCount()):
+                if g.child(j).data(0, Qt.ItemDataRole.UserRole) == pdb_id.upper():
+                    return g.child(j)
+        return None
+
+    def ids(self) -> list[str]:
+        """Every deposit in the list, in order."""
+        return [self.list.topLevelItem(i).child(j).data(0, Qt.ItemDataRole.UserRole)
+                for i in range(self.list.topLevelItemCount())
+                for j in range(self.list.topLevelItem(i).childCount())]
 
     def current_id(self) -> str | None:
         it = self.list.currentItem()
-        return None if it is None else it.data(Qt.ItemDataRole.UserRole)
+        return None if it is None else it.data(0, Qt.ItemDataRole.UserRole)
 
     def select(self, pdb_id: str) -> None:
-        for i in range(self.list.count()):
-            it = self.list.item(i)
-            if it.data(Qt.ItemDataRole.UserRole) == pdb_id.upper():
-                self.list.setCurrentItem(it)
-                self._load(it)
-                return
+        it = self._item(pdb_id)
+        if it is not None:
+            it.parent().setExpanded(True)
+            self.list.setCurrentItem(it)
+            self._load(it)
 
     def _load(self, item) -> None:
-        if item is not None:
-            self.load_requested.emit(item.data(Qt.ItemDataRole.UserRole))
+        pdb_id = None if item is None else item.data(0, Qt.ItemDataRole.UserRole)
+        if pdb_id:                                  # a family heading has none
+            self.load_requested.emit(pdb_id)
 
     # -------------------------------------------------------------- styling
 

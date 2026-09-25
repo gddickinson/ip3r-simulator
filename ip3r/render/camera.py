@@ -115,23 +115,34 @@ class Camera:
     #: Near/far are recomputed from the scene radius each frame.
     scene_radius: float = 200.0
     pan: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    #: Front clip, as a depth from the pivot toward the viewer (Å); None =
+    #: the whole scene. Set by ``frame(..., slab=True)`` so what lies between
+    #: the camera and a framed site does not hide it; it follows zoom.
+    slab_front: float | None = None
 
     # ---------------------------------------------------------------- setup
 
-    def frame(self, coords: np.ndarray, margin: float = 1.06) -> "Camera":
+    def frame(self, coords: np.ndarray, margin: float = 1.06,
+              scene: np.ndarray | None = None, slab: bool = False) -> "Camera":
         """Point the camera at a coordinate set and pull back to include it.
 
         The pull-back distance uses the *true* bounding-sphere radius, not half
         the bounding-box diagonal. a wide, flat assembly (the IP3R cytosolic cap), and the
         diagonal overestimates its radius badly enough to leave the molecule
         floating in the middle of an empty viewport.
+
+        ``scene`` (default ``coords``) sets the clip planes: framing one IP3
+        site must not clip away the rest of the tetramer behind it. ``slab``
+        clips the front at the nearest framed point instead, so the rest of
+        the tetramer in front of the site is not drawn.
         """
         coords = np.asarray(coords, dtype=np.float64)
         if len(coords) == 0:
             return self
         lo, hi = coords.min(axis=0), coords.max(axis=0)
         self.pivot = 0.5 * (lo + hi)
-        self.scene_radius = float(np.linalg.norm(coords - self.pivot, axis=1).max()) or 100.0
+        everything = coords if scene is None else np.asarray(scene, dtype=np.float64)
+        self.scene_radius = float(np.linalg.norm(everything - self.pivot, axis=1).max()) or 100.0
 
         # Project into the *current* camera orientation and solve for the
         # distance that just contains everything. For a point at camera-frame
@@ -146,9 +157,22 @@ class Camera:
         need_x = local[:, 2] + np.abs(local[:, 0]) / max(np.tan(half_h), 1e-6)
         need_y = local[:, 2] + np.abs(local[:, 1]) / max(np.tan(half_v), 1e-6)
         self.distance = float(max(need_x.max(), need_y.max()) * margin)
-        self.distance = max(self.distance, self.scene_radius * 0.2)
+        self.distance = max(self.distance, self.scene_radius * 0.05)
         self.pan = np.zeros(3)
+        self.slab_front = float(local[:, 2].max()) if slab else None
         return self
+
+    def screen_extent(self, coords: np.ndarray) -> tuple[float, float]:
+        """How much of the viewport ``coords`` span: the largest |x| and |y|
+        in normalised device coordinates (1.0 = touching the edge).
+
+        Measures what :meth:`frame` promises; the GUI smoke test uses it to
+        catch a molecule left small in the middle of the view.
+        """
+        pts = np.column_stack([np.asarray(coords, np.float64), np.ones(len(coords))])
+        clip = pts @ (self.projection_matrix() @ self.view_matrix()).T
+        ndc = clip[:, :2] / clip[:, 3:4]
+        return float(np.abs(ndc[:, 0]).max()), float(np.abs(ndc[:, 1]).max())
 
     # ----------------------------------------------------------- navigation
 
@@ -213,6 +237,8 @@ class Camera:
 
     def clip_planes(self) -> tuple[float, float]:
         near = max(self.distance - self.scene_radius * 2.5, self.scene_radius * 0.01)
+        if self.slab_front is not None:
+            near = max(near, self.distance - self.slab_front)
         far = self.distance + self.scene_radius * 2.5
         return near, far
 

@@ -386,7 +386,12 @@ make help
 
 Mouse: left-drag rotate, shift-drag pan, wheel zoom, click to identify a
 residue (element and conservation shown). `Ctrl+1` side view, `Ctrl+2` down
-the pore, `Space` spin.
+the pore, `Ctrl+3` one IP3 site (its 15 Å pocket, the tetramer in front of
+it clipped away), `Ctrl+0` fit to view, `Space` spin. Until you move the
+camera, the view keeps the molecule filling the viewport as the window or
+the visible subunits change. "Show on structure" for the IP3-contact and
+ligand-shell checks opens the site view. The deposition list is grouped by
+family, with RyR1 collapsed.
 
 **Changing a parameter.** Help → Parameters… (`Ctrl+Shift+P`) lists every
 registered number with its default, bounds and source; double-click a value

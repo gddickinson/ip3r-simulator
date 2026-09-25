@@ -110,6 +110,10 @@ class ViewportWidget(QOpenGLWidget):
     status = pyqtSignal(str)
     #: Right-click: the position to pop up at, and the atom under it (-1 none).
     context_requested = pyqtSignal(QPoint, int)
+    #: The user moved the camera (drag, wheel, keys): an automatic fit stops.
+    navigated = pyqtSignal()
+    #: The widget changed size: an automatic fit re-fits to the new aspect.
+    resized = pyqtSignal()
 
     def __init__(self, settings: RenderSettings | None = None, parent=None) -> None:
         super().__init__(parent)
@@ -187,6 +191,10 @@ class ViewportWidget(QOpenGLWidget):
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         self.overlay.setGeometry(self.rect())
+        if self.scene is not None:          # the camera must know the new aspect
+            ratio = self.devicePixelRatioF()
+            self.scene.resize(int(self.width() * ratio), int(self.height() * ratio))
+        self.resized.emit()
 
     # ------------------------------------------------------------ animation
 
@@ -288,6 +296,9 @@ class ViewportWidget(QOpenGLWidget):
         elif buttons & Qt.MouseButton.RightButton:
             self.scene.camera.zoom(1.0 + dy * 2.0)
             self.update()
+        else:
+            return
+        self.navigated.emit()
 
     def wheelEvent(self, event) -> None:
         if self.scene is None:
@@ -295,6 +306,7 @@ class ViewportWidget(QOpenGLWidget):
         delta = event.angleDelta().y() / 120.0
         self.scene.camera.zoom(0.9 ** delta)
         self.update()
+        self.navigated.emit()
 
     def keyPressEvent(self, event) -> None:
         if self.scene is None:

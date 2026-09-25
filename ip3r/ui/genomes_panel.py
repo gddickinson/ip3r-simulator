@@ -49,8 +49,12 @@ class GenomesPanel(QWidget):
         for w in (self.layer, self.order, self.vclass):
             w.currentIndexChanged.connect(self.redraw)
         self.above.toggled.connect(self.redraw)
-        for w in (QLabel("Colour"), self.layer, QLabel("Sort"), self.order,
-                  self.vclass, self.above):
+        for w in (QLabel("Colour"), self.layer, QLabel("Sort"), self.order):
+            row.addWidget(w)
+        row.addStretch(1)
+        lay.addLayout(row)
+        row = QHBoxLayout()                # two rows: the dock stays narrow
+        for w in (self.vclass, self.above):
             row.addWidget(w)
         row.addStretch(1)
         row.addWidget(self.reload_btn)

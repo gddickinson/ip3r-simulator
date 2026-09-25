@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
-from PyQt6.QtWidgets import (QDockWidget, QFileDialog, QMainWindow, QMessageBox,
+from PyQt6.QtWidgets import (QComboBox, QDockWidget, QFileDialog, QMainWindow, QMessageBox,
                              QScrollArea, QTabWidget, QToolBar)
 
 from .. import __version__
@@ -62,6 +62,28 @@ CHECK_RANGE = frozenset(("P1.presence_range", "P1.kingdom_absences", "P1.relaxed
                          "P1.record_chase"))
 CHECK_COLOURS = {k: "ligand_shell" for k in ("P6.shell_distances", "P6.shell_constraint",
                                              "P6.shell_trend", "P6.no_contact_step")}
+#: Checks about one IP3 pocket: "Show" centres the camera on a site.
+CHECK_SITE_VIEW = frozenset(CHECK_COLOURS) | frozenset(
+    k for k, v in CHECK_SITES.items() if v == "ip3_contact")
+#: Dock widths on first show (px); the viewport takes the rest. Without
+#: them Qt sizes the docks from their contents and leaves the molecule a
+#: strip a fifth of the window wide.
+DOCK_WIDTHS = (380, 580)
+
+
+def compact_combos(root, chars: int = 10, wide: int = 160) -> None:
+    """Let every wide combo box under ``root`` shrink below its longest item.
+
+    A combo's default minimum is its longest entry, and one row of long
+    layer titles held the whole Analysis dock at 850 px.
+    """
+    for combo in root.findChildren(QComboBox):
+        if combo.minimumSizeHint().width() <= wide:
+            continue
+        combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        combo.setMinimumContentsLength(chars)
+        combo.setMinimumWidth(wide)       # the policy alone leaves minimumSizeHint wide
+        combo.view().setMinimumWidth(combo.view().sizeHintForColumn(0) + 24)  # popup: full text
 
 
 class MainWindow(QMainWindow):
@@ -89,6 +111,7 @@ class MainWindow(QMainWindow):
         self.sessions = SessionController(self)
 
         self.structure_panel = StructurePanel()
+        compact_combos(self.structure_panel)
         self._dock("Structure", self.structure_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
         self.channel = ChannelPanel()
         self.modes = ModesPanel()
@@ -107,6 +130,7 @@ class MainWindow(QMainWindow):
                         (self.genomes, "Genomes"),
                         (self.variants, "Variants")):
             tabs.addTab(w, name)
+        compact_combos(tabs)
         self._dock("Analysis", tabs, Qt.DockWidgetArea.RightDockWidgetArea, scroll=False)
 
         sp = self.structure_panel
@@ -137,8 +161,17 @@ class MainWindow(QMainWindow):
         self.viewport.atom_picked.connect(self._picked)
         self.viewport.scene_ready.connect(lambda _: self.scene.attach())
         self.viewport.status.connect(self.statusBar().showMessage)
+        self.viewport.navigated.connect(self.scene.navigated)
+        self.viewport.resized.connect(self.scene.resized)
+        self._docks_sized = False
         self._menus()
         self.statusBar().showMessage(f"ip3r_genes results: {genes_results()}")
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        if not self._docks_sized:
+            self._docks_sized = True
+            self.resizeDocks(self._docks, list(DOCK_WIDTHS), Qt.Orientation.Horizontal)
 
     def _dock(self, title, widget, area, scroll=True) -> None:
         dock = QDockWidget(title, self)
@@ -146,10 +179,13 @@ class MainWindow(QMainWindow):
             area_w = QScrollArea()
             area_w.setWidget(widget)
             area_w.setWidgetResizable(True)
+            # Fit the width, scroll only vertically: a sideways scroll hid subunit D.
+            area_w.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             widget = area_w
         dock.setWidget(widget)
-        dock.setMinimumWidth(360 if area == Qt.DockWidgetArea.LeftDockWidgetArea else 560)
+        dock.setMinimumWidth(300 if area == Qt.DockWidgetArea.LeftDockWidgetArea else 480)
         self.addDockWidget(area, dock)
+        self._docks = [*getattr(self, "_docks", []), dock]
 
     def _menus(self) -> None:
         mb = self.menuBar()
@@ -164,6 +200,8 @@ class MainWindow(QMainWindow):
         v = mb.addMenu("&View")
         self._action(v, "Side view (cytosol up)", self.scene.side_view, "Ctrl+1")
         self._action(v, "Top view (down the pore)", self.scene.top_view, "Ctrl+2")
+        self._action(v, "IP3 site", self._site_view, "Ctrl+3")
+        self._action(v, "Fit to view", self.scene.fit_view, "Ctrl+0")
         self._action(v, "Toggle spin", lambda: self.viewport.set_spin(
             0.0 if self.viewport._spin_speed else 20.0), "Space")
         h = mb.addMenu("&Help")
@@ -364,6 +402,15 @@ class MainWindow(QMainWindow):
             from ..render.representations import ColorBy
             sp = self.structure_panel
             sp.color.setCurrentIndex(sp.color.findData(ColorBy(CHECK_COLOURS[check_id])))
+        if check_id in CHECK_SITE_VIEW:
+            self._site_view()
+
+    def _site_view(self) -> None:
+        msg = self.scene.site_view()
+        if msg:
+            self.statusBar().showMessage(
+                f"camera: {msg}" + ("; front clipped at the pocket (Ctrl+0 fits all)"
+                                    if self.scene.fit_target == "site" else ""))
 
     def _highlight_variant(self, paralog: str, resi: int) -> None:
         msg = self.scene.highlight_residue(paralog, resi)

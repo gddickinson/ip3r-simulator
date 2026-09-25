@@ -60,6 +60,8 @@ class Session:
     camera_pivot: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
     camera_distance: float = 300.0
     camera_pan: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
+    #: Front clip depth from the pivot (Å) of a site view; negative = none.
+    camera_slab: float = -1.0
     orthographic: bool = False
 
     #: ``{end, fit, method, frame, paint}`` when a transition was built.

@@ -22,7 +22,7 @@ from ..config import IP3_COMP_ID
 from ..core.structure import Structure
 from ..parameters import PARAMETERS as _P
 
-__all__ = ["LigandSite", "ligand_sites", "contacts", "residue_distances"]
+__all__ = ["LigandSite", "ligand_sites", "contacts", "residue_distances", "neighbourhood"]
 
 
 @dataclass
@@ -73,6 +73,17 @@ def contacts(st: Structure, site: LigandSite,
         (own if st.chain[i] == site.subunit else other).add(key)
     return {"same_subunit": sorted(own, key=lambda k: k[1]),
             "other_subunit": sorted(other, key=lambda k: k[1])}
+
+
+def neighbourhood(st: Structure, site: LigandSite,
+                  radius: float | None = None) -> np.ndarray:
+    """Atom indices of the ligand and every atom within ``radius`` of it
+    (default ``ligand.shell_radius``, S22's pocket): what a camera centred
+    on one site must keep in view."""
+    radius = _P.value("ligand.shell_radius") if radius is None else radius
+    d, _ = cKDTree(st.xyz[site.atoms]).query(st.xyz, k=1,
+                                              distance_upper_bound=radius + 1e-6)
+    return np.flatnonzero(np.isfinite(d))
 
 
 def residue_distances(st: Structure, site: LigandSite, chain: str | None = None,

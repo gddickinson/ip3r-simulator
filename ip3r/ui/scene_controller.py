@@ -17,9 +17,13 @@ from ..physics.anm import ANM, atom_displacements, tetramer_sites
 from ..render import colormaps
 from ..render.representations import MolecularView, Style
 from ..render.variant_spheres import variant_spheres
+from ..structure.ligand import ligand_sites, neighbourhood
 from .fill_overlay import FillOverlay
 
-__all__ = ["SceneController", "matrix_to_quat"]
+__all__ = ["SceneController", "matrix_to_quat", "SITE_MARGIN"]
+
+#: The IP3 site view pulls back this much beyond S22's 15 Å pocket, for context.
+SITE_MARGIN = 1.3
 
 
 def matrix_to_quat(r: np.ndarray) -> np.ndarray:
@@ -48,6 +52,9 @@ class SceneController:
         self._variants: tuple | None = None       # (paralog, buckets, layer)
         self._variant_atoms = np.zeros(0, int)
         self._fill: FillOverlay | None = None
+        #: What the camera keeps framed while the user has not moved it:
+        #: "all" (the visible subunits), "site" (one IP3 site) or None.
+        self.fit_target: str | None = None
 
     @property
     def fill(self) -> FillOverlay:
@@ -92,22 +99,74 @@ class SceneController:
                 self.show_variants(*self._variants)
         self.view.rebuild()
         self.fill.restyle(self.view.style, self.view.visible_chains)
+        if chains_changed and self.fit_target is not None:
+            self.refit()
         self.viewport.update()
 
     # --------------------------------------------------------------- camera
 
-    def _orient(self, rot_rows: np.ndarray) -> None:
-        cam = self.scene.camera
-        cam.rotation = matrix_to_quat(rot_rows)
-        cam.frame(self.structure.xyz)
+    def _visible_atoms(self) -> np.ndarray:
+        """Atoms of the visible subunits (all of them if none is visible)."""
+        ok = self.view._chain_ok() if self.view is not None else None
+        if ok is None or not ok.any():
+            return np.arange(self.structure.n_atoms)
+        return np.flatnonzero(ok)
+
+    def _site_atoms(self) -> tuple[np.ndarray, str] | None:
+        """The pocket of the first IP3 on a visible subunit, and its subunit."""
+        visible = self.view.visible_chains if self.view is not None else None
+        sites = ligand_sites(self.structure)
+        shown = [s for s in sites if visible is None or s.subunit in visible]
+        if not shown:
+            return None
+        return neighbourhood(self.structure, shown[0]), shown[0].subunit
+
+    def refit(self) -> str:
+        """Frame :attr:`fit_target` in the current orientation.
+
+        The camera's aspect is the viewport's, so a fit made before the docks
+        settle is redone on every resize until the user moves the camera
+        (:meth:`navigated`). Returns what was framed.
+        """
+        if self.structure is None or self.scene is None or self.fit_target is None:
+            return ""
+        xyz = self.view.structure.xyz if self.view is not None else self.structure.xyz
+        everything = xyz[self._visible_atoms()]
+        if self.fit_target == "site":
+            found = self._site_atoms()
+            if found is not None:
+                atoms, subunit = found
+                self.scene.camera.frame(xyz[atoms], margin=SITE_MARGIN,
+                                        scene=everything, slab=True)
+                self.viewport.update()
+                return f"IP3 site on subunit {subunit}"
+            self.fit_target = "all"
+        self.scene.camera.frame(everything)
         self.viewport.update()
+        return "whole structure"
+
+    def navigated(self) -> None:
+        """The user moved the camera: stop re-fitting behind their back."""
+        self.fit_target = None
+
+    def resized(self) -> None:
+        if self.fit_target is not None:
+            self.refit()
+
+    def _orient(self, rot_rows: np.ndarray, target: str = "all") -> str:
+        self.scene.camera.rotation = matrix_to_quat(rot_rows)
+        self.fit_target = target
+        return self.refit()
+
+    def _side_rows(self) -> np.ndarray:
+        e1, e2, e3 = self.summary.frame.basis.T
+        return np.array([e1, e3, np.cross(e1, e3)])
 
     def side_view(self) -> None:
         """The four-fold axis vertical on screen, cytosolic cap up."""
         if self.summary is None or self.scene is None:
             return
-        e1, e2, e3 = self.summary.frame.basis.T
-        self._orient(np.array([e1, e3, np.cross(e1, e3)]))
+        self._orient(self._side_rows())
 
     def top_view(self) -> None:
         """Looking down the pore from the cytosol."""
@@ -115,6 +174,34 @@ class SceneController:
             return
         e1, e2, e3 = self.summary.frame.basis.T
         self._orient(np.array([e1, e2, e3]))
+
+    def fit_view(self) -> None:
+        """Frame the visible subunits without turning the camera."""
+        if self.summary is not None and self.scene is not None:
+            self.fit_target = "all"
+            self.refit()
+
+    def site_view(self) -> str:
+        """Side-on, centred on one IP3 site and its S22 pocket (15 Å).
+
+        The site is seen from outside the tetramer: the camera looks along
+        the radial direction from the axis to the ligand, cytosol up.
+        Deposits without IP3 fall back to the whole structure, and say so.
+        """
+        if self.summary is None or self.scene is None:
+            return ""
+        found = self._site_atoms()
+        if found is None:
+            self._orient(self._side_rows())
+            return f"{self.structure.name} has no IP3 on a visible subunit: whole structure framed"
+        atoms, _ = found
+        fr = self.summary.frame
+        local = fr.to_frame(self.structure.xyz[atoms].mean(0)[None])[0]
+        e1, e2, e3 = fr.basis.T
+        radial = local[0] * e1 + local[1] * e2
+        radial /= max(np.linalg.norm(radial), 1e-9)
+        right = np.cross(e3, radial)          # screen x; e3 up; toward the viewer = radial
+        return self._orient(np.array([right, e3, radial]), target="site")
 
     # --------------------------------------------------------------- extras
 
