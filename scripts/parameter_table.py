@@ -18,6 +18,7 @@ from parameter_table_perm import PERM
 from parameter_table_graft import GRAFT
 from parameter_table_ryr import RYR
 from parameter_table_ec import EC
+from parameter_table_domain import DOMAIN
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -379,3 +380,4 @@ P += PERM
 P += GRAFT
 P += RYR
 P += EC
+P += DOMAIN

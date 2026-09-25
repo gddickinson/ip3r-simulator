@@ -1986,3 +1986,66 @@ grouped list and the hidden Puffs rows. It failed first on the dock width
 the triggered Mg²⁺ scan), with load average 7-12 from other processes.
 Headless, the scan took 47 s. The third run passed in 170 s with the
 scan at 46 s. This was throttling, not a hang.
+
+## 2026-09-25 (17) — Round 7.2: the IP3R puff in a microdomain
+
+**Why.** The park/drive cluster's Ca²⁺ was instantaneous and mean-field, so
+Cao 2013's two headline puff results could not be tested: the IPI
+distribution against h42 recovery, and the amplitude-vs-N saturation. The
+Round 4 question was also open: is the sustained 9 % open above ~0.5 µM
+coupling the missing store, or the model?
+
+**Sources.** Cao 2013's main text (PMC3852038) gives the point-domain
+equations (Eqs. 11-15). Its Table S2 (constants) is behind PMC's browser
+challenge, and Chrome was not connected. Cao 2014's Text S1 code (open
+access) gives a fully specified microdomain / cytosol / store model from the
+same authors with the same receptor, and every pool constant was read from
+it. Fluo-4 comes from Shuai, Rose & Parker 2006 Table 1 (in the Mendeley
+library). Its K_d of 2 µM is the value Cao 2013's text states.
+
+**What.**
+- `physics/microdomain.py`: the pools with fluo-4 bound in the microdomain,
+  the bound dye counted in the total. Three clamps (`none`, `store`,
+  `bath`). The code's own start (ct 45 → store 449 µM) is not its steady
+  state (630-1340 µM, reached over minutes), so the store starts there and
+  the cytosol is solved against it.
+- `puffs_pd.ReceptorCluster`: the receptor step pulled out of
+  `simulate_cluster_pd` so both clusters drive one object. It is
+  bit-identical for a given seed, checked before and after.
+- `physics/puffs_domain.py`, `physics/puff_stats.py` (events and puffs from
+  F/F0, Thurley MLE, likelihood ratio against the exponential),
+  `physics/puff_domain_scans.py` (a_h42, N, store; one process per point).
+  `ParkDriveParams.__module__` is set so the class pickles into workers.
+- CLI `microdomain` (`cli_domain.py`). 33 `domain.*` parameters and three
+  references. The event rule changed once: counting one-channel events by
+  channel made 0.3 ms park flickers into "blips", so events are detected in
+  F/F0, as the experiments detect them.
+
+**Measured.** See `docs/SCIENCE_PUFF_DOMAIN.md` for the tables.
+- IPIs (N 10, 0.1 µM IP3, 900 s): as a_h42 goes 0.1 → 5 /s, the rate goes
+  0.13 → 0.74 /s and the CV 0.79 → 0.93 (Cao: CV 0.79 at a_h42 = 1, 0.65-0.95
+  over the scan). At the slow end λ 0.16 and ξ 0.61 match Cao's range, but
+  LR 2.2 on 114 intervals is not significant.
+- Amplitude vs N: at 1× release no bend (puffs ≤ 0.7 µM, K_d 2 µM). The
+  mean blip matches Cao's 1.6 at 2.5× (registered `domain.blip_scale`).
+  There dF/F0 bends at N ≈ 12 (0.5 → 0.17 per receptor) and Ca²⁺ bends less.
+- Sustained 9 %: it survives in a fixed bath (microdomain kinetics and dye
+  kept, 6.5-8 % open). A free store gives *more* activity than a held one.
+  Only the whole cytosol filling (27-60 µM) lowers it, and the cluster still
+  does not puff. The model, not the store.
+
+**Checks first, then numbers.** Two of my own guesses failed and were
+replaced by derivations: a dye-compression bound of 0.3 (measured 0.23 at
+4×), and the idea that the clamped stationary bell would predict the scan.
+It gives 32 % at 0.11 µM/open against 5 % simulated, because the open
+receptor's own mouth inhibits it, and the bell leaves that out.
+
+**Incidental finding.** `pd.ca_mouth = 120 µM` was registered in Session 9
+as the code's `120 (cs/100)` "with the store held full". The code's store is
+449 µM, not 100 µM, which makes the mouth 539 µM. Not changed. The store scan's
+"deep mouth" condition measures the effect: < 1 point of open fraction.
+
+**Not changed.** `make sync-check` clean; no verdict moved. No UI change
+(the Puffs panel gets the microdomain in Round 7.3). Tests 459 → 476.
+
+**Next:** Round 7.3.

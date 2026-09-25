@@ -68,6 +68,7 @@ _KEYS = ["q12", "q21", "q23", "q32", "q26", "q62", "q45", "q54",
 #: Every constant of the receptor, read from ``pd.<name>`` at construction.
 ParkDriveParams = make_dataclass(
     "ParkDriveParams", [(k, float, _v(f"pd.{k}")) for k in _KEYS])
+ParkDriveParams.__module__ = __name__     # so worker processes can pickle it
 
 
 def _rise(p, k, h):

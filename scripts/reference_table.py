@@ -233,4 +233,20 @@ REFERENCES = [
               "intracellular Ca2+ release of skeletal muscle in quantitative "
               "detail",
      "journal": "J Gen Physiol 158:e202613968", "doi": "10.1085/jgp.202613968"},
+    {"key": "shuai2006", "authors": "Shuai J, Rose HJ, Parker I", "year": 2006,
+     "title": "The number and spatial distribution of IP3 receptors "
+              "underlying calcium puffs in Xenopus oocytes",
+     "journal": "Biophys J 91:4033-4044", "doi": "10.1529/biophysj.106.088880"},
+    {"key": "thurley2011", "authors": "Thurley K, Smith IF, Tovey SC, Taylor "
+     "CW, Parker I, Falcke M", "year": 2011,
+     "title": "Timescales of IP3-evoked Ca2+ spikes emerge from Ca2+ puffs "
+              "only at the cellular level",
+     "journal": "Biophys J 101:2638-2644", "doi": "10.1016/j.bpj.2011.10.030"},
+    {"key": "dickinson2012", "authors": "Dickinson GD, Swaminathan D, "
+     "Parker I", "year": 2012,
+     "title": "The probability of triggering calcium puffs is linearly "
+              "related to the number of inositol trisphosphate receptors in "
+              "a cluster",
+     "journal": "Biophys J 102:1826-1836", "doi": "10.1016/j.bpj.2012.03.029"},
 ]
+

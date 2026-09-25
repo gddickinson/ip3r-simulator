@@ -300,10 +300,13 @@ The park/drive coupling (`puff.pd_ca_per_open` = 0.1 µM) was chosen by the
 rule that chose DYK's 1 µM: the value that most raises the Fano factor.
 Cao's own microdomain gives about 0.11 µM per open channel.
 
-**Limitations.** The cluster Ca²⁺ is mean-field and instantaneous (Cao
-integrates a microdomain ODE with fluo-4), and the store is never depleted.
-Above about 0.5 µM coupling, the park/drive cluster settles into sustained
-partial activity (9 % open) rather than discrete puffs.
+**Limitations.** The cluster Ca²⁺ is mean-field and instantaneous, and the
+store is never depleted. Above about 0.5 µM coupling, the park/drive cluster
+settles into sustained partial activity (9 % open) rather than discrete
+puffs. `docs/SCIENCE_PUFF_DOMAIN.md` (Round 7.2) replaces the mean field with
+Cao's microdomain, fluo-4 and a store that can deplete. It reproduces Cao's
+IPI trend and the fluorescence bend at N ≈ 12, and shows the sustained state
+belongs to the receptor model, not to the missing store.
 
 ## Permeation: conductance, selectivity and the Ca²⁺ current
 

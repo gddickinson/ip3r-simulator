@@ -98,6 +98,17 @@ between (`python -m ip3r puffs --scan`).
 
 ![Park/drive puffs](docs/img/gui_puffs_pd.png)
 
+`python -m ip3r microdomain` puts the park/drive cluster in Cao et al.'s
+microdomain: Ca²⁺ pools that fill and drain, fluo-4, and a store that can
+deplete. Puffs are then read from F/F0. As the h42 recovery rate rises from 0.1 to
+5 s⁻¹, the puff rate rises 5.5× and the inter-puff-interval CV climbs from
+0.79 toward 1, as in Cao 2013. With the release set so that the mean blip
+matches Cao's, fluorescence amplitude bends at about 12 receptors while
+Ca²⁺ bends less, because the dye saturates. The mean-field cluster's
+sustained 9 % open state survives the microdomain's kinetics, and depleting
+the store makes it more active, not less. That state belongs to the receptor
+model (`docs/SCIENCE_PUFF_DOMAIN.md`).
+
 The Channel tab turns each ITPR3 deposit's pore into a K+ conductance by
 drift-diffusion (ported from PIEZO1), with and without the charges of the
 side chains that line it. Only activated 8TKF conducts. It gives 65 pS

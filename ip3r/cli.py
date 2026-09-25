@@ -16,6 +16,7 @@ testable and scriptable:
     python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)
     python -m ip3r oscillate --ip3 0.5 [--window]
     python -m ip3r puffs --ip3 0.2 [--model park-drive] [--scan]
+    python -m ip3r microdomain [--scan ah42|n|store]   # puffs read from fluo-4
     python -m ip3r graft 8TKG [--mode full] [--calibrate]   # AlphaFold fills, seams
     python -m ip3r params           # every registered number and its source
 """
@@ -381,6 +382,8 @@ def main(argv: list[str] | None = None) -> int:
     _register_perm(sub)
     from .cli_ryr import register as _register_ryr
     _register_ryr(sub)
+    from .cli_domain import register as _register_domain
+    _register_domain(sub)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

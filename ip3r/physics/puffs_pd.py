@@ -33,7 +33,7 @@ from ..parameters import PARAMETERS as _P
 from . import park_drive as pdm
 from .puffs import PuffTrace
 
-__all__ = ["ParkDrivePuffParams", "simulate_cluster_pd"]
+__all__ = ["ParkDrivePuffParams", "ReceptorCluster", "simulate_cluster_pd"]
 
 
 def _v(key: str):
@@ -51,6 +51,56 @@ class ParkDrivePuffParams:
     receptor: pdm.ParkDriveParams = field(default_factory=pdm.ParkDriveParams)
 
 
+class ReceptorCluster:
+    """``n`` park/drive receptors advanced one step of ``dt`` at a time.
+
+    The receptors' own dynamics, independent of where their Ca2+ comes from:
+    each call to ``step`` takes the Ca2+ a closed receptor sees and the Ca2+
+    an open one sees over the step. The mean-field cluster below and the
+    microdomain cluster (``puffs_domain``) both drive it. Every receptor
+    starts parked (C4) with its gates at equilibrium at ``ca_start``.
+    """
+
+    def __init__(self, n: int, p: float, dt: float, rng: np.random.Generator,
+                 g: pdm.ParkDriveParams, ca_start: float):
+        self.n, self.dt, self.rng, self.g = n, dt, rng, g
+        self.f = pdm.ip3_functions(p, g)
+        cum = np.cumsum(expm(pdm.constant_generator(g) * dt), axis=1)
+        cum[:, -1] = 1.0                              # guard round-off
+        self.cum = cum
+        # Exact exponential relaxation per step; only h42 depends on open/closed.
+        lam_closed = np.array([g.lam_m24, g.lam_h24, g.lam_m42, g.lam_h42_closed])
+        lam_open = np.array([g.lam_m24, g.lam_h24, g.lam_m42, g.lam_h42_open])
+        self.decay_closed = np.exp(-lam_closed * dt)[:, None]
+        self.decay_open = np.exp(-lam_open * dt)[:, None]
+        self.state = np.full(n, pdm.C4)
+        self.gates = np.repeat(self.equilibrium(ca_start)[:, None], n, axis=1)
+
+    def equilibrium(self, ca: float) -> np.ndarray:
+        """Gate equilibria ``(m24, h24, m42, h42)`` at Ca2+ ``ca``."""
+        return np.array(pdm.gate_inf(ca, self.f, self.g), dtype=float)
+
+    @property
+    def is_open(self) -> np.ndarray:
+        return pdm.OPEN[self.state]
+
+    def step(self, closed_inf: np.ndarray, open_inf: np.ndarray) -> None:
+        """One step: gates relax toward ``closed_inf`` or ``open_inf`` (the
+        equilibria at the Ca2+ each receptor sees), then the exact
+        constant-rate step inside each mode, then the mode switch."""
+        is_open = self.is_open
+        target = np.where(is_open, open_inf[:, None], closed_inf[:, None])
+        decay = np.where(is_open, self.decay_open, self.decay_closed)
+        self.gates = target + (self.gates - target) * decay
+        q24, q42 = pdm.mode_rates(self.gates, self.f)
+        rng, dt = self.rng, self.dt
+        state = (rng.random(self.n)[:, None] > self.cum[self.state]).sum(axis=1)
+        u = rng.random(self.n)
+        to_park = (state == pdm.C2) & (u < -np.expm1(-q24 * dt))
+        to_drive = (state == pdm.C4) & (u < -np.expm1(-q42 * dt))
+        self.state = np.where(to_park, pdm.C4, np.where(to_drive, pdm.C2, state))
+
+
 def simulate_cluster_pd(p: float, duration: float = 20.0, seed: int = 0,
                         pp: ParkDrivePuffParams | None = None,
                         clamp_ca: float | None = None) -> PuffTrace:
@@ -62,30 +112,19 @@ def simulate_cluster_pd(p: float, duration: float = 20.0, seed: int = 0,
     condition the stationary functions describe, and the test uses it.
     """
     pp = pp or ParkDrivePuffParams()
-    g = pp.receptor
     rng = np.random.default_rng(seed)
     n = int(round(pp.n_channels))
     dt = pp.dt
-    f = pdm.ip3_functions(p, g)
-    cum = np.cumsum(expm(pdm.constant_generator(g) * dt), axis=1)
-    cum[:, -1] = 1.0                                  # guard round-off
-    open_ = pdm.OPEN
     # The cluster Ca2+ takes one of n + 1 values, so the gate equilibria are
     # tabulated once: row k = (closed, open) receptor with k channels open.
     n_open_all = np.arange(n + 1)
     cluster = pp.ca_rest + pp.ca_per_open * n_open_all
     if clamp_ca is not None:
         cluster = np.full(n + 1, float(clamp_ca))
-    closed_inf = np.stack(pdm.gate_inf(cluster, f, g), axis=1)          # (n+1, 4)
+    rc = ReceptorCluster(n, p, dt, rng, pp.receptor, cluster[0])
+    closed_inf = np.stack(pdm.gate_inf(cluster, rc.f, pp.receptor), axis=1)
     mouth = 0.0 if clamp_ca is not None else pp.ca_mouth
-    open_inf = np.stack(pdm.gate_inf(cluster + mouth, f, g), axis=1)
-    # Exact exponential relaxation per step; only h42 depends on open/closed.
-    lam_closed = np.array([g.lam_m24, g.lam_h24, g.lam_m42, g.lam_h42_closed])
-    lam_open = np.array([g.lam_m24, g.lam_h24, g.lam_m42, g.lam_h42_open])
-    decay_closed = np.exp(-lam_closed * dt)[:, None]
-    decay_open = np.exp(-lam_open * dt)[:, None]
-    state = np.full(n, pdm.C4)
-    gates = np.repeat(closed_inf[0][:, None], n, axis=1)                # (4, n)
+    open_inf = np.stack(pdm.gate_inf(cluster + mouth, rc.f, pp.receptor), axis=1)
 
     record_every = max(1, int(round(pp.record_dt / dt)))
     steps = int(round(duration / dt))
@@ -96,22 +135,12 @@ def simulate_cluster_pd(p: float, duration: float = 20.0, seed: int = 0,
     ca_out = np.empty(n_rec)
     k = 0
     for step in range(steps + 1):
-        is_open = open_[state]
-        n_open = int(is_open.sum())
+        n_open = int(rc.is_open.sum())
         if step % record_every == 0:
             t_out[k], open_out[k], ca_out[k] = step * dt, n_open, cluster[n_open]
             k += 1
         peak_out[k - 1] = max(peak_out[k - 1], n_open)
         # Gates relax toward the Ca2+ each receptor sees over this step: the
         # cluster's, or the cluster's plus its own mouth while open.
-        target = np.where(is_open, open_inf[n_open][:, None], closed_inf[n_open][:, None])
-        gates = target + (gates - target) * np.where(is_open, decay_open, decay_closed)
-        q24, q42 = pdm.mode_rates(gates, f)
-        # 1. exact constant-rate step inside each mode
-        state = (rng.random(n)[:, None] > cum[state]).sum(axis=1)
-        # 2. mode switch
-        u = rng.random(n)
-        to_park = (state == pdm.C2) & (u < -np.expm1(-q24 * dt))
-        to_drive = (state == pdm.C4) & (u < -np.expm1(-q42 * dt))
-        state = np.where(to_park, pdm.C4, np.where(to_drive, pdm.C2, state))
+        rc.step(closed_inf[n_open], open_inf[n_open])
     return PuffTrace(t_out[:k], open_out[:k], ca_out[:k], pp, p, peak_out[:k])

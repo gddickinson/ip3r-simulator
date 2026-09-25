@@ -24,3 +24,9 @@ def test_transition(capsys):
 def test_puffs_park_drive(capsys):
     assert main(["puffs", "--model", "park-drive", "--duration", "1"]) == 0
     assert '"large_share"' in capsys.readouterr().out
+
+
+def test_microdomain(capsys):
+    assert main(["microdomain", "--duration", "2", "--clamp", "none"]) == 0
+    out = capsys.readouterr().out
+    assert "store free" in out and "blip dF/F0" in out

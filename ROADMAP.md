@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.2, the IP3R puff in a microdomain (Round 7
+**Next:** Round 7.3, the gating models side by side (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -178,12 +178,13 @@ Emergent (not scheduled):
   - [ ] Park/drive's stationary bell is not in the Gating panel beside DYK
     and Mak (`park_drive.bell_at` exists; at 0.2 µM IP3 it peaks at 0.32
     near 0.70 µM Ca²⁺).
-  - [ ] The cluster Ca²⁺ is instantaneous mean-field. Cao integrate a
-    microdomain ODE with fluo-4, which is what their inter-puff-interval and
-    puff-shape results rest on. Adding it would let the app reproduce their
-    IPI distribution and the amplitude-vs-N saturation.
-  - [ ] Above ~0.5 µM coupling, park/drive sits at a sustained 9 % open
-    rather than puffing. Is that the missing store depletion, or the model?
+  - [x] The cluster Ca²⁺ is instantaneous mean-field. Round 7.2 adds Cao's
+    microdomain with fluo-4 (`physics/microdomain.py`): the IPI trend with
+    a_h42 and the dF/F0 bend at N ≈ 12 are reproduced.
+  - [x] Above ~0.5 µM coupling, park/drive sits at a sustained 9 % open.
+    Round 7.2: the model, not the store. The state survives the
+    microdomain's kinetics in a fixed bath, and a free store raises
+    activity.
 - [x] Unitary current from the pore profile (1-D drift–diffusion ported from
   PIEZO1, and wall charge from each deposit's own side-chain atoms), across
   the ITPR3 state panel. Six of seven states are sterically shut (r_free
@@ -348,15 +349,36 @@ item carried over from round n; it stays listed there too.
   family with RyR1 collapsed. The Puffs rows for Mg²⁺, K_Mg,A and
   triggered sparks are hidden for IP3R, and IP3 is hidden for RyR1. All
   of this is held by the smoke test (`scripts/screenshot_view.py`).
-- [ ] **7.2 Science: the IP3R puff in a microdomain.** Add Cao 2013's
-  microdomain Ca2+ ODE with fluo-4 in place of instantaneous mean-field
-  Ca2+ (R4). Targets: their inter-puff-interval distribution and the
-  amplitude-vs-N saturation. Also settle whether park/drive's sustained
-  9 % open above ~0.5 uM coupling is missing store depletion or the
-  model (R4).
+- [x] **7.2 Science: the IP3R puff in a microdomain.** Cao 2014's pools
+  (every constant from their code) with fluo-4 in the microdomain (Cao
+  2013 Eq. 12, Shuai 2006's constants), driving the park/drive receptors
+  (now `puffs_pd.ReceptorCluster`, shared and bit-identical). Puffs are
+  read from F/F0 and IPIs fitted by Thurley's Eq. 14 by maximum likelihood.
+  *IPIs* (N 10, 0.1 µM, 900 s): as a_h42 goes 0.1 → 5 /s the rate rises
+  5.5× and the CV goes 0.79 → 0.93 (Cao: 0.65-0.95). At the slow end λ 0.16
+  and ξ 0.61 land on Cao's values, but the refractory fit is not
+  significant on 114 intervals (LR 2.2). *Amplitude vs N*: at Cao 2014's
+  release, puffs stay under K_d and nothing bends. At 2.5× (mean blip
+  dF/F0 1.33-1.66, Cao's 1.6) dF/F0 bends at N ≈ 12 (0.5 → 0.17 per
+  receptor) while Ca2+ bends less. *Sustained 9 %*: five conditions from
+  the mean field to a free store. The state survives kinetics and dye in a
+  fixed bath (6.5-8 %). A free store *raises* activity against a held one,
+  and only the whole cytosol filling (27-60 µM) lowers it. So: the model,
+  not the store. Incidental: `pd.ca_mouth` = 120 µM is the code's rule at a
+  store of 100 µM, while the code's store is 449 µM (539 µM mouth). Deepening
+  the mouth moves the open fraction by < 1 point.
+  Emergent:
+  - [ ] Cao 2013's Table S2 (its release and J_decrease) is still unread.
+    It would replace `domain.blip_scale`, which is matched, not read.
+  - [ ] Cao 2013's Eq. 10 λ_h42 (a Ca2+ switch at 20 µM, V = 100 /s) against
+    the 2014 code's open/closed switch used here.
+  - [ ] Seeds: the a_h42 scan runs one seed per point (ξ at 0.27 /s is out
+    of line with its neighbours).
 - [ ] **7.3 GUI: the gating models side by side.** Show park/drive's
   stationary bell in the Gating panel beside DYK and Mak (R4). Make the
-  A-subspace overlap the Transition tab's headline plot (R2).
+  A-subspace overlap the Transition tab's headline plot (R2). Add the
+  microdomain cluster to the Puffs panel (F/F0 trace, IPI histogram with
+  the Thurley fit) (7.2).
 - [ ] **7.4 Science: protonation in the IP3R pore.** Estimate pKa shifts
   for the D2518/D2522 carboxylates and K2482/K2529 (R4). Rerun
   selectivity under each reading against Vais 2010's P_Ca:P_K 15.2, with
