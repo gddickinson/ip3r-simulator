@@ -76,9 +76,11 @@ def bell_at(p: float, g: MakParams | None = None) -> Bell:
 def compare_flanks(p_lo: float | None = None, p_hi: float | None = None
                    ) -> dict[str, tuple[float, float]]:
     """Fold shift of (activating, inhibitory) half-points, IP3 ``p_lo`` ->
-    ``p_hi``, for both models on one ruler: ``{"DYK": ..., "Mak": ...}``."""
-    from . import gating
+    ``p_hi``, for the three IP3R models on one ruler:
+    ``{"DYK": ..., "Mak": ..., "Park/drive": ...}``."""
+    from . import gating, park_drive
     p_lo = _P.value("mak.compare_ip3_low") if p_lo is None else p_lo
     p_hi = _P.value("mak.compare_ip3_high") if p_hi is None else p_hi
     return {"DYK": flank_shifts(gating.bell_at, p_lo, p_hi),
-            "Mak": flank_shifts(bell_at, p_lo, p_hi)}
+            "Mak": flank_shifts(bell_at, p_lo, p_hi),
+            "Park/drive": flank_shifts(park_drive.bell_at, p_lo, p_hi)}

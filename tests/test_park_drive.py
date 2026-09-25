@@ -63,3 +63,13 @@ def test_bell_is_bell_shaped():
 
 def test_no_ip3_never_drives():
     assert pd.park_fraction(0.5, 0.0) == pytest.approx(1.0)
+
+
+def test_ip3_tunes_inhibition_alone_as_measured():
+    """Mak's flank test on the park/drive bell: 33 nM -> 10 uM IP3 leaves
+    half-activation within 1.1x (1.09) and moves half-inhibition > 40x.
+    The ruler itself is calibrated in test_gating_mak (a planted K_act
+    dependence is caught)."""
+    from ip3r.physics.gating_mak import compare_flanks
+    act, inh = compare_flanks()["Park/drive"]
+    assert act < 1.15 and inh > 20.0

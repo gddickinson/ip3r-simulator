@@ -3740,6 +3740,19 @@
    "maximum": 100000.0
   },
   {
+   "key": "domain.gui_duration",
+   "name": "Simulated time per GUI microdomain run",
+   "value": 60.0,
+   "unit": "s",
+   "kind": "method",
+   "category": "domain",
+   "citation": "method_choice",
+   "description": "Default length of the Puffs panel's microdomain run (the panel's Duration spin box starts here).",
+   "source_note": "At 1x release and 0.1 uM IP3 about 20 puffs in 60 s, enough to fit Eq. 14; a run takes about 18 s on a worker (2026-09-25)",
+   "minimum": 5.0,
+   "maximum": 10000.0
+  },
+  {
    "key": "domain.ah42_min",
    "name": "Slowest h42 recovery in the scan",
    "value": 0.1,

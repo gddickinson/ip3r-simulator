@@ -224,14 +224,25 @@ the model's content. It describes steady-state data only, with no
 inhibition kinetics, so it cannot drive the cell or puff models (the
 park/drive receptor, below, is the kinetic model used for puffs).
 
-Both models are measured with one ruler (`physics.bell`): the Ca²⁺ at half
-the bell's own peak on each flank. From 33 nM (the lowest IP3 at which the
-paper says activation was unaffected) to 10 µM:
+All three IP3R models (with park/drive's stationary bell, Round 7.3) are
+measured with one ruler (`physics.bell`): the Ca²⁺ at half the bell's own
+peak on each flank. From 33 nM (the lowest IP3 at which the paper says
+activation was unaffected) to 10 µM:
 
 | model | half-activation | half-inhibition |
 |---|---|---|
 | De Young–Keizer | 2.01× | 2.76× |
 | Mak 1998 | 1.016× | 6.22× |
+| Park/drive (stationary, gates at equilibrium) | 1.09× | 42.8× |
+
+Park/drive passes Mak's test almost as well as Mak's own fit, although
+Siekmann's rates were fitted to stationary records and not to this
+comparison. Its half-activation sits at 0.28–0.39 µM from 10 nM to 10 µM
+IP3. The inhibitory flank moves 40× because IP3 lifts the m42·h42 switch
+out of park mode at high Ca²⁺ (1.4 µM at 0.1 µM IP3, 56 µM at 10 µM). Its
+bell never reaches zero: park mode's O5 leaves a floor of about 10 % of
+the peak at both ends. The Gating panel's "three models side by side" draws
+the bells at 33 nM and at 10 µM, each relative to its own peak.
 
 The test can fail. With IP3 dependence planted into K_act, the same ruler
 sees the activating flank move (a test asserts it). Below K_IP3 the Mak bell

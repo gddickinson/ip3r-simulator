@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.3, the gating models side by side (Round 7
+**Next:** Round 7.4, protonation in the IP3R pore (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -61,8 +61,8 @@ Emergent (not scheduled):
 - [x] Default stride 2 (user's decision, 2026-09-24): no local modes on 8TKG,
   RMSIP20 0.97 vs stride 1, 1.2 s. Collective A together 0.669; lowest A
   0.390, best single #10 0.498. RyR1 keeps one local set (residue 1988).
-- [ ] Plot the A-subspace overlap as the Transition tab's headline (it is in
-  the text report; the plot still marks the lowest A mode).
+- [x] Plot the A-subspace overlap as the Transition tab's headline (Round
+  7.3: `TransitionOverlap.subspace`, 0.67 against 0.039).
 - [x] The gate radius along the morph (`structure/morph_pore.py`): every
   heavy atom both deposits resolve interpolated (Cα offset, 70,952 atoms,
   none unmatched), axis re-found per frame. Endpoint frames measure as the
@@ -175,9 +175,8 @@ Emergent (not scheduled):
   fraction is 1.7 % against 5.2 %. The split step reproduces the clamped
   stationary P_open to 0.2 %, and a 5 ms step is caught (10.5 %).
   Emergent:
-  - [ ] Park/drive's stationary bell is not in the Gating panel beside DYK
-    and Mak (`park_drive.bell_at` exists; at 0.2 µM IP3 it peaks at 0.32
-    near 0.70 µM Ca²⁺).
+  - [x] Park/drive's stationary bell is in the Gating panel beside DYK
+    and Mak (Round 7.3; it passes Mak's flank test, 1.09× / 42.8×).
   - [x] The cluster Ca²⁺ is instantaneous mean-field. Round 7.2 adds Cao's
     microdomain with fluo-4 (`physics/microdomain.py`): the IPI trend with
     a_h42 and the dF/F0 bend at N ≈ 12 are reproduced.
@@ -374,11 +373,23 @@ item carried over from round n; it stays listed there too.
     the 2014 code's open/closed switch used here.
   - [ ] Seeds: the a_h42 scan runs one seed per point (ξ at 0.27 /s is out
     of line with its neighbours).
-- [ ] **7.3 GUI: the gating models side by side.** Show park/drive's
-  stationary bell in the Gating panel beside DYK and Mak (R4). Make the
-  A-subspace overlap the Transition tab's headline plot (R2). Add the
-  microdomain cluster to the Puffs panel (F/F0 trace, IPI histogram with
-  the Thurley fit) (7.2).
+- [x] **7.3 GUI: the gating models side by side.** The Gating panel
+  (`ui/gating_panel.py`, split out of `dynamics_panel`) adds park/drive's
+  stationary bell (with the parked fraction) and a "three models side by
+  side" view at Mak's two IP3 levels. `compare_flanks` now measures all
+  three on one ruler, 33 nM → 10 µM: park/drive moves half-activation
+  1.09× and half-inhibition 42.8× (Mak 1.016× / 6.2×, DYK 2.0× / 2.8×), so
+  it passes Mak's test although its rates were not fitted to it. The
+  Transition tab's headline is now the A subspace
+  (`TransitionOverlap.subspace`: the collective A modes added lowest first,
+  beside the same-symmetry null and the √(A share) ceiling; 8TKG → 8TKF
+  0.67, random 0.039). A selector below it picks the gate path, every
+  mode, or the element means: four plots at half the dock's width did not
+  fit. For park/drive, the Puffs panel gets a microdomain box
+  (`ui/puffs_domain_view.py`, `domain.gui_duration`): F/F0 with the puffs
+  marked, the number open, and IPIs against Thurley's Eq. 14. At the
+  panel's defaults (IP3 0.2 µM, N 20, 30 s): 44 puffs, CV 0.68, and a
+  significant refractory period (LR 8.4).
 - [ ] **7.4 Science: protonation in the IP3R pore.** Estimate pKa shifts
   for the D2518/D2522 carboxylates and K2482/K2529 (R4). Rerun
   selectivity under each reading against Vais 2010's P_Ca:P_K 15.2, with

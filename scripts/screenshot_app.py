@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from screenshot_ip3r import IP3R_STEPS, check_transition_headline, ip3r_step  # noqa: E402
 from screenshot_sparks import SPARK_STEPS, spark_step  # noqa: E402
 import screenshot_view as sv  # noqa: E402
 
@@ -142,6 +143,7 @@ def main() -> int:
                 if not (g.gate[0] < 3.0 < 5.5 < g.gate[-1]) or "gate" not in \
                         win.transition.frame_label.text():
                     raise RuntimeError(f"gate along the morph: {g.gate[[0, -1]]}")
+                check_transition_headline(win)
                 win.grab().save(str(out / "gui_transition.png"))
                 win.findings.tree.setCurrentItem(
                     win.findings._items["P2.cyclostome_lineages"])
@@ -209,7 +211,7 @@ def main() -> int:
                 win.grab().save(str(out / "gui_range.png"))
                 win.tabs.setCurrentWidget(win.dynamics)
                 gt = win.dynamics.gating
-                gt.model.setCurrentIndex(1)             # Mak et al. 1998
+                gt.select("mak")                        # Mak et al. 1998
                 if "Mak 1998" not in gt.text.text() or "K_inh" not in gt.note.text():
                     raise RuntimeError(f"Mak gating drew: {gt.text.text()[:120]}")
                 app.processEvents()
@@ -431,7 +433,7 @@ def main() -> int:
                 win.tabs.setCurrentWidget(win.dynamics)
                 gt = win.dynamics.gating
                 gt.parent().parent().setCurrentWidget(gt)
-                gt.model.setCurrentIndex(2)                  # RyR1 bells
+                gt.select("ryr1")                            # RyR1 bells
                 if "never end" not in gt.text.text():
                     raise RuntimeError(f"RyR1 gating drew: {gt.text.text()[:120]}")
                 app.processEvents()
@@ -446,6 +448,10 @@ def main() -> int:
                 pz.run()
             elif s < 22 + SPARK_STEPS:            # RyR1 sparks, with and without Mg2+
                 if spark_step(s - 22, win, app, out):
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+            elif s < 22 + SPARK_STEPS + IP3R_STEPS:    # Round 7.3: IP3R models
+                if ip3r_step(s - 22 - SPARK_STEPS, win, app, out):
                     state["step"] -= 1
                     return QTimer.singleShot(500, step)
             else:

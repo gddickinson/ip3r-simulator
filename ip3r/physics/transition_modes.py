@@ -42,8 +42,8 @@ from ..structure.transition import Transition
 from .anm import ANM, ModeSet, apply_generator
 from .network_checks import describe_local, local_modes
 
-__all__ = ["TransitionOverlap", "transition_overlap", "remove_rigid_body",
-           "irrep_fractions", "null_cumulative"]
+__all__ = ["TransitionOverlap", "Subspace", "transition_overlap",
+           "remove_rigid_body", "irrep_fractions", "null_cumulative"]
 
 
 def remove_rigid_body(disp: np.ndarray, coords: np.ndarray) -> np.ndarray:
@@ -94,6 +94,20 @@ def null_cumulative(symmetry: np.ndarray, fractions: dict, n_sites: int,
     return np.sqrt(np.cumsum(step))
 
 
+@dataclass(frozen=True)
+class Subspace:
+    """The modes of one irrep, lowest first, as one growing subspace."""
+    irrep: str
+    index: np.ndarray               # mode indices (0-based), lowest first
+    cumulative: np.ndarray          # overlap of the first k of them together
+    null: np.ndarray                # random direction, same irrep make-up
+    ceiling: float                  # sqrt(irrep fraction): no such modes reach more
+
+    @property
+    def total(self) -> float:
+        return float(self.cumulative[-1]) if len(self.cumulative) else 0.0
+
+
 @dataclass
 class TransitionOverlap:
     transition: Transition
@@ -116,6 +130,19 @@ class TransitionOverlap:
     def best(self) -> int:
         return int(np.argmax(self.overlap))
 
+    def subspace(self, irrep: str = "A", collective: bool = True) -> Subspace:
+        """The modes of ``irrep`` taken together (by default skipping local
+        artefacts). A mode of one irrep can only reach that irrep's part of
+        the displacement, so the ceiling is sqrt(irrep_fraction)."""
+        ok = self.modes.symmetry == irrep
+        if collective:
+            ok &= self.modes.is_collective()
+        idx = np.flatnonzero(ok)
+        null = null_cumulative(self.modes.symmetry[idx], self.irrep_fraction,
+                               self.modes.meta["n_sites"])
+        return Subspace(irrep, idx, np.sqrt(np.cumsum(self.overlap[idx] ** 2)),
+                        null, float(np.sqrt(self.irrep_fraction.get(irrep, 0.0))))
+
     def report(self) -> list[str]:
         tr, k = self.transition, len(self.overlap)
         a = self.lowest_a
@@ -136,10 +163,10 @@ class TransitionOverlap:
         if local:
             lines.append("local network artefacts (collectivity below threshold): "
                          + "; ".join(describe_local(local)))
-        coll_a = self.modes.is_collective() & (self.modes.symmetry == "A")
-        if coll_a.any():
-            lines.append(f"collective A modes together ({int(coll_a.sum())}): overlap "
-                         f"{np.sqrt(np.sum(self.overlap[coll_a] ** 2)):.3f}; "
+        sub = self.subspace("A")
+        if len(sub.index):
+            lines.append(f"collective A modes together ({len(sub.index)}): overlap "
+                         f"{sub.total:.3f}; "
                          "the split among them moves with the cutoff, the total "
                          "far less (network_checks.cutoff_scan)")
         lines.append(f"cumulative overlap of {k} modes {self.cumulative[-1]:.3f} "

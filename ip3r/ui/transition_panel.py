@@ -11,7 +11,9 @@ chains too: each atom both deposits resolve is interpolated to its end
 position, so the gate plotted along the path is the gate drawn, and the
 rigid-side-chain gate beside it shows what the shortcut would have said),
 and the overlap is printed beside the value a random direction of the same
-symmetry would get.
+symmetry would get. The headline plot is the collective A modes taken
+together (``TransitionOverlap.subspace``): which single A mode carries the
+move is a cutoff choice, the A subspace is not.
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ from ..io.registry import load_registry
 from ..structure.morph import NOTE
 from .plot_canvas import PALETTE, PlotCanvas
 
-__all__ = ["TransitionPanel", "PRESET", "preset_for"]
+__all__ = ["TransitionPanel", "PRESET", "preset_for", "LOWER_PLOTS"]
 
 #: The resting -> activated pair of ITPR3 (S11's state panel; Round 2).
 PRESET = ("8TKG", "8TKF")
@@ -41,6 +43,11 @@ def preset_for(family: str) -> tuple[str, str, str] | None:
     start = next((e.pdb_id for e in reg if "morph_start" in e.roles), None)
     end = next((e.pdb_id for e in reg if "morph_end" in e.roles), None)
     return (start, end, "Primed → open") if start and end else None
+
+#: What the lower plot can show (the A subspace is always on top).
+LOWER_PLOTS = {"gate": "the pore along the morph",
+               "modes": "every mode, by symmetry",
+               "elements": "mean displacement by element"}
 
 _IRREP_COLOUR = {"A": PALETTE[1], "B": PALETTE[0], "E": PALETTE[2], "mixed": "#8a8f99"}
 
@@ -110,7 +117,15 @@ class TransitionPanel(QWidget):
         self.paint.toggled.connect(self.paint_toggled.emit)
         lay.addWidget(self.paint)
 
-        self.canvas = PlotCanvas(self, height=5.2, rows=2)
+        row = QHBoxLayout()
+        row.addWidget(QLabel("Lower plot"))
+        self.lower = QComboBox()
+        for key, label in LOWER_PLOTS.items():
+            self.lower.addItem(label, key)
+        self.lower.currentIndexChanged.connect(self._redraw)
+        row.addWidget(self.lower, 1)
+        lay.addLayout(row)
+        self.canvas = PlotCanvas(self, height=5.6, rows=2)
         lay.addWidget(self.canvas, 1)
         self.report = QLabel("")
         self.report.setWordWrap(True)
@@ -217,37 +232,79 @@ class TransitionPanel(QWidget):
         if not self._following:
             self.frame_requested.emit(i)
 
+    def _redraw(self) -> None:
+        r = self.result
+        if r is not None:
+            self._plot(r.transition, r.overlap, r.gate)
+
     def _plot(self, tr, ov, gate) -> None:
-        axes = self.canvas.reset(2, 2)
-        ax1 = self.canvas.span_row(axes[0])
-        ax2, ax3 = axes[1]
-        means = sorted(tr.element_means().items(), key=lambda kv: kv[1])
-        ax1.barh([ELEMENT_LABELS.get(k, k) for k, _ in means], [v for _, v in means],
-                 color=PALETTE[0])
-        ax1.set_title(f"mean Cα displacement by element (Å, {tr.fit} fit)")
-        ax1.tick_params(axis="y", labelsize=7)
+        """The A subspace on top, always; the lower plot as chosen."""
+        top, ax = self.canvas.reset(2, 1)[:, 0]
+        self._plot_subspace(top, tr, ov)
+        self._marker = None
+        which = self.lower.currentData()
+        if which == "modes":
+            self._plot_modes(ax, tr, ov)
+        elif which == "elements":
+            means = sorted(tr.element_means().items(), key=lambda kv: kv[1])
+            ax.barh([ELEMENT_LABELS.get(k, k) for k, _ in means],
+                    [v for _, v in means], color=PALETTE[0])
+            ax.set_title(f"mean Cα displacement by element (Å, {tr.fit} fit)")
+            ax.tick_params(axis="y", labelsize=7)
+        else:
+            self._plot_gate(ax, tr, gate)
+        self.canvas.draw_now()
+
+    def _plot_subspace(self, ax, tr, ov) -> None:
+        """The headline: the collective A modes taken together, lowest
+        first. The split among them moves with the ANM cutoff; the total
+        does not (Round 2, ``network_checks.cutoff_scan``)."""
+        sub = ov.subspace("A")
+        if not len(sub.index):
+            ax.text(0.5, 0.5, "no collective A modes", transform=ax.transAxes,
+                    ha="center", color="grey")
+            return
+        k = np.arange(1, len(sub.index) + 1)
+        ax.bar(k, ov.overlap[sub.index], color=_IRREP_COLOUR["A"], alpha=0.55,
+               label="each A mode")
+        ax.plot(k, sub.cumulative, "o-", color="#d7dbe3", lw=1.4, ms=3,
+                label="A modes together")
+        ax.plot(k, sub.null, color="#d7dbe3", lw=1, ls=":",
+                label="random, same symmetry")
+        ax.axhline(sub.ceiling, color=_IRREP_COLOUR["A"], lw=0.8, ls="--",
+                   label=f"ceiling √(A share) {sub.ceiling:.2f}")
+        ax.set_xticks(k)
+        ax.set_xticklabels([f"#{i + 1}" for i in sub.index], fontsize=7)
+        ax.set_ylim(0, 1.75)                       # legend above the ceiling
+        ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+        ax.set_xlabel(f"collective A modes of {ov.reference}, lowest first")
+        ax.set_ylabel("overlap")
+        ax.set_title(f"A subspace: {sub.total:.2f} of the move "
+                     f"(random {sub.null[-1]:.3f})")
+        self.canvas.legend(ax, loc="upper left", ncol=2)
+
+    def _plot_modes(self, ax, tr, ov) -> None:
         k = np.arange(1, len(ov.overlap) + 1)
         local = ~ov.modes.is_collective()
         colours = [_IRREP_COLOUR.get(s, "#8a8f99") for s in ov.modes.symmetry]
-        bars = ax2.bar(k, ov.overlap, color=colours)
+        bars = ax.bar(k, ov.overlap, color=colours)
         for b, lo in zip(bars, local):
             if lo:
                 b.set_alpha(0.3)
                 b.set_hatch("//")
-        ax2.plot(k, ov.cumulative, color="#d7dbe3", lw=1.2, label="cumulative")
-        ax2.plot(k, ov.null_cumulative, color="#d7dbe3", lw=1, ls=":",
-                 label="random, same symmetry")
+        ax.plot(k, ov.cumulative, color="#d7dbe3", lw=1.2, label="cumulative")
+        ax.plot(k, ov.null_cumulative, color="#d7dbe3", lw=1, ls=":",
+                label="random, same symmetry")
         for name in ("A", "B", "E"):
-            ax2.bar([0], [0], color=_IRREP_COLOUR[name], label=f"{name} mode")
-        ax2.set_xlim(0.4, len(k) + 0.6)
-        ax2.set_xticks(k[::2] if len(k) > 12 else k)
-        ax2.set_ylim(0, 1)
-        ax2.set_xlabel(f"ANM mode of {ov.reference} (hatched: local artefact)")
-        ax2.set_ylabel("overlap |cos|")
-        ax2.set_title(f"{ov.reference} network → {tr.end_id}?")
-        self.canvas.legend(ax2, loc="upper left", ncol=2)
-        self._plot_gate(ax3, tr, gate)
-        self.canvas.draw_now()
+            ax.bar([0], [0], color=_IRREP_COLOUR[name], label=f"{name} mode")
+        ax.set_xlim(0.4, len(k) + 0.6)
+        ax.set_xticks(k[::2] if len(k) > 12 else k)
+        ax.set_ylim(0, 1.45)
+        ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0])
+        ax.set_xlabel(f"ANM mode of {ov.reference} (hatched: local artefact)")
+        ax.set_ylabel("overlap |cos|")
+        ax.set_title("every mode, by symmetry")
+        self.canvas.legend(ax, loc="upper left", ncol=3)
 
     def _plot_gate(self, ax, tr, g) -> None:
         ax.plot(g.fraction, g.gate, color=PALETTE[0], lw=1.6,
@@ -257,7 +314,7 @@ class TransitionPanel(QWidget):
         ax.plot(g.fraction, g.filter, color=PALETTE[2], lw=1.2, label="filter")
         self._marker = ax.axvline(g.fraction[self.slider.value()], color="#d7dbe3", lw=0.8)
         ax.set_xlim(0, 1)
-        ax.set_xlabel(f"path fraction; gate half-way at {g.half_open():.2f}")
+        ax.set_xlabel(f"path fraction (gate half-way at {g.half_open():.2f})")
         ax.set_ylabel("radius r_min (Å)")
         ax.set_title("the pore along the morph")
         self.canvas.legend(ax, loc="lower right", ncol=1)

@@ -15,6 +15,10 @@ reading of the activation-site affinity (``spark_mg.READINGS``). Under the
 fibre's Mg2+ no spark starts by itself, so "Triggered sparks vs Mg2+"
 (cleft receptors) opens the available channels at t = 0 and times the array
 to shut, over ``spark_mg.mg_values``.
+
+The park/drive receptor can also be run in Cao 2013's microdomain with
+fluo-4 (``puffs_domain_view``): F/F0, the number open, and the inter-puff
+intervals against Thurley's refractory density.
 """
 
 from __future__ import annotations
@@ -27,6 +31,7 @@ from PyQt6.QtWidgets import (QComboBox, QDoubleSpinBox, QFormLayout, QGridLayout
 from ..parameters import PARAMETERS as _P
 from ..physics import puff_compare as pc
 from ..physics import spark_mg as sm
+from . import puffs_domain_view as dv
 from .plot_canvas import PALETTE, PlotCanvas
 from .workers import run_async
 
@@ -126,6 +131,9 @@ class PuffsPanel(QWidget):
         row.addWidget(scan, 1, 0)
         row.addWidget(self.mg_scan_btn, 1, 1)
         lay.addLayout(row)
+        self.domain = dv.DomainControls()
+        self.domain.run_btn.clicked.connect(self.run_domain)
+        lay.addWidget(self.domain)
         self.canvas = PlotCanvas(self, height=4.2, rows=3)
         lay.addWidget(self.canvas, 1)
         self.text = QLabel()
@@ -154,6 +162,20 @@ class PuffsPanel(QWidget):
         self.form.setRowVisible(self.reading, ryr)
         self.mg_scan_btn.setVisible(ryr)
         self.mg_scan_btn.setEnabled(self.model_key in _CLEFT)
+        self.domain.setVisible(self.model_key == "park-drive")
+
+    def run_domain(self):
+        spec = self.domain.spec()
+        p, n = self.p.value(), int(self.n.value())
+        self.text.setText(f"Simulating {spec['duration']:g} s of the cluster in "
+                          "its microdomain (about 0.3 s per simulated second)…")
+        run_async(lambda: dv.simulate(p, n, **spec),
+                  on_done=lambda out: self._show_domain(out, spec),
+                  on_error=self.text.setText)
+
+    def _show_domain(self, out, spec):
+        text, self.result = dv.draw(self.canvas, *out, spec)
+        self.text.setText(text)
 
     def run(self):
         self.text.setText("Simulating…")

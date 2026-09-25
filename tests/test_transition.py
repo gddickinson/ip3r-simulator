@@ -130,3 +130,23 @@ def test_overlap_of_a_random_move_sits_at_the_null():
     tr = _synthetic_transition(lambda s: 0.5 * rng.normal(size=s.shape))
     ov = transition_overlap(tr, stride=1, n_modes=12)
     assert ov.cumulative[-1] < 4 * ov.null_cumulative[-1]
+
+
+def test_a_subspace_holds_a_move_spread_over_a_modes():
+    """Two A modes mixed: no single mode explains it, the A subspace does
+    completely, and a B move leaves the A subspace empty (ceiling 0)."""
+    x = np.vstack(c4_tetramer(n_per=60, seed=3))
+    anm = ANM(x, axis=Z)
+    ms = anm.label_symmetry(anm.calc_modes(12))
+    a = np.flatnonzero(ms.symmetry == "A")[:2]
+    b = ms.first("B", collective=False)
+    unit = [ms.vectors[i] / np.linalg.norm(ms.vectors[i]) for i in a]
+    mixed = _synthetic_transition(lambda s: 20.0 * (unit[0] + unit[1]))
+    sub = transition_overlap(mixed, stride=1, n_modes=12).subspace("A", collective=False)
+    ov = transition_overlap(mixed, stride=1, n_modes=12)
+    assert ov.overlap.max() < 0.75            # each carries 1/sqrt(2)
+    assert sub.total > 0.999 and sub.ceiling == pytest.approx(1.0, abs=1e-6)
+    assert np.all(np.diff(sub.cumulative) >= 0) and sub.null[-1] < 0.2
+    moved_b = _synthetic_transition(lambda s: 2.0 * ms.mode(b, 1.0))
+    sub_b = transition_overlap(moved_b, stride=1, n_modes=12).subspace("A", collective=False)
+    assert sub_b.total < 0.01 and sub_b.ceiling < 0.01

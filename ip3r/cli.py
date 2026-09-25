@@ -13,7 +13,7 @@ testable and scriptable:
     python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
-    python -m ip3r gating           # the bell curve at several IP3 levels (--model mak)
+    python -m ip3r gating           # the bell curve at several IP3 levels (--model mak|pd)
     python -m ip3r oscillate --ip3 0.5 [--window]
     python -m ip3r puffs --ip3 0.2 [--model park-drive] [--scan]
     python -m ip3r microdomain [--scan ah42|n|store]   # puffs read from fluo-4
@@ -217,8 +217,8 @@ def _unitary(args) -> int:
 
 
 def _gating(args) -> int:
-    from .physics import gating, gating_mak
-    model = gating_mak if args.model == "mak" else gating
+    from .physics import gating, gating_mak, park_drive
+    model = {"mak": gating_mak, "pd": park_drive}.get(args.model, gating)
     for p in args.ip3:
         b = model.bell_at(p)
         print(f"IP3 {p:6.3f} µM: peak P_open {b.po_peak:.4f} at Ca2+ "
@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=_transition)
     p = sub.add_parser("gating")
     p.add_argument("--ip3", type=float, nargs="+", default=[0.1, 0.3, 1.0, 10.0])
-    p.add_argument("--model", choices=["dyk", "mak"], default="dyk")
+    p.add_argument("--model", choices=["dyk", "mak", "pd"], default="dyk")
     p.set_defaults(fn=_gating)
     p = sub.add_parser("oscillate")
     p.add_argument("--ip3", type=float, default=0.5)

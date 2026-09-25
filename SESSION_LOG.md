@@ -2049,3 +2049,52 @@ as the code's `120 (cs/100)` "with the store held full". The code's store is
 (the Puffs panel gets the microdomain in Round 7.3). Tests 459 → 476.
 
 **Next:** Round 7.3.
+
+## 2026-09-25 (18) — Round 7.3: the gating models side by side (GUI)
+
+**Why.** Three results only existed as text: park/drive's stationary bell
+(Round 4), the A-subspace overlap (Round 2), and the microdomain cluster
+(Round 7.2). A GUI round puts each one where it can be seen, and holds it
+with the smoke test.
+
+**What.**
+- `physics/gating_mak.compare_flanks` measures park/drive too. On one ruler,
+  33 nM → 10 µM IP3, park/drive moves half-activation 1.09× and
+  half-inhibition 42.8×, against Mak's 1.016× / 6.2× and DYK's 2.0× / 2.8×.
+  Siekmann's rates were fitted to stationary records and not to this
+  comparison, yet park/drive passes Mak's test. The inhibitory flank moves
+  so far because IP3 lifts the m42·h42 switch out of park at high Ca²⁺. The
+  bell has a floor (park-mode O5) at about 10 % of its peak. Test added.
+  CLI `gating --model pd`.
+- `ui/gating_panel.py` (the Gating view, split out of `dynamics_panel`; its
+  models are selected by key, not by index): park/drive with the parked
+  fraction, and "the three side by side" at Mak's two IP3 levels, each bell
+  relative to its own peak with the flanks dotted.
+- `TransitionOverlap.subspace(irrep)`: one irrep's collective modes added
+  lowest first, with the same-symmetry null and the √(fraction) ceiling.
+  The report's "collective A together" now reads from it. Synthetic
+  calibration: a move spread over two A modes gives no single mode above
+  0.75, the subspace reaches 1, and a B move leaves it empty with a ceiling
+  of 0. (My first version of the test mixed `ms.mode` vectors, which are
+  not unit-norm, so it failed. The method was right; the test was fixed.)
+  In the Transition tab the headline is fixed on top, and a "Lower plot"
+  selector picks the gate path, every mode, or the element means. The
+  first attempt put four plots in a 2×2 grid, and at the dock's width
+  their titles and legends overlapped.
+- `ui/puffs_domain_view.py`: the microdomain box for the park/drive
+  receptor. Store clamp, release multiple, and duration (a new parameter,
+  `domain.gui_duration` = 60 s). It draws F/F0 with the puffs marked, the
+  number open, and the IPI histogram against Thurley's Eq. 14 and an
+  exponential with the same mean. At the panel's defaults (IP3 0.2 µM,
+  N 20, 30 s): 44 puffs at 1.47/s, CV 0.68, λ 2.11, ξ 3.87 /s, LR 8.4
+  (refractory period significant). Mean blip dF/F0 0.58 at 1× (Cao 1.6 at
+  2.5×, as in Round 7.2).
+- Smoke test: `scripts/screenshot_ip3r.py` (the gating comparison, the
+  headline agreeing with the report, every lower plot drawn, the gate
+  marker kept, the microdomain box only for park/drive, the run's
+  statistics). New screenshots: `gui_gating_compare.png`,
+  `gui_puffs_domain.png`.
+
+**Not changed.** `make sync-check` clean; no verdict moved.
+
+**Next:** Round 7.4 (protonation in the IP3R pore).

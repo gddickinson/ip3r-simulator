@@ -101,6 +101,12 @@ DOMAIN = [
             "Length of each run behind an inter-puff-interval distribution.",
             "Cao 2013's inter-puff intervals are 2-10 s, so 300 s gives "
             "30-150 intervals per run", 10.0, 1e5),
+    _method("gui_duration", "Simulated time per GUI microdomain run", 60.0, "s",
+            "Default length of the Puffs panel's microdomain run (the panel's "
+            "Duration spin box starts here).",
+            "At 1x release and 0.1 uM IP3 about 20 puffs in 60 s, enough "
+            "to fit Eq. 14; a run takes about 18 s on a worker (2026-09-25)",
+            5.0, 1e4),
     _method("ah42_min", "Slowest h42 recovery in the scan", 0.1, "1/s",
             "The a_h42 scan (pd.lam_h42_closed) runs geometrically from "
             "this to domain.ah42_max.", "Cao 2013 Fig. 4's range",

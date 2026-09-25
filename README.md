@@ -64,7 +64,9 @@ where a random direction of the same symmetry scores 0.04 over all 20 modes.
 No single mode is the answer. The lowest A mode (#5) gives 0.39 and #10
 gives 0.50, and how the move splits among them depends on the 15 Å cutoff
 (from 12 to 21.6 Å the lowest falls 0.48 → 0.24 while the A modes together
-hold at 0.66–0.68; `transition --cutoff-scan`). The displacement is 100 %
+hold at 0.66–0.68; `transition --cutoff-scan`). So the tab's headline plot
+is the A subspace: the collective A modes added lowest first, beside the
+same-symmetry null and the √(A share) ceiling. The displacement is 100 %
 A-symmetric, but that is inherited from C4-imposed reconstruction and is not
 a finding. The network keeps every second Cα: at every third, the strand
 after the unresolved 77–85 loop (residue 86) hangs on too few springs and
@@ -81,7 +83,12 @@ into cooperative openings. The Gating panel also offers the Hill-type model
 Mak, McBride & Foskett (1998) fitted to single IP3R-1 channels, in which IP3
 tunes Ca²⁺ inhibition alone. From 33 nM to 10 µM IP3 it moves the
 half-inhibition point 6.2× and half-activation 1.016×; De Young–Keizer moves
-them 2.8× and 2.0× (`python -m ip3r gating --model mak`).
+them 2.8× and 2.0× (`python -m ip3r gating --model mak`). The park/drive
+receptor's stationary bell is there too (`--model pd`). It moves them 43×
+and 1.09×, so it passes the same test. "The three models side by side"
+draws all three bells at 33 nM and at 10 µM IP3.
+
+![The three IP3R gating models](docs/img/gui_gating_compare.png)
 
 ![The Mak 1998 gating model](docs/img/gui_gating_mak.png)
 
@@ -107,7 +114,12 @@ matches Cao's, fluorescence amplitude bends at about 12 receptors while
 Ca²⁺ bends less, because the dye saturates. The mean-field cluster's
 sustained 9 % open state survives the microdomain's kinetics, and depleting
 the store makes it more active, not less. That state belongs to the receptor
-model (`docs/SCIENCE_PUFF_DOMAIN.md`).
+model (`docs/SCIENCE_PUFF_DOMAIN.md`). In the Puffs panel, the park/drive
+receptor has a "Simulate in the microdomain" box. It draws F/F0 with the
+puffs marked, the number open, and the inter-puff intervals against
+Thurley's refractory density and an exponential with the same mean.
+
+![The microdomain cluster](docs/img/gui_puffs_domain.png)
 
 The Channel tab turns each ITPR3 deposit's pore into a K+ conductance by
 drift-diffusion (ported from PIEZO1), with and without the charges of the
