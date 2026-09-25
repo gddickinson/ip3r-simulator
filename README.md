@@ -167,7 +167,10 @@ Stern's constants the couplon reproduces his release under voltage clamp:
 a peak, a plateau, and a stop when the membrane repolarises. With the
 C channels fitted to the measured bell, no Mg²⁺ arrangement gives a peak.
 Either release goes on after repolarisation, or the C channels hardly
-open.
+open. Emptying the SR (`ec --depletion`) restores a peak only by releasing
+more of the store than a fibre loses. Nor does a two-site inactivation
+gate fitted to the bell's slope (`ec --two-site`) help. It inactivates
+less at cleft Ca²⁺ than the one-site gate, and control is lost further.
 
 ![RyR1 sparks](docs/img/gui_sparks.png)
 ![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
@@ -355,6 +358,7 @@ python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's
 python -m ip3r spark-termination --scan fit|ki|rate  # what ends a cleft spark
 python -m ip3r spark-mg [--scan] [--reading measured|selectivity|meissner]  # Mg2+ ends a triggered spark
 python -m ip3r ec [--scan] [--reading R]  # the couplon under voltage clamp (V + C channels)
+python -m ip3r ec --two-site       # ... with a two-site inactivation gate fitted to the bell's slope
 python -m ip3r ec --depletion [--pool-scan]  # ... with the SR emptying (Stern's Fig. 20 pool)
 python -m ip3r info 8TKF            # one deposit, measured
 python -m ip3r modes 6DQN           # normal modes with C4 irreps

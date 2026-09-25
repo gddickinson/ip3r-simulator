@@ -193,3 +193,56 @@ density and the release, making over-depletion worse. Ríos's 50–60 % was
 measured at 10 °C in 15 mM EGTA, with a content of 1.2–1.5 mM, against
 Stern's 2 mM. The pool scan absorbs the difference, but only as one factor.
 
+
+## Two-site Ca²⁺ inactivation (Round 6.8; `physics/ryr_two_site.py`)
+
+**The question.** With depletion ruled out, the remaining candidate was
+inactivation shaped differently from Stern's one-Ca²⁺ gate. Murayama's bell
+falls with nI 1.5, where a one-site gate gives slope 1. Note that the 1.5
+was *fixed* in their fit, not measured.
+
+**The gate.** Two Ca²⁺ bind in sequence (Stern's on rate for each step),
+and the channel is inactivated only with both bound. The uninactivated
+fraction is `(1 + x/K1) / (1 + x/K1 + x²/(K1 K2))`. Its Hill slope at the
+half point is `2 − c_h/(K1 + c_h)`, which runs from 1 (K2 ≫ K1) to 2
+(K2 ≪ K1). The activation gate is Stern's, so the scheme has six states.
+Mg²⁺ joins Ca²⁺ at both binding steps, as in the one-site gate.
+
+**Fitted** to three numbers of Murayama's 25 °C bell, measured the same way
+on both: the two half-peak points and the log-log slope at half inhibition
+(−0.84; the one-site fit gives −0.56). The result is Ka 4.57 µM, K1 512 µM
+and K2 115 µM. The gate's own Hill slope is 1.63, and the bell's peak moves
+to 34 µM (one-site 23, Murayama 44). All three targets are met to 10⁻⁶.
+
+**What a steeper gate must do.** With the half point fixed near 320 µM, a
+steeper flank means *less* inactivation below it. At 30 and 50 µM, the Ca²⁺
+a C channel sees in the cleft, the two-site gate inactivates 1.4 % and
+3.7 % of channels, against 11 % and 17 % for the one-site fit (tested).
+
+**Finding** (`python -m ip3r ec --two-site`, 200 couplons; one-site fit of
+Round 6.6 in brackets):
+
+| C channels | C Po peak / plateau at 0 mV | C Po after repolarisation | flux peak/plateau |
+|---|---|---|---|
+| two-site, no Mg²⁺ | 0.94 / 0.88 | 0.885 [0.72] | 1.02 |
+| two-site, Mg²⁺ activation site | 0.85 / 0.82 | 0.726 [0.39] | 1.02 |
+| two-site, Mg²⁺ both sites | 0.091 / 0.082 [0.12] | 0.000 | 1.05 |
+
+At −30 mV, with both sites, the C channels reach 0.016 [0.014]. At −50 mV the
+events are single-channel blips: a median of 2 ms, one channel open, none
+large. With no Mg²⁺, 199 of 203 events never end.
+Triggered cleft sparks (`spark-mg --two-site`) tell the same story. With no
+Mg²⁺, none of 20 shuts. With both sites, 26 of 30 channels are inactivated
+at rest, and the four that open close in 3.5 ms.
+
+**What it settles.** Matching the bell's slope makes the couplon worse on
+every count. Stern's scheme works because its Ki is 10 µM, inside the
+cleft's range. Any gate fitted to Murayama's half inhibition near 320 µM
+leaves channels in the cleft almost uninactivated, whatever its slope, and
+the steeper the slope, the less it inactivates. **No steady-state Ca²⁺
+inactivation consistent with the bell is the couplon's terminator.** What
+remains are things the bell does not see: the bell's conditions against
+the fibre's ([³H]ryanodine binding as a Po index; ATP, luminal Ca²⁺,
+temperature, where the 37 °C Ki of 358 µM is further away still), or
+inactivation that an equilibrium bell cannot show, such as a gate whose
+cycle breaks detailed balance because the flux itself drives it.

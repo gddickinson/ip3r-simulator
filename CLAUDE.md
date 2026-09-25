@@ -12,8 +12,9 @@ on the roadmap. Port the method; never port a result.
 
 ## Session protocol (every session)
 
-1. **Orient.** Read `INTERFACE.md`, then `ROADMAP.md` (the first open `[ ]`
-   round is the next task unless the user asks otherwise), then the last entry
+1. **Orient.** Read `INTERFACE.md`, then `ROADMAP.md` (its **Next:** line
+   names the task unless the user asks otherwise; Round 6 is in
+   `ROADMAP_RYR.md`), then the last entry
    of `SESSION_LOG.md`.
 2. **Sync.** `git pull` here and in `../ip3r_genes`. Then `make sync-check`:
    if any `ip3r_genes` source table changed since the last import, run

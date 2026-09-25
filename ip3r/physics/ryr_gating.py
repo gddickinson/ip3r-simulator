@@ -48,6 +48,7 @@ both Mg2+-free). Two sourced mechanisms, no fitted constant:
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from typing import ClassVar
 
 import numpy as np
 from scipy.linalg import null_space
@@ -72,6 +73,15 @@ def _v(key: str):
 
 @dataclass
 class SternParams:
+    #: What a simulator needs to know of the scheme (subclasses override):
+    #: each state's exits (one column per kind, the order of
+    #: :meth:`exit_rates`), which states conduct, which are inactivated, and
+    #: where the V-channel trigger sends each state.
+    dest: ClassVar[np.ndarray] = np.array([[1, 2], [0, 3], [3, 0], [2, 1]])
+    open_mask: ClassVar[np.ndarray] = np.array([False, True, False, False])
+    inact_mask: ClassVar[np.ndarray] = np.array([False, False, True, True])
+    trigger_map: ClassVar[np.ndarray] = np.array([1, 1, 2, 3])
+
     k_act_on: float = _v("ryr.k_act_on")          # µM^-2 s^-1 (x c^2)
     k_act_off: float = _v("ryr.k_act_off")        # s^-1
     k_inact_on: float = _v("ryr.k_inact_on")      # µM^-1 s^-1 (x c)
@@ -104,6 +114,35 @@ class SternParams:
     def k_i(self) -> float:
         return self.k_inact_off / self.k_inact_on
 
+    def exit_rates(self, state: np.ndarray, c: np.ndarray) -> np.ndarray:
+        """Exit rates of channels in ``state`` at their own Ca2+ ``c``:
+        activation gates, then inactivation gates (``dest``'s columns)."""
+        act_gate_shut = (state == 0) | (state == 2)
+        r_act = np.where(act_gate_shut, self.k_act_on * self.mg_factor * c * c,
+                         self.k_act_off)
+        r_inact = np.where(state <= 1, self.k_inact_on * (c + self.mg_inact),
+                           self.k_inact_off)
+        return np.concatenate([r_act, r_inact])
+
+    def generator(self, c: float) -> np.ndarray:
+        """Rate matrix Q (rows sum to zero) at cytosolic Ca2+ ``c`` µM."""
+        a, a_ = self.k_act_on * self.mg_factor * c * c, self.k_act_off
+        i, i_ = self.k_inact_on * (c + self.mg_inact), self.k_inact_off
+        _C, _O, _CI, _I = range(4)
+        q = np.zeros((4, 4))
+        q[_C, _O], q[_O, _C] = a, a_       # activation gate
+        q[_CI, _I], q[_I, _CI] = a, a_
+        q[_C, _CI], q[_CI, _C] = i, i_     # inactivation gate
+        q[_O, _I], q[_I, _O] = i, i_
+        q[np.diag_indices(4)] = -q.sum(axis=1)
+        return q
+
+    def open_probability(self, c) -> np.ndarray:
+        """Closed form of :func:`stationary`'s O: fA (1 - fI)."""
+        c = np.asarray(c, float)
+        f_a = c ** 2 / (c ** 2 + self.k_a_eff ** 2)
+        return f_a * self.k_i / (c + self.mg_inact + self.k_i)
+
 
 @dataclass
 class MurayamaParams:
@@ -123,17 +162,7 @@ class MurayamaParams:
 
 def generator(c: float, sp: SternParams | None = None) -> np.ndarray:
     """Rate matrix Q (rows sum to zero) at cytosolic Ca2+ ``c`` µM."""
-    sp = sp or SternParams()
-    a, a_ = sp.k_act_on * sp.mg_factor * c * c, sp.k_act_off
-    i, i_ = sp.k_inact_on * (c + sp.mg_inact), sp.k_inact_off
-    _C, _O, _CI, _I = range(4)
-    q = np.zeros((4, 4))
-    q[_C, _O], q[_O, _C] = a, a_       # activation gate
-    q[_CI, _I], q[_I, _CI] = a, a_
-    q[_C, _CI], q[_CI, _C] = i, i_     # inactivation gate
-    q[_O, _I], q[_I, _O] = i, i_
-    q[np.diag_indices(4)] = -q.sum(axis=1)
-    return q
+    return (sp or SternParams()).generator(c)
 
 
 def stationary(c: float, sp: SternParams | None = None) -> np.ndarray:
@@ -143,11 +172,8 @@ def stationary(c: float, sp: SternParams | None = None) -> np.ndarray:
 
 
 def open_probability(c, sp: SternParams | None = None) -> np.ndarray:
-    """Closed form of :func:`stationary`'s O: fA (1 - fI)."""
-    sp = sp or SternParams()
-    c = np.asarray(c, float)
-    f_a = c ** 2 / (c ** 2 + sp.k_a_eff ** 2)
-    return f_a * sp.k_i / (c + sp.mg_inact + sp.k_i)
+    """Closed form of :func:`stationary`'s open occupancy."""
+    return (sp or SternParams()).open_probability(c)
 
 
 def bell_at(sp: SternParams | None = None) -> Bell:

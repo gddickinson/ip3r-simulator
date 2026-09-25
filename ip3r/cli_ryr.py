@@ -6,9 +6,9 @@
                                               # read with the puff ruler
     python -m ip3r spark-termination [--scan fit|ki|rate]  # what ends a
                                               # cleft spark
-    python -m ip3r spark-mg [--scan] [--reading R] [--spontaneous]  # Mg2+ and
+    python -m ip3r spark-mg [--scan] [--reading R] [--spontaneous] [--two-site]  # Mg2+ and
                                               # the triggered cleft spark
-    python -m ip3r ec [--scan] [--reading R] [--trials N]  # the couplon under
+    python -m ip3r ec [--scan] [--reading R] [--trials N] [--two-site]  # the couplon under
                                               # voltage clamp: V channels
                                               # (Rios 1993) trigger C channels
 """
@@ -112,7 +112,12 @@ def _spark_termination(args) -> int:
 def _spark_mg(args) -> int:
     from .physics import ryr_gating as rg
     from .physics import spark_mg as sm
-    fit = rg.fit_to_bell()
+    if args.two_site:
+        from .physics.ryr_two_site import fit_two_site
+        fit = fit_two_site()
+        print(f"two-site inactivation: K1 {fit.k_i:.0f}, K2 {fit.k_i2:.0f} µM")
+    else:
+        fit = rg.fit_to_bell()
     reading = "selectivity" if args.ratio else args.reading
     k = sm.k_mg_a_reading(fit, reading)
     base = rg.with_mg(fit, 0.0, k)
@@ -137,7 +142,7 @@ def _ec(args) -> int:
     import numpy as np
     from .physics import ec_release as er
     from .physics.allosteric_v import open_probability
-    configs = er.configurations(args.reading)
+    configs = er.configurations(args.reading, two_site=args.two_site)
     if args.only:
         configs = {k: v for k, v in configs.items() if args.only.lower() in k.lower()}
     vs = er.voltages() if args.scan else np.array([0.0, -30.0, -50.0])
@@ -224,6 +229,8 @@ def register(sub) -> None:
                    "affinity (--ratio is --reading selectivity)")
     p.add_argument("--spontaneous", action="store_true",
                    help="untriggered runs over free Mg2+")
+    p.add_argument("--two-site", action="store_true",
+                   help="the two-site inactivation fit (slope matched too)")
     p.add_argument("--duration", type=float, default=10.0)
     p.add_argument("--seeds", type=int, default=4)
     p.set_defaults(fn=_spark_mg)
@@ -237,6 +244,9 @@ def register(sub) -> None:
                    help="only the configurations whose label contains this")
     p.add_argument("--trials", type=int, default=None,
                    help="couplons per ensemble (default ec.trials)")
+    p.add_argument("--two-site", action="store_true",
+                   help="the C scheme fitted with a two-site inactivation gate "
+                        "(the bell's inhibitory slope matched too)")
     p.add_argument("--depletion", action="store_true",
                    help="with the SR emptying (Stern's Fig. 20 pool)")
     p.add_argument("--large", action="store_true",

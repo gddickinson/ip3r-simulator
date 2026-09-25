@@ -1484,3 +1484,55 @@ next round is two-site or kinetically constrained Ca²⁺ inactivation.
 as emergent. No GUI change, so no screenshots.
 
 **Next:** Ca²⁺ inactivation in the couplon (two-site first).
+
+## 2026-09-24 (7) — Round 6.8: two-site inactivation is not the terminator
+
+**Sync.** Both repositories were up to date and the resources were in step
+with ip3r_genes, so no verdict moved.
+
+**Why.** After 6.7 ruled out depletion, the roadmap's sourced first step
+was a two-site Ca²⁺ inactivation gate matching the bell's inhibitory Hill
+slope (1.5, where Stern's one-site gate gives 1).
+
+**What.**
+- `SternParams` now carries its scheme's tables (`dest`, `open_mask`,
+  `inact_mask`, `trigger_map`) and `exit_rates`/`generator`/
+  `open_probability`. The mean-field, cleft and couplon simulators read
+  them in place of hard-coded four-state codes, so any scheme runs. Stern's
+  couplon rows match Round 6.6's recorded values (0.644/0.381/0.112 peak).
+- `physics/ryr_two_site.py`: `TwoSiteParams` (six states), `two_site`,
+  `fit_two_site` (both half-peak points and the log-log slope at half
+  inhibition, on one ruler), `bell_slope`, `gate_hill_slope`.
+- `ec --two-site`, `spark-mg --two-site`; `configurations(two_site=)`.
+- `tests/test_ryr_two_site.py` (19 tests).
+- ROADMAP.md was at 492 lines, so Round 6 moved to `ROADMAP_RYR.md`.
+  CLAUDE.md's orient step now names the **Next:** line.
+- No new registered parameter: the second step's on rate is Stern's (the
+  same choice as the one-site fit), and the targets are Murayama's
+  registered bell.
+
+**Measured.**
+- Fit: Ka 4.57, K1 512, K2 115 µM; the gate's Hill slope is 1.63; the
+  bell peaks at 34 µM (Murayama 44, one-site 23).
+- A caveat found on the way: Murayama *fixed* nI at 1.5 in their fit, so
+  the slope is a convention, not a measurement.
+- At 30/50 µM the two-site gate inactivates 1.4/3.7 % against 11/17 %. A
+  steeper flank through the same half point falls below it.
+- Couplon, 200 per ensemble (one-site in brackets): after repolarisation,
+  no Mg²⁺ 0.885 [0.72], activation-site Mg²⁺ 0.73 [0.39]. With both sites,
+  C Po is 0.09 [0.12] at 0 mV, and there are only blips at −50 mV. The flux
+  peak/plateau is 1.02–1.05 at 0 mV throughout.
+- Triggered cleft sparks: without Mg²⁺ none of 20 shut. With both sites,
+  26 of 30 channels are inactivated at rest.
+
+**What it means.** No steady-state Ca²⁺ inactivation consistent with the
+bell ends release in the couplon. Stern's gate works because its Ki
+(10 µM) is inside the cleft's range, 30× below the bell's half inhibition.
+The next question is why the fibre would behave as if Ki were that low:
+bilayer Po under fibre-like conditions against [³H]ryanodine binding.
+Failing that, a flux-driven inactivation.
+
+**Not done.** No GUI change, so no screenshots. The two-site scheme is not
+offered in the Puffs/Gating panels.
+
+**Next:** a sourced comparison of the bell's conditions with the fibre's.

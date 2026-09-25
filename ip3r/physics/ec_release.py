@@ -26,6 +26,7 @@ from .couplon import CouplonParams, CouplonTrace, simulate_couplon, step_protoco
 from .puff_compare import spark_ends
 from .puffs import PuffTrace, detect_events
 from .ryr_gating import SternParams, fit_to_bell, with_mg
+from .ryr_two_site import fit_two_site
 from .spark_mg import k_mg_a_reading
 
 __all__ = ["Ensemble", "Summary", "ensemble", "summarise", "voltages",
@@ -105,16 +106,19 @@ def summarise(e: Ensemble, label: str = "") -> Summary:
                    if flux_plateau > 0 else float("inf"))
 
 
-def configurations(reading: str = "meissner", mg: float | None = None
-                   ) -> dict[str, SternParams]:
-    """The C-channel schemes compared (V channels are the same in all)."""
-    fit = fit_to_bell()
+def configurations(reading: str = "meissner", mg: float | None = None,
+                   two_site: bool = False) -> dict[str, SternParams]:
+    """The C-channel schemes compared (V channels are the same in all).
+    ``two_site``: the fit is :func:`ryr_two_site.fit_two_site` (slope
+    matched too) instead of the one-site :func:`fit_to_bell`."""
+    fit = fit_two_site() if two_site else fit_to_bell()
+    name = "two-site" if two_site else "fitted"
     mg = _P.value("ryr.mg_free") if mg is None else mg
     k = k_mg_a_reading(fit, reading)
     return {"Stern 1997": SternParams(),
-            "fitted, no Mg2+": fit,
-            "fitted, Mg2+ activation site": with_mg(fit, mg, k_mg_a=k, mg_i=0.0),
-            "fitted, Mg2+ both sites": with_mg(fit, mg, k_mg_a=k)}
+            f"{name}, no Mg2+": fit,
+            f"{name}, Mg2+ activation site": with_mg(fit, mg, k_mg_a=k, mg_i=0.0),
+            f"{name}, Mg2+ both sites": with_mg(fit, mg, k_mg_a=k)}
 
 
 def with_gating(sp: SternParams, pp: CouplonParams | None = None

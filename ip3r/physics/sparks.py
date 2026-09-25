@@ -33,7 +33,7 @@ from scipy.linalg import expm
 
 from ..parameters import PARAMETERS as _P
 from .puffs import PuffTrace
-from .ryr_gating import OPEN, SternParams, generator, stationary
+from .ryr_gating import SternParams, generator, stationary
 
 __all__ = ["SparkParams", "diffusion_coupling", "simulate_sparks",
            "spark_couplings"]
@@ -66,8 +66,10 @@ class SparkParams:
 
 
 def _tables(pp: SparkParams, n: int) -> np.ndarray:
-    """Cumulative transition rows per number open: shape (n+1, 4, 4)."""
-    out = np.empty((n + 1, 4, 4))
+    """Cumulative transition rows per number open: shape (n+1, s, s) for a
+    scheme of s states."""
+    s = len(pp.gating.dest)
+    out = np.empty((n + 1, s, s))
     for k in range(n + 1):
         p = expm(generator(pp.ca_rest + pp.ca_per_open * k, pp.gating) * pp.dt)
         p = np.clip(p, 0.0, None)
@@ -95,16 +97,16 @@ def simulate_sparks(p: float = 0.0, duration: float = 5.0, seed: int = 0,
     inact_out = np.zeros(n_rec, dtype=np.int32)
     k = 0
     for step in range(steps + 1):
-        n_open = int((state == OPEN).sum())
+        n_open = int(pp.gating.open_mask[state].sum())
         if step % record_every == 0:
             t_out[k], open_out[k] = step * pp.dt, n_open
             ca_out[k] = pp.ca_rest + pp.ca_per_open * n_open
-            inact_out[k] = int((state >= 2).sum())
+            inact_out[k] = int(pp.gating.inact_mask[state].sum())
             k += 1
         peak_out[k - 1] = max(peak_out[k - 1], n_open)
-        rows = cum[n_open][state]                              # (n, 4)
+        rows = cum[n_open][state]                              # (n, s)
         state = (rows < rng.random(n)[:, None]).sum(axis=1)
-        state = np.minimum(state, 3)
+        state = np.minimum(state, rows.shape[1] - 1)
     return PuffTrace(t_out[:k], open_out[:k], ca_out[:k], pp, p, peak_out[:k],
                      inact_out[:k])
 

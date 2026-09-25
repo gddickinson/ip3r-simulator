@@ -38,9 +38,7 @@ import numpy as np
 from ..parameters import PARAMETERS as _P
 from .allosteric_v import RiosParams, exits, stationary as v_stationary
 from .cleft import CleftGeometry, v_coupling_matrix
-from .ryr_gating import OPEN
-from .sparks_cleft import (DEST, CleftSparkParams, c_rates, couplings_for,
-                           initial_states)
+from .sparks_cleft import CleftSparkParams, c_rates, couplings_for, initial_states
 
 __all__ = ["CouplonParams", "CouplonTrace", "step_protocol", "v_trajectory",
            "simulate_couplon"]
@@ -144,7 +142,7 @@ def simulate_couplon(protocol: tuple, duration: float, seed: int = 0,
     state = initial_states(pp.cleft, n, rng)
     v_open = np.zeros(h.shape[1])
     f = float(f_v[0])
-    c_rel = g @ (state == OPEN).astype(float)     # at full current
+    c_rel = g @ sp.open_mask[state].astype(float)     # at full current
     c = pp.cleft.ca_rest + f * c_rel
     dt = pp.cleft.record_dt
     n_rec = int(np.floor(duration / dt + 1e-9)) + 1
@@ -155,7 +153,7 @@ def simulate_couplon(protocol: tuple, duration: float, seed: int = 0,
     inact = np.zeros(n_rec, np.int32)
     f_out = np.ones(n_rec)
     t, k, i_s = 0.0, 0, 0
-    n_open, n_v = int((state == OPEN).sum()), 0
+    n_open, n_v = int(sp.open_mask[state].sum()), 0
     rates = c_rates(state, c, sp)
     total = rates.sum()
     while True:
@@ -164,7 +162,7 @@ def simulate_couplon(protocol: tuple, duration: float, seed: int = 0,
         t_next = min(t_c, t_s, duration + dt)
         while k < n_rec and t_out[k] <= t_next:
             c_out[k], v_out[k], f_out[k] = n_open, n_v, f
-            inact[k] = int((state >= 2).sum())
+            inact[k] = int(sp.inact_mask[state].sum())
             peak[k] = max(peak[k], n_open)
             k += 1
         if t_next > duration:
@@ -182,9 +180,9 @@ def simulate_couplon(protocol: tuple, duration: float, seed: int = 0,
         else:                                  # a C channel's gate moves
             pick = int(np.searchsorted(np.cumsum(rates), rng.random() * total))
             ch, gate = pick % n, pick // n
-            was_open = state[ch] == OPEN
-            state[ch] = DEST[state[ch], gate]
-            if was_open != (state[ch] == OPEN):
+            was_open = sp.open_mask[state[ch]]
+            state[ch] = sp.dest[state[ch], gate]
+            if was_open != sp.open_mask[state[ch]]:
                 sign = 1.0 if not was_open else -1.0
                 c_rel += sign * g[:, ch]
                 n_open += int(sign)
