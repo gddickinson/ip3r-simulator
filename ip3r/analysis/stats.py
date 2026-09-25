@@ -13,7 +13,8 @@ import math
 import numpy as np
 
 __all__ = ["auc", "rank_average", "mean_by_group", "sign_test",
-           "signed_rank_test", "mann_whitney_greater", "spearman",
+           "signed_rank_test", "mann_whitney_greater", "mann_whitney_less",
+           "mann_whitney_two_sided", "benjamini_hochberg", "spearman",
            "fisher_exact", "logistic_fit", "wilson"]
 
 
@@ -118,6 +119,38 @@ def mann_whitney_greater(a, b) -> dict:
     var = n1 * n2 / 12.0 * ((n + 1) - float((t ** 3 - t).sum()) / (n * (n - 1)))
     z = (u - n1 * n2 / 2.0 - 0.5) / math.sqrt(var)
     return {"u": u, "z": z, "p": 0.5 * math.erfc(z / math.sqrt(2.0))}
+
+
+def mann_whitney_less(a, b) -> dict:
+    """One-sided Mann-Whitney U: is ``a`` stochastically smaller than ``b``?
+    The upper tail of ``b`` against ``a``; ``u`` stays ``a``'s statistic."""
+    r = mann_whitney_greater(b, a)
+    n1, n2 = np.isfinite(np.asarray(a, float)).sum(), np.isfinite(np.asarray(b, float)).sum()
+    return {**r, "u": float(n1 * n2 - r["u"])}
+
+
+def mann_whitney_two_sided(a, b) -> dict:
+    """Two-sided Mann-Whitney U, twice the smaller one-sided tail (each with
+    its own continuity correction); ``cles`` = P(a > b) + ½ P(a = b)."""
+    g, lo = mann_whitney_greater(a, b), mann_whitney_less(a, b)
+    n1, n2 = np.isfinite(np.asarray(a, float)).sum(), np.isfinite(np.asarray(b, float)).sum()
+    return {"u": g["u"], "cles": g["u"] / (n1 * n2) if n1 and n2 else float("nan"),
+            "p": min(1.0, 2.0 * min(g["p"], lo["p"]))}
+
+
+def benjamini_hochberg(pvalues) -> np.ndarray:
+    """Benjamini-Hochberg q-values in input order; NaN takes no rank and
+    stays NaN."""
+    p = np.asarray(pvalues, float)
+    q = np.full(p.shape, np.nan)
+    idx = np.flatnonzero(np.isfinite(p))
+    if not len(idx):
+        return q
+    order = idx[np.argsort(p[idx], kind="stable")]
+    m = len(order)
+    scaled = p[order] * m / np.arange(1, m + 1)
+    q[order] = np.minimum(1.0, np.minimum.accumulate(scaled[::-1])[::-1])
+    return q
 
 
 def spearman(x, y) -> dict:

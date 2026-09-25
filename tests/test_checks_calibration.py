@@ -21,7 +21,8 @@ from pathlib import Path
 import pytest
 
 from ip3r.analysis import checks as C
-from ip3r.analysis import checks_constraint, module_contrast, shell_constraint
+from ip3r.analysis import (checks_constraint, family_benchmark, fel_rates, module_contrast,
+                           shell_constraint)
 from ip3r.config import GENES_DIR
 from ip3r.parameters import PARAMETERS
 from conftest import needs_genes, needs_structure
@@ -116,6 +117,24 @@ def _contact_shell_conserved(d: Path) -> None:
     contact = {str(r.resi) for r in shell_constraint.measured_shells()
                if r.shell == "contact"}
     _edit(d / CON3, lambda r: {**r, "deep_jsd": "0.99"} if r["resi"] in contact else r)
+
+
+def _contact_site_not_purifying(d: Path) -> None:
+    """One ITPR3 contact-shell site's FEL q raised past the bar: the contact
+    shell is no longer purifying throughout."""
+    first = min(r.resi for r in shell_constraint.measured_shells() if r.shell == "contact")
+    _edit(d / R / fel_rates.FEL_TSV,
+          _set({"paralog": "ITPR3", "resi": str(first)}, q_value=0.5))
+
+
+def _ipla_given_ryr1(d: Path) -> None:
+    """Dictyostelium iplA's sequence replaced by human RYR1's: a positive
+    control the margin must now call a ryanodine receptor."""
+    decoys = json.loads((d / R / family_benchmark.DECOYS).read_text())
+    ryr1 = next(r["sequence"] for r in decoys if r["accession"] == "P21817")
+    def plant(rows):
+        next(r for r in rows if r["accession"] == "Q9NA13")["sequence"] = ryr1
+    _json(d / R / family_benchmark.POSITIVES, plant)
 
 
 def _drop_below_bar(d: Path) -> None:
@@ -282,6 +301,22 @@ PLANTS = {
                                       _set({"paralog": "ITPR1"}, p_distance_vs_jsd=0.001)),
     # an input plant: no published table states the step, so make one
     "P6.no_contact_step": _contact_shell_conserved,
+    "P1.bait_margin": _ipla_given_ryr1,
+    # an input plant: the missed fly Itpr credited with breadth scores 50
+    "P1.benchmark_counts": lambda d: _edit(
+        d / R / family_benchmark.POSITIVE_TSV,
+        _set({"accession": "P29993"}, components="size+15,pfam+20,breadth+15")),
+    # the pattern: the table has the guard weaken a strong clade
+    "P2.bnni_robustness": lambda d: _edit(
+        d / R / "phylogeny/bnni_comparison.tsv",
+        _set({"claim": "ITPR2 + ITPR3"}, alt_ufboot=90, verdict="weakened")),
+    # an input plant: the published shares are then out of step with FEL's
+    "P6.shell_rates": _contact_site_not_purifying,
+    # the pattern: ITPR2's primary direction reversed in the table
+    "P6.module_rates": lambda d: _edit(
+        d / R / "ligand_site/omega_module_test.tsv",
+        _set({"paralog": "ITPR2", "core_definition": "contact_span",
+              "pore_definition": "channel_minus_luminal"}, direction="core evolves faster")),
 }
 
 
@@ -289,6 +324,8 @@ def _clear_caches() -> None:
     checks_constraint.per_residue.cache_clear()
     module_contrast.clear_caches()
     shell_constraint.clear_caches()
+    fel_rates.clear_caches()
+    family_benchmark.clear_caches()
 
 
 def _copy_sources(check, dest: Path) -> None:

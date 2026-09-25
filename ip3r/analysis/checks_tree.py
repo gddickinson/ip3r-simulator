@@ -17,10 +17,13 @@ from .checks import agree, register
 from .tree import (TREE, bipartitions, cyclostome_clades, is_cyclostome, paralog_clades,
                    support, vertebrate_tips)
 from .newick import parse
+from .tree_robustness import BNNI_TREE, compare, load_pair, strong
 
 CLADES = "phylogeny/paralog_clades.tsv"
 CYCLO = "phylogeny/cyclostome_placement.tsv"
 SUPPORT = "phylogeny/support_summary.tsv"
+BNNI = "phylogeny/bnni_comparison.tsv"
+MEMBERS = "phylogeny/claim_members.tsv"
 
 
 def _fmt(s) -> str:
@@ -125,3 +128,63 @@ def support_bar():
                  ", ".join(f"{k} {v}" for k, v in got.items()),
                  f"{got['both thresholds'] / got['internal nodes']:.1%} clear both",
                  newick=text)
+
+
+def _pub_support(r: dict, side: str):
+    a, u = r[f"{side}_alrt"], r[f"{side}_ufboot"]
+    return (float(a), float(u)) if a and u else None
+
+
+@register("P2.bnni_robustness", "origin",
+          "No clade claim is weakened or lost under UFBoot's --bnni guard: 9 "
+          "of the 10 clear SH-aLRT ≥ 80 and UFBoot ≥ 95 in both trees, and "
+          "the tenth, the ITPR1 core clade (47.8/95, then 47.5/73), was not "
+          "well supported in the reported tree either (S7 §5.7).",
+          "Each claim's tip set rebuilt from the census prefixes by this "
+          "project's rules (largest pure clade, MRCA clade, unions, "
+          "vertebrates, non-RyR), both trees rooted on the RyR outgroup with "
+          "its own reroot, and each set read as a clade with its support in "
+          "each tree; sets compared with claim_members.tsv, supports and "
+          "verdicts with bnni_comparison.tsv.",
+          "rederived", (TREE, BNNI_TREE, BNNI, MEMBERS))
+def bnni_robustness():
+    main, alt = load_pair()
+    claims = compare(main, alt)
+    pub = {r["claim"]: r for r in G.read_tsv(BNNI)}
+    members: dict[str, set] = {}
+    for r in G.read_tsv(MEMBERS):
+        members.setdefault(r["claim"], set()).add(r["label"])
+    bad = []
+    for c in claims:
+        p = pub.get(c.name)
+        if p is None:
+            bad.append(f"{c.name}: not in the published table")
+            continue
+        if c.tips != members.get(c.name):
+            bad.append(f"{c.name}: tip set differs ({len(c.tips)} vs "
+                       f"{len(members.get(c.name, ()))})")
+        want = (int(p["n_tips"]), p["main_is_clade"] == "yes",
+                _pub_support(p, "main"), _pub_support(p, "alt"), p["verdict"])
+        got = (len(c.tips), c.main_clade, c.main, c.alt, c.verdict)
+        if got != want:
+            bad.append(f"{c.name}: {got} vs {want}")
+    extra = sorted(set(pub) - {c.name for c in claims})
+    bad += [f"{n}: published only" for n in extra]
+    clades = [c for c in claims if c.main_clade]
+    held = [c for c in clades if c.verdict == "held"]
+    rest = [c for c in clades if c.verdict != "held"]
+    # the prose: nothing weakened or lost, and what is not held was never strong
+    pattern = (not any(c.verdict in ("weakened", "lost") for c in clades)
+               and all(not strong(c.main) for c in rest))
+    found = (f"{len(held)} of {len(clades)} clades held; "
+             + "; ".join(f"{c.name} {_fmt(c.main)} → {_fmt(c.alt)} ({c.verdict})"
+                         for c in rest)
+             + (f"; differs: {' | '.join(bad)}" if bad else ""))
+    return agree(pattern and not bad, "9 of 10 held; ITPR1 core 47.8/95 → 47.5/73, "
+                 "unsupported in both", found,
+                 f"{len(claims) - len(clades)} claims are not clades in the "
+                 "reported tree (ITPR1 + ITPR2, ITPR1 + ITPR3, all three) and "
+                 "are not re-asked.",
+                 newick=G.read_text(TREE), newick_alt=G.read_text(BNNI_TREE),
+                 claims=[{"name": c.name, "main": c.main, "alt": c.alt,
+                          "verdict": c.verdict} for c in clades])

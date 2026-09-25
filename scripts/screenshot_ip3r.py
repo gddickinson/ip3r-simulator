@@ -1,6 +1,7 @@
 """The Round 7.3 steps of the GUI smoke test (``screenshot_app.py``): the
 three IP3R gating models side by side, the A-subspace headline of the
-Transition tab, and the park/drive cluster in its microdomain.
+Transition tab, and the park/drive cluster in its microdomain; and Round
+7.7's reported tree beside the ``--bnni`` re-search.
 
 ``ip3r_step`` follows the spark steps' contract: True means a worker is
 still running (call again), and a wrong result raises.
@@ -74,7 +75,29 @@ def _domain(win, app, out) -> bool:
     return False
 
 
-_STEPS = (_gating, _domain)
+def _tree_pair_start(win, app, out) -> None:
+    win.tabs.setCurrentWidget(win.tree)
+    win.tree.beside.setChecked(True)
+
+
+def _tree_pair(win, app, out) -> bool:
+    tr = win.tree
+    if tr.pair is None or tr.root is None:
+        if tr.status.text().startswith("Reading"):
+            return True
+        raise RuntimeError(tr.status.text())
+    titles = [ax.get_title() for ax in tr.canvas.axes[0]]
+    if titles != ["reported", "--bnni"] or "9 of 10 clade claims held" not in tr.status.text():
+        raise RuntimeError(f"tree pair drew {titles}: {tr.status.text()[:120]}")
+    app.processEvents()
+    win.grab().save(str(out / "gui_tree_bnni.png"))
+    tr.beside.setChecked(False)
+    if tr.canvas.axes.shape != (1, 1):
+        raise RuntimeError("unchecking --bnni left two trees drawn")
+    return False
+
+
+_STEPS = (_gating, _domain, _tree_pair_start, _tree_pair)
 IP3R_STEPS = len(_STEPS)
 
 

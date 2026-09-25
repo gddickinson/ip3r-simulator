@@ -67,14 +67,13 @@ def _compare(pore_def: str) -> tuple[bool, list[str], dict]:
           "Both modules rebuilt from this project's imported sites and "
           "domain map (core.modules), each validated to hold all ten "
           "contacts / both filter and gate residues and nothing of the "
-          "other; spans compared with module_map.tsv.",
+          "other; the literature core (ITPR1 224-604) carried by this "
+          "project's own alignment; spans compared with module_map.tsv.",
           "rederived", (MAP,))
 def module_map():
     pub = G.read_tsv(MAP)
     ok, lines = True, []
     for r in pub:
-        if r["definition"] == "ibc_literature":      # a literature boundary,
-            continue                                 # not a rule to rebuild
         m = module(r["paralog"], r["definition"])
         excl = ";".join(f"{a}-{b}" for a, b in m.excluded)
         mine = (m.start, m.end, excl, len(m.residues))
@@ -84,7 +83,7 @@ def module_map():
             lines.append(f"{r['paralog']} {r['definition']}: {mine} vs {theirs}")
     core, pore = module("ITPR3", CORE), module("ITPR3", "channel_minus_luminal")
     found = "; ".join(lines) or (
-        f"all nine spans identical (ITPR3: core {core.start}–{core.end}, "
+        f"all {len(pub)} spans identical (ITPR3: core {core.start}–{core.end}, "
         f"pore {pore.start}–{pore.end} less {pore.excluded[0][0]}–"
         f"{pore.excluded[0][1]})")
     return agree(ok, "spans as in module_map.tsv", found)

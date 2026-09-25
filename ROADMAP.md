@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.7, re-derive what is still read (Round 7
+**Next:** Round 7.8, publication views in the GUI (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -148,10 +148,9 @@ Emergent (not scheduled):
 - [ ] The Range tab stops at clade level. S23's 194 genomes (copy number,
   control verdict) could be drawn per genome inside a clicked clade, the way
   the Genomes tab draws Paper 3.
-- [ ] Paper 1's family-call benchmark (24/25 recall, 31/31 specificity, the
-  0.10 labelled-bait margin) and the profile calibration (11,875 agree,
-  1 disagree) are not yet re-derived; `benchmark_controls/` and
-  `hmm_sweep/` hold the per-record inputs.
+- [ ] Paper 1's profile calibration (11,875 agree, 1 disagree) is not yet
+  re-derived; `hmm_sweep/` holds the per-record inputs. (The family-call
+  benchmark was re-derived in Round 7.7.)
 
 ## Round 4 — better physics
 
@@ -463,9 +462,28 @@ item carried over from round n; it stays listed there too.
     calibration.
   - [ ] Show the lumen and its potential in the viewer (a voxel surface
     coloured by φ; Channel panel beside the 1-D profile).
-- [ ] **7.7 Publication: re-derive what is still read.** The S22 section 8
-  shell FEL table, Paper 2's NNI robustness trees side by side, and Paper
-  1's family-call benchmark (R3).
+- [x] **7.7 Publication: re-derive what is still read.** Five new checks,
+  all confirmed (49: 47 confirmed, 2 discrepancies, unchanged).
+  - **S22 §8** (`P6.shell_rates`, `P6.module_rates`): S17's FEL sites
+    joined to our own pocket and modules. The literature core (Bosanac
+    2002, ITPR1 224–604) is now a registered module, carried by our
+    alignment onto S17's transfer exactly, so `P6.module_map` compares all
+    twelve spans. All 21 rows reproduce, including the BH q-values, which
+    need every row of their family.
+  - **`--bnni`** (`P2.bnni_robustness`): the 13 claim sets are rebuilt from
+    census prefixes. A core is the largest *pure* clade: "every tip naming
+    it" gave 15/11/18, not 13/10/16. Both trees are rooted with a new
+    `newick.reroot`. 9 of 10 clades held; the ITPR1 core, never strong,
+    went 47.8/95 → 47.5/73. The Tree tab's "Beside --bnni" shows the two
+    trees.
+  - **The benchmark** (`P1.bait_margin`, recomputed; `P1.benchmark_counts`):
+    every control aligned pairwise to the six human baits from the
+    committed sequences. Full identity: 31/31 calls, gap 0.582 (0.601),
+    iplA +0.048 (+0.065) inside ±0.10. Covered identity is not
+    re-measurable pairwise: unrelated long sequences floor at 0.25–0.28,
+    and there iplA reads −0.002. The fly Itpr miss (0.342 vs the 0.35 bar)
+    reads 0.361 pairwise, so the 0.008 is inside aligner noise. Scores
+    rebuilt with registered points and our own caps: 24/25, 31/31, 6/6.
 - [ ] **7.8 GUI: publication views.** A Genomes lesion layer for Paper 3's
   ITPR3 bird result, the Range tab per genome, and bootstrapped VUS stratum
   medians (R3, R5).

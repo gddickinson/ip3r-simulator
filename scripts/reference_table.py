@@ -51,6 +51,13 @@ REFERENCES = [
               "calcium oscillations in airway smooth muscle cells",
      "journal": "PLoS Comput Biol 10:e1003783 (Text S1: model code)",
      "doi": "10.1371/journal.pcbi.1003783"},
+    {"key": "bosanac2002",
+     "authors": "Bosanac I, Alattia JR, Mal TK, Chan J, Talarico S, Tong FK, "
+                "Tong KI, Yoshikawa F, Furuichi T, Iwai M, Michikawa T, "
+                "Mikoshiba K, Ikura M", "year": 2002,
+     "title": "Structure of the inositol 1,4,5-trisphosphate receptor binding "
+              "core in complex with its ligand",
+     "journal": "Nature 420:696-700", "doi": "10.1038/nature01268"},
     {"key": "shuai2002", "authors": "Shuai JW, Jung P", "year": 2002,
      "title": "Stochastic properties of Ca2+ release of inositol "
               "1,4,5-trisphosphate receptor clusters",

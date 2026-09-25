@@ -2283,3 +2283,66 @@ readings are 135 / 110 / 273.
 Tests 508 → 518.
 
 **Next:** Round 7.7 (re-derive what is still read).
+
+## 2026-09-25 (22) — Round 7.7: re-deriving what was still read
+
+**Why.** Three results in the publication had no independent route here:
+S22 §8 (the pocket and the modules measured by FEL's substitution rate),
+S7's `--bnni` robustness table, and Paper 1's family-call benchmark. Each
+now has one.
+
+**What.**
+- `analysis/fel_rates.py` + `checks_rates.py`: `P6.shell_rates` and
+  `P6.module_rates` join S17's `fel_sites.tsv` to our recomputed pocket and
+  our modules. `stats` gains the lower and two-sided Mann-Whitney
+  (scipy-checked on zero-inflated data) and Benjamini-Hochberg.
+- `core/modules.py`: `ibc_literature`, Bosanac 2002's IP3-binding core
+  (ITPR1 224–604, `ligand.ibc_start`/`ligand.ibc_end`, new reference
+  `bosanac2002`), carried by our alignment. S22 corrects the module q over
+  all nine rows (three core/pore definitions), so the sensitivity core was
+  needed to reproduce even the primary q. `P6.module_map` now checks twelve
+  spans, not nine.
+- `analysis/tree_robustness.py` + `P2.bnni_robustness`; `newick.reroot`
+  and `clade_node`. The Tree tab's "Beside --bnni" draws both trees and
+  grades the claims (smoke-tested: `gui_tree_bnni.png`).
+- `analysis/family_benchmark.py` + `checks_benchmark.py`: `P1.bait_margin`
+  (recomputed, from the sequences) and `P1.benchmark_counts`. The scorer's
+  points, promotion bar and D7 margin are registered
+  (`scripts/parameter_table_bench.py`, 12 parameters).
+- Docs: the paper-by-paper check sections moved from `SCIENCE.md` into
+  `docs/SCIENCE_CHECKS.md` (SCIENCE.md would have passed 500 lines), with
+  the three new sections.
+
+**Checker errors caught on the way.**
+- The first core rule ("every tip naming the paralogue") gave 15/11/18,
+  against S7's 13/10/16. S7's core is the largest *pure* clade: five shark
+  and coelacanth records sit outside it (S7 §5.1). With that rule, all 13
+  sets equal `claim_members.tsv`.
+- A calibration plant used `_json` as if it returned the new rows; it
+  mutates in place, so the first version would have planted nothing. It
+  was caught before the run.
+
+**Found.**
+- S22 §8: all 21 rows reproduce to the published precision.
+- `--bnni`: 9 of 10 clades held; the ITPR1 core went 47.8/95 → 47.5/73.
+- Benchmark: on the full metric the margin reproduces every call. Two
+  observations about the instrument, not discrepancies:
+  - Covered-column identity cannot be re-measured by a pairwise route.
+    Unrelated long sequences align pairwise at 0.25–0.28 covered identity,
+    and iplA reads −0.002 there (S1: +0.042). At gap costs 11/1 the
+    iplA–RyR alignments collapse to about 54 pairs. S1's "31/31 under the
+    fragment-aware metric" is a property of its MSA.
+  - *Drosophila* Itpr against worm itr-1 reads 0.361 pairwise against
+    0.342 in S1's MSA, and the breadth bar is 0.35. The paper's "fell
+    0.008 short" is true of S1's scorer, but the shortfall is smaller than
+    the difference between two alignment routes. Reported to the user, and
+    not a change for ip3r_genes to make unless it wants to say so.
+
+**Cost.** `P1.bait_margin` aligns 336 pairs (~60 s cold). The alignments
+are memoised on the sequences, so the counts check and the calibration
+plants reuse them.
+
+**Not changed.** `make sync-check` clean; no verdict moved. Tests 518 → 531;
+`make screenshots` passes with the new `--bnni` step.
+
+**Next:** Round 7.8 (publication views in the GUI).

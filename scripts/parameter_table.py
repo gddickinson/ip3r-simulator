@@ -21,6 +21,7 @@ from parameter_table_ec import EC
 from parameter_table_domain import DOMAIN
 from parameter_table_pka import PKA
 from parameter_table_pore3d import PORE3D
+from parameter_table_bench import BENCH
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -262,6 +263,15 @@ P = [
        "paired core-vs-pore test.", "S22's MIN_MODULE_COVERAGE; a tip "
        "truncated at one end would otherwise enter as an extreme divergence "
        "in that module", 0.0, 1.0),
+    _p("ligand.ibc_start", "IP3-binding core start", 224, "residue",
+       "convention", "ligand", "bosanac2002", "First residue (ITPR1 "
+       "numbering) of the published IP3-binding core, S22's sensitivity "
+       "definition of the ligand core.", "The crystallised construct; S22 "
+       "cites it as R05 and carries it to ITPR2/ITPR3 by alignment", 1, 2758),
+    _p("ligand.ibc_end", "IP3-binding core end", 604, "residue",
+       "convention", "ligand", "bosanac2002", "Last residue (ITPR1 "
+       "numbering) of the published IP3-binding core.",
+       "As ligand.ibc_start", 1, 2758),
     _p("ligand.shell_second_edge", "Second-shell outer edge", 8.0, "A",
        "convention", "ligand", "ip3r_genes", "All-atom distance to IP3 "
        "separating the second ligand shell from the third (the first shell "
@@ -311,6 +321,10 @@ P = [
        "a published or re-derived p (or q) as significant when testing the "
        "pattern the prose states.", "The level ip3r_genes' prose uses "
        "throughout", 0.0, 1.0),
+    _p("check.fel_q", "FEL purifying-site q", 0.05, "",
+       "convention", "checks", "ip3r_genes", "A codon site counts as under "
+       "purifying selection when FEL calls it so at q at or below this.",
+       "S17/S22 read FEL's verdict at q <= 0.05, not at a p-value", 0.0, 1.0),
     _p("check.log_p_tol", "P-value agreement tolerance", 0.02, "decades",
        "method", "checks", "method_choice", "Largest difference in log10 "
        "of a re-derived and a published p-value that still counts as "
@@ -385,3 +399,4 @@ P += EC
 P += DOMAIN
 P += PKA
 P += PORE3D
+P += BENCH

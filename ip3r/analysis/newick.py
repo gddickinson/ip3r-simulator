@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-__all__ = ["Node", "parse", "leaves", "mrca", "smallest_clade_containing"]
+__all__ = ["Node", "parse", "leaves", "mrca", "smallest_clade_containing",
+           "reroot", "clade_node"]
 
 
 @dataclass
@@ -112,3 +113,53 @@ def mrca(root: Node, labels: set[str]) -> Node:
 def smallest_clade_containing(root: Node, labels: set[str]) -> set[str]:
     """All leaf labels under the MRCA of ``labels`` (rooted reading)."""
     return {lf.label for lf in leaves(mrca(root, labels))}
+
+
+def clade_node(root: Node, labels: set[str]) -> Node | None:
+    """The node whose leaves are exactly ``labels`` (rooted reading), else None."""
+    n = mrca(root, labels)
+    return n if len(leaves(n)) == len(labels) else None
+
+
+def _hang(node: Node, came_from: Node, length, label: str) -> Node:
+    """``node`` as a subtree seen from ``came_from``: its other neighbours
+    become its children. The edge to ``came_from`` keeps ``length`` and the
+    support ``label`` it carried, since both belong to the edge."""
+    kids = [_copy(c) for c in node.children if c is not came_from]
+    if node.parent is not None:
+        kids.append(_hang(node.parent, node, node.length, node.label))
+    if len(kids) == 1:                  # the old root, now a pass-through
+        only = kids[0]
+        only.length = (only.length or 0.0) + (length or 0.0)
+        return only
+    out = Node(label, length, kids)
+    for k in kids:
+        k.parent = out
+    return out
+
+
+def _copy(n: Node) -> Node:
+    out = Node(n.label, n.length, [_copy(c) for c in n.children])
+    for c in out.children:
+        c.parent = out
+    return out
+
+
+def reroot(root: Node, outgroup: set[str]) -> Node:
+    """A copy of the tree rooted on the edge above ``outgroup``, which must
+    be a clade in some rooting: tried as given, then as its complement. The
+    edge is halved and its support label sits on both new root children, as
+    IQ-TREE writes a rooted tree."""
+    target = clade_node(root, outgroup)
+    if target is None:
+        rest = {lf.label for lf in leaves(root)} - outgroup
+        target = clade_node(root, rest)
+    if target is None or target is root:
+        raise ValueError("the outgroup is not a clade of this tree")
+    half = None if target.length is None else target.length / 2
+    inside = _copy(target)
+    inside.length = half
+    other = _hang(target.parent, target, half, target.label)
+    new = Node("", None, [inside, other])
+    inside.parent = other.parent = new
+    return new

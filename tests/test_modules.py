@@ -71,3 +71,17 @@ def test_coverage_floor_drops_truncated_tips():
     pc = MC.paired_contrast("ITPR1")
     assert len(pc.dropped) == 3 and len(pc.tips) == 260
     assert np.all(np.isfinite(pc.diff))
+
+
+def test_literature_core_carried_and_follows_its_parameters():
+    from ip3r.parameters import PARAMETERS
+    # S22's module_map.tsv via S17's transfer; ours via our own alignment
+    assert [(module(g, "ibc_literature").start, module(g, "ibc_literature").end)
+            for g in ("ITPR1", "ITPR2", "ITPR3")] == [(224, 604), (224, 604), (225, 604)]
+    try:
+        PARAMETERS.set_value("ligand.ibc_end", 560)       # cuts contacts off
+        with pytest.raises(ModuleRefusal):
+            module("ITPR1", "ibc_literature")
+    finally:
+        PARAMETERS.reset()
+    assert module("ITPR1", "ibc_literature").end == 604

@@ -264,9 +264,14 @@ SH-aLRT/UFBoot support, and so is the RyR outgroup. Hagfish and lamprey tips
 are yellow diamonds, labelled with the support of their clade and of the
 node where it joins. A white dot marks each node that clears both support
 bars (80/95). "Vertebrates" zooms to the 57 vertebrate tips with their
-labels. "Show" on any tree check opens this tab.
+labels. "Show" on any tree check opens this tab. "Beside --bnni" draws the
+model-violation re-search next to it, both rooted on RyR, and lists what the
+guard did to each clade claim: 9 of 10 held, and the ITPR1 core (never well
+supported) fell from 47.8/95 to 47.5/73.
 
 ![Paper 2's tree](docs/img/gui_tree.png)
+
+![The reported tree beside the --bnni re-search](docs/img/gui_tree_bnni.png)
 
 **See every genome.** The Genomes tab draws Papers 3 and 4 as a grid: a row
 for each of the 309 assemblies in the retention sweep and a column for each
@@ -323,9 +328,9 @@ median 1.1 Å, against 5.5 Å for a straight line (`python -m ip3r graft 8TKG --
 
 ![AlphaFold fills with their seams](docs/img/gui_alphafold.png)
 
-## The checks, as of Round 5
+## The checks, as of Round 7.7
 
-44 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
+49 checks: 47 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
 touches a published paper's headline:
 
 - **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts
@@ -340,48 +345,8 @@ touches a published paper's headline:
   state the narrower, correct version, which `P5.gate_filter_most_conserved`
   confirms.
 
-| check | kind | verdict | re-derived |
-|---|---|---|---|
-| `S0.c4_symmetry` | recomputed | confirmed | 0.051 Å (S0: 0.058); rotation 90.00°; axes agree to 0.02° |
-| `S0.selectivity_filter` | recomputed | confirmed | 5.08 Å (5.06) at −89.8 Å, Asn2472/Gly2473, on GGGVGD |
-| `S0.gate` | recomputed | confirmed | 2.55 Å (2.52), Phe2513/Ile2517 |
-| `S0.pore_profile` | recomputed | confirmed | 99.3 % of 144 points within 0.05 Å |
-| `S0.ip3_contacts` | recomputed | confirmed | the same ten residues at all four sites |
-| `P6.shell_agreement` | recomputed | confirmed | all six depositions, counts and extras identical |
-| `P6.contacts_heavy_atom` | recomputed | **discrepancy** | R503 outside 4.5 Å by heavy atoms in 8TKG, 8TKH |
-| `P5.element_means` | rederived | confirmed | 27 element means, largest Δ 0.0000 |
-| `P5.gate_filter_most_conserved` | rederived | confirmed | as the paper states, both metrics |
-| `P5.report_both_metrics` | rederived | **discrepancy** | report sentence overstates the JSD ranking |
-| `P5.luminal_loop_least` | rederived | confirmed | last in all three |
-| `P5.gate_identical` | rederived | confirmed | FGVII in all three |
-| `P5.variant_auc` | rederived | confirmed | all AUCs and position counts |
-| `P5.deep_ranks_third` | rederived | confirmed | family 0.872 > vert 0.854 > deep 0.758 > shallow 0.684 |
-| `P5.vus_count` | rederived | confirmed | 1,546 |
-| `P5.vus_stratification` | rederived | confirmed | all 12 gene × layer rows, every count, median and fraction; ClinVar-only gives the same table |
-| `P5.omega_range` | read | confirmed | ω 0.024, 0.043, 0.042 |
-| `P6.contacts_vs_core` | rederived | confirmed | +0.069, +0.092, +0.073 |
-| `P6.module_map` | rederived | confirmed | all nine module spans identical |
-| `P6.module_contrast` | rederived | confirmed | core − pore −0.0239 / −0.0005 / −0.0199; ITPR2 p = 0.134 |
-| `P6.loop_reverses` | rederived | confirmed | loop counted as pore: +0.055 / +0.044 / +0.056 |
-| `P6.shell_distances` | recomputed | confirmed | 125 residues, 12/14/40/59 per shell, medians to 2×10⁻⁵ Å |
-| `P6.shell_constraint` | rederived | confirmed | all 12 shell means above the protein; every field identical |
-| `P6.shell_trend` | rederived | confirmed | ρ −0.175 / −0.436 / −0.168; significant in ITPR2 only |
-| `P6.no_contact_step` | rederived | confirmed | 4.5 Å drop −0.007 / +0.003 / +0.002; largest drop at 11.5 Å in all three |
-| `P2.sister_pair` | rederived | confirmed | ITPR2 + ITPR3 |
-| `P2.au_test` | read | confirmed | only H3_23 retained (p_AU 0.48) |
-| `P2.teleost_itpr1` | rederived | confirmed | ≥ 2 copies: ITPR1 87 %, ITPR2 4 %, ITPR3 2 % |
-| `P2.paralog_clades` | rederived | confirmed | 19/13/19 at 100/100, 4/2/1 unnamed; only the 6 cyclostomes outside |
-| `P2.cyclostome_lineages` | rederived | confirmed | two cyclostome-only clades, both species in each; 4 first among vertebrates (99.5/100), 2 join ITPR2+ITPR3 (83.1/77) |
-| `P2.support_bar` | rederived | confirmed | 91 of 131 bipartitions clear both bars |
-| `P3.no_absent_cells` | rederived | confirmed | 927 cells, 0 absent |
-| `P3.dollo_zero` | read | confirmed | 0 losses |
-| `P3.false_negatives` | rederived | confirmed | 140/923, 5/563 contiguous |
-| `P4.unreachable` | rederived | confirmed | 744 / 923 |
-| `P3.miss_by_contiguity` | rederived | confirmed | median N50 23,460 vs 3,396,515; chromosome 3/512 and 0/172; above bar 189 genomes, 5/563; below 0.3917/0.4333/0.3000 |
-| `P3.contiguity_tests` | rederived | confirmed | all 12 tests: OR per 10× 8.10 / 19.99, ITPR vs RyR Fisher p 0.578 |
-| `P4.recovery_channels` | rederived | confirmed | 257/309, 260/307, 227/307, RyR 196/309; reasons 289/186/254/15, 179 reachable |
-| `P1.absences` | rederived | confirmed | 35 clades |
-| `LEDGER.claims` | read | confirmed | 287 + 245 + 713 ledger rows all ok |
+The table of every check, its kind and what it re-derived is in
+`docs/SCIENCE_CHECKS.md`.
 
 Every check is calibrated: `tests/test_checks_calibration.py` runs each one on
 a copy of only the tables it declares, then plants a change and requires the

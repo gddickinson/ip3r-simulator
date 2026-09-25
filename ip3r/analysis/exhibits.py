@@ -92,10 +92,67 @@ def _shell_means(ax, d):
     ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
 
 
+def _shell_rates(ax, d):
+    names = ("contact", "second", "third", "fourth")
+    for i, (gene, v) in enumerate(sorted(d["fractions"].items())):
+        ax.plot(names, [v[k] for k in names], marker="o", color=_C[i], label=gene)
+    ax.set_ylim(0.5, 1.02)                      # fixed: shares, not auto-ranged
+    ax.set_ylabel("sites FEL calls purifying (q ≤ 0.05)")
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
+
+
+def _module_rates(ax, d):
+    genes = sorted(d["modules"])
+    x = np.arange(len(genes))
+    for j, (k, label) in enumerate((("mean_core_beta", "ligand core"),
+                                    ("mean_pore_beta", "pore module"))):
+        ax.bar(x + (j - 0.5) * 0.38, [d["modules"][g][k] for g in genes], 0.38,
+               color=_C[j], label=label)
+    for i, g in enumerate(genes):
+        top = max(d["modules"][g]["mean_core_beta"], d["modules"][g]["mean_pore_beta"])
+        ax.text(i, top + 0.003, f"q {d['modules'][g]['q_mannwhitney']:.2g}", ha="center",
+                fontsize=7, color="#d7dbe3")
+    ax.set_xticks(x, genes)
+    ax.set_ylim(0, 0.08)
+    ax.set_ylabel("mean FEL β (non-synonymous rate)")
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3", loc="upper left")
+
+
+def _bait_margin(ax, d):
+    colours = {"ITPR": _C[0], "RYR": _C[1], "other": "#8a8f99"}
+    names = {"ITPR": "positive controls", "RYR": "RyR decoys", "other": "other decoys"}
+    for kind in ("other", "RYR", "ITPR"):
+        pts = [(v["itpr"], v["ryr"]) for v in d["margins"].values() if v["truth"] == kind]
+        ax.scatter(*zip(*pts), s=12, color=colours[kind], label=names[kind], zorder=3)
+    x = np.array([0.0, 1.0])
+    ax.plot(x, x, color="#8a8f99", lw=0.8)
+    ax.fill_between(x, x - d["band"], x + d["band"], color="#8a8f99", alpha=0.15,
+                    label=f"no call (±{d['band']:g})")
+    ax.set_xlim(0, 1)                             # fixed: identities
+    ax.set_ylim(0, 1)
+    ax.set_xlabel("identity to the nearest human ITPR bait (full alignment)")
+    ax.set_ylabel("identity to the nearest human RyR bait")
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
+
+
 def _tree(ax, d):
     from .newick import parse
     from .tree_figure import draw_tree
     draw_tree(ax, parse(d["newick"]))
+
+
+def _tree_pair(ax, d):
+    """The reported tree and the --bnni tree, each rooted on RyR."""
+    from .newick import leaves, parse, reroot
+    from .tree import group_of
+    from .tree_figure import draw_tree
+    ax.set_axis_off()
+    for i, (key, title) in enumerate((("newick", "reported"), ("newick_alt", "--bnni"))):
+        root = parse(d[key])
+        root = reroot(root, {lf.label for lf in leaves(root) if group_of(lf.label) == "RYR"})
+        sub = ax.inset_axes([0.5 * i, 0.0, 0.49, 0.95])
+        draw_tree(sub, root)
+        sub.set_title(title, fontsize=8, color="#d7dbe3")
 
 
 def _grid(name):
@@ -121,12 +178,13 @@ EXHIBITS = {"P5.vus_stratification": _vus, "S0.pore_profile": _pore, "P5.deep_ra
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
             "P6.loop_reverses": _modules, "P6.shell_trend": _shell_trend,
-            "P6.shell_constraint": _shell_means, "P2.sister_pair": _tree,
+            "P6.shell_constraint": _shell_means, "P6.shell_rates": _shell_rates,
+            "P6.module_rates": _module_rates, "P2.sister_pair": _tree,
             "P2.paralog_clades": _tree, "P2.cyclostome_lineages": _tree,
-            "P2.support_bar": _tree, "P3.miss_by_contiguity": _grid("draw_misses"),
+            "P2.support_bar": _tree, "P2.bnni_robustness": _tree_pair, "P3.miss_by_contiguity": _grid("draw_misses"),
             "P3.contiguity_tests": _grid("draw_logistic"),
             "P4.recovery_channels": _grid("draw_recovery"),
-            "P1.presence_range": _range("draw_presence"),
+            "P1.presence_range": _range("draw_presence"), "P1.bait_margin": _bait_margin,
             "P1.kingdom_absences": _range("draw_presence"),
             "P1.absence_targets": _range("draw_presence"),
             "P1.relaxed_controls": _range("draw_relaxed"),
