@@ -159,12 +159,31 @@ amino acid in both models at that number. On 6DQN this skips 8 stretches per
 subunit inside or beside its unregistered 1434–1546 segment, rather than
 fitting them to a segment of unknown register.
 
-**Which model.** The model is chosen by identity by number against the
-variant-painting bar (`numbering.min_identity`). AlphaFold DB (queried
-2026-09-24) holds canonical ITPR3 (`AF-Q14573-F1`), ITPR1 isoform 4 only, rat
-ITPR1 isoform 8 only, and a 181-residue ITPR2 isoform. The seven ITPR3
-deposits match at 99.1–100 %. 9YKK (17.7 % at best) and 7LHF (22.1 %) are
-refused.
+**Which model, and which residue.** AlphaFold DB (queried 2026-09-24) holds
+canonical ITPR3 (`AF-Q14573-F1`), ITPR1 isoform 4 only, rat ITPR1 isoform 8
+only, and a 181-residue ITPR2 isoform. A `NumberMap`
+(`structure/graft_numbering.py`) says which prediction residue fills which
+deposit residue. There are two routes, tried in order:
+
+- **By number**, against the variant-painting bar (`numbering.min_identity`).
+  The seven ITPR3 deposits match `AF-Q14573-F1` at 99.1–100 %.
+- **By alignment** (Round 7.9). The deposit's whole construct, including the
+  residues no atom was built for, is read from the mmCIF's
+  `_pdbx_poly_seq_scheme` (`io/poly_seq.py`). It is aligned to each model
+  with `core.pairwise`, and the aligned pairs are the map. The model must
+  agree with the construct over the pairs to `graft.align_min_identity`
+  (0.99). Rat 7LHF (numbered in canonical P29994 6–2741) against rat isoform
+  8 gives 1.000 over 2,681 pairs, with two unpaired segments: 318–332 (SI)
+  and 1693–1732 (SII), the splice segments the isoform lacks. Human ITPR1
+  isoform 4 gives 0.988 (the ortholog), ITPR3 0.658. 9YKK (ITPR2) reaches
+  0.713 at best and is still refused.
+
+A stretch that touches an unpaired segment is skipped and named ("the model
+lacks residues 318–332"), and so is one where the model has extra residues.
+The fill's atoms carry deposit numbers on either route. On 7LHF (gaps only):
+40 stretches and 1,264 residues, mean pLDDT 32. Three stretches per subunit
+are not filled: two touch the splice segments and one has no anchors
+before it. Every filled residue's name equals the construct's.
 
 **Per fill.** The anchor RMSD. The Cα distance across each seam, which is
 3.80 Å for a real peptide. The mean pLDDT and the fraction ≥ 70. The residues
@@ -185,10 +204,34 @@ error (Spearman −0.79). The seams of these true fills reach 5.42 Å (90th
 percentile 4.74 Å). The first tolerance, 4.5 Å, failed 9 of those 62 seams,
 so `graft.join_tolerance` is 5.5 Å.
 
-**The calibration's limit.** The tested stretches have pLDDT 53–77 and are
-4–10 residues long. The real gaps are mostly longer and below pLDDT 50, and
-there the calibration says nothing. A fill there is a picture of where a
-chain of that length could run, not a structure.
+**Long stretches** (Round 7.9; `python -m ip3r graft PDB --long`). The
+stretches above have pLDDT 53–77 and are 4–10 residues long. The real gaps
+run to 70 residues, with a median pLDDT of about 40. On 8TKG, 1,308 of the
+1,592 filled residues are below 50. Two tests reach further:
+
+- **Windows.** Resolved stretches of 10–60 residues, clean anchors either
+  side, are hidden and filled. On 8TKG the median fill is 0.49 Å at 10
+  residues and 1.52 Å at 60, against 4.3 and 16.1 Å for the line. 8TKH and
+  7LHF (through the alignment) are alike. **Length does not break a
+  fill.** But these residues are ordered (pLDDT ~82), so they are the easy
+  case. The seams of right fills (< 2 Å) stay ≤ 5.22 Å in 802 of them, so
+  `graft.join_tolerance` holds.
+- **Islands.** No deposit resolves a run below pLDDT 50 with its own anchors
+  either side. What the maps do resolve are islands: short resolved runs
+  (5–60 residues) with a gap on each side. Hiding one and filling the whole
+  span from the outer anchors is a real 27–137-residue fill, scored where
+  the experiment saw residues. Over 28 islands in 9 deposits, the 26 whose
+  residues have pLDDT ≥ 70 land at a median 1.26 Å, against 17.8 Å for the
+  line, and all beat it. 7LHF 1025–1045 (pLDDT 63) is 11.0 Å against 13.1.
+  **8TKH 926–943 is the only island below 50 (pLDDT 31)**, in a 62-residue
+  span. Its fill lies 57.9 Å from the deposit, and the line 24.4 Å.
+
+So pLDDT, not length, decides whether a fill is a position. The one test in
+the real gaps' regime failed, and by more than a line would. That is one
+stretch, not a rate, but nothing supports the opposite. The fill summary
+counts the residues below `display.plddt_low` and warns that they are not
+positions. They are still drawn, in AlphaFold's very-low colour: they show
+how much chain the map leaves out, not where it is.
 
 **Nothing measures on it.** The fill is a separate structure drawn beside the
 deposit. The pore, the modes, the transition and the checks all see the

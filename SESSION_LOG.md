@@ -2409,3 +2409,60 @@ checks (`python -m ip3r checks`: 50 confirmed, 2 discrepancies). Round
 552; `make screenshots` passes with the three new steps.
 
 **Next:** Round 7.9 (fills).
+
+## 2026-09-25 (24) — Round 7.9: fills through an alignment, and long fills tested
+
+**Why.** Round 5's fills had two open items. First, rat 7LHF was refused,
+because AlphaFold DB models only rat ITPR1 isoform 8, and by number that
+agrees with the canonical numbering on 22 %. Second, the calibration
+covered 4–10-residue stretches at pLDDT 53–77, while the real gaps are
+20–70 residues at a median pLDDT of about 40. It did not say whether a long
+fill is worth drawing.
+
+**What.**
+- `io/poly_seq.py`: the construct from `_pdbx_poly_seq_scheme`, including
+  residues no atom was built for. An alignment has to see the residues
+  that are to be filled.
+- `structure/graft_numbering.py`: `NumberMap`, used by number first, then by
+  aligning the construct to each model (`core.pairwise`). The new parameter
+  `graft.align_min_identity` is 0.99. `graft.py` takes the map everywhere
+  (anchors, seams, the fill's range). The fill's atoms carry deposit
+  numbers. A stretch touching an unpaired segment, or one where the model
+  has extra residues, is skipped with that reason. `prediction_for` now
+  returns `(model, NumberMap)`.
+- `graft_calibration`: `windows`/`window_trials` (resolved stretches of a
+  given length), `islands`/`island_trials`, `Trial.plddt_scored`,
+  `trial(span=)`.
+- `FilledModel.very_low()` and a warning.
+- `cli_graft.py` (moved out of `cli.py`), with `--long`.
+- A smoke-test step that loads 7LHF with the fill on.
+
+**Choice: islands.** No deposit resolves a run below pLDDT 50 that has
+anchors of its own, so "hide a resolved low-confidence loop" has no cases.
+The maps do resolve islands: short runs with a gap on each side. Hiding one
+and filling the whole span from the outer anchors is a real long fill, and
+it is scored only where the experiment saw residues. Islands are capped at
+60 residues. The first definition had no cap, and it caught whole domains.
+
+**Found.**
+- 7LHF vs rat isoform 8: identity 1.000 over 2,681 pairs. The unpaired
+  segments are exactly SI (318–332) and SII (1693–1732). The fill has 40
+  stretches and 1,264 residues, with mean pLDDT 32. Human ITPR1 isoform 4
+  gives 0.988, ITPR3 0.658, and 9YKK 0.713 at best (still refused).
+- Windows of 10–60 residues: the median fill is 0.5–1.5 Å against 4–16 Å
+  for the line, and length hardly matters. The seams of 802 right fills
+  are ≤ 5.22 Å, so `graft.join_tolerance` (5.5) is confirmed on far more
+  data than Round 5's 62.
+- Islands: 26 at pLDDT ≥ 70 have a median of 1.26 Å (line 17.8), and all
+  beat the line. 7LHF 1025–1045 (pLDDT 63): 11.0 vs 13.1. **8TKH 926–943,
+  the only island below 50 (pLDDT 31), in a 62-residue span: 57.9 Å, and
+  the line 24.4.** So pLDDT decides whether a fill is a position, not
+  length. It is one case, but it is the only one in the real regime, and
+  1,308 of 8TKG's 1,592 filled residues are there. The summary now counts
+  them and the panel says they are not positions. They are still drawn.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check
+touches fills).
+
+**Next:** Round 7.10, to be chosen from the open IP3R items (Round 7's
+list is done).

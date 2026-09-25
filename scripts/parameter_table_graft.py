@@ -31,6 +31,17 @@ GRAFT = [
        "resolve and filling them (structure/graft_calibration.py) gave seams "
        "up to 5.42 A (90th percentile 4.74) for fills of median 1.5 A RMSD; "
        "the first value, 4.5 A, failed 9 of those 62 true seams", 3.0, 20.0),
+    _p("graft.align_min_identity", "Alignment fill identity", 0.99, "",
+       "method", "graft", "measured_here", "A model not in the deposit's "
+       "numbering may fill it through an alignment of the deposit's whole "
+       "construct only if the two agree over the aligned pairs at least "
+       "this well: the same protein, another isoform.",
+       "7LHF's construct aligned to each downloaded model "
+       "(structure/graft_numbering.py): rat ITPR1 isoform 8 1.000 (the "
+       "same protein; only the SI and SII splice segments unpaired), human "
+       "ITPR1 isoform 4 0.988 (the ortholog, ~32 substitutions), ITPR3 "
+       "0.658; 9YKK (ITPR2) reaches 0.713 at best. The bar admits only the "
+       "same protein's own isoform", 0.5, 1.0),
     _p("graft.clash_distance", "Clash distance", 2.2, "A", "method",
        "graft", "method_choice", "A filled residue clashes if any of its "
        "heavy atoms is closer than this to a deposited heavy atom (the "

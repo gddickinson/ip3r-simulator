@@ -341,12 +341,21 @@ whatever the deposit is coloured by. Each seam is a bond from the deposit to
 the fill: pale where it closes, red where it does not. The fill follows a
 morph or mode frame. It is only drawn: every measurement in the application
 still runs on the deposit. The model is chosen by measuring which downloaded
-prediction is in the deposit's numbering. AlphaFold DB holds only isoforms
-for ITPR1 and ITPR2, so 7LHF and 9YKK are refused and the panel shows why.
+prediction is in the deposit's numbering, or failing that, which one is the
+same protein through an alignment of the deposit's construct. So rat 7LHF is
+filled from rat ITPR1 isoform 8. The two splice segments the isoform lacks
+are left empty, and the panel says so. 9YKK (ITPR2) has no model and is
+refused, and the panel shows why.
 On 8TKG, 1,592 residues are filled over the four subunits, at a mean pLDDT
 of 38. AlphaFold is least sure exactly where the map is empty. Filling 16
 stretches that 8TKG does resolve (but another deposit does not) lands at a
 median 1.1 Å, against 5.5 Å for a straight line (`python -m ip3r graft 8TKG --calibrate`).
+Length does not break a fill, but low confidence does
+(`python -m ip3r graft 8TKH --long`). Hidden 60-residue windows fill to
+1.5 Å where AlphaFold is confident. The one resolved stretch below pLDDT 50,
+8TKH 926–943, was placed 58 Å off, further than a straight line. So the
+summary counts the residues below pLDDT 50 (1,308 of 8TKG's 1,592) and says
+they are not positions.
 
 ![AlphaFold fills with their seams](docs/img/gui_alphafold.png)
 
@@ -413,6 +422,7 @@ python -m ip3r modes 6DQN           # normal modes with C4 irreps
 python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame;
                                     #  --cutoff-scan, --stride-check: the network against itself)
 python -m ip3r graft 8TKG --calibrate   # AlphaFold fills, seams, and how good they are
+python -m ip3r graft 8TKH --long        # ... on long windows and islands; 7LHF by alignment
 python -m ip3r gating | oscillate --window | puffs --ip3 0.2
 python -m ip3r puffs --model park-drive | puffs --scan   # the two receptors
 make help

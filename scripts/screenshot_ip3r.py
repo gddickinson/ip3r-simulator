@@ -158,8 +158,33 @@ def _vus_bands(win, app, out) -> None:
     win.grab().save(str(out / "gui_variants_bands.png"))
 
 
+def _rat_fill_start(win, app, out) -> None:
+    win.structure_panel.set_completeness("gaps")
+    win.structure_panel.select("7LHF")
+
+
+def _rat_fill(win, app, out) -> bool:
+    """Round 7.9: rat 7LHF filled from rat isoform 8 through an alignment."""
+    fc, sc = win.fills, win.scene
+    if sc.structure is None or sc.structure.name != "7LHF" or fc.model is None:
+        if fc.message.startswith("not filled"):
+            raise RuntimeError(fc.message)
+        return True
+    m = fc.model
+    if m.deposit != "7LHF":
+        return True
+    if m.prediction != "AF-P29994-8-F1" or m.numbering.route != "alignment" or \
+            m.numbering.unmapped != ((318, 332), (1693, 1732)):
+        raise RuntimeError(f"7LHF fill: {m.summary()}")
+    if sc.fill.view is None or "the model lacks" not in win.structure_panel.fill_info.text():
+        raise RuntimeError("7LHF's fill not drawn, or its splice segments not named")
+    app.processEvents()
+    win.grab().save(str(out / "gui_alphafold_rat.png"))
+    return False
+
+
 _STEPS = (_gating, _domain, _tree_pair_start, _tree_pair, _lesion_start, _lesion,
-          _range_genomes, _vus_bands)
+          _range_genomes, _vus_bands, _rat_fill_start, _rat_fill)
 IP3R_STEPS = len(_STEPS)
 
 

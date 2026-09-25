@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.9, fills (Round 7 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.10 (to be chosen from the open IP3R items below; Round 7.9, fills, done). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -314,13 +314,10 @@ Emergent (not scheduled):
   5.42 Å. The smoke test caught a fill drawn at the deposit instead of the
   morph frame on its first run.
   Emergent:
-  - [ ] The calibration covers pLDDT 53–77 and 4–10 residues. The real gaps
-    are mostly longer and below 50. A test on long stretches (hide a
-    resolved 30–60-residue loop) would say whether a long fill is worth
-    drawing at all.
-  - [ ] 7LHF could be filled from rat isoform 8 through an alignment rather
-    than by number (`core.pairwise`), with the isoform's missing splice
-    segments left unfilled and said so.
+  - [x] Long stretches (Round 7.9): right at any length where AlphaFold is
+    confident; the one very-low stretch with a truth is 58 Å off.
+  - [x] 7LHF filled from rat isoform 8 through an alignment (Round 7.9),
+    SI and SII left unfilled and named.
   - [ ] Fills on neighbouring subunits are not checked against each other,
     only against the deposit.
   - [ ] The Completeness choice is in a session; the transition spec does not
@@ -503,8 +500,34 @@ item carried over from round n; it stays listed there too.
     (5) are unbounded. No ITPR2 or ITPR3 VUS is firmly pathogenic-like on
     any layer, while ITPR1 keeps 136 of its 185 on deep. The B/LB medians
     are bounded for all three genes.
-- [ ] **7.9 Fills.** Calibrate on long stretches, and fill 7LHF from rat
-  isoform 8 through an alignment (R5).
+- [x] **7.9 Fills.** Long stretches calibrated; 7LHF filled through an
+  alignment.
+  - **7LHF by alignment.** The deposit's whole construct
+    (`_pdbx_poly_seq_scheme`, unbuilt residues included) is aligned to each
+    model. Rat isoform 8 gives 1.000 identity over 2,681 pairs. Only SI
+    (318–332) and SII (1693–1732) are unpaired, and stretches touching them
+    are skipped by name. The result is 40 stretches and 1,264 residues, each
+    the construct's own residue. The bar `graft.align_min_identity` (0.99)
+    admits only the same protein: human ITPR1 isoform 4 gives 0.988, and
+    9YKK's best is 0.713, so it is still refused.
+  - **Length does not break a fill.** Hidden resolved windows of 10–60
+    residues fill to 0.5–1.5 Å (line 4–16 Å) in 8TKG, 8TKH and 7LHF. The
+    seams of 802 right fills stay ≤ 5.22 Å, so the 5.5 Å tolerance holds.
+    But those residues are ordered (pLDDT ~82).
+  - **Low confidence does.** No deposit resolves a pLDDT < 50 run with
+    anchors of its own. Islands do the job instead: a resolved run between
+    two gaps is hidden and the whole 27–137-residue span filled. Over 28
+    islands, the 26 at pLDDT ≥ 70 land at a median 1.26 Å (line 17.8), all
+    better than the line. The only island below 50, 8TKH 926–943 (pLDDT
+    31), is 57.9 Å off, against 24.4 Å for the line. The fill summary now
+    counts the residues below 50 (1,308 of 8TKG's 1,592) and warns that
+    they are not positions.
+  Emergent:
+  - [ ] A Completeness choice that leaves out the very-low residues, or
+    draws them as a tether rather than a chain. The one test says they are
+    not positions, but it is one stretch.
+  - [ ] Two fills of the same span in different deposits (e.g. 8TKG vs
+    8TKF) as a consistency measure where no truth exists.
 
 ## Round 6 — ryanodine receptors
 

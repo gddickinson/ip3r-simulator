@@ -17,7 +17,7 @@ testable and scriptable:
     python -m ip3r oscillate --ip3 0.5 [--window]
     python -m ip3r puffs --ip3 0.2 [--model park-drive] [--scan]
     python -m ip3r microdomain [--scan ah42|n|store]   # puffs read from fluo-4
-    python -m ip3r graft 8TKG [--mode full] [--calibrate]   # AlphaFold fills, seams
+    python -m ip3r graft 8TKG [--mode full] [--calibrate] [--long]   # AlphaFold fills (cli_graft)
     python -m ip3r params           # every registered number and its source
 """
 
@@ -282,62 +282,6 @@ def _fetch(args) -> int:
     return 1 if bad else 0
 
 
-def _graft(args) -> int:
-    from .io import loader
-    from .parameters import PARAMETERS as _P
-    from .structure.graft import GraftRefusal, fill_structure, prediction_for
-    loader.ALLOW_FETCH = args.fetch
-    st = loader.load(args.pdb)
-    try:
-        model = fill_structure(st, args.mode)
-    except GraftRefusal as exc:
-        print(f"refused: {exc}")
-        return 1
-    print(model.summary())
-    tol = _P.value("graft.join_tolerance")
-    print(f"  {'stretch':14s} {'kind':6s} {'n':>3s} {'anchor':>6s} {'seams (Å)':>12s} "
-          f"{'pLDDT':>5s} {'clash':>5s}")
-    for f in model.fills:
-        if args.chain and f.stretch.chain != args.chain:
-            continue
-        seams = "/".join(f"{j:.1f}" + ("!" if j > tol else "") for j in f.joins)
-        print(f"  {f.stretch.label():14s} {f.stretch.kind:6s} {f.stretch.n_residues:3d} "
-              f"{f.anchor_rmsd:6.2f} {seams:>12s} {f.plddt:5.0f} {f.clashes:5d}")
-    for sk in model.skipped:
-        if not args.chain or sk.stretch.chain == args.chain:
-            print(f"  not filled {sk.stretch.label()}: {sk.reason}")
-    for w in model.warnings():
-        print(f"  ! {w}")
-    if args.calibrate:
-        from .io.registry import load_registry
-        from .structure.graft_calibration import calibrate
-        pred, _ = prediction_for(st)
-        others = []
-        for e in load_registry():
-            if e.pdb_id == st.name or not loader.is_local(e.pdb_id):
-                continue
-            o = loader.load(e.pdb_id)
-            try:
-                if prediction_for(o)[0].name == pred.name:
-                    others.append(o)
-            except GraftRefusal:
-                continue
-        trials = calibrate(st, others, pred)
-        print(f"\ncalibration: {len(trials)} stretches another deposit leaves "
-              f"unresolved, hidden in {st.name} and filled (C-alpha RMSD, Å)")
-        print(f"  {'stretch':14s} {'fill':>5s} {'line':>5s} {'global':>6s} {'pLDDT':>5s}")
-        for t in trials:
-            print(f"  {t.stretch.label():14s} {t.rmsd_fill:5.2f} {t.rmsd_line:5.2f} "
-                  f"{t.rmsd_global:6.2f} {t.plddt:5.0f}")
-        if trials:
-            import numpy as np
-            med = [float(np.median([getattr(t, k) for t in trials]))
-                   for k in ("rmsd_fill", "rmsd_line", "rmsd_global")]
-            print(f"  median fill {med[0]:.2f}, line {med[1]:.2f}, global {med[2]:.2f}; "
-                  f"fill beats the line in {sum(t.beats_line for t in trials)}/{len(trials)}")
-    return 0
-
-
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     if not argv or argv[0] == "gui" or argv[0].startswith("--"):
@@ -348,14 +292,6 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("fetch")
     p.add_argument("pdb", nargs="*")
     p.set_defaults(fn=_fetch)
-    p = sub.add_parser("graft", help="fill unresolved stretches from AlphaFold")
-    p.add_argument("pdb")
-    p.add_argument("--mode", choices=["gaps", "full"], default="gaps")
-    p.add_argument("--chain", default="A", help="rows for one chain ('' = all)")
-    p.add_argument("--calibrate", action="store_true",
-                   help="hide stretches other deposits miss, fill, and score")
-    p.add_argument("--fetch", action="store_true")
-    p.set_defaults(fn=_graft)
     p = sub.add_parser("info")
     p.add_argument("pdb")
     p.add_argument("--fetch", action="store_true")
@@ -386,6 +322,8 @@ def main(argv: list[str] | None = None) -> int:
     _register_domain(sub)
     from .cli_shortfall import register as _register_shortfall
     _register_shortfall(sub)
+    from .cli_graft import register as _register_graft
+    _register_graft(sub)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

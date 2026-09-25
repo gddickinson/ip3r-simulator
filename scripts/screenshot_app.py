@@ -401,16 +401,16 @@ def main() -> int:
                 win.transition.slider.setValue(0)
                 if abs(fv.structure.xyz - m.atoms.xyz).max() > 0.05:
                     raise RuntimeError("at frame 0 the fill is not where it was built")
-                win.structure_panel.select("7LHF")      # a numbering no model is in
+                win.structure_panel.select("9YKK")      # ITPR2: no model on either route
             elif s == 19:
                 fc = win.fills
-                if win.scene.structure is None or win.scene.structure.name != "7LHF" \
-                        or not fc.message:
+                if win.scene.structure is None or win.scene.structure.name != "9YKK" \
+                        or (fc.model is None and "9YKK" not in fc.message):
                     state["step"] -= 1
                     return QTimer.singleShot(500, step)
                 if not fc.message.startswith("not filled") or fc.model is not None \
                         or win.scene.scene.get("fill:ribbon") is not None:
-                    raise RuntimeError(f"7LHF was filled: {fc.message}")
+                    raise RuntimeError(f"9YKK was filled: {fc.message}")
                 win.structure_panel.set_completeness("none")
                 win.structure_panel.select("9HEO")     # a ryanodine receptor
             elif s == 20:

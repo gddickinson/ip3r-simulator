@@ -25,10 +25,13 @@ a number. The mean pLDDT. The residues whose heavy atoms interpenetrate the
 deposit, *including neighbouring subunits*: the prediction is a monomer and
 knows nothing about them.
 
-**The prediction must be in the deposit's numbering.** It is chosen by
-measurement (:func:`prediction_for`), never by name. AlphaFold DB holds
-isoforms, not the canonical sequence, for ITPR1 and rat ITPR1, and 7LHF and
-9YKK are refused with the identities that refuse them.
+**The prediction is chosen by measurement** (:func:`prediction_for`), never
+by name, and a :class:`~.graft_numbering.NumberMap` says which of its
+residues fills which deposit residue. The map is by number when the two
+share a numbering. Otherwise it comes from aligning the deposit's construct:
+rat 7LHF is filled from rat isoform 8 this way, except for the two splice
+segments the isoform lacks. 9YKK (ITPR2) is refused with the identities
+that refuse it.
 
 **The fill is not the deposit.** A :class:`FilledModel` holds only the
 predicted atoms, as a separate structure. Every measurement in this
@@ -45,6 +48,8 @@ import numpy as np
 
 from ..core.structure import Structure
 from ..parameters import PARAMETERS as _P
+from .graft_numbering import (BY_NUMBER, NumberMap, align_bar, by_alignment,
+                              by_number, construct_of)
 from .numbering import chain_residues
 from .symmetry import kabsch
 
@@ -120,6 +125,7 @@ class FilledModel:
     skipped: list[Skip]
     atoms: Structure              # the predicted atoms only, placed
     _rows: list = field(default_factory=list, repr=False)
+    numbering: NumberMap = BY_NUMBER
 
     @property
     def n_residues(self) -> int:
@@ -143,14 +149,20 @@ class FilledModel:
         gap = np.linalg.norm(dep - end, axis=1) if len(dep) else np.zeros(0)
         return dep, end, gap <= _P.value("graft.join_tolerance")
 
+    def very_low(self) -> int:
+        """Filled residues below ``display.plddt_low`` (AlphaFold's very-low band)."""
+        ca = self.atoms.mask_ca()
+        return int((self.atoms.b_factor[ca] < _P.value("display.plddt_low")).sum())
+
     def summary(self) -> str:
         broken = sum(not f.joined for f in self.fills)
         clash = sum(f.clashes for f in self.fills)
         ca = self.atoms.mask_ca()
         plddt = float(self.atoms.b_factor[ca].mean()) if ca.any() else float("nan")
-        return (f"{self.deposit} + {self.prediction} ({self.identity:.1%} identical "
-                f"by number): {len(self.fills)} stretches, {self.n_residues} "
-                f"residues filled, mean pLDDT {plddt:.0f}; {broken} broken "
+        return (f"{self.deposit} + {self.prediction} ({self.numbering.describe()}): "
+                f"{len(self.fills)} stretches, {self.n_residues} "
+                f"residues filled ({self.very_low()} below pLDDT "
+                f"{_P.value('display.plddt_low'):.0f}), mean pLDDT {plddt:.0f}; {broken} broken "
                 f"seams; {clash} residues clash with the deposit; "
                 f"{len(self.skipped)} stretches not filled")
 
@@ -161,6 +173,15 @@ class FilledModel:
         if any(not f.joined for f in self.fills):
             out.append("some seams do not close (drawn red): the prediction's "
                        "loop does not reach both anchors in this conformation")
+        if self.very_low():
+            out.append("residues below pLDDT "
+                       f"{_P.value('display.plddt_low'):.0f} are drawn, but they are not "
+                       "positions: the one resolved stretch that low (8TKH "
+                       "926-943, hidden and filled) was placed further off than "
+                       "a straight line would be (`python -m ip3r graft 8TKH --long`)")
+        if self.numbering.unmapped:
+            out.append("the model is another isoform: deposit residues it lacks "
+                       "are left unfilled")
         if any(f.clashes for f in self.fills):
             out.append("some filled residues pass through the deposit (often "
                        "a neighbouring subunit, which a monomer prediction "
@@ -170,22 +191,19 @@ class FilledModel:
 
 # ------------------------------------------------------------------ choosing
 
-def _identity(dep: dict, pred: dict) -> tuple[float, int]:
-    scored = [r for r, (aa, stub) in dep.items() if not stub and r in pred]
-    same = sum(dep[r][0] == pred[r][0] for r in scored)
-    return (same / len(scored) if scored else 0.0), len(scored)
-
-
 def _main_chain(st: Structure) -> str:
     return max(st.chains, key=lambda c: int((st.mask_ca() & (st.chain == c)).sum()))
 
 
-def prediction_for(st: Structure, paths=None) -> tuple[Structure, float]:
-    """The downloaded model in this deposit's numbering, and its identity.
+def prediction_for(st: Structure, paths=None) -> tuple[Structure, NumberMap]:
+    """The downloaded model that can fill this deposit, and the residue map.
 
-    Identity by residue number over unstubbed residues, against the bar the
-    variant painting uses (``numbering.min_identity``). Raises
-    :class:`GraftRefusal` naming every model's identity when none clears it.
+    By number first: identity over unstubbed residues against
+    ``numbering.min_identity``, the variant painting's bar. Failing that, by
+    aligning the deposit's construct to each model, against
+    ``graft.align_min_identity``. The best model on the first route that
+    clears its bar wins. Raises :class:`GraftRefusal` naming every model's
+    identity on both routes when none clears either.
     """
     from ..io.predictions import load_prediction, local_predictions
 
@@ -193,26 +211,38 @@ def prediction_for(st: Structure, paths=None) -> tuple[Structure, float]:
     if not paths:
         raise GraftRefusal("no AlphaFold model is downloaded "
                            "(run `python -m ip3r fetch`)")
-    dep = chain_residues(st, _main_chain(st))
-    scored = []
-    for p in paths:
-        pred = load_prediction(str(p))
-        ident, _ = _identity(dep, chain_residues(pred, pred.chains[0]))
-        scored.append((ident, pred))
-    ident, best = max(scored, key=lambda s: s[0])
-    if ident < _P.value("numbering.min_identity"):
-        table = ", ".join(f"{p.name} {i:.1%}" for i, p in scored)
-        raise GraftRefusal(
-            f"{st.name}: no AlphaFold model is in its numbering ({table}; "
-            f"the bar is {_P.value('numbering.min_identity'):.0%})")
-    return best, ident
+    chain = _main_chain(st)
+    dep = chain_residues(st, chain)
+    preds = [load_prediction(str(p)) for p in paths]
+    pres = [chain_residues(p, p.chains[0]) for p in preds]
+    num = [by_number(dep, r) for r in pres]
+    best = max(range(len(preds)), key=lambda i: num[i].identity)
+    if num[best].identity >= _P.value("numbering.min_identity"):
+        return preds[best], num[best]
+    construct = construct_of(st, chain)
+    ali = [by_alignment(construct, r) for r in pres] if construct else []
+    if ali:
+        best = max(range(len(preds)), key=lambda i: ali[i].identity)
+        if ali[best].identity >= align_bar():
+            return preds[best], ali[best]
+    table = ", ".join(
+        f"{p.name} {n.identity:.1%}" + (f" / {a.identity:.1%} aligned" if ali else "")
+        for p, n, a in zip(preds, num, ali or num))
+    raise GraftRefusal(
+        f"{st.name}: no AlphaFold model is in its numbering or aligns to its "
+        f"construct ({table}; the bars are "
+        f"{_P.value('numbering.min_identity'):.0%} by number, "
+        f"{align_bar():.0%} aligned)")
 
 
 # ----------------------------------------------------------------- stretches
 
 def unresolved(st: Structure, chain: str, pred_last: int,
-               termini: bool = False) -> list[Stretch]:
-    """Stretches of ``chain`` with no C-alpha, internal and (optionally) ends."""
+               termini: bool = False, pred_first: int = 1) -> list[Stretch]:
+    """Stretches of ``chain`` with no C-alpha, internal and (optionally) ends.
+
+    ``pred_first``/``pred_last`` bound the termini, in deposit numbers.
+    """
     res = sorted(chain_residues(st, chain))
     if not res:
         return []
@@ -220,8 +250,8 @@ def unresolved(st: Structure, chain: str, pred_last: int,
     out = [Stretch(chain, int(nums[i]) + 1, int(nums[i + 1]) - 1, "gap")
            for i in np.flatnonzero(np.diff(nums) > 1)]
     if termini:
-        if nums[0] > 1:
-            out.insert(0, Stretch(chain, 1, int(nums[0]) - 1, "n_term"))
+        if nums[0] > pred_first:
+            out.insert(0, Stretch(chain, pred_first, int(nums[0]) - 1, "n_term"))
         if nums[-1] < pred_last:
             out.append(Stretch(chain, int(nums[-1]) + 1, pred_last, "c_term"))
     return out
@@ -232,13 +262,15 @@ def _ca_index(st: Structure, chain: str) -> dict[int, int]:
     return {int(r): int(i) for r, i in zip(st.res_seq[m], np.flatnonzero(m))}
 
 
-def _anchors(s: Stretch, dep_res: dict, pred_res: dict) -> tuple[list, list]:
+def _anchors(s: Stretch, dep_res: dict, pred_res: dict,
+             nm: NumberMap = BY_NUMBER) -> tuple[list, list]:
     """Anchor residues before and after a stretch (a terminus looks twice as far)."""
     w = int(_P.value("graft.anchor_window"))
 
     def ok(r):
-        return (r in dep_res and not dep_res[r][1] and r in pred_res
-                and dep_res[r][0] == pred_res[r][0])
+        p = nm(r)
+        return (r in dep_res and not dep_res[r][1] and p in pred_res
+                and dep_res[r][0] == pred_res[p][0])
     if s.kind == "n_term":
         return [], [r for r in range(s.last + 1, s.last + 1 + 2 * w) if ok(r)]
     if s.kind == "c_term":
@@ -248,7 +280,8 @@ def _anchors(s: Stretch, dep_res: dict, pred_res: dict) -> tuple[list, list]:
 
 
 def _seams(s: Stretch) -> list[tuple[int, int]]:
-    """(deposit residue, prediction residue) across each seam."""
+    """(flanking deposit residue, the fill's end residue) across each seam,
+    both in deposit numbers."""
     out = []
     if s.kind != "n_term":
         out.append((s.first - 1, s.first))
@@ -259,10 +292,31 @@ def _seams(s: Stretch) -> list[tuple[int, int]]:
 
 # -------------------------------------------------------------------- filling
 
+def _pred_range(s: Stretch, nm: NumberMap) -> tuple[int, int] | str:
+    """The prediction residues that fill ``s``, or why none can."""
+    lack = nm.lacking(s.first, s.last)
+    if lack:
+        segs = ", ".join(f"{a}-{b}" for a, b in lack)
+        return f"the model lacks residues {segs} (another isoform)"
+    p0, p1 = nm(s.first), nm(s.last)
+    if p0 is None or p1 is None:
+        return "the model does not reach these residues"
+    if p1 - p0 != s.last - s.first:
+        return (f"the model has {p1 - p0 + 1} residues where the deposit has "
+                f"{s.n_residues} (an insertion)")
+    return p0, p1
+
+
 def fill_stretches(st: Structure, pred: Structure, stretches: list[Stretch],
-                   identity: float = float("nan"), mode: str = "gaps") -> FilledModel:
-    """Place the prediction's residues for each stretch; skip with a reason."""
+                   identity: float = float("nan"), mode: str = "gaps",
+                   numbering: NumberMap = BY_NUMBER) -> FilledModel:
+    """Place the prediction's residues for each stretch; skip with a reason.
+
+    The fill's atoms carry deposit residue numbers, whatever the route.
+    """
     from scipy.spatial import cKDTree
+
+    nm = numbering
 
     k = int(_P.value("graft.min_anchor"))
     pchain = pred.chains[0]
@@ -281,25 +335,30 @@ def fill_stretches(st: Structure, pred: Structure, stretches: list[Stretch],
         if s.chain not in by_chain:
             by_chain[s.chain] = (chain_residues(st, s.chain), _ca_index(st, s.chain))
         dep_res, dep_ca = by_chain[s.chain]
-        before, after = _anchors(s, dep_res, pred_res)
+        rng = _pred_range(s, nm)
+        if isinstance(rng, str):
+            skipped.append(Skip(s, rng))
+            continue
+        p0, p1 = rng
+        before, after = _anchors(s, dep_res, pred_res, nm)
         need_b = 0 if s.kind == "n_term" else (2 * k if s.kind == "c_term" else k)
         need_a = 0 if s.kind == "c_term" else (2 * k if s.kind == "n_term" else k)
         if len(before) < need_b or len(after) < need_a:
             skipped.append(Skip(s, f"anchors {len(before)} before / {len(after)} "
                                    f"after, need {need_b} / {need_a}"))
             continue
-        inside = (pred.chain == pchain) & (pred.res_seq >= s.first) \
-            & (pred.res_seq <= s.last) & ~pred.hetero
+        inside = (pred.chain == pchain) & (pred.res_seq >= p0) \
+            & (pred.res_seq <= p1) & ~pred.hetero
         if not inside.any():
             skipped.append(Skip(s, "the prediction does not model these residues"))
             continue
         anchor = before + after
         a_dep = np.array([dep_ca[r] for r in anchor])
-        a_pred = pxyz[[pred_ca[r] for r in anchor]]
+        a_pred = pxyz[[pred_ca[nm(r)] for r in anchor]]
         r, t = kabsch(a_pred, st.xyz[a_dep])
         rmsd = float(np.sqrt((((a_pred @ r.T + t) - st.xyz[a_dep]) ** 2).sum(1).mean()))
-        seams = [(dep_ca[d], pxyz[pred_ca[p]]) for d, p in _seams(s)
-                 if d in dep_ca and p in pred_ca]
+        joins_at = [(d, q) for d, q in _seams(s) if d in dep_ca and nm(q) in pred_ca]
+        seams = [(dep_ca[d], pxyz[pred_ca[nm(q)]]) for d, q in joins_at]
         joins = tuple(float(np.linalg.norm(q @ r.T + t - st.xyz[d])) for d, q in seams)
         idx = np.flatnonzero(inside)
         placed = pxyz[idx] @ r.T + t
@@ -317,15 +376,17 @@ def fill_stretches(st: Structure, pred: Structure, stretches: list[Stretch],
                           float(pl.mean()), float((pl >= conf).mean()), clashing))
         part = pred.subset(inside).copy_with_coords(placed.astype(np.float32))
         part.chain = np.full(part.n_atoms, s.chain, dtype=st.chain.dtype)
+        part.res_seq = (part.res_seq + (s.first - p0)).astype(part.res_seq.dtype)
         fills[-1].seam_fill = np.array(
             [start + int(np.flatnonzero((part.res_seq == q) & (part.atom_name == "CA"))[0])
-             for (d, q) in _seams(s) if d in dep_ca and q in pred_ca], int)
+             for (d, q) in joins_at], int)
         parts.append(part)
         rows.append((start, start + part.n_atoms))
         start += part.n_atoms
 
     atoms = _concat(parts, f"{st.name}+{pred.name}", pred)
-    model = FilledModel(st.name, pred.name, identity, mode, fills, skipped, atoms, rows)
+    model = FilledModel(st.name, pred.name, identity, mode, fills, skipped, atoms, rows,
+                        numbering)
     model._pred_xyz = pxyz
     return model
 
@@ -340,30 +401,41 @@ def _concat(parts: list[Structure], name: str, template: Structure) -> Structure
     return built
 
 
+def _mapped_identity(dep: dict, pred: dict, nm: NumberMap) -> float:
+    """Identity of a chain's unstubbed residues with the prediction, through ``nm``."""
+    scored = [r for r, (aa, stub) in dep.items() if not stub and nm(r) in pred]
+    same = sum(dep[r][0] == pred[nm(r)][0] for r in scored)
+    return same / len(scored) if scored else 0.0
+
+
 def fill_structure(st: Structure, mode: str = "gaps", prediction=None,
-                   chains=None) -> FilledModel:
+                   chains=None, numbering: NumberMap | None = None) -> FilledModel:
     """Fill every chain of a deposit (``mode`` from :data:`FILL_MODES`).
 
-    Raises :class:`GraftRefusal` when no downloaded model is in the deposit's
-    numbering (or ``mode`` is ``none``, which has nothing to build).
+    Raises :class:`GraftRefusal` when no downloaded model can fill the deposit
+    (or ``mode`` is ``none``, which has nothing to build). A ``prediction``
+    given without ``numbering`` is taken to be in the deposit's numbering.
     """
     if mode not in {k for k, _, _ in FILL_MODES} or mode == "none":
         raise ValueError(f"mode must be 'gaps' or 'full', not {mode!r}")
     if prediction is None:
-        prediction, identity = prediction_for(st)
-    else:
-        identity, _ = _identity(chain_residues(st, _main_chain(st)),
-                                chain_residues(prediction, prediction.chains[0]))
+        prediction, numbering = prediction_for(st)
     pred_res = chain_residues(prediction, prediction.chains[0])
-    last = max(pred_res)
-    # Every chain that is itself in the prediction's numbering (a ligand-only
-    # or foreign chain is not a subunit to fill).
-    bar = _P.value("numbering.min_identity")
+    if numbering is None:
+        numbering = by_number(chain_residues(st, _main_chain(st)), pred_res)
+    nm = numbering
+    if nm.route == "number":
+        first, last, bar = 1, max(pred_res), _P.value("numbering.min_identity")
+    else:
+        (first, last), bar = nm.span(), align_bar()
+    # Every chain that is itself the prediction's protein (a ligand-only or
+    # foreign chain is not a subunit to fill).
     chains = chains or [c for c in st.chains
-                        if _identity(chain_residues(st, c), pred_res)[0] >= bar]
+                        if _mapped_identity(chain_residues(st, c), pred_res, nm) >= bar]
     stretches = [s for c in chains
-                 for s in unresolved(st, c, last, termini=(mode == "full"))]
-    return fill_stretches(st, prediction, stretches, identity, mode)
+                 for s in unresolved(st, c, last, termini=(mode == "full"),
+                                     pred_first=first)]
+    return fill_stretches(st, prediction, stretches, nm.identity, mode, nm)
 
 
 def placed_ca(model: FilledModel, fill: Fill, deposit_xyz=None) -> dict[int, np.ndarray]:

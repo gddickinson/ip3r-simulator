@@ -122,8 +122,8 @@ def test_prediction_for_refuses_a_foreign_numbering(tmp_path):
     shifted = pred.copy_with_coords(pred.xyz)
     shifted.res_seq = pred.res_seq + 1
     shifted.to_pdb(bad)
-    chosen, ident = prediction_for(dep, [bad, good])
-    assert chosen.name == "AF-GOOD-F1" and ident == 1.0
+    chosen, nm = prediction_for(dep, [bad, good])
+    assert chosen.name == "AF-GOOD-F1" and nm.identity == 1.0 and nm.route == "number"
     with pytest.raises(GraftRefusal, match="AF-BAD-F1"):
         prediction_for(dep, [bad])
 
@@ -181,15 +181,15 @@ def test_8tkg_fills_every_internal_gap():
     assert np.mean([f.plddt for f in model.fills]) < 50
 
 
-@needs_structure("9YKK", "7LHF")
-def test_deposits_in_no_downloaded_numbering_are_refused():
+@needs_structure("9YKK")
+def test_a_paralog_is_refused_on_both_routes():
     from ip3r.io.loader import load
     from ip3r.io.predictions import local_predictions
     if not local_predictions():
         pytest.skip("no AlphaFold model downloaded")
-    for pdb in ("9YKK", "7LHF"):
-        with pytest.raises(GraftRefusal, match="no AlphaFold model is in its numbering"):
-            fill_structure(load(pdb), "gaps")
+    # ITPR2: no model by number, and ~71 % aligned (a paralog, not an isoform).
+    with pytest.raises(GraftRefusal, match="no AlphaFold model is in its numbering"):
+        fill_structure(load("9YKK"), "gaps")
 
 
 @needs_structure("8TKG", "6DQN", "7T3P", "8TKF", "6DQJ", "8TKH", "8TLA")
