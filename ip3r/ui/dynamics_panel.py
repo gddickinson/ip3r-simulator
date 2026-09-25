@@ -26,6 +26,7 @@ from ..physics.calcium import oscillation_metrics, oscillation_window, simulate
 from .gating_panel import GatingPanel
 from .plot_canvas import PALETTE, PlotCanvas
 from .puffs_panel import PuffsPanel
+from .view_state import set_combo, set_spin
 from .workers import run_async
 
 __all__ = ["DynamicsPanel"]
@@ -102,15 +103,46 @@ class _Oscillation(QWidget):
         self.text.setText(f"Ca²⁺ oscillates for IP3 between {lo:.2f} and {hi:.2f} µM "
                           "(grid 0.01 µM; damped spirals excluded).")
 
+    def view_state(self) -> dict:
+        return {"osc_ip3": self.p.value(), "osc_duration": self.t_end.value()}
+
+    def restore(self, d: dict) -> list[str]:
+        notes: list[str] = []
+        for key, w, what in (("osc_ip3", self.p, "oscillation IP3"),
+                             ("osc_duration", self.t_end, "oscillation duration")):
+            if key in d:
+                set_spin(w, d[key], what, notes)
+        return notes
+
 
 class DynamicsPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         lay = QVBoxLayout(self)
-        tabs = QTabWidget()
+        self.tabs = tabs = QTabWidget()
         self.gating = GatingPanel()
         tabs.addTab(self.gating, "Gating")
-        tabs.addTab(_Oscillation(), "Oscillations")
+        self.oscillation = _Oscillation()
+        tabs.addTab(self.oscillation, "Oscillations")
         self.puffs = PuffsPanel()
         tabs.addTab(self.puffs, "Puffs")
         lay.addWidget(tabs)
+
+    def view_state(self) -> dict:
+        """Every control of the three views and the one showing; no result
+        (a restored session shows the controls, and nothing is re-run)."""
+        return {"tab": self.tabs.tabText(self.tabs.currentIndex()),
+                "gating": self.gating.model_key,
+                **self.oscillation.view_state(), **self.puffs.view_state()}
+
+    def restore(self, d: dict) -> list[str]:
+        notes: list[str] = []
+        if "gating" in d:
+            set_combo(self.gating.model, d["gating"], "gating model", notes)
+        notes += self.oscillation.restore(d) + self.puffs.restore(d)
+        names = [self.tabs.tabText(i) for i in range(self.tabs.count())]
+        if d.get("tab") in names:
+            self.tabs.setCurrentIndex(names.index(d["tab"]))
+        elif "tab" in d:
+            notes.append(f"unknown Dynamics view {d['tab']!r}")
+        return notes

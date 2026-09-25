@@ -2166,3 +2166,58 @@ each reading, and RyR1 as the control.
 Tests 476 → 497.
 
 **Next:** Round 7.5 (sessions and live parameters).
+
+## 2026-09-25 (20) — Round 7.5: sessions and live parameters
+
+**Why.** Two Round 5 leftovers. A session restored the structure view but
+not the Dynamics settings, the mode animation or the Variants view, so a
+saved "puff under this condition" view came back as the defaults. And
+panels that read a parameter when they were built might not follow an edit.
+
+**What.**
+- `io/session.py`: `dynamics`, `modes` ({index, amplitude}) and `variants`
+  (`PANEL_VIEWS`). They are flat name → scalar dicts, so a list or dict (a
+  result) is refused by name. A mode needs index ≥ 0 and a positive
+  amplitude. No format bump: an older file opens with them empty, and an
+  older build drops them as unknown keys.
+- Each panel writes and reads its own controls (`view_state` / `restore`):
+  Dynamics (gating model, oscillation, puffs, microdomain, sub-tab) and
+  Variants (set silently, then one refresh). `ui/view_state.py` has the
+  shared setters, which note what they cannot set rather than force it.
+- Modes: `SceneController.animated_mode` records the animation.
+  `SessionController` restores in the order load → transition frame →
+  modes, because showing a frame stops a mode animation. `modes_computed`
+  is called from the ANM's `on_done`.
+- Live parameters, audited panel by panel:
+  - **Fault:** the Puffs cluster size and coupling were copied from
+    `params_for` into spin boxes, and the simulation used the spin boxes.
+    So an edit of `puff.n_channels` or `puff.pd_ca_per_open` did nothing
+    in the GUI until the receptor was re-chosen. `Seeded` spins now follow
+    an edit while they still show the seeded value. A typed value is the
+    user's and is kept. Same for the microdomain run length
+    (`domain.gui_duration`), and the Mg²⁺ range and tooltips.
+  - The Gating plot is drawn unasked, so it redraws (at once if visible,
+    else when shown; ≤ 0.3 s per model).
+  - The displacement and ligand-shell colourings and the pLDDT legend:
+    legend and colours restyle together.
+  - Kept as they are, as the banner says: results the user ran (puffs,
+    channel summary, modes, transition, checks). Range's minimum
+    proteomes is a display filter, not `range.absence_min_proteomes`.
+  - The banner now uses the shared `ParameterFollower`.
+- Found on the way: the Transition tab's Stop during a mode animation
+  cleared the animation without putting the coordinates back. It now calls
+  `stop_animation` when a mode is running.
+
+**Checked.** Smoke test (`scripts/screenshot_session.py`): non-default
+Dynamics/Variants set before saving and disturbed after. The whole-session
+comparison covers them. A mode (first A, 20 Å) is animated, saved, stopped
+and restored on the same deposit, which waits for the transition rebuild
+and then the restart. Parameter edits: the coupling follows, a typed
+cluster size does not, a restored 90 s duration does not, a re-seeded one
+does, the Gating text moves to the new IP3, and a reset restores the seeds.
+My first version of that check expected the restored 90 s to follow. It
+was right not to. Tests 497 → 508 (`test_view_state`, session validation).
+
+**Not changed.** `make sync-check` clean; no verdict moved. No science.
+
+**Next:** Round 7.6 (the conductance shortfall).

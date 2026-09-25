@@ -26,6 +26,7 @@ from ..config import PARALOGS
 from ..core.annotations import LAYERS, constraint_at, element_of, variants
 from ..render.variant_spheres import CLASS_ORDER, resource_stratification
 from .plot_canvas import PlotCanvas
+from .view_state import set_check
 
 __all__ = ["VariantsPanel"]
 
@@ -162,6 +163,39 @@ class VariantsPanel(QWidget):
             self.paralog.setCurrentText(paralog)          # refresh() redraws
         else:
             self.emit_draw()
+
+    def view_state(self) -> dict:
+        return {"paralog": self.paralog.currentText(),
+                "class": self.bucket.currentText(),
+                "layer": self.layer.currentData(), "draw": self.draw.isChecked()}
+
+    def restore(self, d: dict) -> list[str]:
+        """Set every control first, then refresh and draw once."""
+        notes: list[str] = []
+        combos = (self.paralog, self.bucket, self.layer, self.draw)
+        for w in combos:
+            w.blockSignals(True)
+        try:
+            for key, combo, what in (("paralog", self.paralog, "variant paralog"),
+                                     ("class", self.bucket, "variant class")):
+                if key in d:
+                    if combo.findText(str(d[key])) >= 0:
+                        combo.setCurrentText(str(d[key]))
+                    else:
+                        notes.append(f"unknown {what} {d[key]!r} kept as it was")
+            if "layer" in d:
+                i = 0 if d["layer"] is None else self.layer.findData(d["layer"])
+                if i >= 0:
+                    self.layer.setCurrentIndex(i)
+                else:
+                    notes.append(f"unknown VUS layer {d['layer']!r} kept as it was")
+            if "draw" in d:
+                set_check(self.draw, d["draw"], "variants drawn", notes)
+        finally:
+            for w in combos:
+                w.blockSignals(False)
+        self.refresh()                                     # also emits the drawing
+        return notes
 
     def _selected(self) -> None:
         items = self.table.selectedItems()

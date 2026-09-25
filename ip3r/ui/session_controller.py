@@ -1,10 +1,13 @@
 """File-menu session save/open, and restoring one onto the window.
 
 A session is the view, never the results (see :mod:`ip3r.io.session`).
-Restoring is asynchronous in two places: the structure loads on a worker,
-and a transition is rebuilt on a worker. So the controller holds the session
-as *pending* and finishes it from :meth:`loaded` and
-:meth:`transition_built`, which the main window calls. A pending restore is
+Restoring is asynchronous in three places: the structure loads on a worker,
+a transition is rebuilt on a worker, and a mode animation needs the modes
+computed on a worker. So the controller holds the session as *pending* and
+finishes it from :meth:`loaded`, :meth:`transition_built` and
+:meth:`modes_computed`, which the main window calls, in that order: a mode
+animation starts only after the transition's frame is shown, because
+showing a frame stops it. A pending restore is
 dropped if a different deposit arrives first. Style and camera applied to
 whatever happened to be loaded would be a valid-looking wrong view.
 
@@ -36,6 +39,8 @@ class SessionController:
         self.path: Path | None = None
         self.pending: Session | None = None
         self._frame: tuple[str, int] | None = None     # (end id, frame) awaited
+        self._mode: dict | None = None                 # {index, amplitude} awaited
+        self._modes_for: str | None = None             # deposit the ANM runs on
         self.notes: list[str] = []
 
     # ------------------------------------------------------------ capture
@@ -56,7 +61,11 @@ class SessionController:
             show_pore=win.channel.show_pore.isChecked(),
             completeness=sp.current_completeness(),
             tab=win.tabs.tabText(win.tabs.currentIndex()),
+            dynamics=win.dynamics.view_state(), variants=win.variants.view_state(),
             parameters=PARAMETERS.overrides())
+        if win.scene.animated_mode is not None:
+            index, amplitude = win.scene.animated_mode
+            s.modes = {"index": index, "amplitude": amplitude}
         if cam is not None:
             s.camera_rotation = [float(v) for v in cam.rotation]
             s.camera_pivot = [float(v) for v in cam.pivot]
@@ -115,7 +124,7 @@ class SessionController:
                                 f"{session.structure or 'No structure'} is not "
                                 "in the structure registry.")
             return False
-        self.notes, self._frame = [], None
+        self.notes, self._frame, self._mode = [], None, None
         diffs = parameter_differences(session.parameters, PARAMETERS.overrides())
         changed = False
         if diffs:
@@ -142,7 +151,7 @@ class SessionController:
     def loaded(self, st) -> None:
         """Called by the window after every load has been drawn."""
         s, self.pending = self.pending, None
-        self._frame = None
+        self._frame = self._mode = None
         if s is None:
             return
         if s.structure != st.name:
@@ -156,6 +165,17 @@ class SessionController:
         frame, self._frame = self._frame[1], None
         self.win.morph.show_frame(frame)
         self.win.transition.follow(self.win.morph.frame)
+        self._restore_mode()
+
+    def modes_computed(self) -> None:
+        """Called by the window when an ANM finishes (for any reason)."""
+        st = self.win.scene.structure
+        if self._mode is None or st is None or st.name != self._modes_for:
+            return
+        m, self._mode = self._mode, None
+        if not self.win.modes.select(m["index"], m["amplitude"]):
+            self.notes.append(f"mode #{m['index'] + 1} not in this network; "
+                              "not animated")
         self._finish()
 
     def _restore_view(self, st, s: Session | None = None) -> None:
@@ -199,9 +219,12 @@ class SessionController:
         sp._update_legend()
         win.fills.request(sp.current_completeness())
         self._set_camera(s)
+        self.notes += win.dynamics.restore(s.dynamics) + win.variants.restore(s.variants)
+        win.scene.stop_animation()          # a running mode belongs to the old view
         for i in range(win.tabs.count()):
             if win.tabs.tabText(i) == s.tab:
                 win.tabs.setCurrentIndex(i)
+        self._mode = dict(s.modes) or None
         self._restore_transition(s)
 
     def _set_camera(self, s: Session) -> None:
@@ -220,12 +243,12 @@ class SessionController:
     def _restore_transition(self, s: Session) -> None:
         t = s.transition
         if not t:
-            return self._finish()
+            return self._restore_mode()
         tp = self.win.transition
         if tp.end.findData(t["end"]) < 0:
             self.notes.append(f"transition to {t['end']} not available from "
                               f"{s.structure}; not rebuilt")
-            return self._finish()
+            return self._restore_mode()
         for combo, key in ((tp.end, "end"), (tp.fit, "fit"), (tp.method, "method")):
             i = combo.findData(t.get(key))
             if i >= 0:
@@ -236,6 +259,19 @@ class SessionController:
         self._frame = (t["end"], int(t.get("frame", 0)))
         self._status(f"session: rebuilding {s.structure} → {t['end']}…")
         self.win.build_transition(t["end"], tp.fit.currentData(), tp.method.currentData())
+
+    def _restore_mode(self) -> None:
+        """Last step: re-select the animating mode, computing modes first
+        unless this deposit's are already in the panel."""
+        if self._mode is None:
+            return self._finish()
+        st = self.win.scene.structure
+        self._modes_for = st.name
+        if self.win.modes.modes is not None:
+            return self.modes_computed()
+        self._status(f"session: computing {st.name}'s modes to animate "
+                     f"#{self._mode['index'] + 1}…")
+        self.win.compute_modes()
 
     # ------------------------------------------------------------ helpers
 

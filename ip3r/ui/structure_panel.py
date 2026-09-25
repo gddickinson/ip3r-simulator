@@ -22,6 +22,7 @@ from ..render.colormaps import PLDDT_COLORS, SEAM_COLORS, SHELL_COLORS
 from ..render.representations import COLOR_LABELS, STYLE_LABELS, ColorBy, Style
 from ..structure.graft import FILL_MODES
 from ..structure.shells import SHELLS
+from .view_state import ParameterFollower
 
 __all__ = ["StructurePanel", "FAMILY_LABELS"]
 
@@ -127,6 +128,8 @@ class StructurePanel(QWidget):
         lay.addStretch(1)
         self.refresh_list()
         self._update_legend()
+        self.follower = ParameterFollower(self)
+        self.follower.changed.connect(self._parameters_changed)
 
     # ------------------------------------------------------------ registry
 
@@ -251,6 +254,16 @@ class StructurePanel(QWidget):
         return (f"<br><b>AlphaFold fill</b>, pLDDT: {rows}<br>"
                 f"{_swatch(SEAM_COLORS[True])} seam closes (≤ {tol:g} Å) "
                 f"{_swatch(SEAM_COLORS[False])} seam broken")
+
+    def _parameters_changed(self) -> None:
+        """The colour scales are registered values: when one the drawing
+        uses is edited, legend and colours move together (``_restyle``).
+        Otherwise only the legend is re-read."""
+        scaled = self.current_color() in (ColorBy.DISPLACEMENT, ColorBy.LIGAND_SHELL)
+        if scaled or self.current_completeness() != "none":
+            self._restyle()
+        else:
+            self._update_legend()
 
     def _restyle(self) -> None:
         self.layer.setEnabled(self.current_color() is ColorBy.CONSERVATION)

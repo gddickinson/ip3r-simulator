@@ -49,6 +49,8 @@ class SceneController:
         self._sites: list[str] = []
         self._base_xyz = None
         self._disp = None
+        #: (mode index, amplitude Å) while a mode animates, else None.
+        self.animated_mode: tuple[int, float] | None = None
         self._variants: tuple | None = None       # (paralog, buckets, layer)
         self._variant_atoms = np.zeros(0, int)
         self._fill: FillOverlay | None = None
@@ -338,6 +340,7 @@ class SceneController:
             return
         modes, residues = self.modes
         self.stop_animation()
+        self.animated_mode = (int(index), float(amplitude))
         self._base_xyz = self.structure.xyz.astype(np.float64).copy()
         self._disp = atom_displacements(self.structure, self.summary.frame, residues,
                                         modes.mode(index, amplitude))
@@ -356,6 +359,7 @@ class SceneController:
 
     def stop_animation(self) -> None:
         self.viewport.clear_animations()
+        self.animated_mode = None
         if self._base_xyz is not None and self.view is not None:
             self.view.update_coords(self._base_xyz)
             self.move_overlays(self._base_xyz)

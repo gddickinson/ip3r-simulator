@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.5, sessions and live parameters (Round 7
+**Next:** Round 7.6, the conductance shortfall (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -262,9 +262,9 @@ Emergent (not scheduled):
   check after reset (the test fails with the subscription removed). The
   smoke test edits, sees the banner, sees a check refuse, and resets.
   Emergent:
-  - [ ] Panels that read a parameter when they are built (spin-box
+  - [x] Panels that read a parameter when they are built (spin-box
     defaults) do not follow an edit. Audit them, and either re-read on
-    change or document it.
+    change or document it. Done in Round 7.5.
 - [x] Session save/restore (File → Save/Open session, `Ctrl+Shift+S`/`Ctrl+O`,
   `--session`). A session holds the view: deposit, style, colour, layer,
   subunits, sites, pore, camera, tab, and the transition spec (end, fit,
@@ -276,8 +276,9 @@ Emergent (not scheduled):
   restore is removed (checked). It caught one bug on the first look: the
   deposition list stayed on the previous deposit.
   Emergent:
-  - [ ] Mode animation and Dynamics-panel settings (IP3, coupling, model) are
+  - [x] Mode animation and Dynamics-panel settings (IP3, coupling, model) are
     not in a session. Add them if a saved view turns out to need them.
+    Done in Round 7.5.
 - [x] Variants as spheres on every visible subunit, in class colours
   (Variants tab, "Draw on structure"; refused on a deposit in another
   numbering). The spheres follow a morph frame. With a layer chosen, each VUS
@@ -291,7 +292,8 @@ Emergent (not scheduled):
   viewer's resource route reproduces the table too (tested). 46 checks: 44
   confirmed, 2 discrepancies. The earlier "46 checks" was a miscount of 45.
   Emergent:
-  - [ ] The variants view (class, layer, drawn) is not in a session.
+  - [x] The variants view (class, layer, drawn) is not in a session
+    (Round 7.5).
   - [ ] Per-paralog: ITPR2's P/LP median is one position's score. Draw the
     thresholds' uncertainty (bootstrap the medians) so a stratum near a
     median is shown as such.
@@ -411,9 +413,27 @@ item carried over from round n; it stays listed there too.
     PNP-DFT reproduces them), then on 8TKF against 15.2.
   - [ ] PROPKA buries RyR1's E4900 (pKa 8.0), which Xu's E4900N shows is
     charged. Is it the deposit's rotamer or PROPKA's desolvation?
-- [ ] **7.5 GUI: sessions and live parameters.** Save the Dynamics
-  settings, mode animation and variants view in sessions (R5). Audit the
-  panels that read a parameter only when they are built (R5).
+- [x] **7.5 GUI: sessions and live parameters.** Sessions now hold the
+  Dynamics controls (gating model, oscillation, puffs, microdomain, the
+  sub-tab), the animating mode and its amplitude, and the Variants view
+  (`Session.dynamics/modes/variants`, flat name → scalar, no format bump:
+  older files open). Controls only: no simulation is re-run. A mode is
+  recomputed and restarted after any transition frame, because a frame
+  stops it. A value that cannot be set (unknown key, out of range) is
+  noted in the status line, not forced. The audit found one real fault:
+  the Puffs cluster size and coupling were copied into spin boxes when the
+  receptor was chosen, so editing `puff.n_channels` changed nothing the GUI
+  simulated. Now such controls (`ui/view_state.Seeded`: those two, the
+  microdomain run length) follow an edit unless the user typed their own.
+  The Gating plot and the displacement/shell colours with their legend are
+  redrawn. Results the user ran keep their values, as the banner says.
+  The Range panel's minimum is a display filter, not
+  `range.absence_min_proteomes`. The smoke test sets and then disturbs
+  every new field, restores, and compares the whole session. It animates a
+  mode, restores it, edits the seeding parameters (a restored 90 s
+  duration must not follow; the coupling must), and resets.
+  Found on the way: the Transition tab's Stop, pressed during a mode
+  animation, froze the atoms mid-swing. It now puts the deposit back.
 - [ ] **7.6 Science: the conductance shortfall.** 8TKF is 2.4x short even
   uncharged (R4). Test the candidates one at a time: a subconductance
   deposit, the continuum at 3 A, and where the exit window ends.

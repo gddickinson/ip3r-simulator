@@ -13,6 +13,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
 
 from ..parameters import PARAMETERS
+from .view_state import ParameterFollower
 
 __all__ = ["ParametersBanner"]
 
@@ -26,7 +27,6 @@ class ParametersBanner(QFrame):
 
     edit_requested = pyqtSignal()
     visibility_changed = pyqtSignal(bool)   # the host strip follows
-    _changed = pyqtSignal()              # registry callback -> GUI thread
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -42,10 +42,8 @@ class ParametersBanner(QFrame):
         reset = QPushButton("Reset all")
         reset.clicked.connect(lambda: PARAMETERS.reset())
         lay.addWidget(reset)
-        self._changed.connect(self.refresh)
-        notify = self._changed.emit              # one object, so unsubscribe matches
-        PARAMETERS.subscribe(notify)
-        self.destroyed.connect(lambda *_: PARAMETERS.unsubscribe(notify))
+        self.follower = ParameterFollower(self)
+        self.follower.changed.connect(self.refresh)
         self.refresh()
 
     def refresh(self) -> None:

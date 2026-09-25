@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from screenshot_ip3r import IP3R_STEPS, check_transition_headline, ip3r_step  # noqa: E402
 from screenshot_sparks import SPARK_STEPS, spark_step  # noqa: E402
+import screenshot_session as ss_  # noqa: E402
 import screenshot_view as sv  # noqa: E402
 
 
@@ -294,7 +295,9 @@ def main() -> int:
                 cam.zoom(0.8)
                 win.tabs.setCurrentWidget(win.channel)
                 PARAMETERS.set_value("display.displacement_max", 20.0)
+                ss_.set_panel_view(win)
                 state["session"] = win.sessions.save_to(Path(tmp.name) / "s.json")
+                ss_.disturb_panel_view(win)
                 PARAMETERS.reset()
                 win.structure_panel.select("6DQN")      # somewhere else entirely
             elif s == 15:
@@ -307,7 +310,8 @@ def main() -> int:
                     raise RuntimeError("the session was not started")
             elif s == 16:
                 ss = win.sessions
-                if ss.pending is not None or ss._frame is not None:
+                if ss.pending is not None or ss._frame is not None \
+                        or ss._mode is not None:
                     if win.transition.status.text().startswith("not built"):
                         raise RuntimeError(win.transition.status.text())
                     state["step"] -= 1
@@ -331,6 +335,10 @@ def main() -> int:
                 from ip3r.parameters import PARAMETERS
                 PARAMETERS.reset()
             elif s == 17:                            # variants, on the restored view
+                if ss_.mode_round_trip(win, state):
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+                ss_.check_follow(win)
                 v = win.variants
                 win.tabs.setCurrentWidget(v)
                 if v.paralog.currentText() != "ITPR3":

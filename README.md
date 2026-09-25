@@ -436,13 +436,22 @@ While anything differs from its default an amber banner runs across the top
 of the window, and the findings checks report *not run* rather than confirm.
 Nothing typed is remembered after you quit. "Export…" writes the set as
 JSON, which `IP3R_PARAMETERS=file.json python -m ip3r …` reproduces headless.
+A control whose starting value is a parameter (the Puffs cluster size and
+coupling, the microdomain run length) follows an edit unless you have typed
+your own value there. Drawings nobody asked for (the Gating plot, the
+displacement and ligand-shell colours and their legend) are redrawn.
+Results you ran (a puff simulation, a channel measurement, modes, a
+transition) keep the values they were computed with until you run them again.
 
 ![Parameter editor](docs/img/gui_parameters.png)
 
 **Saving where you were.** File → Save session… (`Ctrl+Shift+S`) writes the
 view as JSON: the deposit, style, colouring, layer, subunits, marked sites,
-pore, camera, open tab, and any transition built (end, fit, method, frame).
-File → Open session… (`Ctrl+O`) or `--session` puts it back. A session holds
+pore, camera, open tab, any transition built (end, fit, method, frame), the
+normal mode animating and its amplitude, the Dynamics settings (gating model,
+oscillation, puffs, microdomain) and the Variants view (paralog, class, layer,
+drawn). A mode animation is recomputed and restarted; a simulation is not
+re-run, only its settings come back. File → Open session… (`Ctrl+O`) or `--session` puts it back. A session holds
 no coordinates and no results: it is re-derived from the same inputs on
 opening. It does record the parameter overrides in force when it was saved.
 If they differ from the current set, you are asked whether to apply them

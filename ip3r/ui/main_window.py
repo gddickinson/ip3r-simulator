@@ -285,7 +285,8 @@ class MainWindow(QMainWindow):
             return
         self.modes.set_busy("solving…")
         run_async(self.scene.compute_modes,
-                  on_done=lambda out: self.modes.show_modes(*out),
+                  on_done=lambda out: (self.modes.show_modes(*out),
+                                       self.sessions.modes_computed()),
                   on_error=lambda e: (self.modes.set_busy(""), QMessageBox.warning(
                       self, "Modes failed", e), self.modes.clear()))
 

@@ -15,6 +15,10 @@ Three IP3R models and one RyR1 scheme, each measured with one ruler
 
 Steady state only (the gating variables at equilibrium at clamped Ca2+):
 the single-channel condition.
+
+The plot is drawn without being asked for, so it follows a parameter edit
+(redrawn at once if on screen, else when next shown); results the user ran
+elsewhere keep the values they were computed with.
 """
 
 from __future__ import annotations
@@ -29,6 +33,7 @@ from ..physics import park_drive as pd
 from ..physics import ryr_gating as rg
 from ..physics import spark_mg as sm
 from .plot_canvas import PALETTE, PlotCanvas
+from .view_state import ParameterFollower
 
 __all__ = ["GatingPanel", "MODELS"]
 
@@ -89,7 +94,21 @@ class GatingPanel(QWidget):
         self.text = QLabel()
         self.text.setWordWrap(True)
         lay.addWidget(self.text)
+        self._stale = False
+        self.follower = ParameterFollower(self)
+        self.follower.changed.connect(self._parameters_changed)
         self.draw()
+
+    def _parameters_changed(self) -> None:
+        if self.isVisible():
+            self.draw()
+        else:
+            self._stale = True
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        if self._stale:
+            self.draw()
 
     def select(self, key: str) -> None:
         self.model.setCurrentIndex(self.model.findData(key))
@@ -99,6 +118,7 @@ class GatingPanel(QWidget):
         return self.model.currentData()
 
     def draw(self):
+        self._stale = False
         key = self.model_key
         if key == "ryr1":
             return self._draw_ryr()

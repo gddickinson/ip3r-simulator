@@ -119,7 +119,10 @@ class TransitionController:
         self.viewport.add_animation(tick)
 
     def stop(self) -> None:
-        self.viewport.clear_animations()
+        if self.scene.animated_mode is not None:    # a mode, not playback:
+            self.scene.stop_animation()               # put the deposit back
+        else:
+            self.viewport.clear_animations()
 
     def reset(self) -> None:
         """Forget the transition and put the deposit back as loaded."""

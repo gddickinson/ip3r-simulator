@@ -22,6 +22,7 @@ from ..parameters import PARAMETERS as _P
 from ..physics.puff_stats import fluorescence_events, puff_stats, thurley_pdf
 from ..physics.puffs_domain import DomainPuffParams, simulate_cluster_domain
 from .plot_canvas import PALETTE
+from .view_state import Seeded, set_combo, set_spin
 
 __all__ = ["DomainControls", "simulate", "draw", "CLAMP_LABELS"]
 
@@ -44,21 +45,41 @@ class DomainControls(QGroupBox):
         self.scale.setSingleStep(0.5)
         self.scale.setValue(1.0)                 # Cao 2014's release, unscaled
         self.scale.setSuffix(" × release")
-        self.scale.setToolTip(
-            "Multiplies each open receptor's release k_ipr. At 1× the mean blip "
-            "is dF/F0 0.6-0.7; Cao 2013's 1.6 is matched at "
-            f"{_P.value('domain.blip_scale'):g}× (domain.blip_scale).")
         self.duration = QDoubleSpinBox()
         self.duration.setRange(5.0, 3600.0)
         self.duration.setDecimals(0)
         self.duration.setSingleStep(30.0)
-        self.duration.setValue(_P.value("domain.gui_duration"))
         self.duration.setSuffix(" s")
+        self.duration.setObjectName("microdomain duration")
+        self.seeded = Seeded()
+        self.seeded.seed(self.duration, lambda: _P.value("domain.gui_duration"))
+        self._tooltips()
         self.run_btn = QPushButton("Simulate in the microdomain (F/F0, IPIs)")
         form.addRow("Store", self.clamp)
         form.addRow("Release", self.scale)
         form.addRow("Duration", self.duration)
         form.addRow(self.run_btn)
+
+    def _tooltips(self) -> None:
+        self.scale.setToolTip(
+            "Multiplies each open receptor's release k_ipr. At 1× the mean blip "
+            "is dF/F0 0.6-0.7; Cao 2013's 1.6 is matched at "
+            f"{_P.value('domain.blip_scale'):g}× (domain.blip_scale).")
+
+    def follow(self) -> None:
+        """A parameter changed: the duration follows unless typed over."""
+        self._tooltips()
+        self.seeded.follow()
+
+    def restore(self, d: dict) -> list[str]:
+        notes: list[str] = []
+        if "clamp" in d:
+            set_combo(self.clamp, d["clamp"], "store clamp", notes)
+        for key, w, what in (("scale", self.scale, "release multiple"),
+                             ("duration", self.duration, "microdomain duration")):
+            if key in d:
+                set_spin(w, d[key], what, notes)
+        return notes
 
     def spec(self) -> dict:
         return {"clamp": self.clamp.currentData(), "scale": self.scale.value(),

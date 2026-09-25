@@ -115,6 +115,20 @@ class ModesPanel(QWidget):
                              + local)
         self.animate_requested.emit(i, float(self.amp.value()))
 
+    def select(self, index: int, amplitude: float) -> bool:
+        """Animate mode ``index`` at ``amplitude`` Å, as a click would (a
+        session restore); False if the modes are not computed or too few."""
+        if self.modes is None or not 0 <= index < self.modes.n_modes:
+            return False
+        for w in (self.amp, self.table):
+            w.blockSignals(True)
+        self.amp.setValue(int(round(amplitude)))
+        self.table.selectRow(index)
+        for w in (self.amp, self.table):
+            w.blockSignals(False)
+        self._selected()                          # one animation, however reached
+        return True
+
     def clear(self) -> None:
         self.modes = None
         self.table.setRowCount(0)

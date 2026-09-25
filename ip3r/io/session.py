@@ -7,6 +7,13 @@ same inputs. It never stores coordinates or results. A file carrying its own
 copy of the numbers would drift silently out of step with the code that made
 them (the rule is the PIEZO1 simulator's, where this was first written).
 
+Panels beyond the viewport keep their *controls* here too (``dynamics``,
+``modes``, ``variants``): the Dynamics settings, which normal mode was
+animating and at what amplitude, and the variants view. Controls, not
+results: a restored Dynamics tab shows the settings a run used, and nothing
+is re-run until asked. A mode animation is re-computed (the ANM on the
+deposit) and restarted, like a transition.
+
 One input *is* stored: the parameter overrides in force when it was saved.
 Every measurement the view shows depends on them, so a session reopened
 under a different set would show different numbers under the same name.
@@ -32,6 +39,12 @@ SESSION_FORMAT = 1
 
 #: The transition fields a session carries (the spec, never the path).
 TRANSITION_KEYS = ("end", "fit", "method", "frame", "paint")
+
+#: Panel views whose controls a session carries: flat ``name → scalar``
+#: dicts written and read by the panels (``view_state`` / ``restore``).
+#: Added without a format bump: an older file lacks them and opens with
+#: the panels as they are; an older build drops them as unknown keys.
+PANEL_VIEWS = ("dynamics", "modes", "variants")
 
 
 @dataclass
@@ -66,6 +79,12 @@ class Session:
 
     #: ``{end, fit, method, frame, paint}`` when a transition was built.
     transition: dict = field(default_factory=dict)
+    #: Dynamics tab controls (gating model, oscillation, puffs, microdomain).
+    dynamics: dict = field(default_factory=dict)
+    #: ``{index, amplitude}`` of the animating normal mode, if one was.
+    modes: dict = field(default_factory=dict)
+    #: Variants view: ``{paralog, class, layer, draw}``.
+    variants: dict = field(default_factory=dict)
     #: Parameter overrides in force when saved (key → value).
     parameters: dict = field(default_factory=dict)
     notes: str = ""
@@ -117,6 +136,20 @@ class Session:
         if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
                    for v in self.parameters.values()):
             raise ValueError("parameters must map a key to a number")
+        for name in PANEL_VIEWS:
+            bad = [k for k, v in getattr(self, name).items()
+                   if not isinstance(v, (str, int, float, bool, type(None)))
+                   or (isinstance(v, float) and not math.isfinite(v))]
+            if bad:
+                raise ValueError(f"{name} holds values that are not plain "
+                                 f"settings: {sorted(bad)}")
+        if self.modes:
+            i, a = self.modes.get("index"), self.modes.get("amplitude")
+            if not (isinstance(i, int) and not isinstance(i, bool) and i >= 0
+                    and isinstance(a, (int, float)) and not isinstance(a, bool)
+                    and a > 0):
+                raise ValueError("modes needs an 'index' ≥ 0 and a positive "
+                                 "'amplitude'")
 
     def describe(self) -> str:
         bits = [self.structure or "no structure", f"{self.style}/{self.color_by}"]
@@ -125,6 +158,8 @@ class Session:
         if self.transition:
             t = self.transition
             bits.append(f"transition → {t['end']} frame {t.get('frame', 0)}")
+        if self.modes:
+            bits.append(f"mode #{self.modes['index'] + 1} animating")
         bits.append(f"{len(self.parameters)} parameter(s) modified"
                     if self.parameters else "default parameters")
         return " · ".join(bits)

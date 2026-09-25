@@ -33,6 +33,7 @@ from ..physics import puff_compare as pc
 from ..physics import spark_mg as sm
 from . import puffs_domain_view as dv
 from .plot_canvas import PALETTE, PlotCanvas
+from .view_state import ParameterFollower, Seeded, set_combo, set_spin
 from .workers import run_async
 
 __all__ = ["PuffsPanel"]
@@ -101,14 +102,19 @@ class PuffsPanel(QWidget):
         self.model = QComboBox()
         for m in pc.ALL_MODELS:
             self.model.addItem(pc.MODEL_LABELS[m], m)
-        pp = pc.params_for(pc.MODELS[0])
         self.p = _spin(0.2, 0.0, 5.0, 0.05, " µM")
-        self.n = _spin(pp.n_channels, 1, 200, 1, " channels", 0)
-        self.coupling = _spin(pp.ca_per_open, 0.0, 20.0, 0.05, " µM / open channel")
+        self.n = _spin(1, 1, 200, 1, " channels", 0)
+        self.n.setObjectName("cluster size")
+        self.coupling = _spin(0.0, 0.0, 20.0, 0.05, " µM / open channel")
+        self.coupling.setObjectName("Ca²⁺ coupling")
         self.duration = _spin(10.0, 1.0, 60.0, 1.0, " s", 0)
-        self.mg = _spin(0.0, 0.0, 10 * _P.value("ryr.mg_free"), 100.0, " µM free", 0)
-        self.mg.setToolTip(f"Cytosolic free Mg²⁺ (RyR1 only); the fibre's is "
-                           f"{_P.value('ryr.mg_free'):g} µM")
+        self.mg = _spin(0.0, 0.0, 1.0, 100.0, " µM free", 0)
+        self._mg_range()
+        # The receptor's size and coupling are registered parameters: they
+        # follow an edit unless the user has typed their own.
+        self.seeded = Seeded()
+        self.follower = ParameterFollower(self)
+        self.follower.changed.connect(self._parameters_changed)
         self.reading = QComboBox()
         for key, label in sm.READINGS.items():
             self.reading.addItem(label, key)
@@ -147,10 +153,20 @@ class PuffsPanel(QWidget):
     def model_key(self) -> str:
         return self.model.currentData()
 
+    def _mg_range(self) -> None:
+        free = _P.value("ryr.mg_free")
+        self.mg.setMaximum(max(10 * free, self.mg.value()))
+        self.mg.setToolTip(f"Cytosolic free Mg²⁺ (RyR1 only); the fibre's is "
+                           f"{free:g} µM")
+
+    def _parameters_changed(self) -> None:
+        self._mg_range()
+        self.domain.follow()
+        self.seeded.follow()
+
     def _model_changed(self):
-        pp = pc.params_for(self.model_key)
-        self.coupling.setValue(pp.ca_per_open)
-        self.n.setValue(pp.n_channels)
+        self.seeded.seed(self.coupling, lambda: pc.params_for(self.model_key).ca_per_open)
+        self.seeded.seed(self.n, lambda: pc.params_for(self.model_key).n_channels)
         ryr = self.model_key in pc.SPARKS
         # A control that cannot act on this receptor is hidden, not greyed:
         # RyR ignores IP3, and the IP3R models have no Mg2+ sites.
@@ -163,6 +179,32 @@ class PuffsPanel(QWidget):
         self.mg_scan_btn.setVisible(ryr)
         self.mg_scan_btn.setEnabled(self.model_key in _CLEFT)
         self.domain.setVisible(self.model_key == "park-drive")
+
+    # ------------------------------------------------------------ sessions
+
+    def view_state(self) -> dict:
+        """The controls, never a result (a session re-runs nothing)."""
+        return {"puff_model": self.model_key, "puff_ip3": self.p.value(),
+                "puff_n": self.n.value(), "puff_coupling": self.coupling.value(),
+                "puff_duration": self.duration.value(), "puff_mg": self.mg.value(),
+                "puff_reading": self.reading.currentData(),
+                **{f"domain_{k}": v for k, v in self.domain.spec().items()}}
+
+    def restore(self, d: dict) -> list[str]:
+        notes: list[str] = []
+        if "puff_model" in d:              # first: it re-seeds size and coupling
+            set_combo(self.model, d["puff_model"], "puff receptor", notes)
+        for key, w, what in (("puff_ip3", self.p, "puff IP3"),
+                             ("puff_n", self.n, "cluster size"),
+                             ("puff_coupling", self.coupling, "Ca²⁺ coupling"),
+                             ("puff_duration", self.duration, "puff duration"),
+                             ("puff_mg", self.mg, "free Mg²⁺")):
+            if key in d:
+                set_spin(w, d[key], what, notes)
+        if "puff_reading" in d:
+            set_combo(self.reading, d["puff_reading"], "K_Mg,A reading", notes)
+        return notes + self.domain.restore(
+            {k[len("domain_"):]: v for k, v in d.items() if k.startswith("domain_")})
 
     def run_domain(self):
         spec = self.domain.spec()
