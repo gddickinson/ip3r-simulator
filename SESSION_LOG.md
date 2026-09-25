@@ -1780,3 +1780,48 @@ unmeasured. No GUI change (no screenshots). 428 tests pass (+6).
 
 **Next:** per-channel heterogeneity (a mixed cluster), or ρ at 0 mV if a
 source (Sitsapesan 1995, Laver & Curtis 1996b) gives it.
+
+## 2026-09-25 (12) — Round 6.11: a mixed cluster; the use gate needs nearly every channel
+
+**Why.** ROADMAP's **Next:**: only half to two-thirds of RyRs inactivate,
+stably, and every simulator treated the channels as identical. The user
+had also added `pdfs/sitsapesan_1995.pdf` and `pdfs/laver_curtis_1996.pdf`,
+the sources named for ρ at 0 mV. Those were read first.
+
+**The new sources.** `sitsapesan_1995.pdf` is the journal's landing page
+(the abstract only): no inactivation at −40 mV, inactivation at +40 mV.
+Laver & Curtis 1996 is complete but recorded at +40 mV throughout
+(Table 1). Its Fig. 4 gives steady-state over initial Po per channel from
+exponential fits, 70 % of 25 channels declining. **Neither gives ρ at
+0 mV.** Both, with Laver & Lamb's own counts (skeletal 12 of 15, cardiac
+33 of 59) and Ma 1995 (50–70 %), give the heterogeneity's fraction.
+
+**What was built.** `physics/ryr_mixed.py`: `MixedUseParams`, a use-gate
+scheme with a registered fraction (`ryr.use_inactivating_fraction` 0.8,
+the skeletal count) and a per-channel mask drawn per run (`bind`, called
+by both `simulate_sparks_cleft` and `simulate_couplon`). The non-carriers
+have entry rate zero, so the eight-state tables are unchanged. One Ca²⁺
+gate is shared, **fitted to the population's mean bell**, because
+Murayama's bell is [³H]ryanodine binding by a whole preparation
+(`fit_with_use(fraction=)`). `spark-termination --scan fraction` runs the
+fraction scan and the decomposition.
+
+**Measured.** At ρ 0.2: f 1 → Ki 40 µM, 14 ms sparks; f 0.9 → 27 ms;
+**f 0.8 → Ki 104 µM, 228 ms (2 of 53 unended)**; f ≤ 0.6 never end. At ρ
+0.32 the same shape. The couplon at 0.8 loses control: C Po after
+repolarisation 0.33 against 0.0018, with 148 of 216 large events at −50 mV
+unended. **Decomposition:** the all-use Ca²⁺ gate with only 80 % carrying
+the use gate gives 14 ms, as at f = 1. The 0.8-fit gate with all carrying
+gives 151 ms. So the non-inactivating channels cost nothing directly. The
+cost is the bell: shared with channels that never use-inactivate, it
+leaves the use gate less of the descending limb, and the Ca²⁺ gate must be
+weaker.
+
+**Standing.** The use gate reconciles the bell with termination only if
+f ≥ 0.9, against a measured 0.5–0.8. The two open assumptions, a shared
+Ca²⁺ gate and the bell preparation's fraction being the bilayer's, are
+recorded as emergent. 10 new tests. No GUI change (no screenshots).
+
+**Next:** separate Ca²⁺ gates for the two populations, if Copello 1997
+(heterogeneity of Ca²⁺ gating) supports it; or ρ at 0 mV from Sitsapesan
+1995's full text, which still has to come from the user.

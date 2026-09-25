@@ -2817,6 +2817,32 @@
    "maximum": 1.0
   },
   {
+   "key": "ryr.use_inactivating_fraction",
+   "name": "RyR1 share carrying the use gate",
+   "value": 0.8,
+   "unit": "",
+   "kind": "empirical",
+   "category": "ryr",
+   "citation": "laverlamb1998",
+   "description": "Share of a cluster's RyR1 channels that have use-dependent inactivation at all; the rest never enter it. A stable property of the channel: 'only those that showed inactivation after voltage steps inactivated after [Ca2+] steps, and vice versa'. Read by ryr_mixed.",
+   "source_note": "Laver & Lamb 1998, full text (rabbit skeletal and sheep cardiac RyRs in bilayers, 250 mM Cs+), Results: of channels with Po above 0.2, '80% of skeletal RyRs (12 of 15)' inactivated within 30 s of voltage steps (cardiac 56 %, 33 of 59); the abstract's 'one-half to two-thirds' pools both. Laver & Curtis 1996 (Biophys J 71:732): 70 % of 25 cardiac and skeletal channels declined after Ca2+ steps; Ma 1995: 50-70 % of skeletal. The skeletal count is used; the fraction is scanned from 0 to 1",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
+   "key": "spark.use_fraction_scan_points",
+   "name": "Inactivating-fraction scan: points",
+   "value": 6.0,
+   "unit": "",
+   "kind": "method",
+   "category": "spark",
+   "citation": "method_choice",
+   "description": "Evenly spaced inactivating fractions from 0 to 1 in the mixed-cluster scan.",
+   "source_note": "Steps of 0.2: the measured 0.5-0.8 falls on two of them",
+   "minimum": 2.0,
+   "maximum": 50.0
+  },
+  {
    "key": "spark.use_scan_min",
    "name": "Use-gate scan: fastest time constant",
    "value": 0.001,

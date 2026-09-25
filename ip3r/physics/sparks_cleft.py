@@ -32,6 +32,7 @@ from ..parameters import PARAMETERS as _P
 from .cleft import CleftGeometry, coupling_matrix, nearest_coupling
 from .puffs import PuffTrace
 from .ryr_gating import SternParams, stationary
+from .ryr_mixed import bind
 
 __all__ = ["CleftSparkParams", "native_coupling", "couplings_for",
            "simulate_sparks_cleft", "DEST", "c_rates", "initial_states"]
@@ -66,13 +67,20 @@ def c_rates(state: np.ndarray, c: np.ndarray, sp: SternParams) -> np.ndarray:
 
 
 def initial_states(pp: CleftSparkParams, n: int, rng: np.random.Generator,
-                   trigger: bool = False) -> np.ndarray:
+                   trigger: bool = False, gating=None) -> np.ndarray:
     """Each channel drawn from the stationary state at ``ca_rest``;
-    ``trigger`` opens the closed, uninactivated ones."""
-    pi = np.cumsum(stationary(pp.ca_rest, pp.gating))
-    state = np.searchsorted(pi, rng.random(n) * pi[-1])
+    ``trigger`` opens the closed, uninactivated ones. ``gating`` (default
+    ``pp.gating``) is the scheme as bound to this cluster
+    (:func:`ryr_mixed.bind`); a mixed one draws each channel from its own
+    population."""
+    sp = pp.gating if gating is None else gating
+    if hasattr(sp, "draw"):
+        state = sp.draw(pp.ca_rest, rng)
+    else:
+        pi = np.cumsum(stationary(pp.ca_rest, sp))
+        state = np.searchsorted(pi, rng.random(n) * pi[-1])
     if trigger:
-        state = pp.gating.trigger_map[state]
+        state = sp.trigger_map[state]
     return state
 
 
@@ -95,11 +103,11 @@ def simulate_sparks_cleft(p: float = 0.0, duration: float = 5.0, seed: int = 0,
     inactivated ones): a stand-in for the V channels' stimulus, so that a
     spark can be timed where none starts by itself."""
     pp = pp or CleftSparkParams()
-    sp = pp.gating
     rng = np.random.default_rng(seed)
     g = couplings_for(pp)
     n = g.shape[0]
-    state = initial_states(pp, n, rng, trigger)
+    sp = bind(pp.gating, n, rng)
+    state = initial_states(pp, n, rng, trigger, sp)
     is_open = sp.open_mask[state].astype(float)
     c = pp.ca_rest + g @ is_open
     n_rec = int(np.floor(duration / pp.record_dt + 1e-9)) + 1

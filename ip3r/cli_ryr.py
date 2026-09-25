@@ -125,6 +125,13 @@ def _spark_termination(args) -> int:
               "bell's descending limb and puts Ki back where Round 6.8 had it")
         _print_residual_bound()
         rows = st.ratio_scan(None, args.duration, args.seeds)
+    elif args.scan == "fraction":
+        print("the share of channels carrying the use gate (Laver & Lamb "
+              "1998: 80 % of skeletal RyRs), at the registered ratio. The "
+              "shared Ca2+ gate is refitted to the POPULATION bell at every "
+              "point. The last two rows take the registered fraction apart")
+        rows = (st.fraction_scan(None, args.duration, args.seeds)
+                + st.fraction_controls(None, None, args.duration, args.seeds))
     else:
         base = rg.fit_to_bell() if args.fitted else None
         rows = st.rate_scan(base, args.duration, args.seeds)
@@ -249,11 +256,13 @@ def register(sub) -> None:
     p.set_defaults(fn=_sparks)
     p = sub.add_parser("spark-termination", help="cleft spark duration as the "
                        "inactivation gate is refitted and scanned")
-    p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "ratio"),
+    p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "ratio",
+                                        "fraction"),
                    default="fit",
                    help="fit: Stern vs fitted to Murayama (25, 37 C); ki: Ki "
                    "scan; rate: inactivation rate scan at fixed Ki; use: the "
-                   "use gate's speed; ratio: its recovery/inactivation ratio")
+                   "use gate's speed; ratio: its recovery/inactivation ratio; "
+                   "fraction: the share of channels that carry it")
     p.add_argument("--bell", action="store_true",
                    help="with --scan use: recovery ratios against the measured "
                         "bell only "

@@ -316,6 +316,23 @@ RYR += [
        "ryr.use_residual_40mv_min, for the least inactivated skeletal RyR "
        "that inactivated at all.", f"{_LL98_FULL}, Fig. 8, read to about "
        "+-0.02", 0.0, 1.0),
+    _p("ryr.use_inactivating_fraction", "RyR1 share carrying the use gate",
+       0.8, "", "empirical", "ryr", "laverlamb1998", "Share of a cluster's "
+       "RyR1 channels that have use-dependent inactivation at all; the rest "
+       "never enter it. A stable property of the channel: 'only those that "
+       "showed inactivation after voltage steps inactivated after [Ca2+] "
+       "steps, and vice versa'. Read by ryr_mixed.",
+       f"{_LL98_FULL}, Results: of channels with Po above 0.2, '80% of "
+       "skeletal RyRs (12 of 15)' inactivated within 30 s of voltage steps "
+       "(cardiac 56 %, 33 of 59); the abstract's 'one-half to two-thirds' "
+       "pools both. Laver & Curtis 1996 (Biophys J 71:732): 70 % of 25 "
+       "cardiac and skeletal channels declined after Ca2+ steps; Ma 1995: "
+       "50-70 % of skeletal. The skeletal count is used; the fraction is "
+       "scanned from 0 to 1", 0.0, 1.0),
+    _p("spark.use_fraction_scan_points", "Inactivating-fraction scan: points",
+       6.0, "", "method", "spark", "method_choice", "Evenly spaced "
+       "inactivating fractions from 0 to 1 in the mixed-cluster scan.",
+       "Steps of 0.2: the measured 0.5-0.8 falls on two of them", 2.0, 50.0),
     _p("spark.use_scan_min", "Use-gate scan: fastest time constant", 0.001,
        "s", "method", "spark", "method_choice", "Low end of the scan of the "
        "use gate's time constant from the open state; also the fastest use "

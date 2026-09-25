@@ -5,19 +5,18 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** per-channel heterogeneity in the use gate (Round 6.9 emergent,
-Round 6.10 sharpened it): half to two-thirds of RyR1s inactivate and the
-rest never do (Laver & Lamb's Fig. 8: three of six skeletal channels at
-residual 1). Round 6.10 found the use gate works only for a recovery ratio
-rho ~0.1-0.4 at 0 mV, which no paper measures; a mixed cluster is the
-paper's own next constraint and can only make termination harder. Or, if
-a source turns up, rho at 0 mV (Sitsapesan 1995; Laver & Curtis 1996b).
+**Next:** Round 6.11 found that a mixed cluster at the measured 80 %
+inactivating fraction breaks termination (sparks 228 ms), and that the
+cause is the population bell forcing a weaker shared Ca2+ gate. The
+remaining lever is separate Ca2+ gates for the two populations
+(`ROADMAP_RYR.md` 6.11 emergent), if a source (Copello 1997) shows the
+non-inactivating channels differ in Ca2+ gating. Or rho at 0 mV if the full
+text of Sitsapesan 1995 is supplied (only its abstract page is in `pdfs/`).
 Failing both, a time-dependent cleft field for Laver 2013's induction decay.
 Other candidates: the A-subspace headline in the Transition tab (Round 2),
 the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
 selectivity control on RyR1, or the pKa of the lining lysines and
-carboxylates (Round 4; the vestibule's screening was ruled out as the Ca²⁺
-barrier).
+carboxylates (Round 4).
 
 ## Destination
 

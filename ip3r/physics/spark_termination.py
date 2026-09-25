@@ -39,7 +39,8 @@ from .sparks_cleft import CleftSparkParams, simulate_sparks_cleft
 
 __all__ = ["Termination", "measure", "refit", "ki_scan", "rate_scan",
            "ki_values", "rate_values", "use_scan", "no_inactivation",
-           "ratio_scan"]
+           "ratio_scan", "fraction_scan",
+           "fraction_controls"]
 
 
 @dataclass(frozen=True)
@@ -166,3 +167,42 @@ def ratio_scan(k_use_on: float | None = None, duration: float = 10.0,
             continue
         rows.append(measure(sp, f"ratio {rho:.3g}", duration, seeds))
     return rows
+
+
+def fraction_scan(ratio: float | None = None, duration: float = 10.0,
+                  seeds: int = 4, fractions=None) -> list[Termination]:
+    """The cleft array against the share of channels carrying the use gate
+    (Round 6.11, :mod:`ryr_mixed`), at recovery ratio ``ratio`` (default the
+    registered one). At each fraction the shared Ca2+ gate is refitted to
+    the *population* bell, so a lower fraction costs twice: fewer channels
+    that can use-inactivate, and a Ca2+ gate that must take back more of the
+    descending limb (a higher Ki). Fraction 1 is :func:`ratio_scan`'s row at
+    the same ratio; fraction 0 is the fitted one-site scheme."""
+    from .ryr_mixed import fit_mixed, fraction_values
+    rows = []
+    for f in (fraction_values() if fractions is None else fractions):
+        try:
+            sp = fit_mixed(f, ratio)
+        except (RuntimeError, FloatingPointError):
+            continue
+        rows.append(measure(sp, f"use on {f:.2f} of channels", duration,
+                            seeds))
+    return rows
+
+
+def fraction_controls(fraction: float | None = None,
+                      ratio: float | None = None, duration: float = 10.0,
+                      seeds: int = 4) -> list[Termination]:
+    """The two halves of what a fraction below 1 does, measured apart: the
+    Ca2+ gate fitted for all channels carrying the use gate, run with only
+    ``fraction`` carrying it (the non-inactivating channels alone); and the
+    gate fitted for ``fraction``, run with all channels carrying it (the
+    weaker Ca2+ gate alone)."""
+    from .ryr_mixed import fit_mixed, mixed
+    f = _P.value("ryr.use_inactivating_fraction") if fraction is None \
+        else float(fraction)
+    full, part = fit_mixed(1.0, ratio), fit_mixed(f, ratio)
+    return [measure(mixed(full, f), f"all-use gate, {f:.2f} carry",
+                    duration, seeds),
+            measure(mixed(part, 1.0), f"{f:.2f}-fit gate, all carry",
+                    duration, seeds)]

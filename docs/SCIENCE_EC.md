@@ -420,10 +420,44 @@ steady residual activity of roughly 10–30 % in channels held open**, a
 number a bilayer at 0 mV, or a longer record at +40 mV than Fig. 8's 5 s,
 can measure.
 
-**Not modelled.** That only half to two-thirds of channels inactivate, as a
-stable property of the channel, so that a cluster keeps a subpopulation
-that never inactivates: every simulator here treats the channels as
-identical, and heterogeneity can only make termination harder.
+**Heterogeneity, modelled in Round 6.11 (`physics/ryr_mixed.py`;
+`spark-termination --scan fraction`).** Only some channels have the use
+gate at all, stably: "only those that showed inactivation after voltage
+steps inactivated after [Ca²⁺] steps, and vice versa". Laver & Lamb count
+80 % of skeletal RyRs (12 of 15, Po > 0.2), 56 % of cardiac; Laver & Curtis
+1996 70 % of 25 after Ca²⁺ steps; Ma 1995 50–70 %. `ryr.use_inactivating_fraction`
+is 0.8. In the mixed cluster a random `round(f·n)` channels carry the gate
+and all share one Ca²⁺ gate. Because Murayama's bell is [³H]ryanodine
+binding by a whole preparation, **the Ca²⁺ gate is fitted to the
+population's mean bell**, f·Po_use + (1 − f)·Po_plain.
+
+At ρ 0.2: fraction 1 gives Ka 11.7, Ki 40 µM and 14 ms sparks; **0.8 gives
+Ki 104 µM and 228 ms sparks (2 of 53 unended)**; 0.6 or less, sparks never
+end (Ki 167–249 µM). At ρ 0.32 the same shape (22 ms → 326 ms). Sparks of
+the measured order need f ≥ 0.9 (27 ms at 0.9, 19 ms at 0.95). The couplon
+at 0.8 loses control: C Po after repolarisation 0.33 (0.0018 at f = 1),
+and at −50 mV 148 of 216 large events unended.
+
+**The damage comes through the bell, not through the channels.** Taken
+apart at f = 0.8: the all-use Ca²⁺ gate with only 80 % carrying the use
+gate gives 14 ms sparks, as at f = 1: the non-inactivating fifth is,
+plausibly, shut by its neighbours: their inactivation removes its
+Ca²⁺. The 0.8-fit gate with *every* channel carrying the use gate gives
+151 ms. What lengthens the spark is that a population bell shared with
+channels that never use-inactivate leaves the use gate less of the
+descending limb, so the Ca²⁺ gate must be weaker. Round 6.9 predicted the
+direction ("can only make termination harder"), not the mechanism.
+
+**Standing after 6.11.** The use gate reconciles the bell with
+termination only if nearly every channel carries it (f ≥ 0.9), against a
+measured 0.5–0.8. Two assumptions carry this and both are open. (i) The
+two populations share one Ca²⁺ gate; if the non-inactivating channels had
+a stronger Ca²⁺ inactivation of their own, the bell could be split
+differently. (ii) The bell's preparation has the bilayer's fraction.
+Neither is sourced. Sitsapesan et al. 1995, the other cited Ca²⁺-step
+record, was supplied only as its abstract page: no decline at −40 mV,
+decline at +40 mV. Laver & Curtis 1996 is at +40 mV throughout. **ρ at
+0 mV is still unmeasured.**
 
 **The induction-decay control.** With *neither* inactivation gate, cleft
 sparks never end (open fraction 0.942, 4 of 4 unended at 9.7 s). This model

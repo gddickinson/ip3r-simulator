@@ -38,6 +38,7 @@ import numpy as np
 from ..parameters import PARAMETERS as _P
 from .allosteric_v import RiosParams, exits, stationary as v_stationary
 from .cleft import CleftGeometry, v_coupling_matrix
+from .ryr_mixed import bind
 from .sparks_cleft import CleftSparkParams, c_rates, couplings_for, initial_states
 
 __all__ = ["CouplonParams", "CouplonTrace", "step_protocol", "v_trajectory",
@@ -138,8 +139,8 @@ def simulate_couplon(protocol: tuple, duration: float, seed: int = 0,
     sched.sort()
     sched.append((np.inf, -1, 0))
     # Pass 2: the C array, with the V events as scheduled changes of Ca2+.
-    sp = pp.cleft.gating
-    state = initial_states(pp.cleft, n, rng)
+    sp = bind(pp.cleft.gating, n, rng)
+    state = initial_states(pp.cleft, n, rng, gating=sp)
     v_open = np.zeros(h.shape[1])
     f = float(f_v[0])
     c_rel = g @ sp.open_mask[state].astype(float)     # at full current

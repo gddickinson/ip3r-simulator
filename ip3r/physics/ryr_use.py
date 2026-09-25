@@ -68,9 +68,8 @@ through the residual activity of its Fig. 8 (:func:`residual_bound`). At
 
 The per-channel heterogeneity — that only half to two-thirds of channels
 inactivate at all, stably, so that a cluster keeps a subpopulation that
-never inactivates — is *not* modelled: every simulator here treats the
-channels as identical. It is recorded as emergent, and it can only make
-termination harder than this module reports.
+never inactivates — is :mod:`ryr_mixed` (Round 6.11). This module's
+schemes are the fraction-1 limit of it.
 """
 
 from __future__ import annotations
@@ -262,10 +261,13 @@ def cycle_flux(c: float, sp: UseParams) -> float:
 def fit_with_use(k_use_on: float | None = None, target=None,
                  sp: SternParams | None = None,
                  k_use_off: float | None = None,
-                 ratio: float | None = None) -> UseParams:
+                 ratio: float | None = None,
+                 fraction: float | None = None) -> UseParams:
     """Ka and Ki of the Ca2+ gate such that the *composite* scheme's
     half-peak points are ``target``'s (default Murayama's 25 C bell), with a
-    use gate of rate ``k_use_on`` already present.
+    use gate of rate ``k_use_on`` already present. With ``fraction``, only
+    that share of channels carries the use gate and the fit is to the
+    population's mean bell (:mod:`ryr_mixed`).
 
     The same solve as :func:`ryr_gating.fit_to_bell`, in log space, with the
     use gate inside the loop. Raises ``RuntimeError`` if no Ca2+ gate
@@ -278,8 +280,13 @@ def fit_with_use(k_use_on: float | None = None, target=None,
     from .ryr_gating import murayama_bell, with_constants
     target = target or murayama_bell()
     sp = replace(sp or SternParams(), mg=0.0)
-    scheme = lambda ka, ki: with_use(with_constants(ka, ki, sp), k_use_on,
-                                     k_use_off, ratio)
+
+    def scheme(ka, ki):
+        s = with_use(with_constants(ka, ki, sp), k_use_on, k_use_off, ratio)
+        if fraction is None:
+            return s
+        from .ryr_mixed import mixed
+        return mixed(s, fraction)
 
     def resid(x):
         with np.errstate(over="ignore"):

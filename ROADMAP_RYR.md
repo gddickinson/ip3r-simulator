@@ -243,10 +243,9 @@ with what it measured.
   Emergent:
   - [x] Laver & Lamb 1998's recovery rate: read from the full text in
     Round 6.10. It is not reported; the round rests on a ratio instead.
-  - [ ] Per-channel heterogeneity: only half to two-thirds of RyRs
-    inactivate, stably, so a cluster keeps channels that never do. Every
-    simulator here treats the channels as identical; it can only make
-    termination harder.
+  - [x] Per-channel heterogeneity: only half to two-thirds of RyRs
+    inactivate, stably, so a cluster keeps channels that never do. Done as
+    Round 6.11: it does make termination harder, through the bell.
   - [ ] A time-dependent cleft field, for Laver et al. 2013's induction
     decay. With neither inactivation gate this model's sparks never end
     (open fraction 0.942), because `sparks_cleft` holds the field at its
@@ -274,3 +273,26 @@ with what it measured.
     0 mV (the model needs ~10-30 %), from the literature (Sitsapesan 1995,
     Laver & Curtis 1996b are the cited Ca2+-step records) or a longer
     +40 mV record than Fig. 8's 5 s.
+
+- [x] 6.11 A mixed cluster (`physics/ryr_mixed.py`; `spark-termination
+  --scan fraction`). A registered 0.8 of channels carry the use gate
+  (Laver & Lamb 1998: 12 of 15 skeletal RyRs; Laver & Curtis 1996 70 %;
+  Ma 1995 50-70 %), drawn per run; one Ca2+ gate shared, **fitted to the
+  population's mean bell** because [3H]ryanodine binding is a population
+  measurement. At rho 0.2: f 1 -> Ki 40 uM, sparks 14 ms; **f 0.8 -> Ki
+  104 uM, sparks 228 ms**; f <= 0.6 never end; f >= 0.9 needed for sparks
+  under ~30 ms. The couplon at 0.8 loses control (C after repolarisation
+  0.33 vs 0.0018). **Taken apart, the non-inactivating channels alone
+  cost nothing (14 ms); the weaker Ca2+ gate the population bell forces
+  costs it all (151 ms).** The use gate reconciles bell and termination
+  only if nearly every channel carries it, against a measured 0.5-0.8.
+  Sitsapesan 1995 was supplied as its abstract page only; Laver & Curtis
+  1996 is all +40 mV: rho at 0 mV remains unmeasured.
+  Emergent:
+  - [ ] Separate Ca2+ gates for the two populations: the one way left to
+    split the bell so that a mixed cluster terminates. Needs a source
+    that the non-inactivating channels differ in Ca2+ inactivation
+    (Copello 1997's heterogeneity of Ca2+ gating is the candidate).
+  - [ ] Whether a triad's inactivating fraction is the bilayer's (Hain
+    1994/95: about half of RyRs phosphorylated; Laver & Lamb suggest
+    phosphorylation or FKBP12 as the switch).
