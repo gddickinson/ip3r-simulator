@@ -315,3 +315,64 @@ with what it measured.
   Emergent:
   - [ ] Whether a triad's inactivating fraction is the bilayer's (carried
     over from 6.11; Hain 1994/95 phosphorylation, FKBP12).
+
+## Literature check, 2026-09-25 (verified against Europe PMC and PMC full text)
+
+Asked whether post-2000 work resolves the open questions of Rounds
+6.8-6.12. Four citations were verified to exist and their numbers read
+from the full text, not from a summary.
+
+- **Rios E & Pizarro G (2026), J Gen Physiol 158(5):e202613968
+  (PMC13387315, open).** The one that matters. Same couplon architecture
+  as ours (V/C checkerboard, Rios is Stern's 1997 co-author), and its
+  RyR inactivation is **entered only from the open state**, as our use
+  gate is: "every channel that opens inactivates, requiring O -> I
+  unidirectionality". O -> I1 -> I2, I1 -> C recovery. Verbatim: **"No
+  explicit Ca2+ roles on activation or inactivation are required."**
+  Table 1 (its dimension column reads "time^-1, ms^-1" but the Methods
+  define I1_ht as log2/k_I1, so these are half-lives in ms):
+  I1_ht 3.5, I2_ht 50, R1_ht 20, R2_ht 50 ms. So its recovery/entry ratio
+  is 3.5/20 = **0.175, inside the 0.1-0.4 band Round 6.10 needed** -- but
+  at a **millisecond** timescale, ~3600x faster than our
+  `ryr.k_use_on` (tau ~18 s at 0 mV). Our Round 6.10 result that only the
+  ratio matters holds *because* both our rates are far slower than a
+  spark; Rios's gate is faster than a spark, the regime where the speed
+  itself terminates. It cites Laver 2018, **not** Laver & Lamb 1998, and
+  assumes its rates voltage-independent: convergence, not continuity.
+  Its recovery is anchored to a measurement at the **resting potential**,
+  tau 110 ms (Sarkozi et al. 2000, J Muscle Res Cell Motil 21:131,
+  PMID 10961837 -- verified to exist; Rios says "in mice", the title says
+  rat: check before citing). Round 6.9-6.12's gate should be re-run in
+  the millisecond regime.
+- **Nayak AR & Samso M (2022), eLife 11:e75568 (PMC8947763, open).**
+  RyR1 Ca2+ inactivation **IC50 0.6 mM** ([3H]ryanodine, no ATP), 0.7 mM
+  with 2 mM ATP, 1.5 mM with ACP; inactivation above 0.1 mM. The
+  inactivated state is locked by EF-hand/S2-S3 salt bridges
+  (E4075-R4736, K4101-D4730), and MH/CCD mutations there reduce
+  inactivation. **Stern's Ki of 10 uM has no modern support**; this is
+  above even our bell-derived 249 uM. Also: at 2 mM Ca2+, **13-19 % of
+  particles stayed fully open** -- a structural bracket on the
+  non-inactivating population of Round 6.11.
+- **Laver DR (2018), Biophys Rev 10:1087 (PMC6082316).** Review: RyR1's
+  I1 site apparent Ca2+ affinity **100 uM**. Notably it does not mention
+  Laver & Lamb 1998 or use-dependent inactivation at all, and endorses
+  induction decay instead.
+- **Zahradnikova A et al. (2025), PLoS Comput Biol 21 (PMC12119028).**
+  Allosteric model fitted to 54 single-channel Po points: inhibition
+  **K_M 546 uM**, and independently places inhibition at the EF-hand
+  loops, converging with Nayak & Samso.
+
+**Nobody has re-measured Laver & Lamb 1998's use-dependent inactivation**
+(53 citations in 28 years, no follow-up single-channel study), so rho at
+0 mV remains unmeasured in the literal sense. But the field has moved:
+cardiac termination is induction decay with *no* Ca2+ inactivation gate
+(Cannell et al. 2013, Biophys J 104:2149, PMC3660628), and Rounds
+6.3-6.8's negative result -- that no bell-consistent Ca2+ inactivation
+terminates -- is the consensus position rather than an anomaly.
+
+- [ ] **6.13 (next): the use gate in the millisecond regime.** Re-run
+  Rounds 6.9-6.12 with `ryr.k_use_on` at Rios's I1_ht 3.5 ms, rho 0.175,
+  and ask whether the bell still admits it (our `fit_with_use` scanned
+  tau from 1 ms, so the machinery is there). If it does, Round 6.10's
+  "only rho matters" is superseded and the gate terminates on speed.
+  Then compare our couplon with Rios & Pizarro's directly.

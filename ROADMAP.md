@@ -5,18 +5,20 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 6.11 found that a mixed cluster at the measured 80 %
-inactivating fraction breaks termination (sparks 228 ms), and that the
-cause is the population bell forcing a weaker shared Ca2+ gate. The
-remaining lever is separate Ca2+ gates for the two populations
-(`ROADMAP_RYR.md` 6.11 emergent), if a source (Copello 1997) shows the
-non-inactivating channels differ in Ca2+ gating. Rho at 0 mV has no
-source left in hand (Sitsapesan 1995 and Laver & Curtis 1996, both read in
-full, record only at +/-40 mV). Failing that, a time-dependent cleft field for Laver 2013's induction decay.
-Other candidates: the A-subspace headline in the Transition tab (Round 2),
-the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
-selectivity control on RyR1, or the pKa of the lining lysines and
-carboxylates (Round 4).
+**Next:** Round 6.13 -- the use gate in the millisecond regime. A 2026
+literature check (recorded in `ROADMAP_RYR.md`) found Rios & Pizarro 2026
+(J Gen Physiol, PMC13387315) modelling the same couplon with an
+inactivation entered only from the open state, as our use gate is, at a
+recovery/entry ratio 0.175 (inside the band Round 6.10 needed) but with
+**millisecond** half-lives rather than our seconds. That is the regime
+where the gate's speed, not just its ratio, terminates a spark. Also
+found: modern RyR1 Ca2+ inactivation IC50 is 0.6-1.5 mM (Nayak & Samso
+2022) and Stern's 10 uM has no modern support, which confirms Rounds
+6.3-6.8's negative result as the field's consensus rather than an
+anomaly. Other candidates: the A-subspace headline in the Transition tab
+(Round 2), the continuum's conductance shortfall (Rounds 4 and 6.1), and
+for IP3R the selectivity control on RyR1, or the pKa of the lining
+lysines and carboxylates (Round 4).
 
 ## Destination
 
