@@ -190,6 +190,12 @@ REFERENCES = [
               "RyR1 and RyR2) with rapid steps in [Ca2+] and voltage",
      "journal": "Biophys J 74:2352-2364",
      "doi": "10.1016/S0006-3495(98)77944-5"},
+    {"key": "copello1997", "authors": "Copello JA, Barg S, Onoue H, "
+     "Fleischer S", "year": 1997,
+     "title": "Heterogeneity of Ca2+ gating of skeletal muscle and cardiac "
+              "ryanodine receptors",
+     "journal": "Biophys J 73:141-156",
+     "doi": "10.1016/S0006-3495(97)78055-X"},
     {"key": "sitsapesan1995", "authors": "Sitsapesan R, Montgomery RAP, "
      "Williams AJ", "year": 1995,
      "title": "New insights into the gating mechanisms of cardiac ryanodine "

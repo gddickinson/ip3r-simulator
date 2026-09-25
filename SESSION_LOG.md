@@ -1845,3 +1845,42 @@ the reference `sitsapesan1995`. Two tests, one of which is the calibration
 
 **Next:** as above, minus Sitsapesan: no source for ρ at 0 mV is left in
 hand.
+
+## 2026-09-25 (13) — Round 6.12: Copello 1997's low-activity channels
+
+**Why.** Round 6.11 rested on two unsourced assumptions, the first being
+that the use-inactivating and non-inactivating populations share one Ca²⁺
+gate. The user supplied `pdfs/copello_1997.pdf` (Biophys J 73:141, DOI
+10.1016/S0006-3495(97)78055-X), the paper on RyR heterogeneity of Ca²⁺
+gating.
+
+**What the paper says.** It reports a second *population*, not a second
+gate: ~35 % of skeletal RyRs (7 of 20; 4 of 14 with Mg²⁺/ATP) gate in a
+low-activity mode, Po ≤ 0.1 at every Ca²⁺, EC₅₀ 70–150 µM, IC₅₀
+100–300 µM. Its high-activity channels vary widely as well (EC₅₀ 0.7–8.9,
+IC₅₀ 0.16–1.1 mM, Hill 0.8–5.2), which is the direct evidence that this
+project's single fitted gate is a population average. Crucially the
+skeletal IC₅₀ spread straddles the bell's Ki and never approaches Stern's
+10 µM, so there is no sub-population with the strong Ca²⁺ inactivation
+the couplon needs.
+
+**What was built.** `ryr_mixed.low_activity(c, reading)` — the bump as a
+Hill pair, ceiling and both half-point ranges registered (`ryr.la_*`, 8
+parameters), `reading` placing the half points at the low/mid/high ends of
+Copello's ranges. `fit_with_use(background=)` takes a population the
+scheme does not describe, so the shared gate is fitted to the whole bell.
+`spark-termination --scan low-activity`. The low-activity channels are
+deliberately kept **out** of the cleft: open, uninactivating channels
+there could only lengthen a spark, so every row is a best case.
+
+**Measured** (f 0.8, ρ 0.2): the high-activity gate falls from Ki 104 µM
+to 106/95/65 µM across the three readings, and sparks from 228 ms to
+**157/147/48 ms**. The right direction, an order of magnitude short of the
+measured 6.3 ms. **Copello's heterogeneity does not rescue the use gate**;
+Round 6.11's shared-gate assumption is addressed and survives, because the
+documented spread is real and too small. 4 new tests (14 in the file).
+
+**Next:** the user asked whether more recent studies resolve any of this;
+a literature search was running at the close of this entry. Otherwise: is
+a triad's inactivating fraction the bilayer's (Hain 1994/95,
+phosphorylation, FKBP12)?

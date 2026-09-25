@@ -45,7 +45,7 @@ from .ryr_gating import SternParams, stationary
 from .ryr_use import UseParams, with_use
 
 __all__ = ["MixedUseParams", "mixed", "bind", "fraction_values",
-           "fit_mixed"]
+           "fit_mixed", "low_activity", "LA_READINGS"]
 
 
 @dataclass
@@ -143,12 +143,52 @@ def fraction_values() -> np.ndarray:
 
 
 def fit_mixed(fraction: float | None = None, ratio: float | None = None,
-              k_use_on: float | None = None) -> MixedUseParams:
+              k_use_on: float | None = None,
+              low_activity_reading: str | None = None) -> MixedUseParams:
     """The shared Ca2+ gate fitted so that the *population* bell has
     Murayama's half-peak points, with ``fraction`` of channels carrying a
-    use gate of recovery ratio ``ratio``. Raises ``RuntimeError`` if none
-    does (see :func:`ryr_use.fit_with_use`)."""
+    use gate of recovery ratio ``ratio``. With ``low_activity_reading`` (one
+    of :data:`LA_READINGS`), ``ryr.la_fraction`` of the population is
+    Copello's low-activity channels and the fraction applies to the rest.
+    Raises ``RuntimeError`` if no gate fits (see
+    :func:`ryr_use.fit_with_use`)."""
     from .ryr_use import fit_with_use
     f = _P.value("ryr.use_inactivating_fraction") if fraction is None \
         else float(fraction)
-    return fit_with_use(k_use_on, ratio=ratio, fraction=f)
+    bg = None
+    if low_activity_reading is not None:
+        bg = (_P.value("ryr.la_fraction"),
+              lambda c: low_activity(c, low_activity_reading))
+    return fit_with_use(k_use_on, ratio=ratio, fraction=f, background=bg)
+
+
+# --------------------------------------------------------------------------
+# Copello et al. 1997's low-activity channels (Round 6.12).
+#
+# About a third of skeletal RyRs gate in a low-activity mode: Po below ~0.1
+# at every Ca2+, half-activated at 70-150 µM and half-inhibited at
+# 100-300 µM, a narrow bump that sits under the population bell's
+# descending half-point. They are not simulated in the cleft; they enter
+# only the bell the high-activity channels' Ca2+ gate is fitted to.
+
+#: How the low-activity bump is placed within Copello's ranges: both half
+#: points at their low ends, at the geometric middles, or at their high
+#: ends (nearest Murayama's half-inhibition, so the largest effect).
+LA_READINGS = ("low", "mid", "high")
+
+
+def low_activity(c, reading: str = "mid") -> np.ndarray:
+    """Open probability of a low-activity channel at Ca2+ ``c`` (µM): a
+    Hill activation times a Hill inhibition, peak scale ``ryr.la_po_max``,
+    half points placed by ``reading``."""
+    if reading not in LA_READINGS:
+        raise ValueError(f"reading {reading!r} not in {LA_READINGS}")
+
+    def at(key):
+        lo, hi = (_P.value(f"ryr.la_{key}_{e}") for e in ("min", "max"))
+        return {"low": lo, "mid": float(np.sqrt(lo * hi)), "high": hi}[reading]
+
+    c = np.asarray(c, float)
+    act = 1.0 / (1.0 + (at("ec50") / c) ** _P.value("ryr.la_hill_act"))
+    inh = 1.0 / (1.0 + (c / at("ic50")) ** _P.value("ryr.la_hill_inh"))
+    return _P.value("ryr.la_po_max") * act * inh

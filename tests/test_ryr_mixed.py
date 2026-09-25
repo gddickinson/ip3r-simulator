@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from ip3r.parameters import PARAMETERS as _P
 from ip3r.physics.bell import measure_bell
 from ip3r.physics.ryr_gating import SternParams, murayama_bell, stationary
 from ip3r.physics.ryr_mixed import bind, fit_mixed, fraction_values, mixed
@@ -102,3 +103,51 @@ def test_the_bell_not_the_carriers_lengthens_sparks():
     assert alone.unterminated == 0 and full.unterminated == 0
     assert alone.duration_ms < 2.0 * full.duration_ms
     assert gate.duration_ms > 5.0 * full.duration_ms
+
+
+# ---------------------------------------------------------------- Round 6.12
+# Copello 1997's low-activity channels in the population bell.
+
+def test_low_activity_curve_is_the_registered_hill_pair():
+    """Peak at the geometric mean of the two half points, by hand, and the
+    ceiling is the registered one."""
+    from ip3r.physics.ryr_mixed import LA_READINGS, low_activity
+    for reading in LA_READINGS:
+        c = np.geomspace(1.0, 1e4, 400)
+        po = low_activity(c, reading)
+        assert po.max() <= _P.value("ryr.la_po_max")
+        lo, hi = (_P.value(f"ryr.la_{k}_{e}")
+                  for k, e in (("ec50", "min"), ("ic50", "max")))
+        assert lo / 2 < c[int(po.argmax())] < hi * 2
+    assert low_activity(1e4, "mid") < 1e-3      # shut again at millimolar
+
+
+def test_low_activity_readings_are_ordered_and_named():
+    from ip3r.physics.ryr_mixed import LA_READINGS, low_activity
+    peaks = [float(np.geomspace(1.0, 1e4, 400)[
+        low_activity(np.geomspace(1.0, 1e4, 400), r).argmax()])
+        for r in LA_READINGS]
+    assert peaks[0] < peaks[1] < peaks[2]
+    with pytest.raises(ValueError, match="not in"):
+        low_activity(10.0, "middle")
+
+
+def test_low_activity_channels_lower_the_fitted_ki():
+    """They contribute open channels on the bell's descending limb without
+    inactivating, so the high-activity channels' Ca2+ gate must inactivate
+    harder to keep the measured half point: Ki falls."""
+    from ip3r.physics.ryr_mixed import fit_mixed
+    base = fit_mixed(0.8).k_i
+    for reading in ("mid", "high"):
+        assert fit_mixed(0.8, low_activity_reading=reading).k_i < base
+
+
+def test_low_activity_does_not_rescue_termination():
+    """Round 6.12's result. Even the reading that helps most leaves cleft
+    sparks far longer than the measured release, so this is not the way the
+    mixed cluster terminates."""
+    from ip3r.physics.spark_termination import low_activity_scan
+    rows = low_activity_scan(0.8, 10.0, 2)
+    best = min(r.duration_ms for r in rows[1:])
+    assert best < rows[0].duration_ms                  # it does help
+    assert best > 5.0 * _P.value("spark.published_release_duration")

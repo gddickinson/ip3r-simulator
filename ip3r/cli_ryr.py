@@ -132,6 +132,12 @@ def _spark_termination(args) -> int:
               "point. The last two rows take the registered fraction apart")
         rows = (st.fraction_scan(None, args.duration, args.seeds)
                 + st.fraction_controls(None, None, args.duration, args.seeds))
+    elif args.scan == "low-activity":
+        print("Copello 1997's low-activity channels (share ryr.la_fraction, "
+              "Po <= 0.1) added to the population bell the high-activity "
+              "channels' Ca2+ gate is fitted to, at each reading of their "
+              "half points; they are not simulated in the cleft (best case)")
+        rows = st.low_activity_scan(None, args.duration, args.seeds)
     else:
         base = rg.fit_to_bell() if args.fitted else None
         rows = st.rate_scan(base, args.duration, args.seeds)
@@ -257,12 +263,13 @@ def register(sub) -> None:
     p = sub.add_parser("spark-termination", help="cleft spark duration as the "
                        "inactivation gate is refitted and scanned")
     p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "ratio",
-                                        "fraction"),
+                                        "fraction", "low-activity"),
                    default="fit",
                    help="fit: Stern vs fitted to Murayama (25, 37 C); ki: Ki "
                    "scan; rate: inactivation rate scan at fixed Ki; use: the "
                    "use gate's speed; ratio: its recovery/inactivation ratio; "
-                   "fraction: the share of channels that carry it")
+                   "fraction: the share of channels that carry it; "
+                   "low-activity: Copello 1997's LA channels in the bell")
     p.add_argument("--bell", action="store_true",
                    help="with --scan use: recovery ratios against the measured "
                         "bell only "

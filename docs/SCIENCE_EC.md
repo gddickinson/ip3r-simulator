@@ -482,3 +482,49 @@ between gating events, while induction decay lives in the time course of
 the nanoscopic gradients — "the closed RyRs do not respond in the timescale
 over which the very local [Ca²⁺] is maintained". Testing it needs a
 time-dependent cleft, which is recorded as emergent.
+
+## Copello 1997's low-activity channels (Round 6.12; `ryr_mixed.low_activity`)
+
+Round 6.11 left two unsourced assumptions, the first being that both
+populations share one Ca²⁺ gate. Copello et al. 1997 is the paper on RyR
+heterogeneity of Ca²⁺ gating, and it reports a second population rather
+than a second gate: **about 35 % of skeletal RyRs (7 of 20 channels, 4 of
+14 with Mg²⁺/ATP) gate in a "low-activity" mode**, Po ≤ 0.1 at every Ca²⁺,
+activated at 70–150 µM and inhibited at 100–300 µM — a low, narrow bump
+sitting under the population bell's descending half-point. (Their
+high-activity channels vary widely too: EC₅₀ 0.7–8.9 µM, IC₅₀ 0.16–1.1 mM,
+Hill slopes 0.8–5.2, which is why this project's single fitted gate is a
+population average, not a channel.)
+
+`low_activity(c, reading)` is that bump as a Hill pair, with the ceiling
+and both half-point ranges registered and `reading` placing the half
+points at the low ends, the geometric middles or the high ends of
+Copello's ranges (`LA_READINGS`; the high reading sits nearest Murayama's
+half-inhibition and so does the most). `fit_mixed(...,
+low_activity_reading=)` puts `ryr.la_fraction` of the population there and
+fits the high-activity channels' shared Ca²⁺ gate to the whole. They are
+**not** put in the cleft: uninactivating open channels there could only
+lengthen a spark, so every row below is a best case.
+
+**Measured** (`spark-termination --scan low-activity`, f = 0.8, ρ 0.2):
+
+| Population bell | Ki | Spark |
+|---|---|---|
+| high-activity only (6.11) | 104 µM | 228 ms |
+| + low-activity, low reading | 106 µM | 157 ms |
+| + low-activity, mid reading | 95 µM | 147 ms |
+| + low-activity, high reading | 65 µM | 48 ms |
+
+The direction is right and the size is not. Channels that are open on the
+descending limb without inactivating force the high-activity gate to
+inactivate harder, so Ki falls and sparks shorten; but even the most
+favourable placement of Copello's numbers gives 48 ms against a measured
+6.3 ms, and that is with the low-activity channels kept out of the cleft.
+**Copello's heterogeneity does not rescue the use gate.** The first of
+Round 6.11's two assumptions is therefore addressed and survives: the
+population's spread is real and documented, and it is not large enough.
+What is still unsourced is a *different Ca²⁺ inactivation gate* in the
+non-use-inactivating channels, which Copello does not report — its
+heterogeneity is in activation and in overall activity, and its IC₅₀
+spread (0.16–1.1 mM skeletal) straddles the bell's Ki rather than
+reaching Stern's 10 µM.

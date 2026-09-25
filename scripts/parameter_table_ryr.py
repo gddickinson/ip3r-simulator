@@ -352,6 +352,44 @@ RYR += [
        "were held open at -40 mV without a decline in Po.",
        "Sitsapesan et al. 1995, Fig. 2: 'over several seconds', 5-s "
        "exposures to the activating solution", 0.0, 1e3),
+    # ------------------------- Copello 1997's low-activity (LA) channels
+    _p("ryr.la_fraction", "RyR1 low-activity share", 0.35, "", "empirical",
+       "ryr", "copello1997", "Share of skeletal RyRs in the low-activity "
+       "gating mode: Po below ~0.1 at every Ca2+, activated and inhibited "
+       "only at 0.1-0.3 mM. They sit inside any population bell; "
+       "ryr_mixed.low_activity puts them there.", "Copello et al. 1997, Results ('LA skeletal RyRs'): rabbit skeletal RyRs, Ca2+ as charge carrier, 0 mV: '~35% of the "
+       "single-channel experiments (7 of 20 ..., and 4 of 14 in the presence "
+       "of Mg2+ and ATP)'", 0.0, 1.0),
+    _p("ryr.la_po_max", "RyR1 low-activity peak Po", 0.1, "", "empirical",
+       "ryr", "copello1997", "Peak open probability of a low-activity "
+       "channel. The paper's ceiling, so the bound is a best case.",
+       "Copello et al. 1997, Results ('LA skeletal RyRs'): rabbit skeletal RyRs, Ca2+ as charge carrier, 0 mV: 'PO reached maximum values of ~0.1' at 100-200 uM; abstract "
+       "'PO < 0.1 at all [Ca2+]'", 0.0, 1.0),
+    _p("ryr.la_ec50_min", "RyR1 low-activity EC50: low end", 70.0, "uM",
+       "empirical", "ryr", "copello1997", "Half-activation of low-activity "
+       "channels, low end of the range.", "Copello et al. 1997, Results ('LA skeletal RyRs'): rabbit skeletal RyRs, Ca2+ as charge carrier, 0 mV: EC50 '~70 to 150 uM' (six "
+       "experiments)", 1.0, 1e4),
+    _p("ryr.la_ec50_max", "RyR1 low-activity EC50: high end", 150.0, "uM",
+       "empirical", "ryr", "copello1997", "As ryr.la_ec50_min, high end.",
+       "Copello et al. 1997, Results ('LA skeletal RyRs'): rabbit skeletal RyRs, Ca2+ as charge carrier, 0 mV: EC50 '~70 to 150 uM'", 1.0, 1e4),
+    _p("ryr.la_ic50_min", "RyR1 low-activity IC50: low end", 100.0, "uM",
+       "empirical", "ryr", "copello1997", "Half-inhibition of low-activity "
+       "channels, low end of the range.", "Copello et al. 1997, Results ('LA skeletal RyRs'): rabbit skeletal RyRs, Ca2+ as charge carrier, 0 mV: IC50 'in the range of "
+       "100-300 uM (n = 5)'", 1.0, 1e5),
+    _p("ryr.la_ic50_max", "RyR1 low-activity IC50: high end", 300.0, "uM",
+       "empirical", "ryr", "copello1997", "As ryr.la_ic50_min, high end.",
+       "Copello et al. 1997, Results ('LA skeletal RyRs'): rabbit skeletal RyRs, Ca2+ as charge carrier, 0 mV: IC50 '100-300 uM'", 1.0, 1e5),
+    _p("ryr.la_hill_act", "RyR1 low-activity activation Hill slope", 2.6,
+       "", "empirical", "ryr", "copello1997", "Hill coefficient of the "
+       "low-activity channels' activation, taken from the high-activity "
+       "channels.", "Copello 1997 could not fit the LA channels ('the low "
+       "PO precludes the use of fitting algorithms'); 2.6 is the HA "
+       "skeletal mean (range 0.8-5.0)", 0.1, 10.0),
+    _p("ryr.la_hill_inh", "RyR1 low-activity inhibition Hill slope", 3.7,
+       "", "empirical", "ryr", "copello1997", "Hill coefficient of the "
+       "low-activity channels' inhibition, taken from the high-activity "
+       "channels.", "Not fitted for LA channels; 3.7 is the HA single-"
+       "channel mean (range 2-5.1)", 0.1, 10.0),
     _p("spark.use_fraction_scan_points", "Inactivating-fraction scan: points",
        6.0, "", "method", "spark", "method_choice", "Evenly spaced "
        "inactivating fractions from 0 to 1 in the mixed-cluster scan.",

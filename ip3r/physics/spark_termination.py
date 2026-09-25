@@ -40,7 +40,7 @@ from .sparks_cleft import CleftSparkParams, simulate_sparks_cleft
 __all__ = ["Termination", "measure", "refit", "ki_scan", "rate_scan",
            "ki_values", "rate_values", "use_scan", "no_inactivation",
            "ratio_scan", "fraction_scan",
-           "fraction_controls"]
+           "fraction_controls", "low_activity_scan"]
 
 
 @dataclass(frozen=True)
@@ -206,3 +206,22 @@ def fraction_controls(fraction: float | None = None,
                     duration, seeds),
             measure(mixed(part, 1.0), f"{f:.2f}-fit gate, all carry",
                     duration, seeds)]
+
+
+def low_activity_scan(fraction: float | None = None, duration: float = 10.0,
+                      seeds: int = 4) -> list[Termination]:
+    """Round 6.12: the high-activity channels' Ca2+ gate refitted with
+    Copello 1997's low-activity channels in the population bell, at each
+    reading of their half points (``ryr_mixed.LA_READINGS``), and run in
+    the cleft with ``fraction`` of the channels carrying the use gate. The
+    low-activity channels themselves are left out of the cleft, where their
+    uninactivating openings could only lengthen sparks, so every row is a
+    best case."""
+    from .ryr_mixed import LA_READINGS, fit_mixed
+    rows = [measure(fit_mixed(fraction), "no low-activity channels",
+                    duration, seeds)]
+    for reading in LA_READINGS:
+        sp = fit_mixed(fraction, low_activity_reading=reading)
+        rows.append(measure(sp, f"low-activity, {reading} reading",
+                            duration, seeds))
+    return rows

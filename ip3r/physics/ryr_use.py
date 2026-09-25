@@ -277,12 +277,17 @@ def fit_with_use(k_use_on: float | None = None, target=None,
                  sp: SternParams | None = None,
                  k_use_off: float | None = None,
                  ratio: float | None = None,
-                 fraction: float | None = None) -> UseParams:
+                 fraction: float | None = None,
+                 background: tuple | None = None) -> UseParams:
     """Ka and Ki of the Ca2+ gate such that the *composite* scheme's
     half-peak points are ``target``'s (default Murayama's 25 C bell), with a
     use gate of rate ``k_use_on`` already present. With ``fraction``, only
     that share of channels carries the use gate and the fit is to the
-    population's mean bell (:mod:`ryr_mixed`).
+    population's mean bell (:mod:`ryr_mixed`). ``background`` =
+    ``(share, po)`` adds a population the scheme does not describe (share of
+    all channels, its open probability as a function of Ca2+), so the fit
+    is to ``(1 - share) Po_scheme + share po`` (Copello 1997's
+    low-activity channels, :func:`ryr_mixed.low_activity`).
 
     The same solve as :func:`ryr_gating.fit_to_bell`, in log space, with the
     use gate inside the loop. Raises ``RuntimeError`` if no Ca2+ gate
@@ -303,13 +308,20 @@ def fit_with_use(k_use_on: float | None = None, target=None,
         from .ryr_mixed import mixed
         return mixed(s, fraction)
 
+    def population(m):
+        if background is None:
+            return m.open_probability
+        share, po = background
+        return lambda c: ((1.0 - share) * np.asarray(m.open_probability(c))
+                          + share * np.asarray(po(c)))
+
     def resid(x):
         with np.errstate(over="ignore"):
             ka, ki = np.exp(x)
         if not (np.isfinite(ka) and np.isfinite(ki)) or min(ka, ki) <= 0:
             return [1e3, 1e3]                    # the solve has wandered off
         try:
-            b = measure_bell(scheme(ka, ki).open_probability)
+            b = measure_bell(population(scheme(ka, ki)))
         except (ValueError, FloatingPointError):
             # No half-peak crossing in the searched range, or a generator
             # too degenerate to have a stationary state.

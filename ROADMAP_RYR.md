@@ -292,10 +292,26 @@ with what it measured.
   Round 6.9's 0.5 s^-1 (29 %, beyond 2 SD; `decline_bound`), bounding the
   0 mV rate at about 0.44 s^-1. Rho at 0 mV remains unmeasured.
   Emergent:
-  - [ ] Separate Ca2+ gates for the two populations: the one way left to
-    split the bell so that a mixed cluster terminates. Needs a source
-    that the non-inactivating channels differ in Ca2+ inactivation
-    (Copello 1997's heterogeneity of Ca2+ gating is the candidate).
+  - [x] Separate Ca2+ gates for the two populations: Copello 1997 read
+    in Round 6.12. It reports a second *population* (35 % low-activity,
+    Po <= 0.1), not a second gate; putting it in the bell shortens sparks
+    from 228 to 48-157 ms, not to 6.3. Does not rescue the use gate.
   - [ ] Whether a triad's inactivating fraction is the bilayer's (Hain
     1994/95: about half of RyRs phosphorylated; Laver & Lamb suggest
     phosphorylation or FKBP12 as the switch).
+
+- [x] 6.12 Copello et al. 1997's low-activity channels (`ryr_mixed.
+  low_activity`, `LA_READINGS`; `spark-termination --scan low-activity`).
+  About 35 % of skeletal RyRs (7 of 20) have Po <= 0.1 at every Ca2+,
+  activated at 70-150 uM and inhibited at 100-300 uM. Placed in the
+  population bell (not in the cleft, where they could only lengthen a
+  spark), they force the high-activity channels' Ca2+ gate down from
+  Ki 104 to 65-106 uM and sparks from 228 ms to **48-157 ms** -- the right
+  direction, an order of magnitude short of the measured 6.3 ms.
+  **Round 6.11's shared-gate assumption is addressed and survives**: the
+  documented spread is real and too small. Copello's heterogeneity is in
+  activation and overall activity; its skeletal IC50 spread (0.16-1.1 mM)
+  straddles the bell's Ki and never approaches Stern's 10 uM.
+  Emergent:
+  - [ ] Whether a triad's inactivating fraction is the bilayer's (carried
+    over from 6.11; Hain 1994/95 phosphorylation, FKBP12).
