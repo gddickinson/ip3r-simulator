@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.4, protonation in the IP3R pore (Round 7
+**Next:** Round 7.5, sessions and live parameters (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -210,10 +210,9 @@ Emergent (not scheduled):
     RyR1's conductance to 0.20×, where pairing predicts 1.00×. *Charged*
     is the better reading; *paired* stays only as a bound.
     Emergent:
-    - [ ] A pKa estimate (e.g. a Tanford–Kirkwood or PROPKA-style shift)
-      for the eight D2518/D2522 carboxylates in a 4.4 Å lumen. Full
-      ionisation there is the least plausible assumption left in the
-      charged reading.
+    - [x] A pKa estimate for the eight D2518/D2522 carboxylates in a 4.4 Å
+      lumen (Round 7.4): charged at pH 7.3 by both routes (network pKa
+      4.1, PROPKA 5.3). The ring is 8.8 Å across and R2524′ sits beside it.
   - [ ] Why 2.4× short even uncharged? Candidates: 8TKF is not maximally
     open (a subconductance state?), the continuum fails at 3 Å, or the
     cytosolic exit is not where the profile window ends. Compare RyR1 open
@@ -234,8 +233,9 @@ Emergent (not scheduled):
     reading is anion-tight (P_Cl:P_K ≤ 0.05 against 0.27). The model obeys
     GHK to 4 %, so it cannot show Vais's 8–10× i_Ca shortfall below GHK.
     Emergent:
-    - [ ] The same protocols on RyR1's open deposit (also Ca²⁺-selective;
-      its conductance model already meets its mutants), as the control.
+    - [x] The same question on RyR1's open deposit, the control (Round
+      7.4, Xu 2006's own protocol): 0.46 against 7.0, and the mutants'
+      order is missed.
     - [x] Screening in the wide vestibule (`physics/radial_pb.py`,
       `selectivity --closure radial`). Cylindrical Poisson–Boltzmann across
       every slice, with Gauss's law at the wall, replaces local Donnan. Each
@@ -248,10 +248,8 @@ Emergent (not scheduled):
       those rings sit in slices narrower than λ_D. **The closure is not the
       Ca²⁺ barrier.**
       Emergent:
-      - [ ] The lysines' own protonation: K2482 and K2529 are now the
-        whole Ca²⁺ barrier under either closure. A pKa shift for them (and
-        the eight D2518/D2522 carboxylates, the item above) is the next
-        assumption to test.
+      - [x] The lysines' own protonation (Round 7.4): charged at any
+        permittivity (network pKa 12.9 and 10.9).
 
 ## Round 5 — usability
 
@@ -390,10 +388,29 @@ item carried over from round n; it stays listed there too.
   marked, the number open, and IPIs against Thurley's Eq. 14. At the
   panel's defaults (IP3 0.2 µM, N 20, 30 s): 44 puffs, CV 0.68, and a
   significant refractory period (LR 8.4).
-- [ ] **7.4 Science: protonation in the IP3R pore.** Estimate pKa shifts
-  for the D2518/D2522 carboxylates and K2482/K2529 (R4). Rerun
-  selectivity under each reading against Vais 2010's P_Ca:P_K 15.2, with
-  RyR1's open deposit as the control (R4).
+- [x] **7.4 Science: protonation in the IP3R pore.** Two independent
+  routes: a Tanford–Kirkwood network (`physics/pka.py`: Thurlkill/Fitch
+  model pKas, Mehler–Solmajer ε(r), Monte Carlo with a ring heat-bath move,
+  held to exact enumeration) and PROPKA 3 (`physics/pka_propka.py`). Both
+  keep every lining group of 8TKF charged at pH 7.3. K2482/K2529 stay
+  charged even at a uniform ε of 4, where the acid rings fall to −0.5 to
+  −0.8. P_Ca:P_K is ≤ 0.00 under every reading. A bound that needs no pKa
+  (`protonation --corners`: 64 ring on/off states, plus interior samples)
+  tops out at 0.69 with both lysines neutral, and at 0.05 with them
+  charged, against 15.2. **The control fails the same way**: RyR1 (9HEO)
+  under Xu 2006's protocol gives 0.46 (0.07–0.46 over readings) against
+  7.0, and the model gets the mutants' order wrong (D4899Q ×0.74 against
+  ×0.14 measured; E4900N ×0.24 against ×0.64). So the continuum model is
+  missing the selectivity physics, and protonation is not the IP3R
+  wall's problem.
+  Emergent:
+  - [ ] Charge–space competition: finite ion size (a local excess chemical
+    potential, e.g. Bikerman or a mean-spherical-approximation term) in
+    the drift-diffusion pore. Test it first on RyR1, where Xu's six
+    P_Ca:P_K values and conductances are the calibration (Gillespie's
+    PNP-DFT reproduces them), then on 8TKF against 15.2.
+  - [ ] PROPKA buries RyR1's E4900 (pKa 8.0), which Xu's E4900N shows is
+    charged. Is it the deposit's rotamer or PROPKA's desolvation?
 - [ ] **7.5 GUI: sessions and live parameters.** Save the Dynamics
   settings, mode animation and variants view in sessions (R5). Audit the
   panels that read a parameter only when they are built (R5).

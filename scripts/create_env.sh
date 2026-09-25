@@ -7,5 +7,5 @@ set -euo pipefail
 ENV_NAME="${1:-ip3r_sim}"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda create -y -n "$ENV_NAME" -c conda-forge python=3.11 numpy scipy matplotlib pytest ruff
-conda run -n "$ENV_NAME" python -m pip install "PyQt6>=6.6" moderngl
+conda run -n "$ENV_NAME" python -m pip install "PyQt6>=6.6" moderngl "propka==3.5.1"
 echo "==> done. activate with:  conda activate $ENV_NAME"

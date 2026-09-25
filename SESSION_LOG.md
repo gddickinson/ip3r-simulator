@@ -2098,3 +2098,71 @@ with the smoke test.
 **Not changed.** `make sync-check` clean; no verdict moved.
 
 **Next:** Round 7.4 (protonation in the IP3R pore).
+
+## 2026-09-25 (19) — Round 7.4: protonation in the pore, with RyR1 as the control
+
+**Why.** After the radial closure (Round 4), the charge state of K2482 and
+K2529 was the whole Ca²⁺ barrier in 8TKF's model. Full ionisation of the
+eight D2518/D2522 carboxylates in a 4.4 Å lumen was the least tested
+assumption left. The roadmap asked for pKa estimates, selectivity under
+each reading, and RyR1 as the control.
+
+**What.**
+- `physics/pka.py`: a Tanford–Kirkwood network. Model pKas are Thurlkill
+  2006's and Fitch 2015's Arg (13.8, not ~12), read from the abstracts.
+  Coulomb uses Mehler–Solmajer's sigmoidal ε(r); that paper was not
+  reachable, so the constants are AutoDock 4's, as the source note says.
+  Screening is at the bath's Debye length. Titration is Monte Carlo with a
+  conditional-probability estimator. `physics/pka_propka.py`: PROPKA 3.5.1
+  (newly pip-installed into `ip3r_sim` and added to `create_env.sh`) on a
+  25 Å context. PROPKA types the C-terminus "COO" like a carboxylate, so
+  termini are told apart by class.
+- **The calibration caught a sampler failure.** At ε = 4 a ring of four
+  acids has two degenerate half-protonated states, and single and pair
+  flips stick in one: error 0.008–0.07 against exact enumeration over
+  seeds. A heat-bath move of each ring's four copies brings it to
+  ≤ 0.0005. The test keeps both numbers, so the move stays necessary.
+- `physics/protonation.py`: readings (formal / network / ε 10 / ε 4 /
+  PROPKA), each through the family's own experiment: Vais for IP3R, and
+  for RyR1 Xu 2006's 250 mM KCl + 10 mM Ca²⁺ with their Eq. 1, which
+  (read from the equation image) is GHK without a Cl⁻ term.
+  `corners`: every ring formal or neutral, a bound that needs no pKa.
+  `pore_charge(charges=)`, `selectivity.ryr1_calcium_ratio`,
+  `ryr_mutants.selectivity_mutants`, CLI `protonation`.
+  25 parameters, 4 references.
+
+**Measured.**
+- 8TKF, pH 7.3: both routes keep every lining group charged (network:
+  D2518 pKa 4.1, K2482 12.9, K2529 10.9; PROPKA: Asp ≤ 5.4, Lys 10.4–10.6).
+  The lysines stay charged at ε 4. The acid rings fall to −0.5 (E2398),
+  −0.79 (D2518) and −0.64 (D2522) only at ε 4. P_Ca:P_K ≤ 0.00 under
+  every reading.
+- Corners (64 combinations, 2.5 min): at most 0.69, with both lysines
+  neutral, which is the old "acidic" reading. With the lysines charged, at
+  most 0.05. Eight interior states: at most 0.21.
+- **Control: RyR1 9HEO**, Xu's protocol: 0.46 formal, 0.07–0.46 over the
+  readings, against 7.0. Xu's mutants, model vs measured ratio:
+  D4899Q ×0.74 / ×0.14, E4900N ×0.24 / ×0.64, D4938N ×0.93 / ×0.47,
+  D4945N ×0.97 / ×0.93. The continuum misses RyR1's selectivity in scale
+  and in order, although its conductance meets the mutants. So the
+  missing piece is the model's selectivity physics (charge–space
+  competition, Gillespie's PNP-DFT for these same mutants), not
+  protonation, and not something special about the IP3R wall.
+- Found on the way: PROPKA gives RyR1's E4900 pKa 8.0 (−0.18 e), but
+  E4900N changes both conductance and P_Ca:P_K, so E4900 is charged. The
+  network keeps it at −1.00. Pinned in a test.
+
+**Surprises and corrections.**
+- At ε 4 the four copies of a ring differ by up to 0.15 e, and two seeds
+  agree to 0.02. That is real: strong coupling amplifies small differences
+  between 8TKF's subunits. The ε 4 bound is long-ranged (0.6 kT at 20 Å)
+  and moves by 0.026 e between 25 and 30 Å, which does not change P_Ca:P_K.
+  The tests hold the sigmoidal model to 0.01 and the bound to 0.04.
+  My first test demanded 0.01 of both.
+- A scratch command (`cat > file` with no heredoc) waited on stdin and
+  looked like a slow Monte Carlo. It was not the code.
+
+**Not changed.** `make sync-check` clean; no verdict moved. No UI change.
+Tests 476 → 497.
+
+**Next:** Round 7.5 (sessions and live parameters).

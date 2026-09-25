@@ -50,7 +50,8 @@ from .permeation import IonSpecies, solve_pnp
 __all__ = ["ions", "ghk_ratio", "ghk_reversal", "reversal_potential",
            "Selectivity", "selectivity", "calcium_current", "CalciumCurrent",
            "ghk_calcium_permeability", "published", "thermal_voltage",
-           "Reading", "selectivity_panel", "slow_nmdg_bound"]
+           "Reading", "selectivity_panel", "slow_nmdg_bound",
+           "ryr1_calcium_ratio"]
 
 _VALENCE = {"K+": 1, "Cl-": -1, "Ca2+": 2}
 
@@ -182,6 +183,21 @@ def selectivity(z_A, radius_A, fixed_charge=None, label: str = "",
         closure=closure)
     pca = ghk_ratio(v_ca, "Ca2+", ca_lum, cyt, {"Cl-": pcl})
     return Selectivity(label, v_kcl, v_ca, pcl, pca, ok1 and ok2)
+
+
+def ryr1_calcium_ratio(z_A, radius_A, fixed_charge=None,
+                       closure: str = "donnan") -> tuple[float, float, bool]:
+    """Xu 2006's protocol on one wall: symmetric KCl (the RyR1 bath) with
+    CaCl2 added on the luminal side, read with their Eq. 1, which is GHK
+    with no Cl- term (``known`` P_Cl = 0). Returns (V_rev, P_Ca:P_K,
+    converged)."""
+    kcl = _P.value("permeation.ryr1_bath_concentration")
+    ca = _P.value("selectivity.ryr1_cacl2_lumen")
+    cyt = {"K+": kcl, "Cl-": kcl}
+    lum = {"K+": kcl, "Cl-": kcl + 2.0 * ca, "Ca2+": ca}
+    v, ok = reversal_potential(z_A, radius_A, ions(lum, cyt), fixed_charge,
+                               closure=closure)
+    return v, ghk_ratio(v, "Ca2+", lum, cyt, {"Cl-": 0.0}), ok
 
 
 @dataclass

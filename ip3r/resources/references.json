@@ -384,6 +384,38 @@
    "title": "The probability of triggering calcium puffs is linearly related to the number of inositol trisphosphate receptors in a cluster",
    "journal": "Biophys J 102:1826-1836",
    "doi": "10.1016/j.bpj.2012.03.029"
+  },
+  {
+   "key": "thurlkill2006",
+   "authors": "Thurlkill RL, Grimsley GR, Scholtz JM, Pace CN",
+   "year": 2006,
+   "title": "pK values of the ionizable groups of proteins",
+   "journal": "Protein Sci 15:1214-1218",
+   "doi": "10.1110/ps.051840806"
+  },
+  {
+   "key": "fitch2015",
+   "authors": "Fitch CA, Platzer G, Okon M, Garcia-Moreno B, McIntosh LP",
+   "year": 2015,
+   "title": "Arginine: its pKa value revisited",
+   "journal": "Protein Sci 24:752-761",
+   "doi": "10.1002/pro.2647"
+  },
+  {
+   "key": "mehler1991",
+   "authors": "Mehler EL, Solmajer T",
+   "year": 1991,
+   "title": "Electrostatic effects in proteins: comparison of dielectric and charge models",
+   "journal": "Protein Eng 4:903-910",
+   "doi": "10.1093/protein/4.8.903"
+  },
+  {
+   "key": "olsson2011",
+   "authors": "Olsson MHM, Sondergaard CR, Rostkowski M, Jensen JH",
+   "year": 2011,
+   "title": "PROPKA3: consistent treatment of internal and surface residues in empirical pKa predictions",
+   "journal": "J Chem Theory Comput 7:525-537",
+   "doi": "10.1021/ct100578z"
   }
  ]
 }

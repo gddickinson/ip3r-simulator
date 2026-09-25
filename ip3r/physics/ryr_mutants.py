@@ -28,7 +28,7 @@ from ..structure.channel import measure_channel
 from .unitary import Unitary, unitary
 
 __all__ = ["MutantRow", "mutants", "mutant_panel", "open_deposit",
-           "open_mutant_panel"]
+           "open_mutant_panel", "SelectivityRow", "selectivity_mutants"]
 
 _PREFIX = "permeation.published_ryr1_"
 
@@ -98,3 +98,31 @@ def open_deposit() -> str:
 
 def open_mutant_panel() -> tuple[Unitary, list[MutantRow]]:
     return mutant_panel(loader.load(open_deposit()))
+
+
+# ------------------------------------------------ selectivity (Round 7.4)
+@dataclass(frozen=True)
+class SelectivityRow:
+    name: str                     # "wild type" or e.g. "D4899Q"
+    measured: float               # P_Ca:P_K, Xu 2006 Table 2
+    model: float                  # P_Ca:P_K, formal wall, Xu's protocol
+
+    def row(self, wt: "SelectivityRow") -> str:
+        return (f"{self.name:9s} measured {self.measured:4.1f} "
+                f"(x{self.measured / wt.measured:4.2f})   model "
+                f"{self.model:5.2f} (x{self.model / wt.model:4.2f})")
+
+
+def selectivity_mutants(st: Structure) -> list[SelectivityRow]:
+    """P_Ca:P_K of the wild type and each of Xu's mutants, measured and
+    modelled (formal wall, Xu's own protocol and Eq. 1)."""
+    from .protonation import lining_wall, measure
+    wall = lining_wall(st)
+    key = "selectivity.published_ryr1_pca_pk"
+    rows = [SelectivityRow("wild type", _P.value(key),
+                           measure(wall, "wild type").pca_pk)]
+    for name, (res, _) in sorted(mutants().items(), key=lambda kv: kv[1][0]):
+        rows.append(SelectivityRow(
+            name, _P.value(f"{key}_{name.lower()}"),
+            measure(wall, name, neutralise=frozenset({res})).pca_pk))
+    return rows

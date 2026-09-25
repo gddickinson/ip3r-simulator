@@ -256,3 +256,121 @@ acidic-only reading exactly where it was (0.69). What the previous section
 listed as missing narrows to three things: whether the two lysine rings
 are charged at all (their pKa in that environment), ion size and crowding,
 and dielectric exclusion.
+
+## Protonation of the lining groups (Round 7.4)
+
+**Question.** Every charged reading above gives each lining Asp/Glu −1 and
+each Lys +1. After the radial closure, the charge state of the two lysine
+rings (K2482, K2529) was the whole Ca²⁺ barrier, and full ionisation of the
+eight D2518/D2522 carboxylates in a 4.4 Å lumen was the least plausible
+assumption left. Are they charged at Vais's pH 7.3? And if the answer were
+anything, could it matter?
+
+**Two routes to the pKa, sharing no code or constants.**
+
+- *Network* (`physics/pka.py`). Every Asp, Glu, His, Lys and Arg side
+  chain within 20 Å of a lining group is a two-state site, with free energy
+  G(θ) = Σ θᵢ ln10 (pH − pKaᵢ) + ½ Σ qᵢ Wᵢⱼ qⱼ. The model pKas are
+  Thurlkill 2006's pentapeptides (Asp 3.67, Glu 4.25, His 6.54, Lys 10.40)
+  and Fitch 2015's Arg (13.8). W is Coulomb with Mehler & Solmajer's
+  sigmoidal ε(r), screened at the bath's Debye length. The sites are
+  titrated together by Monte Carlo: single flips, pair flips, and a
+  heat-bath move of each ring's four copies. The estimator averages each
+  site's conditional probability. Desolvation and hydrogen bonds are left
+  out, so for an acid the network's charge is the most that charge–charge
+  coupling alone allows.
+- *PROPKA 3* (`physics/pka_propka.py`, Olsson 2011). This is empirical,
+  with desolvation and hydrogen bonds, run on the deposit's own atoms within
+  25 Å of the lining groups (35 Å gives the same pKa). PROPKA gives each
+  group one pKa with its neighbours in their default states, so it cannot
+  show a ring titrating together. That is the network's part.
+
+**Calibration** (`tests/test_pka.py`, `tests/test_protonation.py`). An
+isolated site is Henderson–Hasselbalch exactly. A fixed neighbouring charge
+shifts the pKa by exactly W/ln10. Two coupled acids follow their four-state
+partition function. The Monte Carlo matches exact enumeration of a
+12-site double ring at ε = 4 to 0.01. That test caught a sampler that
+could not work: at ε = 4 a ring of four acids has two degenerate
+half-protonated states, and single and pair flips stuck in one of them
+(error 0.008–0.07 over seeds). The ring heat-bath move brings the error
+to ≤ 0.0005. Also tested: the Bjerrum and Debye lengths against textbook
+values, the network radius and PROPKA's context wide enough, the ring
+copies in agreement, and Xu's Eq. 1 identical to GHK without a Cl⁻ term.
+
+**8TKF at pH 7.3, 140 mM** (`python -m ip3r protonation`): mean charge per
+lining ring.
+
+| Ring | network | network ε 10 | network ε 4 | PROPKA pKa |
+|---|---|---|---|---|
+| E2398 | −1.00 | −0.89 | −0.50 | 4.6 |
+| K2482 | +1.00 (pKa 12.9) | +1.00 | +1.00 | 10.6 |
+| D2478 | −1.00 | −1.00 | −1.00 | 5.2 |
+| D2518 | −1.00 (pKa 4.1) | −0.98 | −0.79 | 5.3–5.4 |
+| D2522 | −1.00 | −0.99 | −0.64 | 4.5 |
+| K2529 | +1.00 (pKa 10.9) | +1.00 | +1.00 | 10.4 |
+
+Both routes keep every lining group charged at pH 7.3. The lysines stay
+charged at any permittivity: the acid rings around them raise their pKa.
+The acids lose charge only at a protein-like ε ≤ 10. The D2518 ring's
+four carboxylates are 8.8 Å apart and R2524′ sits 4.3 Å from each, so they
+repel each other much less than a 4.4 Å lumen suggests.
+
+**Selectivity under each reading** (Vais's protocols):
+
+| Reading | wall | P_Ca:P_K | P_Cl:P_K | g (pS) |
+|---|---|---|---|---|
+| formal | −8.00 e | 0.00 | 0.01 | 33.0 |
+| network | −7.99 e | 0.00 | 0.01 | 33.0 |
+| network ε 10 | −7.46 e | 0.00 | 0.02 | 31.4 |
+| network ε 4 | −3.69 e | −0.01 | 0.03 | 24.2 |
+| PROPKA | −7.92 e | 0.00 | 0.01 | 32.9 |
+| *measured* | | *15.2* | *0.27* | *545* |
+
+**A bound that needs no pKa** (`--corners`). Each of the six rings was set
+formal or neutral, in all 64 combinations (about 2.5 min). The largest
+P_Ca:P_K is 0.69, with both lysine rings neutral and every acid ring
+charged: the "acidic" reading. With both lysines charged, which both routes
+require, the largest is 0.05. Eight random fractional states inside the box
+give at most 0.21. **No protonation state of 8TKF's wall comes within 20×
+of 15.2.**
+
+**The control: RyR1's open deposit** (9HEO) through Xu et al. 2006's own
+experiment: 250 mM KCl, 10 mM CaCl₂ luminal, pH 7.4, read with their Eq. 1.
+Their wild type measures 7.0.
+
+| Reading | wall | P_Ca:P_K | g (pS) |
+|---|---|---|---|
+| formal | −32.0 e | 0.46 | 180 |
+| network | −31.5 e | 0.45 | 179 |
+| network ε 10 / 4 | −22.3 / −13.5 e | 0.31 / 0.07 | 160 / 119 |
+| PROPKA | −28.7 e | 0.16 | 147 |
+
+Xu's charge mutants, formal wall (P_Ca:P_K relative to wild type):
+
+| Mutant | measured | model |
+|---|---|---|
+| D4899Q | ×0.14 | ×0.74 |
+| E4900N | ×0.64 | ×0.24 |
+| D4938N | ×0.47 | ×0.93 |
+| D4945N | ×0.93 | ×0.97 |
+| E4955Q | ×1.19 | ×1.00 (not lining) |
+
+**What it means.**
+
+- **The IP3R wall is charged as assumed.** Protonation is not why the
+  model misses Vais's selectivity, and no pKa could make it so.
+- **The failure is the continuum model, not the IP3R wall.** RyR1 is also
+  Ca²⁺-selective, and its conductance model meets its mutants. Its
+  selectivity is missed 15× under every reading, and the model's ranking
+  of the mutants is wrong too: the filter's D4899Q should matter most, and
+  the model makes E4900N matter most. A point-ion drift-diffusion pore
+  with any electroneutral closure cannot produce either channel's Ca²⁺
+  preference. The standing explanation for RyR1 is charge–space
+  competition: finite ion size in a crowded, charged filter, which is
+  Gillespie's model for the same mutants. That physics is absent here, and
+  it is the next thing to add.
+- **The mutants also test the pKa routes.** Xu's E4900N changes both the
+  conductance (×0.63) and P_Ca:P_K (×0.64), so E4900 carries charge.
+  PROPKA buries it (pKa 8.0, −0.18 e), and the network keeps it at −1.00.
+  D4945N barely moves anything (×0.93), which the network's ε ≤ 10 bound
+  (−0.19 e) allows and does not require.

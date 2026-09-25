@@ -31,7 +31,7 @@ neutral; the dropped bridges travel with the result.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -186,12 +186,20 @@ def map_charge(groups: list[ChargedGroup], z_A: np.ndarray, radius_A: np.ndarray
 
 def pore_charge(st: Structure, frame: Frame, profile,
                 pair_bridges: bool = False,
-                neutralise: frozenset[int] = frozenset()) -> PoreCharge:
+                neutralise: frozenset[int] = frozenset(),
+                charges: dict[tuple[str, int], float] | None = None
+                ) -> PoreCharge:
     """Find the lining charges of a deposit and map them onto its profile;
     ``pair_bridges`` drops every lining group that is half of a salt bridge,
-    ``neutralise`` every group at those residue numbers (a charge mutant)."""
+    ``neutralise`` every group at those residue numbers (a charge mutant);
+    ``charges`` replaces a group's formal charge by a mean one, keyed
+    ``(chain, residue)`` (a protonation reading, :mod:`.protonation`)."""
     groups, unplaced = charged_groups(st, frame, profile)
     groups = [g for g in groups if g.res_seq not in neutralise]
+    if charges is not None:
+        groups = [replace(g, charge=float(charges.get((g.chain, g.res_seq),
+                                                       g.charge)))
+                  for g in groups]
     bridged: list[Bridge] = []
     if pair_bridges:
         lining = {(g.chain, g.res_seq) for g in groups}
@@ -203,7 +211,8 @@ def pore_charge(st: Structure, frame: Frame, profile,
     meta = {"lining_margin_A": _P.value("pore_charge.lining_margin"),
             "smoothing_A": _P.value("pore_charge.smoothing"),
             "pair_bridges": pair_bridges, "structure": st.name,
-            "neutralised": sorted(neutralise)}
+            "neutralised": sorted(neutralise),
+            "protonation": charges is not None}
     if pair_bridges:
         meta["salt_bridge_cutoff_A"] = _P.value("pore_charge.salt_bridge_cutoff")
     return PoreCharge(np.asarray(profile.z, dtype=float), density, groups,

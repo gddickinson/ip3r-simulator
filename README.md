@@ -144,6 +144,18 @@ slice instead of assuming local Donnan (`selectivity --closure radial`)
 screens the vestibule's K2529 ring, but lifts the charged reading only to
 0.04 (0.01–0.16 over ε 80–10), so the closure is not the Ca²⁺ barrier.
 
+Nor is protonation (`python -m ip3r protonation [8TKF|9HEO] [--corners]`).
+Two independent pKa routes, a Tanford–Kirkwood network titrated by Monte
+Carlo and PROPKA 3, both keep every lining group of 8TKF charged at Vais's
+pH 7.3. The lysine rings stay charged even at a protein-like permittivity
+of 4, where the acid rings lose up to half their charge. No combination of
+rings formal or neutral exceeds P_Ca:P_K 0.69, and with the lysines charged
+none exceeds 0.05. RyR1's open deposit, run through Xu et al. 2006's own
+protocol as the control, fails the same way: 0.46 against 7.0 under every
+pKa reading. The model also misses the order of Xu's charge mutants. The
+missing piece is therefore the continuum model, not the IP3R wall. Xu's
+E4900N also shows that PROPKA wrongly buries E4900 (pKa 8).
+
 ![Unitary conductance](docs/img/gui_unitary.png)
 
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
@@ -386,6 +398,7 @@ python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
+python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
 python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
 python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
