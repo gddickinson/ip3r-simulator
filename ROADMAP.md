@@ -13,8 +13,10 @@ further. The couplon terminates only with an effective Ki near 10 µM
 that: RyR1 Po from bilayers under fibre-like conditions (ATP, Mg²⁺,
 luminal Ca²⁺) against [³H]ryanodine binding. Failing a source, the next
 step is a non-equilibrium (flux-driven) inactivation.
-Other candidates: the A-subspace headline in the Transition tab (Round 2)
-and the continuum's conductance shortfall (Rounds 4 and 6.1).
+Other candidates: the A-subspace headline in the Transition tab (Round 2),
+the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
+selectivity control on RyR1 or the vestibule's screening (Round 4, emergent
+from the selectivity item).
 
 ## Destination
 
@@ -222,8 +224,28 @@ Emergent (not scheduled):
     open (a subconductance state?), the continuum fails at 3 Å, or the
     cytosolic exit is not where the profile window ends. Compare RyR1 open
     deposits, whose ~750 pS a structure-based model should also meet.
-  - [ ] Ca²⁺ current under physiological ions (Vais 2010: 0.30 pA/mM
-    [Ca²⁺]_ER; P_Ca:P_K = 15). The solver takes asymmetric baths already.
+  - [x] Selectivity and the Ca²⁺ current (`physics/selectivity.py`,
+    `python -m ip3r selectivity`). Vais 2010's three lum-out protocols run
+    through the solver in their own solutions and are read with their GHK
+    Eq. 1. A ratio does not depend on the unmeasured diffusivity, so it
+    tests the wall. Needed: each mouth in Donnan equilibrium with its own
+    bath (TMS; symmetric results unchanged). Calibrated against Planck, TMS
+    at four charges, the Nernst limit, an excluded NMDG⁺, and Vais's own
+    arithmetic. On 8TKF: P_Ca:P_K 0.17 / 0.00 / −0.07 / 0.69
+    (neutral / charged / paired / acidic only) against 15.2, and i_Ca
+    ≤ 0.046 pA/mM against 0.30. The lining bases (K2529, K2482) are Ca²⁺
+    barriers under local Donnan. Even acidic-only, the charge is in rings,
+    and the calibration shows a ring cannot give Ca²⁺ selectivity (< 0.6 at
+    any charge) where a charged tract can (60 at −30 M). Every charged
+    reading is anion-tight (P_Cl:P_K ≤ 0.05 against 0.27). The model obeys
+    GHK to 4 %, so it cannot show Vais's 8–10× i_Ca shortfall below GHK.
+    Emergent:
+    - [ ] The same protocols on RyR1's open deposit (also Ca²⁺-selective;
+      its conductance model already meets its mutants), as the control.
+    - [ ] Screening in the wide vestibule: K2529's ring sits at 11.6 Å
+      where the Debye length is 6–8 Å, so local Donnan overstates it. A
+      radially resolved (2-D Poisson–Boltzmann) partition there would say
+      how much of the Ca²⁺ barrier is the closure.
 
 ## Round 5 — usability
 

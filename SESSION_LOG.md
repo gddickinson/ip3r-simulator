@@ -1536,3 +1536,68 @@ Failing that, a flux-driven inactivation.
 offered in the Puffs/Gating panels.
 
 **Next:** a sourced comparison of the bell's conditions with the fibre's.
+
+## 2026-09-24 (8) — Round 4: selectivity and the unitary Ca²⁺ current
+
+**Sync.** Both repositories were up to date and the resources were in step
+with ip3r_genes, so no verdict moved.
+
+**Why.** The user asked for an IP3R topic after the RyR rounds. The open
+Round 4 item was the Ca²⁺ current under Vais 2010's conditions. It became a
+selectivity test because a permeability ratio does not depend on the
+in-pore diffusivity: every flux scales by the same factor and the reversal
+potential stays put. That makes it the first clean test of the wall-charge
+map, which the conductance (2.4× short on an absolute scale) could not give.
+
+**What.**
+- `physics/selectivity.py`. Vais's three lum-out protocols run in their own
+  solutions (every concentration registered, read from PMC2995152). The
+  reversal potential is the root of the pore current, and ratios are read
+  with their Eq. 1 (GHK). i_Ca is taken at 0 mV. The module also has
+  Vais's GHK estimate from g and the ratios, the four-reading panel
+  (neutral / charged / paired / acidic only), and the NMDG bound.
+- `permeation.solve_pnp`: with different baths, each mouth is now in Donnan
+  equilibrium with its own bath, not the mean (TMS). Symmetric baths are
+  unchanged. An impermeant ion left out of the species list sets its jump.
+- `cli_perm.py`: `python -m ip3r selectivity [PDB]`.
+- `tests/test_selectivity.py` (14 tests). The solver is checked against
+  Planck, TMS at four charges of both signs, the Nernst limit and the NMDG
+  mouth jump. The ruler is checked by a round trip and against Vais's own
+  arithmetic. One test shows the instrument *can* say 15.
+- 14 new parameters (`selectivity.*`, Ca²⁺ diffusivity and radius).
+- The unitary-conductance section of `docs/SCIENCE.md` (then 552 lines, over
+  the 500 rule) moved to the new `docs/SCIENCE_PERM.md`, with this round's
+  section added there.
+
+**Measured (8TKF).**
+- P_Ca:P_K: neutral 0.17, charged 0.00, paired −0.07, acidic only 0.69.
+  Measured 15.2.
+- i_Ca: at most +0.046 pA/mM (acidic only). Measured 0.30. Neutral −0.003:
+  Cl⁻ runs down its own gradient.
+- P_Cl:P_K: charged 0.01, paired 0.05, acidic 0.00. Measured 0.27. Neutral
+  0.33 with NMDG⁺ excluded at the mouth, 0.74 with it inside the pore but
+  slow (the truth lies between).
+- Why the charged wall excludes Ca²⁺: K2529 (4 Lys at 11.6 Å radius in the
+  cytosolic vestibule) becomes a +2.9 M wall and a +77 mV barrier under
+  local Donnan. K2482 does the same on the luminal side. Removing K2529
+  alone gives 0.03; removing both gives 0.69.
+- Why acidic-only is still short: calibration on a 3.5 Å pore. A charged
+  tract gives 8 at −3 M and 60 at −30 M. The same charge in one 5 Å ring
+  gives < 0.6 at any magnitude. 8TKF's carboxylates are four rings.
+- The model obeys GHK to 4 % (0.046 against 0.044 pA/mM). The channel falls
+  8× (nominal concentrations) to 10× (activities, Vais's figure) below
+  GHK. The continuum has no ion–ion interaction to produce that.
+
+**What it means.** The wall-charge map fails a test that is free of the
+diffusivity. It is anion-tight and not Ca²⁺-selective. Part of that is the
+closure: local Donnan across an 11.6 Å vestibule, where the Debye length is
+6–8 Å, overstates the lysine rings. Part is geometry: rings cannot select
+divalents in an electroneutral continuum. Ion size and crowding are what
+the model leaves out.
+
+**Not done.** No GUI change, so no screenshots; selectivity is CLI only.
+RyR1 as the control, and a radially resolved partition in the vestibule,
+are recorded as emergent.
+
+**Next:** unchanged in ROADMAP.md (the RyR bell-vs-fibre item). For IP3R,
+the RyR1 selectivity control.

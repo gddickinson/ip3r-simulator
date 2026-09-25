@@ -1,0 +1,177 @@
+# SCIENCE_PERM — ions through the pore
+
+Split from `SCIENCE.md`: the permeation model and what it measures on the
+ITPR3 panel. RyR1 uses the same model (`SCIENCE_RYR.md`).
+
+## Unitary conductance (drift-diffusion over the pore)
+
+Ported from PIEZO1's `physics/permeation.py`. For each species *i*, the
+steady Nernst–Planck flux down a pore of accessible area
+A_i(z) = π (r_free(z) − a_i)² is
+
+  J_i = −D_i A_i [dc_i/dz + (z_i F / RT) c_i dφ/dz],  dJ_i/dz = 0,
+
+Scharfetter–Gummel discretised. The potential is closed in the
+electroneutral limit, because full Poisson coupling diverges when the Debye
+length (5.8 Å here) exceeds the pore radius. Without wall charge, it is
+closed by ohmic current continuity ∇·(σA∇φ) = 0. With charge, by local
+electroneutrality Σ z_i c_i + X = 0 (a local Donnan partition). Hall's
+access resistance 1/(4σa) is added at each mouth. The closed-form sum
+R = ∫dz/(σA) + 2R_access is derived without the solver as its check.
+
+**Inputs.** The profile is `r_free` of protein heavy atoms (not S0's
+HETATM-inclusive one) over the pore-domain span ± 12 Å. The bath is
+symmetric 140 mM KCl at room temperature, the condition both measurements
+were made in. The fixed charge comes from the deposit's own side chains:
+the carboxylate midpoint (Asp/Glu), NZ (Lys) or CZ (Arg), admitted when
+within `pore_charge.lining_margin` (3 Å) of the atom-centre radius at its
+height. It is spread by a 3 Å Gaussian and divided by the lumen area.
+Stubbed side chains are counted as unplaced, never guessed; there are none
+in the ITPR3 panel.
+
+**Calibrations** (`tests/test_permeation.py`): a cylinder equals the exact
+ohmic conductance to 0.1 %; the solver equals the series sum on an
+hourglass to 2 %; a uniformly charged cylinder equals the exact Donnan
+partition to 1 %; the charge kernel conserves charge; a pore below the K+
+radius is shut. On 8TKF the result is grid-converged to 4 % (step 1 → 0.25 Å).
+
+**Measured** (`python -m ip3r unitary`). All six non-activated ITPR3 states
+are sterically shut (r_free 0.25–1.03 Å, below K+'s 1.38 Å). Activated 8TKF
+(r_free 3.08 Å at the filter) gives 64 pS (series), 65 pS (neutral solver)
+and 33 pS with its lining charges. Measured, rat ITPR3 in symmetric 140 mM
+KCl: 358 ± 8 pS (Mak et al. 2000, oocyte nuclei; Vais et al. 2010 cites it
+as 370) and 545 ± 7 pS (Vais et al. 2010, DT40 nuclei).
+
+- Over the unmeasured constants (in-pore diffusivity 0.25–1× bulk, ion
+  radius 1–2 Å), the neutral model spans 25–150 pS and the charged
+  13–75 pS. No corner reaches 358 pS; the model is 2.4× short at best.
+  (PIEZO1's same model was 1.5× *high*.)
+- The resistance is spread along the ~50 Å pore; the filter slice holds
+  about a third of it.
+- The wall charges are seven rings: E2398, K2482, D2478, D2518, D2522,
+  K2529 (and R2524/E2532 in other states). Alternating-sign rings act as
+  junctions in series, since each carrier must cross a zone where it is the
+  excluded co-ion. So the charges **lower** the conductance. Acidic rings
+  alone give 174 pS, and without K2482 it is 64 pS.
+- The charged number is not robust. The lining margin moves it 7–58 pS
+  (0–8 Å) and the smoothing moves it 16–151 pS (1.5–6 Å). The partition
+  density peaks at 18.6 M, above the 10 M packing ceiling, and the model
+  rectifies (26 pS at −20 mV against 32 at +20) where the measured I–V is
+  linear. It is a point-ion continuum at its limit. D2478 is also
+  salt-bridged (2.5 Å) to R2471 of the neighbouring subunit, a charge the
+  lining rule does not see.
+- **Salt bridges cancelled** (`physics/salt_bridges.py`, the *paired*
+  reading). An ion pair is an acid and a base with a charged O and a charged
+  N within 4 Å (Barlow & Thornton 1983, `pore_charge.salt_bridge_cutoff`).
+  Pairs are matched one-to-one, closest first, across the whole deposit, so
+  each bridge removes exactly +1 and −1. A lining group that is half of a
+  pair is dropped. On 8TKF only the four D2478–R2471′ bridges (2.45–2.58 Å)
+  qualify: the wall goes from −8 e to −4 e and the conductance from 33 to
+  **23 pS** (8–54 pS over the diffusivity × radius sweep). The next pairs
+  are close to the line. D2518–R2524′ sits at 4.23–4.34 Å and K2482–D2400
+  at 4.31–4.40 Å, so a 4.5 Å cutoff drops those too and gives 38 pS. Over
+  cutoffs of 3–6 Å the paired reading is 23–38 pS, always below the neutral
+  65 pS. The peak partition density (18.6 M, above the ceiling) does not
+  move, because it sits on the D2518/D2522 rings at z ≈ −63 Å in a 4.4 Å
+  lumen, not at the filter. So cancelling ion pairs does not rescue the
+  charged model. The gap to 358 pS is not a charge-counting artefact.
+- **The paired reading is refuted by RyR1** (next section). RyR1 D4899 is
+  the homologue of D2478 (own alignment of the PF00520 domains: R4892 ≡
+  R2471 as well). It is bridged the same way (2.9 Å), yet neutralising it
+  cuts RyR1's conductance to 0.20×. So a bridged filter carboxylate still
+  acts as a charge. The *charged* reading is the better one. *Paired* is
+  kept as a reported bound, not a correction.
+
+What survives: the gate is the only state change that opens a conducting
+pathway. Taken as a neutral continuum, the only open deposit's pore is
+too narrow or too long to carry the measured conductance.
+
+## Selectivity and the unitary Ca²⁺ current (Vais 2010)
+
+`physics/selectivity.py`, `python -m ip3r selectivity [8TKF]`.
+
+**Why.** The conductance shortfall is an absolute scale, and the in-pore
+diffusivity is one of the two constants nobody has measured. A
+permeability ratio does not depend on it: scaling every diffusivity by one
+factor scales every flux by that factor, so the reversal potential does not
+move (tested). Selectivity therefore tests the **wall charge**, the part of
+the model that the conductance could not test cleanly.
+
+**The experiments, as Vais et al. 2010 ran them** (lum-out nuclear patches of
+rat InsP3R-3; every concentration registered under `selectivity.*`):
+
+| Quantity | Cytosol (pipette) | Lumen (bath) | Measured |
+|---|---|---|---|
+| P_Cl : P_K | 140 mM KCl | 30 mM KCl + 110 mM NMDG-Cl | 0.27 ± 0.01 |
+| P_Ca : P_K | 140 mM KCl | 140 mM KCl + 10 mM CaCl₂ | 15.2 ± 0.6 |
+| i_Ca at 0 mV | 140 mM KCl, 3 µM Ca²⁺ | 140 mM KCl + 0.16 / 0.55 / 1.1 mM Ca²⁺ | 0.30 ± 0.02 pA/mM |
+
+The reversal potential is the root of the solver's pore current. It is
+read with Vais's Eq. 1 (general GHK), with P_Cl : P_K from the first
+experiment as they used it. The model has concentrations, not activities,
+so the ruler is applied to the concentrations the model saw. i_Ca is the
+pore current at 0 mV, before the access correction; the error is about
+0.1 mV across ~1 GΩ of access. Current is positive from lumen to cytosol.
+
+**The solver change this needed.** With different baths, each mouth is now
+in Donnan equilibrium with *its own* bath (before, the mean of the two).
+That is Teorell–Meyer–Sievers. An impermeant bath ion (NMDG⁺), left out of
+the species list, then sets a jump at its mouth even with no wall charge.
+Symmetric baths give the same numbers as before (tested; the conductance
+suite is unchanged).
+
+**Calibrations** (`tests/test_selectivity.py`):
+- the GHK ratio inverts GHK's own reversal potential;
+- Vais's arithmetic is reproduced: the 0.30 pA/mM slope gives P_Ca =
+  1.5 × 10⁻¹⁸ m³/s, and GHK from 545 pS and the ratios gives ~1.5 × 10⁻¹⁷
+  at the ~104 mM activity they used;
+- an uncharged cylinder gives Planck's liquid junction;
+- a uniformly charged cylinder gives TMS at four charges of both signs;
+- a −20 M wall approaches K⁺'s Nernst potential;
+- an excluded NMDG⁺ gives the Donnan jump at √(30 × 140) mM plus Planck;
+- the instrument *can* report Ca²⁺ selectivity. A 3.5 Å pore charged at
+  −30 M along its whole length gives P_Ca : P_K 60 (8 at −3 M). The same
+  wall concentrated in one 5 Å ring gives < 0.6 at any magnitude, because
+  Ca²⁺ must cross the uncharged stretches with no Donnan enrichment.
+
+**Measured on 8TKF** (the only conducting ITPR3 state):
+
+| Wall | P_Cl : P_K | P_Ca : P_K | i_Ca (pA/mM) | g (pS) |
+|---|---|---|---|---|
+| neutral | 0.33 (0.74 with NMDG⁺ inside, slow) | 0.17 | −0.003 | 65 |
+| charged (−8 e) | 0.01 | 0.00 | 0.0000 | 33 |
+| paired (−4 e) | 0.05 | −0.07 | −0.0005 | 23 |
+| acidic only (−16 e) | 0.00 | 0.69 | +0.046 | 174 |
+| *measured* | *0.27* | *15.2* | *0.30* | *545* |
+
+- **No reading comes within 20× of P_Ca : P_K = 15.2.**
+- **The lining bases are Ca²⁺ barriers.** In the local-Donnan closure, K2529
+  (four Lys at 11.6 Å radius in the cytosolic vestibule) becomes a +2.9 M
+  wall at a +77 mV barrier. K2482 does the same at the luminal side. A
+  divalent ion is excluded as e^{−2ψ}, so the channel passes almost no Ca²⁺.
+  Neutralising K2529 alone is not enough (0.03). Neutralising both bases
+  gives 0.69.
+- **Even acidic-only, the charge is in rings.** E2398, D2478, D2518 and
+  D2522 are four discrete rings, not a tract. So, per the calibration, the
+  electroneutral model cannot give Ca²⁺ selectivity from them however
+  strongly they are charged.
+- **Anions.** Every charged reading makes the pore nearly anion-tight
+  (P_Cl : P_K ≤ 0.05), but the channel passes Cl⁻ (0.27). The neutral
+  pore's value is not a clean number either: it depends on whether NMDG⁺ is
+  excluded at the mouth (0.33) or enters the pore slowly (0.74; the truth,
+  exclusion at the constriction, lies between).
+- **No GHK excess.** Vais's i_Ca is 8× (nominal concentrations) to 10×
+  (activities) smaller than GHK predicts from their g and ratios; they
+  attribute this to ion–ion and ion–channel interactions. The model
+  obeys GHK to 4 % (acidic: 0.046 against 0.044 pA/mM). It has no
+  interaction of that kind, so it cannot show the excess.
+
+**What it means.** The conductance shortfall already said this continuum was
+at its limit. Selectivity says what is missing. IP3R's Ca²⁺ preference
+(15×) needs either a continuous charged tract, which 8TKF's lining does not
+have, or the physics a point-ion, local-Donnan continuum leaves out:
+ion size and crowding (charge–space competition), dielectric exclusion, and
+screening within a wide vestibule, where the Debye length (5.8 Å at the model's
+ε = 40; 8 Å in bulk water) is comparable to the radius. The last of these is exactly why K2529's ring
+counts as a +2.9 M wall. The same comparison on RyR1, also Ca²⁺-selective, is the natural
+control and is not yet run.

@@ -305,88 +305,11 @@ integrates a microdomain ODE with fluo-4), and the store is never depleted.
 Above about 0.5 µM coupling, the park/drive cluster settles into sustained
 partial activity (9 % open) rather than discrete puffs.
 
-## Unitary conductance (drift-diffusion over the pore)
+## Permeation: conductance, selectivity and the Ca²⁺ current
 
-Ported from PIEZO1's `physics/permeation.py`. For each species *i*, the
-steady Nernst–Planck flux down a pore of accessible area
-A_i(z) = π (r_free(z) − a_i)² is
-
-  J_i = −D_i A_i [dc_i/dz + (z_i F / RT) c_i dφ/dz],  dJ_i/dz = 0,
-
-Scharfetter–Gummel discretised. The potential is closed in the
-electroneutral limit, because full Poisson coupling diverges when the Debye
-length (5.8 Å here) exceeds the pore radius. Without wall charge, it is
-closed by ohmic current continuity ∇·(σA∇φ) = 0. With charge, by local
-electroneutrality Σ z_i c_i + X = 0 (a local Donnan partition). Hall's
-access resistance 1/(4σa) is added at each mouth. The closed-form sum
-R = ∫dz/(σA) + 2R_access is derived without the solver as its check.
-
-**Inputs.** The profile is `r_free` of protein heavy atoms (not S0's
-HETATM-inclusive one) over the pore-domain span ± 12 Å. The bath is
-symmetric 140 mM KCl at room temperature, the condition both measurements
-were made in. The fixed charge comes from the deposit's own side chains:
-the carboxylate midpoint (Asp/Glu), NZ (Lys) or CZ (Arg), admitted when
-within `pore_charge.lining_margin` (3 Å) of the atom-centre radius at its
-height. It is spread by a 3 Å Gaussian and divided by the lumen area.
-Stubbed side chains are counted as unplaced, never guessed; there are none
-in the ITPR3 panel.
-
-**Calibrations** (`tests/test_permeation.py`): a cylinder equals the exact
-ohmic conductance to 0.1 %; the solver equals the series sum on an
-hourglass to 2 %; a uniformly charged cylinder equals the exact Donnan
-partition to 1 %; the charge kernel conserves charge; a pore below the K+
-radius is shut. On 8TKF the result is grid-converged to 4 % (step 1 → 0.25 Å).
-
-**Measured** (`python -m ip3r unitary`). All six non-activated ITPR3 states
-are sterically shut (r_free 0.25–1.03 Å, below K+'s 1.38 Å). Activated 8TKF
-(r_free 3.08 Å at the filter) gives 64 pS (series), 65 pS (neutral solver)
-and 33 pS with its lining charges. Measured, rat ITPR3 in symmetric 140 mM
-KCl: 358 ± 8 pS (Mak et al. 2000, oocyte nuclei; Vais et al. 2010 cites it
-as 370) and 545 ± 7 pS (Vais et al. 2010, DT40 nuclei).
-
-- Over the unmeasured constants (in-pore diffusivity 0.25–1× bulk, ion
-  radius 1–2 Å), the neutral model spans 25–150 pS and the charged
-  13–75 pS. No corner reaches 358 pS; the model is 2.4× short at best.
-  (PIEZO1's same model was 1.5× *high*.)
-- The resistance is spread along the ~50 Å pore; the filter slice holds
-  about a third of it.
-- The wall charges are seven rings: E2398, K2482, D2478, D2518, D2522,
-  K2529 (and R2524/E2532 in other states). Alternating-sign rings act as
-  junctions in series, since each carrier must cross a zone where it is the
-  excluded co-ion. So the charges **lower** the conductance. Acidic rings
-  alone give 174 pS, and without K2482 it is 64 pS.
-- The charged number is not robust. The lining margin moves it 7–58 pS
-  (0–8 Å) and the smoothing moves it 16–151 pS (1.5–6 Å). The partition
-  density peaks at 18.6 M, above the 10 M packing ceiling, and the model
-  rectifies (26 pS at −20 mV against 32 at +20) where the measured I–V is
-  linear. It is a point-ion continuum at its limit. D2478 is also
-  salt-bridged (2.5 Å) to R2471 of the neighbouring subunit, a charge the
-  lining rule does not see.
-- **Salt bridges cancelled** (`physics/salt_bridges.py`, the *paired*
-  reading). An ion pair is an acid and a base with a charged O and a charged
-  N within 4 Å (Barlow & Thornton 1983, `pore_charge.salt_bridge_cutoff`).
-  Pairs are matched one-to-one, closest first, across the whole deposit, so
-  each bridge removes exactly +1 and −1. A lining group that is half of a
-  pair is dropped. On 8TKF only the four D2478–R2471′ bridges (2.45–2.58 Å)
-  qualify: the wall goes from −8 e to −4 e and the conductance from 33 to
-  **23 pS** (8–54 pS over the diffusivity × radius sweep). The next pairs
-  are close to the line. D2518–R2524′ sits at 4.23–4.34 Å and K2482–D2400
-  at 4.31–4.40 Å, so a 4.5 Å cutoff drops those too and gives 38 pS. Over
-  cutoffs of 3–6 Å the paired reading is 23–38 pS, always below the neutral
-  65 pS. The peak partition density (18.6 M, above the ceiling) does not
-  move, because it sits on the D2518/D2522 rings at z ≈ −63 Å in a 4.4 Å
-  lumen, not at the filter. So cancelling ion pairs does not rescue the
-  charged model. The gap to 358 pS is not a charge-counting artefact.
-- **The paired reading is refuted by RyR1** (next section). RyR1 D4899 is
-  the homologue of D2478 (own alignment of the PF00520 domains: R4892 ≡
-  R2471 as well). It is bridged the same way (2.9 Å), yet neutralising it
-  cuts RyR1's conductance to 0.20×. So a bridged filter carboxylate still
-  acts as a charge. The *charged* reading is the better one. *Paired* is
-  kept as a reported bound, not a correction.
-
-What survives: the gate is the only state change that opens a conducting
-pathway. Taken as a neutral continuum, the only open deposit's pore is
-too narrow or too long to carry the measured conductance.
+The drift-diffusion pore model, its calibrations, the K⁺ conductance of
+every ITPR3 state, and the selectivity and unitary Ca²⁺ current under
+Vais 2010's protocols are in [`SCIENCE_PERM.md`](SCIENCE_PERM.md).
 
 ## Ryanodine receptors
 

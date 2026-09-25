@@ -108,6 +108,16 @@ than raising it. Cancelling the salt-bridged ones (the filter's D2478 is
 paired with R2471 of the next subunit) lowers it further, to 23 pS
 (`python -m ip3r unitary`).
 
+Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
+and tests the wall charge directly. Vais et al. 2010's own solutions were
+run through the same pore (`python -m ip3r selectivity`). No reading of
+8TKF's wall comes near the measured P_Ca:P_K of 15.2: 0.17 uncharged, 0.00
+with its lining charges, 0.69 with only the acidic rings. The model's i_Ca
+is at most 0.046 against 0.30 pA/mM. Under a local Donnan partition, the
+lining lysines act as Ca²⁺ barriers. The calibration shows that charge in
+discrete rings cannot make a continuum pore Ca²⁺-selective; a charged
+tract can (`docs/SCIENCE_PERM.md`).
+
 ![Unitary conductance](docs/img/gui_unitary.png)
 
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
@@ -349,6 +359,7 @@ python -m ip3r --session view.json  # the GUI, reopened on a saved session
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
+python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
 python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
 python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open

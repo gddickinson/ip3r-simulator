@@ -9,6 +9,7 @@ testable and scriptable:
     python -m ip3r checks           # re-derive the ip3r_genes findings
     python -m ip3r states           # pore of every ITPR3 gating state (--paralog RYR1)
     python -m ip3r unitary          # K+ conductance of each state (--paralog RYR1)
+    python -m ip3r selectivity 8TKF # P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
     python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
@@ -376,6 +377,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--paralog", default="ITPR3")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_unitary)
+    from .cli_perm import register as _register_perm
+    _register_perm(sub)
     from .cli_ryr import register as _register_ryr
     _register_ryr(sub)
     p = sub.add_parser("modes")

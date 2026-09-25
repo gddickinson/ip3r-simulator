@@ -13,6 +13,8 @@ _VAIS = ("Vais et al. 2010 (PMC2995152), Results: 'symmetric 140-mM KCl "
          "solutions ([K+]f = [Cl-]f ~ 104 mM) in the absence of Mg2+'; "
          "'current traces were acquired at room temperature'")
 
+_VAIS_SEL = ("Vais et al. 2010 (PMC2995152), read 2026-09-24. Methods/Results: ")
+
 PERM = [
     # ------------------------------------------------ transport constants
     _p("permeation.temperature", "Temperature", 296.0, "K", "convention",
@@ -80,6 +82,67 @@ PERM = [
        "Mak 2000 (PMC2217211): 'the InsP3R-3 I-V relation became linear "
        "with a conductance of 358 +/- 8 pS'. Vais 2010 cites this paper as "
        "370 +/- 8 pS; the primary text is used", 1.0, 2000.0),
+    # ------------------------------------------------ selectivity (Vais 2010)
+    _p("permeation.diffusion_calcium", "Ca2+ bulk diffusivity", 0.79e-9,
+       "m^2/s", "physical", "permeation", "convention", "Bulk diffusion "
+       "coefficient of Ca2+.", "Ca2+ in water at 25 C; the standard "
+       "tabulated value (limiting conductivity 59.5 S cm2/mol per charge)",
+       1e-11, 1e-8),
+    _p("permeation.radius_calcium", "Ca2+ crystal radius", 1.00, "A",
+       "physical", "permeation", "convention", "Subtracted from the free "
+       "radius for Ca2+.", "Shannon radius, six-coordinate", 0.3, 4.0),
+    _p("selectivity.kcl_dilute", "P_K:P_Cl lumen KCl", 0.030, "M",
+       "convention", "selectivity", "vais2010", "Luminal KCl in the "
+       "experiment that sets P_K:P_Cl (cytosol: the 140 mM bath).",
+       _VAIS_SEL + "'30 mM KCl, 110 mM NMDG chloride'", 0.001, 0.14),
+    _p("selectivity.nmdg_cl", "P_K:P_Cl lumen NMDG-Cl", 0.110, "M",
+       "convention", "selectivity", "vais2010", "Impermeant NMDG-Cl that "
+       "keeps the luminal Cl- at 140 mM. NMDG+ is not a species in the "
+       "pore; its Cl- is.", _VAIS_SEL + "'30 mM KCl, 110 mM NMDG chloride'",
+       0.0, 0.3),
+    _p("selectivity.nmdg_slow_fraction", "NMDG+ mobility (bound)", 1e-3, "",
+       "method", "selectivity", "method_choice", "In-pore diffusivity of "
+       "NMDG+ relative to K+ for the bound in which it enters the pore but "
+       "carries almost no current.", "Only a bound: 1e-2 to 1e-4 move P_Cl:"
+       "P_K of the neutral 8TKF pore by < 0.02 (0.75 to 0.73)", 1e-6, 1.0),
+    _p("selectivity.cacl2_lumen", "P_Ca:P_K lumen CaCl2", 0.010, "M",
+       "convention", "selectivity", "vais2010", "CaCl2 added to the luminal "
+       "140 mM KCl in the experiment that sets P_Ca:P_K.",
+       _VAIS_SEL + "'140 mM KCl, 10 mM HEPES ... and 10 mM XCl2'", 1e-4, 0.1),
+    _p("selectivity.ca_cytosol", "i_Ca cytosolic Ca2+", 3e-6, "M",
+       "convention", "selectivity", "vais2010", "Free Ca2+ on the cytosolic "
+       "side in the i_Ca protocol.", _VAIS_SEL + "'[Ca2+]i in the pipette "
+       "solution was fixed at 3 uM'", 0.0, 1e-3),
+    _p("selectivity.ca_lumen_low", "i_Ca luminal Ca2+ (low)", 0.16e-3, "M",
+       "convention", "selectivity", "vais2010", "Lowest luminal free Ca2+ "
+       "of the i_Ca line.", _VAIS_SEL + "'[Ca2+]f = 160 uM, 550 uM, and "
+       "1.1 mM'", 1e-6, 0.01),
+    _p("selectivity.ca_lumen_mid", "i_Ca luminal Ca2+ (mid)", 0.55e-3, "M",
+       "convention", "selectivity", "vais2010", "Middle luminal free Ca2+ "
+       "of the i_Ca line.", _VAIS_SEL + "'[Ca2+]f = 160 uM, 550 uM, and "
+       "1.1 mM'", 1e-6, 0.01),
+    _p("selectivity.ca_lumen_high", "i_Ca luminal Ca2+ (high)", 1.1e-3, "M",
+       "convention", "selectivity", "vais2010", "Highest luminal free Ca2+ "
+       "of the i_Ca line.", _VAIS_SEL + "'[Ca2+]f = 160 uM, 550 uM, and "
+       "1.1 mM'", 1e-6, 0.01),
+    _p("selectivity.published_pcl_pk", "Measured P_Cl:P_K", 0.27, "",
+       "empirical", "selectivity", "vais2010", "InsP3R-3 chloride "
+       "permeability relative to K+.", _VAIS_SEL + "'P Ca : P Sr : P Ba : "
+       "P Mg : P Na : P K : P Cl = (15.2 +/- 0.6): ... :1:(0.27 +/- 0.01)'",
+       0.0, 10.0),
+    _p("selectivity.published_pca_pk", "Measured P_Ca:P_K", 15.2, "",
+       "empirical", "selectivity", "vais2010", "InsP3R-3 Ca2+ permeability "
+       "relative to K+.", _VAIS_SEL + "'(15.2 +/- 0.6)'", 0.0, 100.0),
+    _p("selectivity.published_ica_slope", "Measured i_Ca slope", 0.30,
+       "pA/mM", "empirical", "selectivity", "vais2010", "Unitary Ca2+ "
+       "current at 0 mV per mM luminal Ca2+ gradient, 140 mM KCl, no Mg2+.",
+       _VAIS_SEL + "Fig. 4: 'slope of 0.30 +/- 0.02 pA/mM'", 0.0, 10.0),
+    _p("selectivity.published_pca_slope", "P_Ca from the i_Ca slope", 1.5e-18,
+       "m^3/s", "empirical", "selectivity", "vais2010", "The Ca2+ "
+       "permeability the i_Ca slope gives; GHK from 545 pS and the ratios "
+       "gives ten times more (1.5e-17).", _VAIS_SEL + "'P Ca (1.5 x 10-18 m3 "
+       "s-1) derived from the slope ... is an order of magnitude smaller "
+       "than that (1.5 x 10-17 m3 s-1) estimated using g ch'", 0.0, 1e-15),
     # ------------------------------------------------ fixed charge
     _p("pore_charge.lining_margin", "Charge lining margin", 3.0, "A",
        "method", "pore_charge", "method_choice", "A charge centre lines the "

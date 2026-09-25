@@ -2,7 +2,7 @@
 
 Ported from the PIEZO1 simulator (``piezo1/physics/permeation.py``), whose
 docstring records how the method was arrived at; the physics is unchanged and
-the equations are in ``docs/SCIENCE.md``. In short:
+the equations are in ``docs/SCIENCE_PERM.md``. In short:
 
 * steady Nernst-Planck for each species down a channel of varying
   cross-section (the accessible area is the free radius less the ion's own),
@@ -239,9 +239,16 @@ def solve_pnp(z_A: np.ndarray, radius_A: np.ndarray,
     if charged or not symmetric:
         reference = np.array([[0.5 * (s.concentration + s.right) * 1000.0] * len(z)
                               for s in species])
-        psi = _donnan_potential([s.valence for s in species], reference,
-                                np.zeros_like(z) if fixed is None else fixed,
-                                thermal)
+        wall = np.zeros_like(z) if fixed is None else fixed
+        valences_ = [s.valence for s in species]
+        psi = _donnan_potential(valences_, reference, wall, thermal)
+        # Each mouth is in equilibrium with its own bath, not the mean of the
+        # two: with different baths the jumps differ (Teorell-Meyer-Sievers),
+        # and an impermeant bath ion left out of `species` sets one even at
+        # zero wall charge. Symmetric baths give the same numbers as before.
+        for end, bath_of in ((0, lambda s: s.concentration), (-1, lambda s: s.right)):
+            own = np.array([[bath_of(s) * 1000.0] for s in species])
+            psi[end] = _donnan_potential(valences_, own, wall[[end]], thermal)[0]
     else:
         psi = None
 
