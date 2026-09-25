@@ -3064,6 +3064,32 @@
    "maximum": 50.0
   },
   {
+   "key": "ryr.rios_i1_half_time",
+   "name": "Rios 2026 inactivation half time",
+   "value": 3.5,
+   "unit": "ms",
+   "kind": "empirical",
+   "category": "ryr",
+   "citation": "riospizarro2026",
+   "description": "Half time of entry into inactivation from the open state (O -> I1, entered from no other state) in Rios & Pizarro's couplon, the use gate's entry at millisecond speed: k_use = ln2 / this (Round 6.13).",
+   "source_note": "Rios & Pizarro 2026 (PMC13387315), full text, Table 1 'I1_ht 3.5' (its dimension column reads 'time^-1, ms^-1', but the Methods define I1_ht = log2/k_I1, a half time in ms). Discussion: 'the first inactivation rate must be near 3 ms to match the fast decay from peak flux'. Fitted to cell-level flux of mammalian fibres, not a single-channel measurement",
+   "minimum": 0.01,
+   "maximum": 100000.0
+  },
+  {
+   "key": "ryr.rios_r1_half_time",
+   "name": "Rios 2026 recovery half time",
+   "value": 20.0,
+   "unit": "ms",
+   "kind": "empirical",
+   "category": "ryr",
+   "citation": "riospizarro2026",
+   "description": "Half time of recovery from the first inactivated state (I1 -> C): k_use- = ln2 / this. Its ratio to ryr.rios_i1_half_time's rate is 0.175.",
+   "source_note": "Rios & Pizarro 2026 (PMC13387315), full text, Table 1 'R1_ht 20'. The scheme's deep state I2 (I2_ht 50, R2_ht 50 ms) is not carried: it slows recovery between pulses and cannot shorten a spark. Recovery is anchored to tau 110 ms at the resting potential (Sarkozi et al. 2000)",
+   "minimum": 0.01,
+   "maximum": 100000.0
+  },
+  {
    "key": "ec.rios_k",
    "name": "Voltage-sensor steepness K",
    "value": 4.5,

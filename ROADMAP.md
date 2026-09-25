@@ -5,20 +5,16 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 6.13 -- the use gate in the millisecond regime. A 2026
-literature check (recorded in `ROADMAP_RYR.md`) found Rios & Pizarro 2026
-(J Gen Physiol, PMC13387315) modelling the same couplon with an
-inactivation entered only from the open state, as our use gate is, at a
-recovery/entry ratio 0.175 (inside the band Round 6.10 needed) but with
-**millisecond** half-lives rather than our seconds. That is the regime
-where the gate's speed, not just its ratio, terminates a spark. Also
-found: modern RyR1 Ca2+ inactivation IC50 is 0.6-1.5 mM (Nayak & Samso
-2022) and Stern's 10 uM has no modern support, which confirms Rounds
-6.3-6.8's negative result as the field's consensus rather than an
-anomaly. Other candidates: the A-subspace headline in the Transition tab
-(Round 2), the continuum's conductance shortfall (Rounds 4 and 6.1), and
-for IP3R the selectivity control on RyR1, or the pKa of the lining
-lysines and carboxylates (Round 4).
+**Next:** Round 6.14 -- the couplon's C/V unitary flux ratio. Round 6.13
+(`ROADMAP_RYR.md`) found that at Rios & Pizarro 2026's millisecond speed
+the use gate ends a cleft spark alone in 6 ms and rescues the 0.8 mixed
+cluster, while the bell barely changes. What still misses is the
+couplon's flux peak/plateau (1.9 against a measured >= 4). Rios gets the
+peak/plateau with R_C/V 5; ours is Stern's 3. Other candidates: Copello's
+low-activity channels in the ms regime, the A-subspace headline in the
+Transition tab (Round 2), the continuum's conductance shortfall (Rounds 4
+and 6.1), and for IP3R the selectivity control on RyR1 or the pKa of the
+lining residues (Round 4).
 
 ## Destination
 

@@ -52,6 +52,7 @@ _M97 = ("Meissner, Rios, Tripathy & Pasek 1997 (JBC 272:1628), Table IV: "
 _L04 = ("Laver, O'Neill & Lamb 2004 (PMC2234024), Table I: RyR1 (rabbit) in "
         "bilayers, 2 mM ATP, luminal Ca2+ 1 mM, cytoplasmic Cs+ 250 mM")
 
+_RP26 = ("Rios & Pizarro 2026 (PMC13387315), full text")
 _LL98_FULL = ("Laver & Lamb 1998, full text (rabbit skeletal and sheep "
               "cardiac RyRs in bilayers, 250 mM Cs+)")
 _LL98 = ("Laver & Lamb 1998 (PMC1299578), abstract (the full text is a "
@@ -418,4 +419,24 @@ RYR += [
        "method", "spark", "method_choice", "Geometric steps of the ratio "
        "scan.", "Four per decade: the working band is under a decade wide",
        2.0, 50.0),
+    # ------------------------- Rios & Pizarro 2026: the gate in milliseconds
+    _p("ryr.rios_i1_half_time", "Rios 2026 inactivation half time", 3.5,
+       "ms", "empirical", "ryr", "riospizarro2026", "Half time of entry "
+       "into inactivation from the open state (O -> I1, entered from no other "
+       "state) in Rios & Pizarro's couplon, the use gate's entry at "
+       "millisecond speed: k_use = ln2 / this (Round 6.13).",
+       f"{_RP26}, Table 1 'I1_ht 3.5' (its dimension column reads "
+       "'time^-1, ms^-1', but the Methods define I1_ht = log2/k_I1, a half "
+       "time in ms). Discussion: 'the first inactivation rate must be near "
+       "3 ms to match the fast decay from peak flux'. Fitted to cell-level "
+       "flux of mammalian fibres, not a single-channel measurement",
+       0.01, 1e5),
+    _p("ryr.rios_r1_half_time", "Rios 2026 recovery half time", 20.0, "ms",
+       "empirical", "ryr", "riospizarro2026", "Half time of recovery from "
+       "the first inactivated state (I1 -> C): k_use- = ln2 / this. Its "
+       "ratio to ryr.rios_i1_half_time's rate is 0.175.",
+       f"{_RP26}, Table 1 'R1_ht 20'. The scheme's deep state I2 (I2_ht 50, "
+       "R2_ht 50 ms) is not carried: it slows recovery between pulses and "
+       "cannot shorten a spark. Recovery is anchored to tau 110 ms at the "
+       "resting potential (Sarkozi et al. 2000)", 0.01, 1e5),
 ]

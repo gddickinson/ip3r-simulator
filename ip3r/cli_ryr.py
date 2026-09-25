@@ -138,6 +138,17 @@ def _spark_termination(args) -> int:
               "channels' Ca2+ gate is fitted to, at each reading of their "
               "half points; they are not simulated in the cleft (best case)")
         rows = st.low_activity_scan(None, args.duration, args.seeds)
+    elif args.scan == "speed":
+        from .physics import use_speed as us
+        on, off = us.rios_rates()
+        print(f"the use gate from the bilayer rate to Rios & Pizarro 2026's "
+              f"(entry {on:.0f}/s, recovery {off:.1f}/s, ratio "
+              f"{off / on:.3f}), the Ca2+ gate refitted beside it. Each row "
+              "read twice: sparks arising by themselves, and the whole array "
+              "opened at t = 0 ('triggered')")
+        rows = (us.speed_panel(None, None, args.duration, args.seeds)
+                + us.controls(args.duration, args.seeds)
+                + us.fraction_panel(None, args.duration, args.seeds))
     else:
         base = rg.fit_to_bell() if args.fitted else None
         rows = st.rate_scan(base, args.duration, args.seeds)
@@ -263,13 +274,14 @@ def register(sub) -> None:
     p = sub.add_parser("spark-termination", help="cleft spark duration as the "
                        "inactivation gate is refitted and scanned")
     p.add_argument("--scan", choices=("fit", "ki", "rate", "use", "ratio",
-                                        "fraction", "low-activity"),
+                                        "fraction", "low-activity", "speed"),
                    default="fit",
                    help="fit: Stern vs fitted to Murayama (25, 37 C); ki: Ki "
                    "scan; rate: inactivation rate scan at fixed Ki; use: the "
                    "use gate's speed; ratio: its recovery/inactivation ratio; "
                    "fraction: the share of channels that carry it; "
-                   "low-activity: Copello 1997's LA channels in the bell")
+                   "low-activity: Copello 1997's LA channels in the bell; "
+                   "speed: bilayer to Rios 2026's millisecond gate")
     p.add_argument("--bell", action="store_true",
                    help="with --scan use: recovery ratios against the measured "
                         "bell only "

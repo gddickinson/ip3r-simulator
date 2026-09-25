@@ -228,4 +228,9 @@ REFERENCES = [
      "title": "Calcium release flux underlying Ca2+ sparks of frog skeletal "
               "muscle",
      "journal": "J Gen Physiol 114:31-48", "doi": "10.1085/jgp.114.1.31"},
+    {"key": "riospizarro2026", "authors": "Rios E, Pizarro G", "year": 2026,
+     "title": "Allosteric interactions between RyR channels justify "
+              "intracellular Ca2+ release of skeletal muscle in quantitative "
+              "detail",
+     "journal": "J Gen Physiol 158:e202613968", "doi": "10.1085/jgp.202613968"},
 ]

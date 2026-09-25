@@ -369,7 +369,7 @@ python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
 python -m ip3r ryr-gating | sparks --scan   # RyR1 bells; sparks over the coupling band
 python -m ip3r sparks --cleft      # sparks with each channel's own Ca2+ in the cleft
 python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's bell
-python -m ip3r spark-termination --scan fit|ki|rate|use|ratio|fraction|low-activity  # what ends a cleft spark
+python -m ip3r spark-termination --scan fit|ki|rate|use|ratio|fraction|low-activity|speed  # what ends a cleft spark
 python -m ip3r spark-mg [--scan] [--reading measured|selectivity|meissner]  # Mg2+ ends a triggered spark
 python -m ip3r ec [--scan] [--reading R] [--use]  # the couplon under voltage clamp (V + C channels)
 python -m ip3r ec --two-site       # ... with a two-site inactivation gate fitted to the bell's slope

@@ -1884,3 +1884,42 @@ documented spread is real and too small. 4 new tests (14 in the file).
 a literature search was running at the close of this entry. Otherwise: is
 a triad's inactivating fraction the bilayer's (Hain 1994/95,
 phosphorylation, FKBP12)?
+
+## 2026-09-25 (14) — Round 6.13: the use gate in the millisecond regime
+
+**Why.** The literature check found Rios & Pizarro 2026 (J Gen Physiol,
+PMC13387315) using the same gate, entered only from the open state with
+no explicit Ca²⁺ role, in the same V/C couplon. Its rates are
+milliseconds (I1_ht 3.5, R1_ht 20 ms), at a ratio (0.175) inside Round
+6.10's band. Round 6.10's "only ρ matters" was proved only for gates
+slower than a spark, so the speed had never been tested.
+
+**Read from the full text.** Table 1's values are half times (Methods:
+I1_ht = log2/k_I1), even though its unit column says ms⁻¹. Only C channels
+inactivate. C channels carry 5× a V channel's flux, which Rios needs to
+reach the measured peak/steady ≥ 4. Mammalian release has no sparks
+under physiological conditions. A deep state I2 (50/50 ms) is there for
+recovery. Registered: `ryr.rios_i1_half_time`, `ryr.rios_r1_half_time`
+(reference `riospizarro2026`). I2 is not carried.
+
+**Built.** `physics/use_speed.py`: `rios_rates`, `speed_values`,
+`SpeedRow` read both spontaneous and triggered (a fast gate can stop
+ignition as well as end a spark), `speed_panel`, `controls`,
+`fraction_panel`; `spark-termination --scan speed`; 8 tests, each claim
+held against its bilayer-speed control.
+
+**Measured.** The bell barely sees the speed: across 3500×, Ki moves
+35.9 → 39.4 µM. Termination sees it. With the Ca²⁺ gate removed, the
+bilayer-speed gate leaves a triggered array open 764 ms. The Rios-speed
+gate shuts it in 6 ms, alone. Round 6.11's mixed cluster is rescued: at
+0.8 carry, 193 → 15 ms. At Rios speed the bell-consistent scheme fires no
+spontaneous sparks, which matches Rios on mammals. Rios's own "no Ca²⁺
+role" leaves the bell with no descending limb (P_open capped at 0.149), so
+a Ca²⁺ gate still belongs beside the use gate. It now only has to supply
+the bell's descending limb, not end the spark. Couplon: control kept,
+peak/plateau 1.9 against a measured ≥ 4.
+
+**Corrected in passing.** The draft said our C and V unitary currents
+were equal. They are Stern's 0.3/0.1 pA (ratio 3). Rios's is 5.
+
+**Next:** R_C/V 5 against the couplon's peak/plateau (Round 6.14).

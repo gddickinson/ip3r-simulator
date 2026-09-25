@@ -370,9 +370,26 @@ cardiac termination is induction decay with *no* Ca2+ inactivation gate
 6.3-6.8's negative result -- that no bell-consistent Ca2+ inactivation
 terminates -- is the consensus position rather than an anomaly.
 
-- [ ] **6.13 (next): the use gate in the millisecond regime.** Re-run
-  Rounds 6.9-6.12 with `ryr.k_use_on` at Rios's I1_ht 3.5 ms, rho 0.175,
-  and ask whether the bell still admits it (our `fit_with_use` scanned
-  tau from 1 ms, so the machinery is there). If it does, Round 6.10's
-  "only rho matters" is superseded and the gate terminates on speed.
-  Then compare our couplon with Rios & Pizarro's directly.
+- [x] 6.13 The use gate in the millisecond regime (`physics/use_speed.py`;
+  `spark-termination --scan speed`). Rios & Pizarro's I1_ht 3.5 ms and
+  R1_ht 20 ms registered (`ryr.rios_*_half_time`). At rho 0.175, 3500x
+  faster: **the bell barely moves** (Ka +1.5 %, Ki 35.9 -> 39.4 uM), so
+  Round 6.10's reduction survives at the bell to ~10 %. **Termination does
+  move**: with the Ca2+ gate removed, the bilayer-speed gate leaves a
+  triggered array open 764 ms (3/20 never shut), and the Rios-speed gate
+  shuts it in **6 ms** by itself (measured 6.3). **Round 6.11's failure is
+  rescued**: at 0.8 carry, 193 -> 15 ms triggered (23 ms spontaneous); at
+  0.6, never -> 80 ms. A fast gate also **stops ignition** (no spontaneous
+  sparks in 40 s with the bell-consistent Ca2+ gate). Mammals have no
+  sparks physiologically, per Rios, so this agrees. Rios's own "no Ca2+
+  role" caps P_open at 0.149 with no descending limb, so Murayama's bell
+  still needs a Ca2+ gate; it now only supplies the bell's descending
+  limb. Couplon: control kept (C after 0.0006), flux peak/plateau 1.9 vs
+  measured >= 4.
+  Emergent:
+  - [ ] C/V unitary flux ratio: Rios needs R_C/V 5 (only C channels
+    inactivate) for peak/steady >= 4; ours is Stern's 3. Test 5 against
+    the couplon's peak/plateau.
+  - [ ] Round 6.12 (Copello's low-activity channels) in the ms regime.
+  - [ ] The deep state I2 (50/50 ms) for recovery between pulses (Sarkozi
+    2000's tau 110 ms at rest; Rios says mouse, the title says rat).

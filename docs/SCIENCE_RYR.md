@@ -374,3 +374,70 @@ hold if the difference lies in the competitors' affinities.
 
 Moved to [`SCIENCE_EC.md`](SCIENCE_EC.md): the V channels (Rios 1993), the
 couplon calibrated on Stern 1997, and SR depletion as a terminator.
+
+## The use gate in milliseconds (Round 6.13; `physics/use_speed.py`)
+
+Rounds 6.9–6.12 ran Laver & Lamb 1998's use gate (entered only from the
+open state) at bilayer speed: entry 0.056 s⁻¹ at 0 mV, recovery a ratio ρ of
+it (the use gate itself is in [`SCIENCE_EC.md`](SCIENCE_EC.md)). Rios &
+Pizarro 2026 (J Gen Physiol 158:e202613968) put the same gate, with no
+explicit Ca²⁺ role, into the same V/C couplon and fitted it to mammalian
+cell-level flux: O → I1 half time 3.5 ms, I1 → C 20 ms
+(`ryr.rios_i1_half_time`, `ryr.rios_r1_half_time`; Table 1's dimension
+column says "ms⁻¹" but the Methods define I1_ht = log2/k_I1). That is ρ =
+0.175, inside Round 6.10's working band, at ~3500× the speed. Their deep
+state I2 (50/50 ms) is not carried; it slows recovery between pulses and
+cannot shorten a spark.
+
+`spark-termination --scan speed` reads each scheme twice: spontaneous
+sparks, and the whole array opened at t = 0 (triggered, 20 trials).
+
+| Scheme (ρ 0.175) | Ka / Ki (µM) | Spontaneous | Triggered |
+|---|---|---|---|
+| fitted, Ca²⁺ gate only | 4.9 / 249 | never end | 0/20 end |
+| + use gate, bilayer speed (τ 18 s) | 12.4 / 35.9 | 0.28/s, 12 ms | 8.0 ms |
+| + use gate, τ 108 ms | 12.4 / 35.9 | 0.20/s, 11.5 ms | 7.0 ms |
+| + use gate, Rios speed (τ 5 ms) | 12.6 / 39.4 | **none** | 5.0 ms |
+| bilayer-speed fit, Ca²⁺ gate removed | 12.4 / ∞ | 269 ms, 2 unended | 764 ms, 17/20 end |
+| **Rios-speed fit, Ca²⁺ gate removed** | 12.6 / ∞ | 0.10/s, 11.5 ms | **6.0 ms**, 20/20 |
+| Rios alone (fitted Ka, no Ca²⁺ gate) | 4.9 / ∞ | 1.15/s, 24 ms | 21 ms |
+| 0.8 carry, bilayer speed (Round 6.11) | 7.5 / 104 | 192 ms, 3 unended | 193 ms |
+| **0.8 carry, Rios speed** | 7.1 / 115 | 0.72/s, 23 ms | **15 ms** |
+| 0.6 carry, bilayer / Rios speed | 5.9 / 170, 5.8 / 176 | never end / 85 ms | 0/20 / 80 ms |
+
+What this measures:
+
+1. **The bell still barely sees the speed.** Across 3500× at fixed ρ the
+   refitted Ka moves 1.5 % and Ki 10 %. Round 6.10's "only ρ enters the
+   fit" survives at the bell to ~10 %.
+2. **Termination does see it.** At bilayer speed the use gate ends nothing
+   by itself: a spark ends because the Ca²⁺ gate refitted beside it
+   (Ki 36 µM) ends it. At Rios's speed the use gate alone ends a triggered
+   spark in 6 ms, on the measured 6.3 ms scale. The speed now does the
+   work that needed a Ca²⁺ gate 20× stronger than the modern IC₅₀ of
+   0.6 mM (Nayak & Samsó 2022).
+3. **Speed rescues the mixed cluster.** Round 6.11 found that with the
+   measured 0.8 of channels carrying the gate, sparks lasted ~200 ms. At
+   Rios's speed they last 15–23 ms. Round 6.12's heterogeneity needs
+   another look in this regime.
+4. **A fast gate stops ignition.** The bell-consistent scheme at Rios's
+   speed fires no spontaneous sparks in 40 s: a channel that inactivates
+   within ms of opening cannot recruit its neighbours. Rios & Pizarro note
+   that mammalian release has no sparks under physiological conditions,
+   so this agrees with them. The 6.3 ms scale comes from frog, where RyR3
+   is present.
+5. **Rios's "no Ca²⁺ role" does not survive Murayama's bell.** His gate
+   beside the fitted activation gate caps P_open at k₋/(k₊+k₋) = 0.149 and
+   never falls to half at high Ca²⁺ (tested). Ca²⁺ inhibition at ~0.3 mM is
+   measured, so a Ca²⁺ gate belongs beside the use gate. It only has to
+   supply the bell's descending limb, not end the spark.
+
+Direct comparison with Rios & Pizarro's couplon (`ec` at 0 / −30 mV):
+their gate, placed in our C channels beside the refitted Ca²⁺ gate, keeps
+control after repolarisation (C after 0.0006 vs Stern's 0.004) and gives
+a flux peak/plateau of 1.9, against Stern's 2.7 and a measured ≥ 4. Their
+own answer to the ratio is that C channels carry 5× a V channel's flux
+(R_C/V 5) because only C channels inactivate. Ours is Stern's 3
+(`spark.unitary_current` 0.3 pA over `ec.v_unitary_current` 0.1 pA), and
+our V channels do not inactivate either. That ratio, not the gate, is the
+next thing to test.

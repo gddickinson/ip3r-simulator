@@ -61,7 +61,10 @@ potential** -- inactivated channels recovered only when the voltage was
 reversed. What the model needs is not a recovery rate anyway: both rates
 are seconds, a spark is milliseconds, so the bell, the refitted Ca2+ gate
 and spark termination depend only on the ratio ``rho = k_use-/k_use``
-(``ryr.use_recovery_ratio``; tested). The paper bounds rho only at +40 mV,
+(``ryr.use_recovery_ratio``; tested). That holds only while both rates
+are slower than a spark: at Rios & Pizarro 2026's millisecond rates the
+bell still barely moves (~10 %) but the gate ends a spark by itself, which
+is :mod:`use_speed` (Round 6.13). The paper bounds rho only at +40 mV,
 through the residual activity of its Fig. 8 (:func:`residual_bound`). At
 0 mV rho is unmeasured, so it is scanned (:func:`bell_panel`,
 :func:`spark_termination.ratio_scan`), not trusted.
