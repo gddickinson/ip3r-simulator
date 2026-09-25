@@ -131,6 +131,16 @@ than raising it. Cancelling the salt-bridged ones (the filter's D2478 is
 paired with R2471 of the next subunit) lowers it further, to 23 pS
 (`python -m ip3r unitary`).
 
+Most of that 2.4× is the model's geometry (`python -m ip3r shortfall`).
+The 1-D model reduces each slice to its inscribed circle. The same
+electrolyte in the voxelised lumen, solved in 3-D, conducts 1.3–2.0× more,
+because the circle leaves out the lumen's corners. It is not a substate:
+Schmitz et al. 2022's independent active-state deposit 7T3T reads the same
+as 8TKF (85 against 106 pS). Nor is it the exit window, which moves the
+answer by 2 %. At bulk diffusivity and a 1 Å K+ exclusion, RyR1's open
+deposit gives 787 pS against 801 measured, and ITPR3 gives 261–278 pS
+against 358–545.
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of
@@ -382,7 +392,7 @@ verdict to flip.
 ```
 bash scripts/create_env.sh          # or: conda create -n ip3r_sim --clone piezo1
 conda activate ip3r_sim
-make fetch                          # nine mmCIF files, ~27 MB, into ref/
+make fetch                          # the registry's 16 mmCIF files, ~46 MB, into ref/
 ```
 
 Clone `ip3r_genes` beside this repository (or set `IP3R_GENES_DIR`) for the
@@ -397,6 +407,7 @@ python -m ip3r --session view.json  # the GUI, reopened on a saved session
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
+python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)

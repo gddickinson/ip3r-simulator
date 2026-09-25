@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.6, the conductance shortfall (Round 7
+**Next:** Round 7.7, re-derive what is still read (Round 7
 below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
@@ -213,10 +213,12 @@ Emergent (not scheduled):
     - [x] A pKa estimate for the eight D2518/D2522 carboxylates in a 4.4 Å
       lumen (Round 7.4): charged at pH 7.3 by both routes (network pKa
       4.1, PROPKA 5.3). The ring is 8.8 Å across and R2524′ sits beside it.
-  - [ ] Why 2.4× short even uncharged? Candidates: 8TKF is not maximally
+  - [x] Why 2.4× short even uncharged? Candidates: 8TKF is not maximally
     open (a subconductance state?), the continuum fails at 3 Å, or the
     cytosolic exit is not where the profile window ends. Compare RyR1 open
     deposits, whose ~750 pS a structure-based model should also meet.
+    Round 7.6: mostly the inscribed circle. The real lumen in 3-D conducts
+    1.3–2.0× more; not a substate (7T3T agrees); not the window.
   - [x] Selectivity and the Ca²⁺ current (`physics/selectivity.py`,
     `python -m ip3r selectivity`). Vais 2010's three lum-out protocols run
     through the solver in their own solutions and are read with their GHK
@@ -434,9 +436,33 @@ item carried over from round n; it stays listed there too.
   duration must not follow; the coupling must), and resets.
   Found on the way: the Transition tab's Stop, pressed during a mode
   animation, froze the atoms mid-swing. It now puts the deposit back.
-- [ ] **7.6 Science: the conductance shortfall.** 8TKF is 2.4x short even
-  uncharged (R4). Test the candidates one at a time: a subconductance
-  deposit, the continuum at 3 A, and where the exit window ends.
+- [x] **7.6 Science: the conductance shortfall.** Each candidate was tested
+  by one measurement (`python -m ip3r shortfall [--scan]`), with RyR1's 9HEO
+  as the control. The new instrument is a 3-D ohmic solve of the voxelised
+  ion-accessible lumen (`structure/pore_volume.py`, `physics/ohmic3d.py`).
+  It uses the same electrolyte as the 1-D model and is calibrated on
+  Hall's cylinder (0.97 at 0.5 Å), two pores, a blind hole, a sideways
+  exit and the membrane seal. The results:
+  - **Substate: no.** Schmitz 2022's independent active 7T3T (now a
+    registered `open_control`, kept out of S11's state panel) reads 85 pS
+    against 8TKF's 106. Both are 3.4–4.2× short at the registered
+    diffusivity, and so is RyR1.
+  - **Exit window: no.** 6–24 Å moves the 1-D reading by 2 %, access is
+    2 % of R, and the 3-D solve (no window, bath on the box sides) moves
+    < 0.5 % with the box.
+  - **Continuum geometry: yes.** The inscribed circle leaves out the
+    lumen's corners. The real shape conducts 1.3–2.0× more (8TKF 65 →
+    106 pS, 9HEO 136 → 278).
+  - At bulk diffusivity and a 1 Å K+ exclusion, RyR1 gives 787 pS against
+    801 measured, and ITPR3 gives 261–278 pS against 358–545 (1.3–2.1×).
+  Emergent:
+  - [ ] The wall charge in 3-D. In 1-D, rings of alternating sign act as
+    junctions in series and lower g. Do they still, with the charges in
+    the lumen's corners? A Donnan-partitioned conductivity per voxel
+    first, then (if it matters) 3-D PNP. RyR1's mutants are the
+    calibration.
+  - [ ] Show the lumen and its potential in the viewer (a voxel surface
+    coloured by φ; Channel panel beside the 1-D profile).
 - [ ] **7.7 Publication: re-derive what is still read.** The S22 section 8
   shell FEL table, Paper 2's NNI robustness trees side by side, and Paper
   1's family-call benchmark (R3).

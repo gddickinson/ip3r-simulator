@@ -7,7 +7,9 @@ IP3-bound entries S22 measured ligand shells in. None of it is typed here.
 
 The RyR1 state panel is appended from ``resources/ryr1.json``, which
 ``scripts/curate_ryr.py`` selects from the PDB by stated rules (no RyR
-structure is in ``ip3r_genes``).
+structure is in ``ip3r_genes``). Open-state controls not in ip3r_genes'
+panel (7T3T, Round 7.6) come from ``resources/ip3r_controls.json`` with the
+role ``open_control``; the state panel leaves them out.
 """
 
 from __future__ import annotations
@@ -45,6 +47,11 @@ class StructureEntry:
         return self.organism == "Homo sapiens"
 
     @property
+    def is_control(self) -> bool:
+        """Added here as a control, not part of ip3r_genes' selection."""
+        return "open_control" in self.roles
+
+    @property
     def family(self) -> str:
         return "RyR" if self.paralog.startswith("RYR") else "IP3R"
 
@@ -52,9 +59,10 @@ class StructureEntry:
 @lru_cache(maxsize=1)
 def load_registry() -> tuple[StructureEntry, ...]:
     raw = json.loads((RESOURCE_DIR / "structures.json").read_text())["structures"]
-    ryr = RESOURCE_DIR / "ryr1.json"
-    if ryr.exists():
-        raw = raw + json.loads(ryr.read_text())["structures"]
+    for extra in ("ryr1.json", "ip3r_controls.json"):
+        path = RESOURCE_DIR / extra
+        if path.exists():
+            raw = raw + json.loads(path.read_text())["structures"]
     return tuple(StructureEntry(
         pdb_id=e["pdb_id"], paralog=e["paralog"], organism=e["organism"],
         uniprot=e.get("uniprot", ""), resolution=float(e["resolution"]),

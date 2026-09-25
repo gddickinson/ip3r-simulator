@@ -384,6 +384,8 @@ def main(argv: list[str] | None = None) -> int:
     _register_ryr(sub)
     from .cli_domain import register as _register_domain
     _register_domain(sub)
+    from .cli_shortfall import register as _register_shortfall
+    _register_shortfall(sub)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

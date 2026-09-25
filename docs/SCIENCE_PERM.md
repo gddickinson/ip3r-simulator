@@ -86,6 +86,87 @@ What survives: the gate is the only state change that opens a conducting
 pathway. Taken as a neutral continuum, the only open deposit's pore is
 too narrow or too long to carry the measured conductance.
 
+## The shortfall, in three dimensions (Round 7.6)
+
+`structure/pore_volume.py`, `physics/ohmic3d.py`, `physics/shortfall.py`;
+`python -m ip3r shortfall [--scan]`.
+
+**Why.** The 1-D model is short 2.4× even uncharged at its most generous
+corner. Three candidates were named: 8TKF is a substate, the continuum
+fails at 3 Å, or the exit is not where the profile window ends. Each is
+tested here by one measurement. RyR1's 9HEO (5.9× short in 1-D) is the
+control throughout.
+
+**The instrument.** The same electrolyte (bath, diffusivities, the hard-
+sphere exclusion of each ion's centre) now fills the pore's real shape. A
+0.5 Å voxel is open when its centre clears every protein heavy atom by
+vdW + ion radius. Inside the pore-domain span, only voxels within 25 Å of
+the axis may conduct, because beyond the helices the atom model has empty
+space where a cell has bilayer. Past the span, the box's side faces are bath.
+Laplace's equation is solved over the component joining the two baths
+(7-point finite volumes, preconditioned CG), and each species contributes
+σ_s × g_s. Neutral only: this changes the geometry and nothing else.
+
+**Calibrations** (`tests/test_ohmic3d.py`, 10 tests):
+- A cylinder through a slab matches the series resistance plus Hall's two
+  access terms (0.97 at 0.5 Å, 0.995 at 0.25 Å) and converges with the grid.
+- Two pores conduct twice one.
+- A blind hole changes nothing.
+- A cap on the axis past the membrane, which a profile would call shut,
+  conducts because current goes round it.
+- A seal of r is a drawn r-Å pore.
+- The hard-sphere test is exact for one atom.
+- On 8TKF, seals of 20 and 25 Å agree, and 35 Å leaks through the lipid
+  space. The leak is the failure the seal exists to prevent.
+
+**Measured** (neutral K+, in-pore diffusivity 0.5 × bulk, each family's own
+bath; 3-D extrapolated to h → 0 from 1.0 and 0.5 Å):
+
+| deposit | 1-D (Round 4) | lumen-area 1-D | 3-D | bulk D, K+ 1 Å, 3-D | measured |
+|---|---|---|---|---|---|
+| 8TKF, ITPR3 activated | 65 | 135 | 106 | 261 | 358 / 545 |
+| 7T3T, ITPR3 active (Schmitz 2022) | 64 | 110 | 85 | 278 | 358 / 545 |
+| 9HEO, RyR1 open | 136 | 273 | 278 | 787 | 801 |
+
+("Lumen-area 1-D" integrates dz/(σA) with A the real area of the in-plane
+region around the axis, instead of the inscribed circle.)
+
+- **A substate: not supported.** 7T3T comes from another laboratory and
+  another preparation, and reads 85 pS against 8TKF's 106. Both are
+  3.4–4.2× short of Mak's 358 pS, and RyR1's open deposit shows the same
+  gap. One deposit's substate cannot explain a shortfall that two
+  independent open ITPR3 structures and the RyR1 control share.
+- **The exit window: no.** Moving the 1-D window from 6 to 24 Å past the
+  span changes 8TKF by 2 % (64.7 → 63.2 pS); access is 2 % of the
+  resistance. The 3-D solve has no window, and a box of 40 Å or a bath
+  margin of 40 Å moves it < 0.5 %. No lateral exit bypasses the long,
+  narrow stretch: its resistance is spread over ~50 Å at r_free 4–6 Å, and
+  the filter slice holds about a third.
+- **The continuum's geometry: yes, in part.** The inscribed circle
+  undercounts the lumen, whose C4 corners the circle leaves out. The same
+  electrolyte in the real shape conducts 1.3–2.0× more (8TKF 1.6×, 7T3T
+  1.3×, 9HEO 2.0×). Most of that is area: the lumen-area 1-D reading is
+  already 1.7–2.0× the circle. The 3-D solve then takes some back where
+  current cannot use a corner fully.
+- **What remains is the two unmeasured constants.** At the registered
+  0.5 × bulk diffusivity, reaching 358 pS would need 1.7× bulk (8TKF) or
+  2.1× (7T3T), which is impossible. At the sweep's favourable corner (bulk
+  diffusivity, 1.0 Å K+ exclusion), **RyR1 reaches 787 pS against 801
+  measured**, and ITPR3 reaches 261–278 pS: 1.3–1.4× short of Mak's
+  358 pS and 2.0–2.1× short of Vais's 545. Round 4's 2.4× (1-D, same
+  corner: 150 pS) was mostly the inscribed circle.
+
+**What it means.** In the pore's real shape, a neutral continuum with
+near-bulk mobility carries RyR1's measured conductance, and comes within
+1.4× of the lower ITPR3 measurement. Two things are still missing for
+ITPR3. First, the lower measurement and the higher one differ by 1.5×
+between themselves (oocyte vs DT40 nuclei). Second, the wall charge has not
+been tested in 3-D. The 1-D charged reading lowers the conductance, because
+rings of alternating sign act as junctions in series. A cation-selective
+pore that concentrates K+ should instead raise it. Whether the junctions
+survive when the charges sit in the lumen's corners rather than in a
+cylinder is the next question.
+
 ## Selectivity and the unitary Ca²⁺ current (Vais 2010)
 
 `physics/selectivity.py`, `python -m ip3r selectivity [8TKF]`.

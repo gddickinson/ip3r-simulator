@@ -20,6 +20,7 @@ from parameter_table_ryr import RYR
 from parameter_table_ec import EC
 from parameter_table_domain import DOMAIN
 from parameter_table_pka import PKA
+from parameter_table_pore3d import PORE3D
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -383,3 +384,4 @@ P += RYR
 P += EC
 P += DOMAIN
 P += PKA
+P += PORE3D

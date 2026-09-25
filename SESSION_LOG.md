@@ -2221,3 +2221,65 @@ was right not to. Tests 497 → 508 (`test_view_state`, session validation).
 **Not changed.** `make sync-check` clean; no verdict moved. No science.
 
 **Next:** Round 7.6 (the conductance shortfall).
+
+## 2026-09-25 (21) — Round 7.6: the conductance shortfall
+
+**Why.** Since Round 4 the neutral 1-D pore has been 2.4× short of the
+measured ITPR3 conductance even at its most generous corner, and RyR1's
+open deposit 5.9× short. Three candidates were on the list: a substate
+deposit, the continuum at 3 Å, and the exit window. Each needed one
+measurement.
+
+**What.**
+- `structure/pore_volume.py`: the ion-accessible lumen as 0.5 Å voxels.
+  Hard-sphere clearance of vdW + ion radius, the same exclusion the 1-D
+  model applies. The membrane is the pore-domain span, sealed beyond 25 Å
+  from the axis. Beyond the span the box sides are bath. The conducting
+  volume is the component joining both baths.
+- `physics/ohmic3d.py`: Laplace in that volume (7-point finite volumes,
+  preconditioned CG), Σ σ_s g_s. Same electrolyte as the 1-D model, so the
+  two readings differ in geometry only. Linear grid extrapolation from
+  h and 2h.
+- `physics/shortfall.py` + `cli_shortfall.py`: `python -m ip3r shortfall
+  [--scan]`. Six new `pore3d.*` parameters.
+- 7T3T (Schmitz et al. 2022, active state, human ITPR3, another laboratory)
+  is registered from `resources/ip3r_controls.json` as an `open_control`.
+  It is left out of the state panel, which stays S11's selection.
+- Cleanup: `open_panel` selects on the state's first word, because
+  "inactivated" contains "activated". I caught that before any run used it.
+
+**Checked.** `tests/test_ohmic3d.py` (10 tests):
+- Hall's cylinder to 3 % at 0.5 Å (0.5 % at 0.25 Å), and grid convergence.
+- Two pores conduct 2×.
+- A blind hole leaves g unchanged.
+- An axis capped past the membrane still conducts round the cap.
+- A seal of r equals a drawn r-Å pore.
+- One-atom hard-sphere voxels are exact.
+- On 8TKF, seals of 20 and 25 Å agree, and 35 Å leaks (1.3 nS) through
+  the lipid space.
+- 7T3T is within a third of 8TKF.
+- The 1-D window moves the answer < 5 %.
+
+Two of my first test drafts were wrong: they expected a blind hole to leave
+the connected volume, and a 0 Å seal to shut it. The solver was right; the
+tests now assert what the design does.
+
+**Found.** Neutral K+, 0.5 × bulk diffusivity, 3-D extrapolated to h → 0:
+8TKF 65 → 106 pS, 7T3T 64 → 85, 9HEO 136 → 278. The lumen-area 1-D
+readings are 135 / 110 / 273.
+- **Not a substate:** two independent open ITPR3 deposits agree, and the
+  RyR1 control shares the gap.
+- **Not the window:** 2 %.
+- **The inscribed circle was most of it.** At bulk diffusivity and a 1 Å
+  K+ exclusion, RyR1 gives 787 pS against 801 measured, and ITPR3 gives
+  261–278 pS against 358 / 545 (1.3–2.1× short, against Round 4's 2.4×
+  at the same corner).
+- At the registered diffusivity the measurement would need 1.4–2.6× bulk,
+  so the remaining gap sits in the unmeasured constants, and for ITPR3
+  possibly in the wall charge. 3-D charge is the emergent item.
+
+**Not changed.** `make sync-check` clean; no verdict moved. The 1-D
+`unitary` numbers are unchanged; the 3-D reading sits beside them.
+Tests 508 → 518.
+
+**Next:** Round 7.7 (re-derive what is still read).

@@ -37,7 +37,8 @@ def test_specific_elements_win():
 def test_registry():
     ids = {e.pdb_id for e in load_registry()}
     assert {"6DQN", "8TKG", "8TKF", "7LHF", "9YKK"} <= ids
-    assert sum(e.ip3_bound for e in load_registry()) == 6
+    assert sum(e.ip3_bound for e in load_registry() if not e.is_control) == 6
+    assert [e.pdb_id for e in load_registry() if e.is_control] == ["7T3T"]
 
 
 def test_variants_resource():

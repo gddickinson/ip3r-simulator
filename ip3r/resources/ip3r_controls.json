@@ -1,0 +1,23 @@
+{
+ "provenance": {
+  "retrieved": "2026-09-25",
+  "sources": {
+   "https://data.rcsb.org/rest/v1/core/entry/7T3T": "6eaf900ecbeeaa2e38fb2379e2f6173d2a221cfa3d7391712c7542c8cdad75c4"
+  },
+  "why": "Round 7.6: a second open ITPR3 deposit, from another laboratory, to test whether 8TKF's conductance shortfall is one deposit's substate. Found by an RCSB full-text search for 'inositol trisphosphate receptor' (2026-09-25): of the human ITPR3 entries only 8TKF (the 2023 8TK* series) and 7T3T (Schmitz 2022) are titled active/activated. Not in ip3r_genes' S11 panel, so kept out of the state panel (role open_control)."
+ },
+ "structures": [
+  {
+   "pdb_id": "7T3T",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.8,
+   "state": "active (Schmitz 2022)",
+   "title": "IP3, ATP, and Ca2+ bound type 3 IP3 receptor in the active state",
+   "roles": ["open_control"],
+   "ip3_bound": true,
+   "citation": "Schmitz EA, Takahashi H, Karakas E (2022) Nat Commun 13:1408, doi:10.1038/s41467-022-29073-2"
+  }
+ ]
+}

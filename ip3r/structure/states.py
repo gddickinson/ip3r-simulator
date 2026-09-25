@@ -36,7 +36,7 @@ def state_panel(paralog: str = "ITPR3", progress=None) -> list[StateRow]:
     """Measure every deposit of ``paralog`` in its reference numbering: the
     human ones for an IP3R, the curated rabbit panel for RyR1."""
     entries = [e for e in load_registry() if e.paralog == paralog
-               and (e.human or e.family == "RyR")]
+               and (e.human or e.family == "RyR") and not e.is_control]
     rows = []
     for i, e in enumerate(entries):
         if progress:
