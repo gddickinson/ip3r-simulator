@@ -270,9 +270,9 @@ with what it measured.
   multi-start and the claim is withdrawn.
   Emergent:
   - [ ] rho at 0 mV: the steady residual activity of RyR1 held open at
-    0 mV (the model needs ~10-30 %), from the literature (Sitsapesan 1995,
-    Laver & Curtis 1996b are the cited Ca2+-step records) or a longer
-    +40 mV record than Fig. 8's 5 s.
+    0 mV (the model needs ~10-30 %). Sitsapesan 1995 and Laver & Curtis
+    1996 read in full (Round 6.11): neither records at 0 mV. Needs a
+    bilayer at 0 mV or a longer +40 mV record than Fig. 8's 5 s.
 
 - [x] 6.11 A mixed cluster (`physics/ryr_mixed.py`; `spark-termination
   --scan fraction`). A registered 0.8 of channels carry the use gate
@@ -286,8 +286,11 @@ with what it measured.
   cost nothing (14 ms); the weaker Ca2+ gate the population bell forces
   costs it all (151 ms).** The use gate reconciles bell and termination
   only if nearly every channel carries it, against a measured 0.5-0.8.
-  Sitsapesan 1995 was supplied as its abstract page only; Laver & Curtis
-  1996 is all +40 mV: rho at 0 mV remains unmeasured.
+  Laver & Curtis 1996 is all +40 mV. Sitsapesan 1995, read in full after
+  the round, is -40/+40 mV only; its -40 mV record (no decline in 5 s at
+  Po 0.86) admits the registered entry rate (3.7 % predicted) and rejects
+  Round 6.9's 0.5 s^-1 (29 %, beyond 2 SD; `decline_bound`), bounding the
+  0 mV rate at about 0.44 s^-1. Rho at 0 mV remains unmeasured.
   Emergent:
   - [ ] Separate Ca2+ gates for the two populations: the one way left to
     split the bell so that a mixed cluster terminates. Needs a source

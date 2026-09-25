@@ -10,9 +10,9 @@ inactivating fraction breaks termination (sparks 228 ms), and that the
 cause is the population bell forcing a weaker shared Ca2+ gate. The
 remaining lever is separate Ca2+ gates for the two populations
 (`ROADMAP_RYR.md` 6.11 emergent), if a source (Copello 1997) shows the
-non-inactivating channels differ in Ca2+ gating. Or rho at 0 mV if the full
-text of Sitsapesan 1995 is supplied (only its abstract page is in `pdfs/`).
-Failing both, a time-dependent cleft field for Laver 2013's induction decay.
+non-inactivating channels differ in Ca2+ gating. Rho at 0 mV has no
+source left in hand (Sitsapesan 1995 and Laver & Curtis 1996, both read in
+full, record only at +/-40 mV). Failing that, a time-dependent cleft field for Laver 2013's induction decay.
 Other candidates: the A-subspace headline in the Transition tab (Round 2),
 the continuum's conductance shortfall (Rounds 4 and 6.1), and for IP3R the
 selectivity control on RyR1, or the pKa of the lining lysines and

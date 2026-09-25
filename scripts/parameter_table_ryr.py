@@ -327,8 +327,31 @@ RYR += [
        "(cardiac 56 %, 33 of 59); the abstract's 'one-half to two-thirds' "
        "pools both. Laver & Curtis 1996 (Biophys J 71:732): 70 % of 25 "
        "cardiac and skeletal channels declined after Ca2+ steps; Ma 1995: "
-       "50-70 % of skeletal. The skeletal count is used; the fraction is "
-       "scanned from 0 to 1", 0.0, 1.0),
+       "50-70 % of skeletal; Sitsapesan et al. 1995 (cardiac, +40 mV): "
+       "17 % (4 of 24) with Ca2+ alone, 56 % (5 of 9) with ATP or EMD "
+       "41000, the Po dependence Laver & Lamb's Po > 0.2 selection removes. "
+       "The skeletal count is used; the fraction is scanned from 0 to 1",
+       0.0, 1.0),
+    _p("ryr.sitsapesan_po_early_m40", "RyR2 Po early at -40 mV", 0.841, "",
+       "empirical", "ryr", "sitsapesan1995", "Open probability just after a "
+       "rapid step to activating ligands, at -40 mV: the start of a 5-s "
+       "record in which no inactivation was seen. Checks the use-gate rate "
+       "read from Laver & Lamb's Fig. 4.", "Sitsapesan et al. 1995, Results and Fig. 2: sheep cardiac RyRs activated by 100 uM Ca2+ plus 1 mM ATP, held at -40 mV cis (cytosol) relative to trans; ensemble Po in the first and last part of a 5-s exposure, mean +- SEM, n = 5: Po early 0.841 +- 0.087",
+       0.0, 1.0),
+    _p("ryr.sitsapesan_po_late_m40", "RyR2 Po late at -40 mV", 0.874, "",
+       "empirical", "ryr", "sitsapesan1995", "As "
+       "ryr.sitsapesan_po_early_m40, at the end of the 5-s exposure.",
+       "Sitsapesan et al. 1995, Results and Fig. 2: sheep cardiac RyRs activated by 100 uM Ca2+ plus 1 mM ATP, held at -40 mV cis (cytosol) relative to trans; ensemble Po in the first and last part of a 5-s exposure, mean +- SEM, n = 5: Po late 0.874 +- 0.072", 0.0, 1.0),
+    _p("ryr.sitsapesan_po_sem_m40", "RyR2 Po at -40 mV: larger SEM", 0.087,
+       "", "empirical", "ryr", "sitsapesan1995", "The larger of the two "
+       "SEMs, used for both when the late/early ratio's uncertainty is "
+       "formed (as if independent: conservative, the pairs are one channel "
+       "each).", "Sitsapesan et al. 1995, Results and Fig. 2: sheep cardiac RyRs activated by 100 uM Ca2+ plus 1 mM ATP, held at -40 mV cis (cytosol) relative to trans; ensemble Po in the first and last part of a 5-s exposure, mean +- SEM, n = 5: SEM 0.087 (early), 0.072 (late)", 0.0, 1.0),
+    _p("ryr.sitsapesan_record_m40", "RyR2 record at -40 mV: duration", 5.0,
+       "s", "empirical", "ryr", "sitsapesan1995", "How long the channels "
+       "were held open at -40 mV without a decline in Po.",
+       "Sitsapesan et al. 1995, Fig. 2: 'over several seconds', 5-s "
+       "exposures to the activating solution", 0.0, 1e3),
     _p("spark.use_fraction_scan_points", "Inactivating-fraction scan: points",
        6.0, "", "method", "spark", "method_choice", "Evenly spaced "
        "inactivating fractions from 0 to 1 in the mixed-cluster scan.",

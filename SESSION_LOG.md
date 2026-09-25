@@ -1825,3 +1825,23 @@ recorded as emergent. 10 new tests. No GUI change (no screenshots).
 **Next:** separate Ca²⁺ gates for the two populations, if Copello 1997
 (heterogeneity of Ca²⁺ gating) supports it; or ρ at 0 mV from Sitsapesan
 1995's full text, which still has to come from the user.
+
+### Addendum — Sitsapesan 1995 in full
+
+The user supplied the full paper (8 pages, text-extractable). It recorded
+at −40 and +40 mV only, so **ρ at 0 mV is still unmeasured**. At +40 mV,
+channels that inactivated stayed completely shut until a −40 mV pulse (a
+residual near zero, as Fig. 8's lowest). At −40 mV, channels held at Po
+~0.86 for 5 s did not decline (0.841 → 0.874, n = 5). A use gate lowers
+activity by at most 1 − exp(−k·Po·t), whatever ρ is (`ryr_use.decline_bound`).
+The registered rate carried to −40 mV by Laver & Lamb's slope predicts
+3.7 %, within one SD. Round 6.9's 0.5 s⁻¹ predicts 29 %, beyond two SDs:
+**an independent rejection of the reading Round 6.10 corrected**, though a
+narrow one (the record allows up to ~0.44 s⁻¹). Its fractions (17 % with
+Ca²⁺ alone, 56 % with ATP/EMD, cardiac) are the Po dependence that Laver &
+Lamb's Po > 0.2 selection removes. Registered: `ryr.sitsapesan_*` (4) and
+the reference `sitsapesan1995`. Two tests, one of which is the calibration
+(0.5 s⁻¹ must fail and 0.4 must pass).
+
+**Next:** as above, minus Sitsapesan: no source for ρ at 0 mV is left in
+hand.

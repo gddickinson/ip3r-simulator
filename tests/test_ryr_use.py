@@ -274,3 +274,34 @@ def test_a_stalled_start_is_not_reported_as_no_fit():
     got = measure_bell(fit_with_use(0.056, ratio=0.18).open_probability)
     assert got.c_half_act == pytest.approx(target.c_half_act, rel=1e-5)
     assert got.c_half_inh == pytest.approx(target.c_half_inh, rel=1e-5)
+
+
+def _sitsapesan_m40():
+    """Sitsapesan 1995's -40 mV record: late/early Po ratio, its SD (the two
+    SEMs taken as independent, conservatively), mean Po and duration."""
+    e, late, se, t = (_P.value(f"ryr.sitsapesan_{k}") for k in (
+        "po_early_m40", "po_late_m40", "po_sem_m40", "record_m40"))
+    r = late / e
+    return r, r * np.hypot(se / e, se / late), 0.5 * (e + late), t
+
+
+def test_minus_40_record_admits_the_registered_rate():
+    """No decline in 5 s at -40 mV at Po ~0.86 (Sitsapesan 1995). The
+    registered rate, carried to -40 mV by Laver & Lamb's own slope, predicts
+    3.7 %: within one SD of the measured ratio."""
+    from ip3r.physics.ryr_use import decline_bound
+    r, sd, po, t = _sitsapesan_m40()
+    d = decline_bound(-0.04, po, t)
+    assert d == pytest.approx(0.037, abs=0.002)
+    assert 1.0 - d > r - sd
+
+
+def test_minus_40_record_refutes_round_6_9_rate():
+    """The calibration: Round 6.9's 0.5 s^-1 at 0 mV (the +40 mV tau taken
+    for the 0 mV rate) predicts a 29 % decline, beyond two SDs of the
+    measured ratio. Narrowly: the largest rate the record allows at two SDs
+    is about 0.44 s^-1."""
+    from ip3r.physics.ryr_use import decline_bound
+    r, sd, po, t = _sitsapesan_m40()
+    assert 1.0 - decline_bound(-0.04, po, t, k_use_on=0.5) < r - 2 * sd
+    assert 1.0 - decline_bound(-0.04, po, t, k_use_on=0.4) > r - 2 * sd

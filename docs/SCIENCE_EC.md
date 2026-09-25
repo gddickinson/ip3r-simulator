@@ -454,10 +454,24 @@ measured 0.5–0.8. Two assumptions carry this and both are open. (i) The
 two populations share one Ca²⁺ gate; if the non-inactivating channels had
 a stronger Ca²⁺ inactivation of their own, the bell could be split
 differently. (ii) The bell's preparation has the bilayer's fraction.
-Neither is sourced. Sitsapesan et al. 1995, the other cited Ca²⁺-step
-record, was supplied only as its abstract page: no decline at −40 mV,
-decline at +40 mV. Laver & Curtis 1996 is at +40 mV throughout. **ρ at
+Neither is sourced. Laver & Curtis 1996 is at +40 mV throughout. **ρ at
 0 mV is still unmeasured.**
+
+**Sitsapesan et al. 1995, in full (read after 6.11).** Sheep cardiac RyRs,
+at −40 and +40 mV only, so no ρ at 0 mV. Three things it does fix:
+- *+40 mV:* channels that inactivated stayed shut through repeated agonist
+  steps until a brief −40 mV pulse, a residual near zero. This matches
+  Fig. 8's most inactivated channels (ρ ≤ 0.03).
+- *−40 mV:* held at Po 0.84–0.93 for 5 s, no decline (Po 0.841 → 0.874,
+  n = 5). A use gate can lower activity by at most 1 − exp(−k·Po·t)
+  whatever its ρ (`decline_bound`). The registered 0 mV rate, carried to
+  −40 mV by Laver & Lamb's own slope, predicts 3.7 %, within one SD.
+  **Round 6.9's 0.5 s⁻¹ predicts 29 %, beyond two SDs**, so the record
+  independently rejects the reading Round 6.10 corrected. It does so
+  narrowly: the largest rate at 0 mV it allows is about 0.44 s⁻¹.
+- *Fraction:* 17 % (4 of 24) inactivated with Ca²⁺ alone, 56 % (5 of 9)
+  with ATP or EMD 41000. This is the Po dependence that Laver & Lamb's
+  Po > 0.2 selection removes, not a different population.
 
 **The induction-decay control.** With *neither* inactivation gate, cleft
 sparks never end (open fraction 0.942, 4 of 4 unended at 9.7 s). This model

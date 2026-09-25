@@ -85,7 +85,7 @@ from .ryr_gating import SternParams, stationary
 __all__ = ["STATES", "OPEN", "UseParams", "with_use", "no_ca_gate",
            "open_probability_no_ca_gate", "cycle_flux", "fit_with_use",
            "BellRow", "bell_panel", "tau_values", "ratio_values",
-           "use_rate_at", "residual_bound"]
+           "use_rate_at", "residual_bound", "decline_bound"]
 
 #: ``s = a + 2 i + 4 u``: activation gate open, Ca2+-inactivated, used up.
 STATES = ("C", "O", "CI", "I", "CU", "OU", "CIU", "IU")
@@ -202,6 +202,21 @@ def residual_bound(residual: float) -> float:
     ``rho = R Po / (1 - R) <= R / (1 - R)``; and a residual read before
     steady state is itself an upper bound."""
     return residual / (1.0 - residual)
+
+
+def decline_bound(v: float, po: float, t: float,
+                  k_use_on: float | None = None) -> float:
+    """The most a use gate at bilayer potential ``v`` (volts) can lower the
+    activity of channels held at open probability ``po`` for ``t`` s,
+    starting uninactivated: ``1 - exp(-k(v) po t)``, with ``k(v)`` Laver &
+    Lamb's Fig. 4 line (:func:`use_rate_at`, rescaled when ``k_use_on`` is
+    given). Recovery only lessens the decline, so this holds for every
+    ratio. Sitsapesan et al. 1995 saw none in 5 s at -40 mV, which is the
+    check of the rate at 0 mV that does not depend on the ratio."""
+    k = use_rate_at(v)
+    if k_use_on is not None:
+        k *= k_use_on / _P.value("ryr.k_use_on")
+    return 1.0 - float(np.exp(-k * po * t))
 
 
 def no_ca_gate(sp: SternParams) -> SternParams:
