@@ -63,6 +63,7 @@ class SessionController:
             completeness=sp.current_completeness(),
             tab=win.tabs.tabText(win.tabs.currentIndex()),
             dynamics=win.dynamics.view_state(), variants=win.variants.view_state(),
+            lumen=win.channel.lumen_box.view_state(),
             parameters=PARAMETERS.overrides())
         if win.scene.animated_mode is not None:
             index, amplitude = win.scene.animated_mode
@@ -220,6 +221,7 @@ class SessionController:
         win.channel.show_lumen.blockSignals(True)
         win.channel.show_lumen.setChecked(s.show_lumen)
         win.channel.show_lumen.blockSignals(False)
+        self.notes += win.channel.lumen_box.restore(s.lumen)
         win.lumen.request(s.show_lumen)
         sp._update_legend()
         win.fills.request(sp.current_completeness())

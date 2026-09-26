@@ -7,6 +7,13 @@ panel prints comes from the unsmoothed mask. Each vertex takes φ from its
 nearest conducting voxel, on the fixed ramp: 0 (luminal bath) blue, 1
 (cytosolic bath) red. φ is a fraction of the applied voltage, so the scale
 needs no auto-ranging.
+
+Round 7.12 adds the charged readings (:mod:`ip3r.physics.lumen_charge`).
+Each vertex keeps the voxel it reads from (``source``), so a colouring is
+swapped by :meth:`LumenMesh.sample` without contouring again: the K+ drop
+on the same 0–1 ramp, or the wall potential on a fixed diverging scale of
+± ``display.lumen_potential_range`` kT/e, cation wells blue and repulsive
+regions red (higher potential red, as for the drop).
 """
 
 from __future__ import annotations
@@ -17,15 +24,26 @@ from scipy import ndimage
 from ..parameters import PARAMETERS as _P
 from .colormaps import ramp
 
-__all__ = ["LumenMesh", "lumen_mesh", "drawn_mask"]
+__all__ = ["LumenMesh", "lumen_mesh", "drawn_mask", "wall_colors",
+           "COLOURINGS"]
+
+#: What the surface can be coloured by: key -> label.
+COLOURINGS = {"drop": "voltage drop (0 lumen, 1 cytosol)",
+              "wall": "wall potential at equilibrium (kT/e)"}
 
 
 class LumenMesh:
     """Triangles in the deposit's (lab) coordinates."""
 
-    def __init__(self, positions, normals, colors, indices, phi):
+    def __init__(self, positions, normals, colors, indices, phi, source=None):
         self.positions, self.normals = positions, normals
         self.colors, self.indices, self.phi = colors, indices, phi
+        #: Per vertex, the grid index of the voxel its value is read from.
+        self.source = source
+
+    def sample(self, grid: np.ndarray) -> np.ndarray:
+        """``grid``'s value at each vertex (grid shaped like the volume)."""
+        return np.asarray(grid)[self.source]
 
     @property
     def n_triangles(self) -> int:
@@ -68,4 +86,11 @@ def lumen_mesh(field, frame, radius: float | None = None,
     positions = frame.from_frame(local).astype(np.float32)
     lab_normals = normals @ frame.basis.T            # outward from the lumen
     return LumenMesh(positions, lab_normals.astype(np.float32), ramp(phi),
-                     faces.astype(np.int32), phi)
+                     faces.astype(np.int32), phi, src)
+
+
+def wall_colors(u: np.ndarray, span: float | None = None) -> np.ndarray:
+    """The wall potential (kT/e) on the fixed diverging ramp: −span blue,
+    0 pale, +span red; NaN grey."""
+    span = _P.value("display.lumen_potential_range") if span is None else span
+    return ramp(0.5 + 0.5 * np.asarray(u, float) / span)

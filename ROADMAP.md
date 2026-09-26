@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.12 (GUI, to be chosen from the open IP3R items below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.13 (science, from the open IP3R items below; 7.11's D2478 question is now the sharpest). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -539,9 +539,7 @@ item carried over from round n; it stays listed there too.
   holds 32/32/24 % in 3-D against 35/35/25 % in 1-D. So the 1-D field
   profile is sound where its magnitude is not.
   Emergent:
-  - [ ] Colour the lumen by the charged reading's potential once the wall
-    charge is solved in 3-D (Round 7.6's open item); the neutral φ is only
-    geometry.
+  - [x] Colour the lumen by the charged reading's potential (Round 7.12).
 
 - [x] **7.11 Science: the wall charge in 3-D.** No 3-D drift-diffusion
   solve is needed. At small voltage between equal baths, the slope
@@ -568,6 +566,36 @@ item carried over from round n; it stays listed there too.
   - [ ] The charge–space item above is now the only candidate left for
     D4899Q. Test it in the 3-D linear-response frame (a local excess
     chemical potential per voxel enters the equilibrium, nothing else).
+
+- [x] **7.12 GUI: the charged lumen.** Channel panel → the lumen box now
+  takes a wall charge (none, or 7.11's `slice` / `local` / `pb`, salt
+  bridges optionally paired) and a colouring: the drop (with a charge, K+'s
+  electrochemical drop in linear response) or the equilibrium wall
+  potential on a fixed ±5 kT/e ramp. The plot adds the charged drops (3-D
+  and 1-D, ∫dz/(A·exp(−u))) and the wall potential, 3-D plane mean against
+  the 1-D Donnan (`physics/lumen_charge.py`, `ui/lumen_view.py`). A new
+  charge re-solves only the charge; a new colouring only recolours. The
+  choice rides in the session (`lumen` panel view). Calibrated: uncharged
+  or uniformly charged, the 1-D charged drop is the neutral one; a well of
+  ln 4 by hand; 8TKF's K+ g = `wall_3d`'s to 1e-6 (the drawn volume is its
+  electrostatic volume). **Found:** the charge moves where K+'s drop falls,
+  not only how much current flows. The filter's ±3 Å holds 32 % of the
+  neutral drop in 8TKF. With the full wall it holds 1 / 7 / 18 %
+  (slice / local / pb): D2478's ring is a cation well (−4 to −4.5 kT/e)
+  that carries almost no drop, and the drop moves 12 Å luminal to the
+  K2482 / E2398 zone (steepest at −97 to −99 Å) under slice and local.
+  With D2478's bridges paired the filter takes 23 / 29 / 38 %, back near
+  the neutral share. 7T3T is the same (1–17 % full, 25–44 % paired).
+  RyR1 9HEO's filter drops from 24 % to 2–23 %, the drop steepest at
+  −76.4 Å under every reading. The half-drop point is ill-conditioned
+  when a well's plateau sits near one half (8TKF: −97.6 vs −84.7 Å between
+  two placements), so the panel reports the steepest point and each
+  constriction's share instead. In 8TKF and 7T3T the deepest plane-mean
+  well agrees with the 1-D Donnan within 0.8 kT/e, at the cytosolic
+  D2518/D2522 ring.
+  Emergent:
+  - [ ] The panel's charged reading is K+'s alone; Cl-'s drop (the co-ion,
+    which carries the rings' junction resistance in 1-D) is not drawn.
 
 ## Round 6 — ryanodine receptors
 

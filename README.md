@@ -160,6 +160,17 @@ reading 0.4–5.7×. With the filter's D2478 salt bridges paired, the wall
 lowers g under every closure at the registered width (×0.45–0.59). RyR1's charge mutants cannot tell the
 closures apart: all of them miss D4899Q (×0.20 measured) by 4×.
 
+The viewer draws that charge on the lumen (Channel panel → "Wall charge",
+"Colour by"): the equilibrium wall potential on a fixed ±5 kT/e scale, or
+where K+'s drop falls through the charged pore. The charge moves the drop,
+not only its size. 8TKF's filter holds 32 % of the neutral drop, but only
+1–18 % with its full wall, because the D2478 ring is a cation well that
+carries almost none of it. With D2478's salt bridges paired the filter
+takes 23–38 % again. So where the voltage falls in the filter depends on
+the same open question as the conductance: whether D2478 is charged.
+
+![8TKF's lumen coloured by the paired wall's potential](docs/img/gui_lumen_charged.png)
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of

@@ -472,8 +472,9 @@ def main() -> int:
 
     QTimer.singleShot(800, step)
     # A hang detector, not a speed test: the Mg2+ scan (~45 s unloaded) made a
-    # throttled run (background GUI, ~560 s to reach it) overrun 600 s.
-    QTimer.singleShot(900_000, lambda: (fail(f"timed out at step {state['step']}"), app.quit()))
+    # throttled run (background GUI, ~560 s to reach it) overrun 600 s; Round
+    # 7.12's charged lumen adds two Poisson-Boltzmann solves (~1 min).
+    QTimer.singleShot(1_200_000, lambda: (fail(f"timed out at step {state['step']}"), app.quit()))
     app.exec()
     return 1 if state["errors"] else 0
 

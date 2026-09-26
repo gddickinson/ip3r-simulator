@@ -44,7 +44,7 @@ def test_holds_the_view_and_its_inputs_only():
         "structure", "n_atoms", "style", "color_by", "layer", "show_ligands",
         "visible_chains", "sites", "show_pore", "show_lumen", "completeness", "tab", "camera_rotation",
         "camera_pivot", "camera_distance", "camera_pan", "camera_slab", "orthographic",
-        "transition", "dynamics", "modes", "variants", "parameters", "notes", "format_version",
+        "transition", "dynamics", "modes", "variants", "lumen", "parameters", "notes", "format_version",
         "software_version", "saved_at"}
 
 
@@ -85,9 +85,9 @@ def test_malformed_is_refused(change, match):
 def test_a_file_without_panel_views_opens_with_them_empty(tmp_path):
     """Round 7.5 added the panel views without a format bump."""
     d = {k: v for k, v in _session().as_dict().items()
-         if k not in ("dynamics", "modes", "variants")}
+         if k not in ("dynamics", "modes", "variants", "lumen")}
     s = Session.from_dict(d)
-    assert s.dynamics == s.modes == s.variants == {}
+    assert s.dynamics == s.modes == s.variants == s.lumen == {}
     assert "animating" not in s.describe()
     assert "mode #7 animating" in _session().describe()
 

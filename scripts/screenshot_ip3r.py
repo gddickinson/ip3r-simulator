@@ -4,13 +4,18 @@ Transition tab, and the park/drive cluster in its microdomain; Round
 7.7's reported tree beside the ``--bnni`` re-search; and Round 7.8's
 publication views (the Genomes lesion layer opened from its check, a Range
 clade's S23 genomes, the VUS thresholds' intervals); Round 7.9's rat fill;
-Round 7.10's lumen and where the voltage falls.
+Round 7.10's lumen and where the voltage falls; Round 7.12's charged lumen.
 
 ``ip3r_step`` follows the spark steps' contract: True means a worker is
 still running (call again), and a wrong result raises.
 """
 
 from __future__ import annotations
+
+import numpy as np
+
+from ip3r.render.colormaps import ramp
+from ip3r.render.lumen_mesh import wall_colors
 
 __all__ = ["IP3R_STEPS", "ip3r_step", "check_transition_headline"]
 
@@ -194,7 +199,6 @@ def _lumen_start(win, app, out) -> None:
 def _lumen(win, app, out) -> bool:
     """Round 7.10: 8TKF's lumen drawn, coloured by the potential, and the
     Channel panel's plot of where the voltage falls; hidden off the deposit."""
-    import numpy as np
     from ip3r.physics.lumen_field import lumen_field
     lc, sc = win.lumen, win.scene
     if sc.structure is None or sc.structure.name != "8TKF" or lc.field is None:
@@ -223,6 +227,45 @@ def _lumen(win, app, out) -> bool:
     sc.move_overlays(xyz)
     if not batch.visible:
         raise RuntimeError("the lumen did not come back with the deposit")
+    box = win.channel.lumen_box                          # on to Round 7.12
+    box.colour.setCurrentIndex(box.colour.findData("wall"))
+    if not np.allclose(lc.mesh.colors, wall_colors(np.zeros(1))):
+        raise RuntimeError("the neutral pore's wall potential is not zero")
+    box.pairs.setChecked(True)
+    box.charge.setCurrentIndex(box.charge.findData("pb"))
+    return False
+
+
+def _lumen_charged(win, app, out) -> bool:
+    """Round 7.12: 8TKF's paired wall under PB, the surface coloured by its
+    potential, the panel's reading equal to the headless one."""
+    from ip3r.physics.lumen_charge import charged_lumen
+    lc, sc = win.lumen, win.scene
+    if lc.busy:
+        return True
+    c = lc.charged
+    if c is None or c.closure != "pb" or not c.pair_bridges:
+        raise RuntimeError(f"8TKF's charged lumen not built: {lc.message}")
+    if not c.ratio < 1.0:
+        raise RuntimeError(f"paired PB should lower K+ g: x{c.ratio:.2f}")
+    if not np.allclose(lc.mesh.colors, wall_colors(lc.mesh.sample(c.u))):
+        raise RuntimeError("the surface is not coloured by the wall potential")
+    if win.channel.canvas.axes.shape[0] != 3 or \
+            f"×{c.ratio:.2f}" not in win.channel.lumen_info.text():
+        raise RuntimeError(f"charged lumen text: {win.channel.lumen_info.text()[:200]}")
+    head = charged_lumen(sc.structure, lc.field, "pb", sc.summary, True)
+    if abs(head.g - c.g) > 1e-9 * abs(c.g):
+        raise RuntimeError("the panel's charged reading is not the headless one")
+    win.channel.show_pore.setChecked(False)              # the spheres hide the lumen
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_charged.png"))
+    box = win.channel.lumen_box
+    box.colour.setCurrentIndex(box.colour.findData("drop"))
+    if not np.allclose(lc.mesh.colors, ramp(lc.mesh.sample(c.mu))):
+        raise RuntimeError("the charged drop colouring is not the K+ drop")
+    for w, v in ((box.charge, "none"), (box.colour, "drop")):
+        w.setCurrentIndex(w.findData(v))
+    box.pairs.setChecked(False)
     win.channel.show_lumen.setChecked(False)
     if sc.scene.get("lumen") is not None:
         raise RuntimeError("unticking left the lumen drawn")
@@ -230,7 +273,8 @@ def _lumen(win, app, out) -> bool:
 
 
 _STEPS = (_gating, _domain, _tree_pair_start, _tree_pair, _lesion_start, _lesion,
-          _range_genomes, _vus_bands, _rat_fill_start, _rat_fill, _lumen_start, _lumen)
+          _range_genomes, _vus_bands, _rat_fill_start, _rat_fill, _lumen_start, _lumen,
+          _lumen_charged)
 IP3R_STEPS = len(_STEPS)
 
 

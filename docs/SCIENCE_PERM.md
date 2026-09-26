@@ -289,6 +289,26 @@ reading of 8TKF is not a number to quote: it spans 0.4–5.7× the neutral
 reading over one unmeasured width, and its largest values (PB, 302–510 pS)
 would reach Mak's 358 pS for reasons the calibration cannot support.
 
+### Where the K+ drop falls with the charge (Round 7.12)
+
+`physics/lumen_charge.py` reads 7.11's wall field on the drawn lumen. It has
+two quantities. The first is the equilibrium wall potential u. The second is
+K+'s electrochemical drop in linear response: the Laplace solve with
+conductivity σ e^{−u}, whose integral is 7.11's K+ conductance. Its 1-D
+counterpart is ∫dz/(A e^{−u}). In linear response each species has its own
+drop, and the electrical potential would need Poisson at first order, so
+the panel calls this the K+ drop and nothing more.
+
+A cation well carries little of K+'s drop, because the ion is abundant
+there. At 8TKF's filter the D2478 ring is such a well (−4 to −4.5 kT/e).
+With the full wall, the filter's ±3 Å holds 1 / 7 / 18 % of the drop
+(slice / local / pb), against 32 % neutral. Under slice and local the drop
+moves to the K2482 / E2398 zone, 12 Å luminal. With D2478's salt bridges
+paired the share is 23 / 29 / 38 %. 7T3T behaves the same way; in RyR1 9HEO
+the drop is steepest at −76.4 Å under every reading. A plateau near one half
+makes the half-drop point ill-conditioned (10 Å between two placements), so
+the steepest point and each constriction's share are the reported numbers.
+
 ## Selectivity and the unitary Ca²⁺ current (Vais 2010)
 
 `physics/selectivity.py`, `python -m ip3r selectivity [8TKF]`.

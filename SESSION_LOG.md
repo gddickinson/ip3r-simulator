@@ -2572,3 +2572,59 @@ candidate.
 the pore's charge). No GUI change.
 
 **Next:** Round 7.12 (GUI).
+
+## 2026-09-25 (27) — Round 7.12: the charged lumen in the viewer
+
+**Why.** Round 7.10 coloured the lumen by the neutral Laplace potential,
+which is only geometry. Round 7.11 solved the wall charge on the same
+voxels. This round puts that charge where it can be seen, and asks whether
+the charge moves *where* the voltage falls, not only how much current flows.
+
+**What.**
+- `physics/lumen_charge.py`: `charged_lumen` places the wall charge on the
+  lumen field's own volume, the cation's. K+ is the bath's smallest ion, so
+  that volume is `wall_3d`'s electrostatic one and the K+ g is the same
+  number. It returns the wall potential u, K+'s electrochemical drop (linear
+  response), the plane means, and the 1-D Donnan and ∫dz/(A·exp(−u)) for
+  comparison. `lumen_field.plane_means` is factored out and shared.
+- `render/lumen_mesh.py`: each vertex keeps its source voxel (`sample`), so
+  a colouring swaps without contouring again. `wall_colors` is a fixed ±
+  `display.lumen_potential_range` (5 kT/e, a new parameter) diverging ramp.
+- `ui/lumen_view.py` (new, to keep `channel_panel.py` small): the controls
+  (wall charge, pairing, colour) and `draw_lumen` (a third plot row for the
+  wall potential). `LumenController` re-solves only the charge on a new
+  choice and only recolours on a new colouring. The choice is saved in the
+  session as a `lumen` panel view.
+- Smoke test: 8TKF's paired PB wall is drawn and coloured by u, then by the
+  K+ drop, and must equal the headless reading. The hang detector moves to
+  1200 s (two PB solves). `tests/test_lumen_charge.py` has 8 tests.
+
+**Calibrated first.** Uncharged or uniformly charged, the 1-D charged drop
+equals the neutral one. A well of ln 4 over half a cylinder takes 1/5 of the
+drop, checked by hand. 8TKF's K+ g equals `wall_3d`'s to 1e-6, both neutral
+and slice. The ramp is fixed and saturates rather than rescaling.
+
+**A summary statistic failed its own check.** In the first measurement,
+8TKF's half-drop point sat 1.2 Å from the filter, yet the filter held only
+7 % of the drop. The two cannot both describe the same curve. The curve was
+monotonic, so there was no bug. It has a plateau at 0.47 across D2478's
+cation well, and a half-point that close to the plateau moves 10 Å between
+placements. The panel now reports the steepest point and each constriction's
+charged share instead.
+
+**Found.** 8TKF's filter (±3 Å) holds 32 % of the neutral drop. With the
+full wall it holds 1 / 7 / 18 % (slice / local / pb). D2478's ring is a
+cation well of −4 to −4.5 kT/e that carries almost no drop, and the drop's
+steepest point moves to −97 to −99 Å (K2482 / E2398) under slice and local.
+With D2478's bridges paired the filter holds 23 / 29 / 38 %. 7T3T behaves
+the same way (1–17 % full, 25–44 % paired). In 9HEO the filter's share goes
+from 24 % to 2–23 %, and the drop is steepest at −76.4 Å under every
+reading. In 8TKF and 7T3T the deepest plane-mean well matches the 1-D Donnan
+within 0.8 kT/e, at the cytosolic D2518/D2522 ring. So D2478's charge state, the open 7.11
+question, now decides where the filter's field is as well as the
+conductance.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore). `make test` 591 passed; lint, sizes, screenshots clean.
+
+**Next:** Round 7.13 (science): is 8TKF's D2478 charged?

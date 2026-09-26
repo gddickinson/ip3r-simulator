@@ -8,7 +8,7 @@ copy of the numbers would drift silently out of step with the code that made
 them (the rule is the PIEZO1 simulator's, where this was first written).
 
 Panels beyond the viewport keep their *controls* here too (``dynamics``,
-``modes``, ``variants``): the Dynamics settings, which normal mode was
+``modes``, ``variants``, ``lumen``): the Dynamics settings, which normal mode was
 animating and at what amplitude, and the variants view. Controls, not
 results: a restored Dynamics tab shows the settings a run used, and nothing
 is re-run until asked. A mode animation is re-computed (the ANM on the
@@ -44,7 +44,7 @@ TRANSITION_KEYS = ("end", "fit", "method", "frame", "paint")
 #: dicts written and read by the panels (``view_state`` / ``restore``).
 #: Added without a format bump: an older file lacks them and opens with
 #: the panels as they are; an older build drops them as unknown keys.
-PANEL_VIEWS = ("dynamics", "modes", "variants")
+PANEL_VIEWS = ("dynamics", "modes", "variants", "lumen")
 
 
 @dataclass
@@ -87,6 +87,9 @@ class Session:
     modes: dict = field(default_factory=dict)
     #: Variants view: ``{paralog, class, layer, draw}``.
     variants: dict = field(default_factory=dict)
+    #: Lumen view: ``{charge, pairs, colour}`` (the wall-charge placement,
+    #: salt bridges paired, the surface's colouring); re-solved on restore.
+    lumen: dict = field(default_factory=dict)
     #: Parameter overrides in force when saved (key → value).
     parameters: dict = field(default_factory=dict)
     notes: str = ""

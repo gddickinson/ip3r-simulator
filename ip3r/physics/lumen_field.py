@@ -41,7 +41,7 @@ from ..structure.pore_volume import PoreVolume, pore_volume
 from .ohmic3d import geometric_conductance
 from .permeation import potassium_species
 
-__all__ = ["LumenField", "field_from_volume", "lumen_field"]
+__all__ = ["LumenField", "field_from_volume", "lumen_field", "plane_means"]
 
 
 @dataclass
@@ -114,6 +114,15 @@ class LumenField:
         return text + f" (1-D: {self.half_z('1d'):+.1f} Å)"
 
 
+def plane_means(vol: PoreVolume, grid: np.ndarray, keep: np.ndarray) -> np.ndarray:
+    """Mean of ``grid`` over each kept plane's lumen region (NaN where a
+    plane has none)."""
+    regions = [r for r, k in zip(vol.axis_regions(), keep) if k]
+    plane = grid[:, :, keep]
+    return np.array([np.nan if r is None else float(plane[:, :, k][r].mean())
+                     for k, r in enumerate(regions)])
+
+
 def field_from_volume(vol: PoreVolume, window: tuple[float, float],
                       r_free=None, name: str = "", species: str = "") -> LumenField:
     """Solve for φ in ``vol`` and read it over ``window``.
@@ -129,9 +138,7 @@ def field_from_volume(vol: PoreVolume, window: tuple[float, float],
     z = vol.zs[keep]
     area3 = np.array([0.0 if r is None else r.sum() * vol.spacing ** 2
                       for r in regions])
-    plane = phi[:, :, keep]
-    mean = np.array([np.nan if r is None else float(plane[:, :, k][r].mean())
-                     for k, r in enumerate(regions)])
+    mean = plane_means(vol, phi, keep)
     if r_free is None:
         area1 = np.full(len(z), np.nan)
     else:

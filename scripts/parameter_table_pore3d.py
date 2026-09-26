@@ -56,6 +56,12 @@ PORE3D = [
     _p("display.lumen_alpha", "Lumen surface opacity", 0.6, "",
        "convention", "display", "convention", "Opacity of the drawn lumen.",
        "Lets the lining side chains show through", 0.1, 1.0),
+    _p("display.lumen_potential_range", "Lumen wall-potential scale", 5.0,
+       "kT/e", "convention", "display", "convention", "The wall potential "
+       "is drawn on a fixed diverging ramp from minus to plus this value "
+       "(Round 7.12).", "Fixed, never auto-ranged: 8TKF's and 9HEO's "
+       "readings under every closure lie within -4.9 to +3.9 kT/e, so no "
+       "reading saturates and deposits compare by colour", 0.5, 20.0),
     _p("charge3d.gaussian_reach", "3-D charge Gaussian reach", 3.0,
        "width", "method", "pore3d", "method_choice", "A lining group's "
        "charge is spread over the lumen voxels within this many Gaussian "
