@@ -5,7 +5,9 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.14 (GUI, from the open IP3R items below: the dielectric closure in the lumen box is the nearest). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.15 (science, from the open IP3R items below: Born
+(image) repulsion from the low-ε wall, Round 7.13's emergent, is the
+nearest step toward charge–space competition). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -617,11 +619,30 @@ item carried over from round n; it stays listed there too.
   the new closure is ×0.79 against ×0.20. So no placement of point
   charges explains it.
   Emergent:
-  - [ ] Offer the dielectric closure in the Channel panel's lumen box
-    (and where it puts the filter's share of the drop).
+  - [x] Offer the dielectric closure in the Channel panel's lumen box
+    (Round 7.14).
   - [ ] Born (image) repulsion from the low-ε wall: the one electrostatic
     term every closure still omits, and the cheapest step toward the
     charge–space candidate for D4899Q.
+
+- [x] **7.14 GUI: the dielectric closure in the lumen box.** Channel
+  panel → "Wall charge" → dielectric; `python -m ip3r lumen PDB --charge
+  dielectric [--paired]`. Unpaired it is Round 7.13's dipole and paired
+  its "pair omitted", each to 1e-6 in K+ g (tested at 1 Å). A solve takes
+  2–3 min at 0.5 Å (the panel says so). **Found:** the same conductance
+  hides different profiles. In 8TKF the dipole and 7.11's full `pb` give
+  the same K+ ratio (×5.07; ×4.87 against ×4.90 at 1 Å). Full `pb` puts
+  the steepest drop at −60.9 Å and leaves the filter 18 %. The dipole
+  keeps it at the filter (−84.4 Å) with 26 % (neutral 32 %, pair omitted
+  41 %, paired `pb` 38 %). 7T3T: 22 % (17–44 %). The paired readings agree
+  across closures (38–44 %), so how the pair is counted sets the filter's
+  share, not the closure. RyR1 9HEO's gate carries the drop under every
+  reading (38–48 %; filter 9–20 %). With the whole box charged, the
+  deepest cation well (−7 to −8 kT/e) sits at the window's cytosolic end,
+  11–15 Å from the box's bath face (`docs/SCIENCE_BRIDGE.md` §4).
+  Emergent:
+  - [ ] That cytosolic well's depth against `pore3d.bath_margin` and the
+    charges the box leaves out. Round 7.13's margin scan held g, not u.
 
 ## Round 6 — ryanodine receptors
 

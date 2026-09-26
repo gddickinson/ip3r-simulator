@@ -5,7 +5,8 @@ Like the fill (:mod:`.fill_controller`), the lumen belongs to one deposit:
 a load rebuilds it if it is switched on, and a result arriving after a
 newer request (another deposit, the box unticked, a session restore) is
 dropped. The neutral solve takes about ten seconds on an open deposit at the
-registered 0.5 Å grid, and a wall charge 10–30 s more, so neither runs on
+registered 0.5 Å grid, and a wall charge 10–30 s more (the dielectric
+closure, solved over the whole box, longer), so neither runs on
 the main thread. A new charge choice re-solves only the charge (the neutral
 field is kept); a new colouring only recolours the surface.
 """
@@ -14,6 +15,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from ..physics.dielectric3d import DIELECTRIC
 from ..physics.lumen_charge import charged_lumen
 from ..physics.lumen_field import lumen_field
 from ..render.lumen_mesh import lumen_mesh, wall_colors
@@ -63,8 +65,10 @@ class LumenController:
         closure, pairs = self.box.closure, self.box.pairs.isChecked()
         self.panel.set_lumen_info(
             f"solving for the potential in {st.name}'s lumen (3-D, about ten "
-            "seconds" + (", and the wall charge half a minute more" if closure
-                         else "") + ")…")
+            "seconds" + ("" if not closure else
+                         ", and the wall charge two or three minutes more"
+                         if closure == DIELECTRIC else
+                         ", and the wall charge half a minute more") + ")…")
 
         def work():
             field = lumen_field(st, summary)
@@ -87,8 +91,9 @@ class LumenController:
         self.message = ""
         if closure is None or not field.conducts:
             return self._built((token, field, mesh, None))
+        wait = "two or three minutes" if closure == DIELECTRIC else "10–30 seconds"
         self.panel.set_lumen_info(f"placing {st.name}'s wall charge ({closure}) "
-                                  "on the lumen (10–30 seconds)…")
+                                  f"on the lumen ({wait})…")
         run_async(lambda: (token, field, mesh,
                            charged_lumen(st, field, closure, summary, pairs)),
                   on_done=self._built,

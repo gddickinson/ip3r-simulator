@@ -2672,3 +2672,43 @@ roadmap. RyR1 D4899Q is still ×0.79 against ×0.20.
 the pore). No GUI change. `make test` 600 passed; lint and sizes clean.
 
 **Next:** Round 7.14 (GUI): the dielectric closure in the lumen box.
+
+## 2026-09-26 (29) — Round 7.14: the dielectric closure in the lumen box
+
+**Why.** Round 7.13 settled that 8TKF's D2478–R2471′ bridge is two charges
+(a dipole), but only as a conductance. The viewer could still draw the
+lining charge only as "full" or "paired", neither of which is a physical
+state. The roadmap asked for the dielectric closure in the lumen box and
+where it puts the filter's share of the drop.
+
+**What.**
+- `physics/lumen_charge.py`: `LUMEN_CLOSURES` (7.11's three + `dielectric`);
+  `charged_lumen` calls `dielectric_field(scope="all")` for it; the summary
+  names the box's charge beside the lining's.
+- `ui/lumen_view.py`, `ui/lumen_controller.py`: the new choice, its tooltip
+  (unpaired = the dipole), and the real wait (2–3 min).
+- `cli_shortfall.py`: `lumen [PDB] --charge C [--paired]` prints the
+  charged K+ drop's share at each constriction. This is the headless route
+  to what the panel shows.
+- Test: at 1 Å, the box's dielectric reading equals Round 7.13's `dipole`
+  unpaired and its `pair omitted` paired, to 1e-6 in K+ g. So the GUI's
+  "paired" is exactly 7.13's limit and not some other set of dropped
+  groups. Smoke-test step `_lumen_dielectric`: the panel's reading equals
+  the headless one; `docs/img/gui_lumen_dielectric.png`.
+
+**Found.** The same conductance hides different profiles. 8TKF's dipole and
+7.11's full `pb` give K+ ×5.07 (×4.87 against ×4.90 at 1 Å, checked to
+five digits: close, not an identity). Full `pb` moves the steepest drop to
+−60.9 Å and leaves the filter 18 %. The dipole keeps it at the filter
+(−84.4 Å, 26 %; neutral 32 %, pair omitted 41 %, paired `pb` 38 %). In 7T3T
+the dipole gives 22 % (range 17–44 %). The paired readings agree across
+closures, so the pair's count sets the filter's share. In 9HEO the gate
+carries 38–48 % under every reading. With the whole box charged, the
+deepest cation well (−7 to −8 kT/e) moves to the window's cytosolic end,
+11–15 Å from the box's bath face. That is not interpreted: 7.13's margin
+scan held g, not u (new emergent item).
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore). `make test` 601 passed; lint, sizes and screenshots clean.
+
+**Next:** Round 7.15 (science): Born (image) repulsion from the low-ε wall.

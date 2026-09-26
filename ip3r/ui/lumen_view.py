@@ -2,8 +2,8 @@
 7.12).
 
 Controls: draw the lumen; the wall charge's placement (none = the neutral
-pore of Round 7.10, or one of Round 7.11's closures) and whether salt
-bridges are paired; what the surface is coloured by. The solve itself is
+pore of Round 7.10, one of Round 7.11's closures, or Round 7.13's
+dielectric one) and whether salt bridges are paired; what the surface is coloured by. The solve itself is
 :class:`~ip3r.ui.lumen_controller.LumenController`'s.
 
 The plot sets the 3-D reading beside the 1-D model's on S0's window: the
@@ -19,8 +19,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (QCheckBox, QComboBox, QHBoxLayout, QLabel,
                              QVBoxLayout, QWidget)
 
-from ..physics.charge3d import CLOSURES_3D
-from ..physics.lumen_charge import CLOSURE_LABELS
+from ..physics.lumen_charge import CLOSURE_LABELS, LUMEN_CLOSURES
 from ..render.lumen_mesh import COLOURINGS
 from .plot_canvas import PALETTE
 from .view_state import set_check, set_combo
@@ -54,17 +53,21 @@ class LumenControls(QWidget):
         row.addWidget(QLabel("Wall charge"))
         self.charge = QComboBox()
         self.charge.addItem("none (neutral pore)", NO_CHARGE)
-        for c in CLOSURES_3D:
+        for c in LUMEN_CLOSURES:
             self.charge.addItem(f"{c}: {CLOSURE_LABELS[c]}", c)
         self.charge.setToolTip(
             "Round 7.11's placements of the lining side chains' charge on the "
-            "lumen. With a charge, the drop is the K+ electrochemical "
-            "potential in linear response (conductivity σ e^−u).")
+            "lumen; dielectric (Round 7.13) puts every charged group in the "
+            "box at its own centre, behind a protein of ε "
+            "dielectric.eps_protein (two or three minutes). With a charge, "
+            "the drop is the K+ electrochemical potential in linear response "
+            "(conductivity σ e^−u).")
         self.charge.currentIndexChanged.connect(self._charge)
         row.addWidget(self.charge, 1)
         self.pairs = QCheckBox("salt bridges paired")
         self.pairs.setToolTip("Drop the lining groups that form a salt bridge "
-                              "(Barlow & Thornton), both partners.")
+                              "(Barlow & Thornton), both partners. Under "
+                              "dielectric, unpaired is the bridge as a dipole.")
         self.pairs.toggled.connect(self._charge)
         row.addWidget(self.pairs)
         lay.addLayout(row)

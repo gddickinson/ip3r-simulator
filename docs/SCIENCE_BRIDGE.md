@@ -104,6 +104,46 @@ K⁺ g over the same deposit's neutral 3-D g (h 1 Å):
   in the lumen or behind it, reaches Xu's D4899Q. Charge–space
   competition (finite ion size at the filter) is the one candidate left.
 
+## 4. Where the dipole puts the drop (Round 7.14)
+
+The Channel panel's lumen box now offers the closure
+(`python -m ip3r lumen PDB --charge dielectric [--paired]`). Unpaired, it
+is the dipole reading above; paired, it is "pair omitted", to 1e-6 in K⁺ g
+(tested). K⁺ alone, at the registered 0.5 Å grid, share of K⁺'s
+electrochemical drop within ±3 Å of the filter, and where that drop is
+steepest:
+
+| reading | 8TKF (filter −85.9 Å) | 7T3T (−86.9 Å) | 9HEO (−86.9 Å) |
+|---|---|---|---|
+| neutral | 32 % | 32 % | 24 % |
+| `pb`, full | 18 %, −60.9 Å, ×5.07 | 17 %, −83.4 Å, ×7.03 | 9 %, −76.4 Å, ×2.83 |
+| `pb`, paired | 38 %, −92.4 Å, ×0.79 | 44 %, −86.4 Å, ×0.88 | 20 %, −76.4 Å, ×2.20 |
+| **dielectric: dipole** | **26 %, −84.4 Å, ×5.07** | **22 %, −83.4 Å, ×5.38** | **10 %, −74.4 Å, ×5.45** |
+| dielectric: pair omitted | 41 %, −84.9 Å, ×2.67 | 39 %, −85.4 Å, ×2.66 | 16 %, −74.9 Å, ×5.33 |
+
+- **Same conductance, different profile.** In 8TKF the dipole and 7.11's
+  full `pb` give the same K⁺ ratio (×5.07 at 0.5 Å; ×4.87 against ×4.90
+  at 1 Å, so it is close, not exact). But full `pb` moves the steepest
+  drop 25 Å cytosolic, to −60.9 Å, and leaves the filter 18 %. The dipole
+  keeps it at the filter (−84.4 Å) with 26 %, and the gate's share
+  (25 %) matches full `pb`'s (23 %). A conductance cannot tell these
+  readings apart; the drawn drop can.
+- **The filter's share is set by the pair's count, not the closure.** In
+  the ITPR3 deposits, the dipole puts it between the two limits (26 / 22 %
+  against 18–41 % in 8TKF and 17–44 % in 7T3T), as it does the
+  conductance. In RyR1 9HEO the gate carries the drop under every reading
+  (38–48 %), and the filter holds 9–20 %.
+- **A deeper well at the cytosolic end.** With the whole box charged, the
+  deepest cation well moves off the lining: −7.5 kT/e at −41.9 Å in 8TKF
+  (−8.2 at −35.9 in 7T3T, −6.9 at −45.4 in 9HEO). That is at or past the
+  window's cytosolic end, 11–15 Å from the box's bath face (u = 0) and
+  next to charges the box leaves out. Round 7.13's margin scan moved g
+  < 1 %, but it did not scan this well's depth, so it is reported, not
+  interpreted. Inside the window, the dipole's plane-mean wall potential
+  bottoms at −3.7 kT/e (8TKF), against the 1-D Donnan's −4.9.
+- **Cost.** A dielectric solve takes 2–3 min at 0.5 Å (the other closures
+  take 25 s), so the panel says so while it runs.
+
 ## What this does not settle
 
 - Born (image) repulsion of an ion near the low-ε wall is left out here,

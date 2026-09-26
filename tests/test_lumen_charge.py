@@ -133,3 +133,28 @@ def test_8tkf_pairing_turns_the_k_ratio_down(tkf, tkf_field):
     assert -20 < u < 0
     with pytest.raises(ValueError):
         charged_lumen(st, tkf_field, "donnan", s)
+
+
+
+def test_8tkf_dielectric_is_round_7_13s_dipole_and_pair_omitted(tkf):
+    """Round 7.14: the lumen box's dielectric closure is Round 7.13's field
+    on the same volume (1 Å grid, as its tests): unpaired, the K+ g of the
+    dipole reading; paired, of "pair omitted" (D2478 and R2471 left out).
+    The box's charge is counted beyond the lining's."""
+    from ip3r.physics.bridge_charge import READINGS, pair_readings
+    from ip3r.physics.lumen_charge import charged_lumen
+    from ip3r.physics.lumen_field import lumen_field
+    st, s = tkf
+    f = lumen_field(st, s, spacing=1.0)
+    chosen = {k: READINGS[k] for k in ("dipole", "pair omitted")}
+    ref = pair_readings(st, 2478, 2471, s, spacing=1.0, readings=chosen)
+    for paired, label in ((False, "dipole"), (True, "pair omitted")):
+        c = charged_lumen(st, f, "dielectric", s, pair_bridges=paired)
+        assert c.converged
+        assert c.g == pytest.approx(ref[label].per_species["dielectric"]["K+"],
+                                    rel=1e-6), label
+        assert c.ratio > 1.0
+        assert c.wall.placed < c.charge.net_charge - 1.0   # more than the lining
+        assert "in the box" in c.summary()
+    inside = f.volume.mask
+    assert np.all(np.isfinite(c.u[inside])) and np.all(np.isnan(c.u[~inside]))

@@ -184,6 +184,18 @@ protein's charge is counted (7T3T ×3.47). The protein's permittivity
 
 ![8TKF's lumen coloured by the paired wall's potential](docs/img/gui_lumen_charged.png)
 
+The lumen box offers that closure too ("dielectric"; `python -m ip3r lumen
+8TKF --charge dielectric [--paired]`). Unticked, "salt bridges paired" is
+the dipole; ticked, the pair omitted. It takes two or three minutes. In
+8TKF the dipole gives the same K+ conductance as the full wall under PB
+(×5.07), but not the same profile. The full wall moves the steepest drop
+25 Å cytosolic and leaves the filter 18 %. The dipole keeps it at the
+filter, with 26 % there (neutral 32 %, pair omitted 41 %). A conductance
+cannot tell these readings apart; the drawn drop can
+(`docs/SCIENCE_BRIDGE.md` §4).
+
+![8TKF's lumen under the dielectric closure, the salt bridge a dipole](docs/img/gui_lumen_dielectric.png)
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of
@@ -447,7 +459,7 @@ python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
-python -m ip3r lumen [8TKF ...]     # where the voltage falls: 3-D potential vs the 1-D model
+python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired]]  # where the voltage falls: 3-D vs 1-D, neutral or charged
 python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
 python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010

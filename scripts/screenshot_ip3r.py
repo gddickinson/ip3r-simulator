@@ -4,7 +4,8 @@ Transition tab, and the park/drive cluster in its microdomain; Round
 7.7's reported tree beside the ``--bnni`` re-search; and Round 7.8's
 publication views (the Genomes lesion layer opened from its check, a Range
 clade's S23 genomes, the VUS thresholds' intervals); Round 7.9's rat fill;
-Round 7.10's lumen and where the voltage falls; Round 7.12's charged lumen.
+Round 7.10's lumen and where the voltage falls; Round 7.12's charged lumen;
+Round 7.14's dielectric closure in it.
 
 ``ip3r_step`` follows the spark steps' contract: True means a worker is
 still running (call again), and a wrong result raises.
@@ -263,9 +264,31 @@ def _lumen_charged(win, app, out) -> bool:
     box.colour.setCurrentIndex(box.colour.findData("drop"))
     if not np.allclose(lc.mesh.colors, ramp(lc.mesh.sample(c.mu))):
         raise RuntimeError("the charged drop colouring is not the K+ drop")
+    box.pairs.setChecked(False)                          # on to Round 7.14
+    box.charge.setCurrentIndex(box.charge.findData("dielectric"))
+    return False
+
+
+def _lumen_dielectric(win, app, out) -> bool:
+    """Round 7.14: 8TKF's wall under the dielectric closure, the salt bridge
+    a dipole, equal to the headless reading; then everything switched off."""
+    from ip3r.physics.lumen_charge import charged_lumen
+    lc, sc = win.lumen, win.scene
+    if lc.busy:
+        return True
+    c = lc.charged
+    if c is None or c.closure != "dielectric" or c.pair_bridges:
+        raise RuntimeError(f"8TKF's dielectric lumen not built: {lc.message}")
+    if not c.ratio > 1.0 or "in the box" not in win.channel.lumen_info.text():
+        raise RuntimeError(f"dielectric text: {win.channel.lumen_info.text()[:200]}")
+    head = charged_lumen(sc.structure, lc.field, "dielectric", sc.summary)
+    if abs(head.g - c.g) > 1e-9 * abs(c.g):
+        raise RuntimeError("the panel's dielectric reading is not the headless one")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_dielectric.png"))
+    box = win.channel.lumen_box
     for w, v in ((box.charge, "none"), (box.colour, "drop")):
         w.setCurrentIndex(w.findData(v))
-    box.pairs.setChecked(False)
     win.channel.show_lumen.setChecked(False)
     if sc.scene.get("lumen") is not None:
         raise RuntimeError("unticking left the lumen drawn")
@@ -274,7 +297,7 @@ def _lumen_charged(win, app, out) -> bool:
 
 _STEPS = (_gating, _domain, _tree_pair_start, _tree_pair, _lesion_start, _lesion,
           _range_genomes, _vus_bands, _rat_fill_start, _rat_fill, _lumen_start, _lumen,
-          _lumen_charged)
+          _lumen_charged, _lumen_dielectric)
 IP3R_STEPS = len(_STEPS)
 
 

@@ -4,7 +4,9 @@ it (Round 7.12).
 Round 7.10 coloured the lumen by the neutral Laplace potential, which is
 only geometry. Round 7.11 solved the wall charge on the same voxels
 (:mod:`.charge3d`); this module reads that solution on the drawn lumen,
-for one placement (``slice`` / ``local`` / ``pb``), two ways:
+for one placement (``slice`` / ``local`` / ``pb``, or Round 7.13's
+``dielectric``: every charged group in the box at its own centre, the
+protein at ``dielectric.eps_protein``), two ways:
 
 - **the wall potential** ``u`` (kT/e) at equilibrium, zero applied voltage:
   where the lining charge draws cations (u < 0) or repels them. The 1-D
@@ -34,17 +36,23 @@ from ..core.structure import Structure
 from ..structure.channel import ChannelSummary, measure_channel
 from ._pnp_kernels import _donnan_potential
 from .charge3d import CLOSURES_3D, WallField, group_positions, wall_field
+from .dielectric3d import DIELECTRIC, dielectric_field
 from .lumen_field import LumenField, plane_means
 from .ohmic3d import geometric_conductance
 from .permeation import potassium_species
 from .pore_charge import PoreCharge, pore_charge
 
-__all__ = ["ChargedLumen", "charged_lumen", "donnan_1d", "CLOSURE_LABELS"]
+__all__ = ["ChargedLumen", "charged_lumen", "donnan_1d", "CLOSURE_LABELS",
+           "LUMEN_CLOSURES"]
+
+#: The placements the viewer offers: Round 7.11's three, then Round 7.13's.
+LUMEN_CLOSURES = (*CLOSURES_3D, DIELECTRIC)
 
 #: What the panel calls each placement.
 CLOSURE_LABELS = {"slice": "1-D charge per length over the real area",
                   "local": "each group at its own centre (Donnan)",
-                  "pb": "each group at its own centre, Poisson–Boltzmann"}
+                  "pb": "each group at its own centre, Poisson–Boltzmann",
+                  DIELECTRIC: "every group in the box, protein ε (PB)"}
 
 
 @dataclass
@@ -120,8 +128,10 @@ class ChargedLumen:
 
     def summary(self) -> str:
         pair = ", salt bridges paired" if self.pair_bridges else ""
+        box = (f" ({self.wall.placed:+.1f} e in the box)"
+               if self.closure == DIELECTRIC else "")
         u, z = self.well()
-        text = (f"{self.neutral.name}, wall {self.charge.net_charge:+.1f} e"
+        text = (f"{self.neutral.name}, wall {self.charge.net_charge:+.1f} e{box}"
                 f"{pair}, {self.closure}: K+ g ×{self.ratio:.2f} of neutral; "
                 f"deepest cation well {u:+.1f} kT/e at z = {z:+.1f} Å; "
                 f"the K+ drop is steepest at z = {self.steepest_z():+.1f} Å")
@@ -147,10 +157,13 @@ def charged_lumen(st: Structure, neutral: LumenField, closure: str,
                   summary: ChannelSummary | None = None,
                   pair_bridges: bool = False, species=None) -> ChargedLumen:
     """The wall charge of ``st`` placed by ``closure`` on ``neutral``'s
-    volume, its equilibrium potential and the K+ drop through it."""
+    volume, its equilibrium potential and the K+ drop through it. Under
+    ``dielectric`` every modelled group in the box carries charge (scope
+    ``all``): unpaired, a salt bridge is its two charges (Round 7.13's
+    dipole); paired, both partners are left out (its "pair omitted")."""
     from .unitary import bath_for, permeation_profile
-    if closure not in CLOSURES_3D:
-        raise ValueError(f"closure must be one of {CLOSURES_3D}, not {closure!r}")
+    if closure not in LUMEN_CLOSURES:
+        raise ValueError(f"closure must be one of {LUMEN_CLOSURES}, not {closure!r}")
     summary = summary or measure_channel(st)
     if species is None:
         paralog = summary.numbering.paralog if summary.numbering else None
@@ -163,8 +176,11 @@ def charged_lumen(st: Structure, neutral: LumenField, closure: str,
     vol = neutral.volume
     charge = pore_charge(st, summary.frame, permeation_profile(st, summary),
                          pair_bridges=pair_bridges)
-    positions = group_positions(st, summary.frame, charge.groups)
-    wf = wall_field(vol, closure, species, charge, positions=positions)
+    if closure == DIELECTRIC:
+        wf = dielectric_field(st, summary.frame, vol, species, charge, scope="all")
+    else:
+        positions = group_positions(st, summary.frame, charge.groups)
+        wf = wall_field(vol, closure, species, charge, positions=positions)
     lap = geometric_conductance(vol, energy=wf.energy(cation.valence))
     u = np.full(vol.mask.shape, np.nan)
     u[vol.mask] = wf.potential[vol.mask]
