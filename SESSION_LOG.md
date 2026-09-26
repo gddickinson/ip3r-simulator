@@ -2712,3 +2712,61 @@ scan held g, not u (new emergent item).
 the pore). `make test` 601 passed; lint, sizes and screenshots clean.
 
 **Next:** Round 7.15 (science): Born (image) repulsion from the low-ε wall.
+
+## 2026-09-26 (30) — Round 7.15: the image cost of the low-ε wall
+
+**Why.** Round 7.13 named the image (Born) force as the one electrostatic
+term every closure leaves out. It was also the cheapest test of whether
+anything short of ion size explains RyR1's D4899Q (×0.20 measured, ×0.79
+modelled).
+
+**What.**
+- `physics/born3d.py`: each lumen voxel's self-energy W = ½[u_het −
+  u_bath], a unit charge solved on its own ±`born.box_half_width` cube
+  (linearised PB, bath screening, zero on the faces), minus the same in
+  bulk. The cube's operator is poured into a fixed sparsity template, and
+  CG starts from the bulk solution. Voxels beyond `born.reach` of low ε
+  take zero. The solves run in `os.cpu_count()` processes and are cached in
+  `data/cache/born` by the inputs' hash. Three new parameters (`born.*`)
+  and a new reference (Parsegian 1969).
+- The dielectric closure takes `surface="swept"` (the boundary an ion
+  radius beyond the centres) and `self_energy` (z²W in the PB Boltzmann
+  factors). `WallField` carries W, so `energy(z)` = zu + z²W everywhere
+  downstream. `wall_3d` passes both and refuses W for the closures that
+  have no protein.
+- `physics/born_readings.py` and `python -m ip3r born [--scan]
+  [--mutants]` (`cli_born.py`); `docs/SCIENCE_BORN.md`;
+  `tests/test_born3d.py` (20 tests).
+
+**Calibrated first.** The screened planar wall against the half-space
+Debye–Hückel reflection, by quadrature: within 5 % at 1 Å and the
+registered box, and within 2 % at 0.5 Å. The unscreened image and the
+Bjerrum length by hand, zero in a uniform medium, attraction to a
+higher-ε wall. The box, reach and tolerance cuts, parallel = serial.
+
+**Two false starts, both recorded.**
+- A 1.4 Å water-probe surface left K⁺-reachable crevices inside the low-ε
+  region, which gave W of 20–30 kT there. The swept surface fixes that
+  by construction (tested on 8TKF).
+- A one-step "local screening" reading (mean-field ions against a bath
+  reference) mixed the Debye–Hückel activity of the counter-ion cloud into
+  W. It gave ×1.24 against ×3.42, so it was dropped, not reported.
+
+The first working version sliced each cube out of the global operator
+and ran CG to 1e-9. It had not finished one field in 20 minutes, so it
+was replaced by the template.
+
+**Found.** About 1 kT on the axis at the filter (8TKF 1.19, 7T3T 1.54,
+9HEO 0.77; ×4 for Ca²⁺). It cuts the neutral pores to ×0.20–0.28, and
+costs ITPR3's charged pore nothing (dipole ×3.38 → ×3.42, 7T3T ×3.58 →
+×3.58). Where the wall charge dominates, neutrality pins the counter-ion
+density, so the potential pays and only the co-ion is lost (Cl⁻ carries
+0–1 %). RyR1 is not pinned: 9HEO ×3.86 → ×2.18. Xu's mutants: D4899Q ×0.79
+→ ×0.48, but D4938N ×0.74 → ×0.28 against ×0.65. The summed |ln| error is
+unchanged (1.91 → 1.92), so the image term does not single out D4899. Robust (8TKF): box ±8/12/16 Å gives filter W 1.01/1.19/1.25 kT and the charged pore ×3.55/3.42/3.39; reach 6–14 Å changes nothing; ε protein 2–10 gives W 1.35–0.85 kT, the neutral pore ×0.22–0.38 and the charged one ×3.60–3.19 (×3.38 without W).
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore). No GUI change, so no screenshots. `make test` 621 passed; lint and
+sizes clean.
+
+**Next:** Round 7.16 (GUI): the image cost in the lumen box.

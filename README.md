@@ -196,6 +196,20 @@ cannot tell these readings apart; the drawn drop can
 
 ![8TKF's lumen under the dielectric closure, the salt bridge a dipole](docs/img/gui_lumen_dielectric.png)
 
+The one electrostatic term every closure left out was the image force: an
+ion near a wall of lower permittivity than the water is pushed away by its
+own polarisation (`python -m ip3r born`, `docs/SCIENCE_BORN.md`). Its cost,
+solved voxel by voxel on the deposit, is about 1 kT on the axis at the
+filter (8TKF 1.19, 7T3T 1.54, 9HEO 0.77; four times that for Ca²⁺). It cuts
+a *neutral* pore's K+ conductance to ×0.20–0.28. It costs the charged ITPR3
+pore nothing (the dipole ×3.38 → ×3.42 in 8TKF): where the wall charge
+dominates, neutrality pins the counter-ion density and the potential pays
+the cost. RyR1's wall does not pin it everywhere, so 9HEO falls ×3.86 →
+×2.18. It moves D4899Q from ×0.79 to ×0.48, but it moves D4938N further
+(×0.74 → ×0.28 against ×0.65 measured), so the mutants' summed error is
+unchanged. The image cost is not what singles out D4899. Ion size at the
+crowded filter is the candidate left.
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of
@@ -462,6 +476,7 @@ python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the m
 python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired]]  # where the voltage falls: 3-D vs 1-D, neutral or charged
 python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
 python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
+python -m ip3r born [PDB] [--scan] [--mutants]    # the image cost of the low-eps wall on K+ g and Xu's mutants
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)

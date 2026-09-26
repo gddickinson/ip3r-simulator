@@ -5,9 +5,10 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.15 (science, from the open IP3R items below: Born
-(image) repulsion from the low-ε wall, Round 7.13's emergent, is the
-nearest step toward charge–space competition). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.16 (GUI): the image cost in the Channel panel's lumen
+box: "+ image" on the dielectric closure (cached W, a 14-min first solve
+on a worker), and the lumen coloured by W. Then 7.17 (science):
+charge–space competition, through the same per-voxel energy hook. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -621,9 +622,10 @@ item carried over from round n; it stays listed there too.
   Emergent:
   - [x] Offer the dielectric closure in the Channel panel's lumen box
     (Round 7.14).
-  - [ ] Born (image) repulsion from the low-ε wall: the one electrostatic
+  - [x] Born (image) repulsion from the low-ε wall: the one electrostatic
     term every closure still omits, and the cheapest step toward the
-    charge–space candidate for D4899Q.
+    charge–space candidate for D4899Q (Round 7.15: it does not single out
+    D4899Q).
 
 - [x] **7.14 GUI: the dielectric closure in the lumen box.** Channel
   panel → "Wall charge" → dielectric; `python -m ip3r lumen PDB --charge
@@ -643,6 +645,38 @@ item carried over from round n; it stays listed there too.
   Emergent:
   - [ ] That cytosolic well's depth against `pore3d.bath_margin` and the
     charges the box leaves out. Round 7.13's margin scan held g, not u.
+
+- [x] **7.15 Science: the image cost of the low-ε wall** (`python -m ip3r
+  born`, `physics/born3d.py`, `docs/SCIENCE_BORN.md`). Each lumen voxel's
+  image self-energy W = ½[u_het − u_bath]: a unit charge solved on its
+  own ±12 Å cube (linearised PB, bath screening, zero on the faces) in the
+  deposit's map and in bulk, about 10⁵ solves per deposit (13–14 min on
+  ten processes, cached by hash). The dielectric boundary is the surface
+  an ion's own sphere sweeps, so no centre is within an ion radius of low
+  ε. W enters both the PB equilibrium and the conduction as z²W.
+  Calibrated on the planar Debye–Hückel wall (5 % at 1 Å, 2 % at 0.5 Å),
+  the unscreened image by hand, zero in a uniform medium, attraction to a
+  higher-ε wall, box, reach and tolerance cuts, parallel = serial.
+  **Found:** about 1 kT on the axis at the filter (8TKF 1.19, 7T3T 1.54,
+  9HEO 0.77). It cuts the *neutral* pores to ×0.20–0.28, and costs
+  ITPR3's charged pore nothing (dipole ×3.38 → ×3.42 in 8TKF, ×3.58
+  unchanged in 7T3T). Neutrality pins the counter-ion density where the
+  wall charge dominates, so the potential pays and only the co-ion is lost
+  (Cl⁻ carries 0–1 %). RyR1 is not pinned: 9HEO ×3.86 → ×2.18 (481 pS
+  against 801). Xu's mutants: D4899Q ×0.79 → ×0.48 (measured ×0.20), but
+  D4938N ×0.74 → ×0.28 (×0.65), and the summed |ln| error is 1.91 → 1.92.
+  The image makes every charge matter more, and D4899 no more than the
+  rest, so it is not what the continuum lacks at the filter.
+  Robust (8TKF): box ±8/12/16 Å gives filter W 1.01/1.19/1.25 kT and the charged pore ×3.55/3.42/3.39; reach 6–14 Å changes nothing; ε protein 2–10 gives W 1.35–0.85 kT, the neutral pore ×0.22–0.38 and the charged one ×3.60–3.19 (×3.38 without W).
+  Emergent:
+  - [ ] Charge–space (Round 7.4's emergent item) is now the last candidate
+    for D4899Q. Its local excess chemical potential enters the 3-D
+    linear response exactly as W does here (a per-voxel energy in both
+    the equilibrium and the conduction), so `self_energy` is its hook.
+  - [ ] The image cost is screened by the bath's ionic strength. The
+    ITPR3 filter's mean-field counter-ions are molar, and they would
+    screen it further; a consistent treatment needs a reference at the
+    local ionic strength, not the bath's.
 
 ## Round 6 — ryanodine receptors
 

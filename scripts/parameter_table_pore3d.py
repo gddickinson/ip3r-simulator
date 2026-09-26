@@ -97,4 +97,25 @@ PORE3D = [
        "spread of a carboxylate's or guanidinium's charge over its atoms; "
        "it regularises the point charge on the grid, and is swept", 0.25,
        6.0),
+    _p("born.box_half_width", "Image-energy box half-width", 12.0, "A",
+       "method", "pore3d", "method_choice", "Half-width of the cube about "
+       "each lumen voxel on which its image (Born) self-energy is solved, "
+       "potential zero on the cube's faces (Round 7.15).", "The field is "
+       "screened in the water: a planar wall agrees with a 20 A box within "
+       "3 % (tested). 8TKF's filter-axis W is 1.01 / 1.19 / 1.25 kT at 8 / "
+       "12 / 16 A, the neutral pore with it x0.32 / 0.26 / 0.24, the "
+       "dipole with it x3.55 / 3.42 / 3.39 (`born --scan`)", 4.0,
+       30.0),
+    _p("born.reach", "Image-energy reach", 10.0, "A", "method", "pore3d",
+       "method_choice", "A lumen voxel farther than this from every "
+       "low-permittivity voxel takes zero image energy, unsolved "
+       "(Round 7.15).", "A planar wall in the IP3R bath gives 0.01 kT at "
+       "10 A; 6, 10 and 14 A give 8TKF the same readings to two decimals "
+       "(`born --scan`)", 2.0, 30.0),
+    _p("born.cg_tolerance", "Image-energy solver tolerance", 1e-7, "",
+       "method", "pore3d", "method_choice", "Relative residual at which "
+       "each voxel's conjugate-gradient solve for its image energy stops, "
+       "started from the bulk solution (Round 7.15).", "W is half the "
+       "difference of two potentials of order 40 kT; 1e-7 and 1e-10 agree "
+       "to 1e-4 kT on the planar wall (tested)", 1e-12, 1e-3),
 ]

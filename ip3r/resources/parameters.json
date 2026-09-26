@@ -4494,6 +4494,45 @@
    "maximum": 6.0
   },
   {
+   "key": "born.box_half_width",
+   "name": "Image-energy box half-width",
+   "value": 12.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Half-width of the cube about each lumen voxel on which its image (Born) self-energy is solved, potential zero on the cube's faces (Round 7.15).",
+   "source_note": "The field is screened in the water: a planar wall agrees with a 20 A box within 3 % (tested). 8TKF's filter-axis W is 1.01 / 1.19 / 1.25 kT at 8 / 12 / 16 A, the neutral pore with it x0.32 / 0.26 / 0.24, the dipole with it x3.55 / 3.42 / 3.39 (`born --scan`)",
+   "minimum": 4.0,
+   "maximum": 30.0
+  },
+  {
+   "key": "born.reach",
+   "name": "Image-energy reach",
+   "value": 10.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "A lumen voxel farther than this from every low-permittivity voxel takes zero image energy, unsolved (Round 7.15).",
+   "source_note": "A planar wall in the IP3R bath gives 0.01 kT at 10 A; 6, 10 and 14 A give 8TKF the same readings to two decimals (`born --scan`)",
+   "minimum": 2.0,
+   "maximum": 30.0
+  },
+  {
+   "key": "born.cg_tolerance",
+   "name": "Image-energy solver tolerance",
+   "value": 1e-07,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Relative residual at which each voxel's conjugate-gradient solve for its image energy stops, started from the bulk solution (Round 7.15).",
+   "source_note": "W is half the difference of two potentials of order 40 kT; 1e-7 and 1e-10 agree to 1e-4 kT on the planar wall (tested)",
+   "minimum": 1e-12,
+   "maximum": 0.001
+  },
+  {
    "key": "bench.points_outlier",
    "name": "Score: twilight-zone outlier",
    "value": 20,

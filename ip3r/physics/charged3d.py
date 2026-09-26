@@ -116,12 +116,18 @@ def wall_3d(st: Structure, summary: ChannelSummary | None = None,
             species=None, width: float | None = None,
             permittivity: float | None = None,
             keep_fields: bool = False, scope: str = "all",
-            eps_protein: float | None = None) -> Wall3D:
+            eps_protein: float | None = None, surface: str = "centres",
+            self_energy: np.ndarray | None = None) -> Wall3D:
     """A deposit's K+ conductance in 3-D, neutral and under each closure,
     in its family's bath. The electrostatics live on the smallest ion's
     volume; each species conducts on its own. A closure may also be
-    ``dielectric`` (:mod:`.dielectric3d`, with ``scope`` and
-    ``eps_protein``)."""
+    ``dielectric`` (:mod:`.dielectric3d`, with ``scope``, ``eps_protein``
+    and ``surface``). ``self_energy`` (kT per z² on the grid,
+    :mod:`.born3d`) adds the image cost to the neutral reading and to the
+    dielectric closure; the other closures have no protein to image in and
+    refuse it."""
+    if self_energy is not None and any(c != DIELECTRIC for c in closures):
+        raise ValueError("an image self-energy needs the dielectric closure")
     from .unitary import bath_for
     summary = summary or measure_channel(st)
     paralog = summary.numbering.paralog if summary.numbering else None
@@ -140,7 +146,8 @@ def wall_3d(st: Structure, summary: ChannelSummary | None = None,
     ok = True
     neutral = 0.0
     for s in species:
-        lap = geometric_conductance(vols[s.name])
+        lap = geometric_conductance(vols[s.name], energy=None if self_energy is None
+                                    else s.valence ** 2 * self_energy)
         per["neutral"][s.name] = lap.g
         neutral += sigma[s.name] * lap.g
         ok &= lap.converged
@@ -149,7 +156,8 @@ def wall_3d(st: Structure, summary: ChannelSummary | None = None,
         if closure == DIELECTRIC:
             wf = dielectric_field(st, summary.frame, elec, species, charge,
                                   scope=scope, neutralise=neutralise,
-                                  eps_protein=eps_protein)
+                                  eps_protein=eps_protein, surface=surface,
+                                  self_energy=self_energy)
         else:
             wf = wall_field(elec, closure, species, charge, positions=positions,
                             width=width, permittivity=permittivity)
@@ -180,15 +188,16 @@ class MutantRow3D:
 
 
 def mutant_panel_3d(st: Structure | None = None, closures=CLOSURES_3D,
-                    spacing: float | None = None, progress=None
+                    spacing: float | None = None, progress=None, **kw
                     ) -> tuple[Wall3D, list[MutantRow3D]]:
     """Xu 2006's RyR1 charge mutants in 3-D: each residue neutralised on all
-    four subunits, the ratio to the wild type under every closure."""
+    four subunits, the ratio to the wild type under every closure (``kw``
+    to :func:`wall_3d`, e.g. ``surface`` and ``self_energy``)."""
     from ..io import loader
     from .ryr_mutants import mutant_panel, mutants, open_deposit
     st = st or loader.load(open_deposit())
     summary = measure_channel(st)
-    wt = wall_3d(st, summary, closures=closures, spacing=spacing)
+    wt = wall_3d(st, summary, closures=closures, spacing=spacing, **kw)
     wt_1d, rows_1d = mutant_panel(st)
     one_d = {r.name: r.charged_ratio for r in rows_1d}
     wt_pS = _P.value("permeation.published_ryr1")
@@ -197,7 +206,7 @@ def mutant_panel_3d(st: Structure | None = None, closures=CLOSURES_3D,
         if progress:
             progress(i, len(mutants()), name)
         m = wall_3d(st, summary, closures=closures, spacing=spacing,
-                    neutralise=frozenset({res}))
+                    neutralise=frozenset({res}), **kw)
         out.append(MutantRow3D(name, pS / wt_pS, one_d.get(name, float("nan")),
                                {c: m.charged[c] / wt.charged[c] for c in closures}))
     return wt, out

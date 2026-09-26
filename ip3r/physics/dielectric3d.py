@@ -29,15 +29,16 @@ voxels (charge conserved): a charge behind the wall stays behind it.
 their own positions with the protein's permittivity); ``"all"`` adds every
 other group, the bridge partners among them.
 
-**Left out**: the Born (image) cost of an ion near the low-ε wall, which
-every closure here omits alike. A calibration against :func:`.charge3d.poisson_boltzmann`
-(ε_protein → 0 with the charge in the lumen) is in the tests.
+The Born (image) cost of an ion near the low-ε wall is left out unless
+``self_energy`` is given (Round 7.15, :mod:`.born3d`). A calibration
+against :func:`.charge3d.poisson_boltzmann` (ε_protein → 0 with the charge
+in the lumen) is in the tests.
 """
 
 from __future__ import annotations
 
 import numpy as np
-from scipy import sparse
+from scipy import ndimage, sparse
 from scipy.sparse.linalg import cg
 
 from ..parameters import PARAMETERS as _P
@@ -49,14 +50,19 @@ from .ohmic3d import face_pairs
 from .pore_charge import AVOGADRO, CHARGE, PoreCharge, _centres
 from .radial_pb import EPS0
 
-__all__ = ["DIELECTRIC", "SCOPES", "solvent_mask", "permittivity_map", "point_density",
-           "box_charges", "dielectric_pb", "dielectric_field"]
+__all__ = ["DIELECTRIC", "SCOPES", "SURFACES", "solvent_mask", "swept_mask",
+           "permittivity_map", "point_density", "box_charges", "dielectric_pb",
+           "dielectric_field"]
 
 #: The closure's name beside :data:`.charge3d.CLOSURES_3D`.
 DIELECTRIC = "dielectric"
 
 #: Which groups carry charge: the lining set, or every group in the box.
 SCOPES = ("lining", "all")
+
+#: Where the dielectric boundary lies: at the ion centres' reach (Round
+#: 7.13), or at the surface an ion's own sphere sweeps (Round 7.15).
+SURFACES = ("centres", "swept")
 
 
 def solvent_mask(points: np.ndarray, vdw: np.ndarray, vol: PoreVolume) -> np.ndarray:
@@ -68,6 +74,14 @@ def solvent_mask(points: np.ndarray, vdw: np.ndarray, vol: PoreVolume) -> np.nda
     solvent[:, :, inside] &= (np.hypot(x, y) <= _P.value("pore3d.seal_radius")
                               )[:, :, None]
     return solvent | vol.mask
+
+
+def swept_mask(reach: np.ndarray, radius: float, spacing: float) -> np.ndarray:
+    """Voxels within ``radius`` of a voxel in ``reach``: the region an ion
+    of that radius sweeps when its centre goes wherever ``reach`` allows."""
+    if not reach.any():
+        return reach.copy()
+    return ndimage.distance_transform_edt(~reach, sampling=spacing) <= radius + 1e-9
 
 
 def permittivity_map(solvent: np.ndarray, eps_water: float | None = None,
@@ -137,13 +151,16 @@ def box_charges(st, frame, vol: PoreVolume, charge: PoreCharge, scope: str = "al
 
 
 def dielectric_pb(vol: PoreVolume, eps: np.ndarray, fixed: np.ndarray, species,
-                  initial: np.ndarray | None = None
+                  initial: np.ndarray | None = None,
+                  self_energy: np.ndarray | None = None
                   ) -> tuple[np.ndarray, bool, int]:
     """Nonlinear Poisson–Boltzmann over the whole grid with permittivity
     ``eps`` per voxel; ions only on ``vol.mask``; u = 0 on ``vol.top`` and
     ``vol.bottom``, every other face insulating. Newton; the step is capped
     by its largest change *in the lumen* (the protein's part is linear).
-    Returns ``(u, converged, iterations)``, u in kT/e."""
+    ``self_energy`` (kT per z², :mod:`.born3d`) adds each ion's image cost
+    to its Boltzmann factor. Returns ``(u, converged, iterations)``, u in
+    kT/e."""
     temperature = _P.value("permeation.temperature")
     valences, conc = _bath(species)
     shape = vol.mask.shape
@@ -162,6 +179,8 @@ def dielectric_pb(vol: PoreVolume, eps: np.ndarray, fixed: np.ndarray, species,
     h = vol.spacing * 1e-10
     scale = h * h * F_FARADAY ** 2 / (EPS0 * R_GAS * temperature)
     ions = vol.mask.ravel()[free]
+    born = (np.zeros(int(ions.sum())) if self_energy is None
+            else self_energy.ravel()[free][ions])
     x = fixed.ravel()[free]
     u = np.zeros(int(free.sum())) if initial is None else initial.ravel()[free].astype(float)
     tol = _P.value("charge3d.newton_tolerance")
@@ -170,7 +189,8 @@ def dielectric_pb(vol: PoreVolume, eps: np.ndarray, fixed: np.ndarray, species,
     cg_max = int(_P.value("pore3d.cg_max_iterations"))
     converged, used = False, 0
     for used in range(1, int(_P.value("charge3d.newton_max_iterations")) + 1):  # noqa: B007
-        arg = np.clip(-valences[:, None] * u[None, ions], -_EXP_CLIP, _EXP_CLIP)
+        arg = np.clip(-valences[:, None] * u[None, ions]
+                      - valences[:, None] ** 2 * born[None, :], -_EXP_CLIP, _EXP_CLIP)
         boltz = conc[:, None] * np.exp(arg)
         rho = x.copy()
         rho[ions] += (valences[:, None] * boltz).sum(0)
@@ -196,17 +216,25 @@ def dielectric_field(st, frame, vol: PoreVolume, species, charge: PoreCharge,
                      scope: str = "all", neutralise: frozenset[int] = frozenset(),
                      charges: dict | None = None,
                      eps_protein: float | None = None,
-                     width: float | None = None) -> WallField:
+                     width: float | None = None, surface: str = "centres",
+                     self_energy: np.ndarray | None = None) -> WallField:
     """The ``dielectric`` closure's :class:`.charge3d.WallField` on ``vol``:
     ``potential`` is the lumen's (zero elsewhere, as the other closures),
     ``fixed`` the whole grid's charge; ``unreached`` names nothing (no
-    charge needs a lumen voxel). ``placed`` counts the charge in the box."""
+    charge needs a lumen voxel). ``placed`` counts the charge in the box.
+    ``surface`` places the dielectric boundary (:data:`SURFACES`);
+    ``self_energy`` adds the image cost (:mod:`.born3d`), carried on the
+    field so a conductance counts it too."""
+    if surface not in SURFACES:
+        raise ValueError(f"surface must be one of {SURFACES}, not {surface!r}")
     m = _heavy(st, include_hetero=False)
     solvent = solvent_mask(frame.to_frame(st.xyz[m]), st.vdw_radii()[m], vol)
+    if surface == "swept":
+        solvent = swept_mask(solvent, vol.probe, vol.spacing)
     eps = permittivity_map(solvent, eps_protein=eps_protein)
     labels, pos, q = box_charges(st, frame, vol, charge, scope, neutralise, charges)
     fixed = point_density(vol, pos, q, width)
-    u, ok, used = dielectric_pb(vol, eps, fixed, species)
+    u, ok, used = dielectric_pb(vol, eps, fixed, species, self_energy=self_energy)
     placed = float(fixed.sum() * vol.spacing ** 3 * 1e-30 * AVOGADRO)
     return WallField(DIELECTRIC, fixed, np.where(vol.mask, u, 0.0), vol.mask,
-                     placed, [], ok, used)
+                     placed, [], ok, used, self_energy=self_energy)

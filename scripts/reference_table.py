@@ -267,6 +267,10 @@ REFERENCES = [
      "title": "What are the dielectric \"constants\" of proteins and how to "
               "validate electrostatic models?",
      "journal": "Proteins 44:400-417", "doi": "10.1002/prot.1106"},
+    {"key": "parsegian1969", "authors": "Parsegian VA", "year": 1969,
+     "title": "Energy of an ion crossing a low dielectric membrane: "
+              "solutions to four relevant electrostatic problems",
+     "journal": "Nature 221:844-846", "doi": "10.1038/221844a0"},
     {"key": "mehler1991", "authors": "Mehler EL, Solmajer T", "year": 1991,
      "title": "Electrostatic effects in proteins: comparison of dielectric "
               "and charge models",

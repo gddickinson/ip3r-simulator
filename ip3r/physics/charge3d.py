@@ -71,10 +71,15 @@ class WallField:
     unreached: list[str] = field(default_factory=list)
     converged: bool = True
     iterations: int = 0
+    self_energy: np.ndarray | None = None   # kT per z² (Round 7.15), or none
 
     def energy(self, valence: int) -> np.ndarray:
-        """Boltzmann energy of a species, kT, on the grid."""
-        return np.clip(valence * self.potential, -_EXP_CLIP, _EXP_CLIP)
+        """Boltzmann energy of a species, kT, on the grid (with its image
+        cost z²W when the field carries one)."""
+        e = valence * self.potential
+        if self.self_energy is not None:
+            e = e + valence ** 2 * np.where(self.mask, self.self_energy, 0.0)
+        return np.clip(e, -_EXP_CLIP, _EXP_CLIP)
 
     def peak(self, valence: int, bath: float) -> float:
         """Highest equilibrium concentration of a species in the lumen, M."""
