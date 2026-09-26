@@ -41,7 +41,7 @@ from ..structure.symmetry import Frame
 from .salt_bridges import Bridge, salt_bridges
 
 __all__ = ["ChargedGroup", "PoreCharge", "charged_groups", "map_charge",
-           "pore_charge", "CHARGE", "CENTRE_ATOMS", "AVOGADRO"]
+           "pore_charge", "charge_per_length", "CHARGE", "CENTRE_ATOMS", "AVOGADRO"]
 
 #: Avogadro constant, 1/mol (definitional since 2019).
 AVOGADRO = 6.02214076e23
@@ -162,6 +162,20 @@ def charged_groups(st: Structure, frame: Frame, profile
     return sorted(groups, key=lambda g: g.z), sorted(unplaced)
 
 
+def charge_per_length(groups: list[ChargedGroup], z_A: np.ndarray,
+                      smoothing: float) -> np.ndarray:
+    """e per Å on the slices ``z_A``: each charge a Gaussian along the axis,
+    normalised over the grid used so the total is conserved."""
+    z = np.asarray(z_A, dtype=float)
+    per_length = np.zeros_like(z)
+    for g in groups:
+        kernel = np.exp(-0.5 * ((z - g.z) / smoothing) ** 2)
+        total = float(np.trapezoid(kernel, z))
+        if total > 0.0:
+            per_length += g.charge * kernel / total
+    return per_length
+
+
 def map_charge(groups: list[ChargedGroup], z_A: np.ndarray, radius_A: np.ndarray,
                smoothing: float | None = None) -> np.ndarray:
     """Signed molar-equivalent density (mol/m^3) on the slices ``z_A``.
@@ -172,13 +186,7 @@ def map_charge(groups: list[ChargedGroup], z_A: np.ndarray, radius_A: np.ndarray
     """
     smoothing = (_P.value("pore_charge.smoothing") if smoothing is None
                  else smoothing)
-    z = np.asarray(z_A, dtype=float)
-    per_length = np.zeros_like(z)                       # e per A
-    for g in groups:
-        kernel = np.exp(-0.5 * ((z - g.z) / smoothing) ** 2)
-        total = float(np.trapezoid(kernel, z))
-        if total > 0.0:
-            per_length += g.charge * kernel / total
+    per_length = charge_per_length(groups, z_A, smoothing)
     floor = _P.value("permeation.radius_potassium")
     area = np.pi * np.maximum(np.asarray(radius_A, dtype=float), floor) ** 2
     return (per_length / area) * 1e30 / AVOGADRO        # e/A^3 -> mol/m^3

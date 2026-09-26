@@ -36,7 +36,7 @@ from ..structure.pore import PROFILE_MARGIN
 from ..structure.pore_volume import PoreVolume, pore_volume
 from .permeation import _species_conductivity, potassium_species
 
-__all__ = ["Laplace", "geometric_conductance", "Ohmic3D", "conductance_3d",
+__all__ = ["Laplace", "geometric_conductance", "bernoulli_weight", "face_pairs", "Ohmic3D", "conductance_3d",
            "extrapolate", "cylinder_volume", "hall_cylinder"]
 
 
@@ -48,17 +48,11 @@ class Laplace:
     potential: np.ndarray = field(repr=False)   # per conducting voxel
 
 
-def geometric_conductance(vol: PoreVolume, tol: float | None = None) -> Laplace:
-    """Solve Laplace's equation in ``vol`` and return ``g = I / (σ ΔV)``."""
-    tol = _P.value("pore3d.cg_tolerance") if tol is None else tol
-    mask = vol.mask
-    n = int(mask.sum())
-    if n == 0:
-        return Laplace(0.0, True, 0, np.zeros(0))
+def face_pairs(mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Every ordered pair of face-neighbouring voxels of ``mask``, as indices
+    into ``mask``'s voxels in C order (each pair appears both ways)."""
     index = -np.ones(mask.shape, np.int64)
-    index[mask] = np.arange(n)
-    fixed = (vol.top | vol.bottom)[mask]
-    value = vol.top[mask].astype(float)
+    index[mask] = np.arange(int(mask.sum()))
     rows, cols = [], []
     for axis in range(3):
         a = [slice(None)] * 3
@@ -68,17 +62,51 @@ def geometric_conductance(vol: PoreVolume, tol: float | None = None) -> Laplace:
         ia, ib = index[tuple(a)][pair], index[tuple(b)][pair]
         rows += [ia, ib]
         cols += [ib, ia]
-    rows, cols = np.concatenate(rows), np.concatenate(cols)
-    degree = np.bincount(rows, minlength=n).astype(float)
+    return np.concatenate(rows), np.concatenate(cols)
+
+
+def bernoulli_weight(ea: np.ndarray, eb: np.ndarray) -> np.ndarray:
+    """Face weight between two voxels whose Boltzmann energies (kT) are
+    ``ea`` and ``eb``: ``1 / mean(e^{+E})`` along the face with E linear,
+    ``(eb − ea) / (e^{eb} − e^{ea})``. The Scharfetter–Gummel weight at zero
+    current; ``e^{−ea}`` when the two are equal."""
+    d = eb - ea
+    small = np.abs(d) < 1e-9
+    safe = np.where(small, 1.0, d)
+    ratio = np.where(small, 1.0 - 0.5 * d, safe / np.expm1(np.where(small, 1.0, safe)))
+    return np.exp(-ea) * ratio
+
+
+def geometric_conductance(vol: PoreVolume, tol: float | None = None,
+                          energy: np.ndarray | None = None) -> Laplace:
+    """Solve Laplace's equation in ``vol`` and return ``g = I / (σ ΔV)``.
+
+    ``energy`` (the grid's shape, kT) makes it ``∇·(e^{−E}∇μ) = 0``: the
+    linear response of a species whose equilibrium concentration is the
+    bath's times ``e^{−E}`` (:mod:`.charged3d`); ``g`` is then per bulk σ."""
+    tol = _P.value("pore3d.cg_tolerance") if tol is None else tol
+    mask = vol.mask
+    n = int(mask.sum())
+    if n == 0:
+        return Laplace(0.0, True, 0, np.zeros(0))
+    fixed = (vol.top | vol.bottom)[mask]
+    value = vol.top[mask].astype(float)
+    rows, cols = face_pairs(mask)
+    if energy is None:
+        w = np.ones(len(rows))
+    else:
+        e = np.asarray(energy, dtype=float)[mask]
+        w = bernoulli_weight(e[rows], e[cols])
+    degree = np.bincount(rows, weights=w, minlength=n)
     free = ~fixed
     k = -np.ones(n, np.int64)
     k[free] = np.arange(int(free.sum()))
     ff = free[rows] & free[cols]
-    lap = sparse.csr_matrix((-np.ones(int(ff.sum())), (k[rows[ff]], k[cols[ff]])),
+    lap = sparse.csr_matrix((-w[ff], (k[rows[ff]], k[cols[ff]])),
                             shape=(int(free.sum()),) * 2)
     lap = lap + sparse.diags(degree[free])
     fx = free[rows] & fixed[cols]
-    rhs = np.bincount(k[rows[fx]], weights=value[cols[fx]],
+    rhs = np.bincount(k[rows[fx]], weights=w[fx] * value[cols[fx]],
                       minlength=int(free.sum()))
     counter = {"n": 0}
 
@@ -88,13 +116,13 @@ def geometric_conductance(vol: PoreVolume, tol: float | None = None) -> Laplace:
     phi = value.copy()
     info = 0
     if free.any():
-        x, info = cg(lap, rhs, M=sparse.diags(1.0 / np.maximum(degree[free], 1.0)),
+        x, info = cg(lap, rhs, M=sparse.diags(1.0 / np.maximum(degree[free], 1e-300)),
                      rtol=tol, maxiter=int(_P.value("pore3d.cg_max_iterations")),
                      callback=_count)
         phi[free] = x
     # Current leaving the φ = 1 voxels into their free (or φ = 0) neighbours.
     out = vol.top[mask][rows]
-    current = float(np.sum(phi[rows[out]] - phi[cols[out]]))
+    current = float(np.sum(w[out] * (phi[rows[out]] - phi[cols[out]])))
     return Laplace(g=current * vol.spacing * 1e-10, converged=info == 0,
                    iterations=counter["n"], potential=phi)
 

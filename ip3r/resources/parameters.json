@@ -4403,6 +4403,58 @@
    "maximum": 1.0
   },
   {
+   "key": "charge3d.gaussian_reach",
+   "name": "3-D charge Gaussian reach",
+   "value": 3.0,
+   "unit": "width",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "A lining group's charge is spread over the lumen voxels within this many Gaussian widths (pore_charge.smoothing) of its centre, normalised over them (Round 7.11, the local and pb closures).",
+   "source_note": "Beyond 3 widths the Gaussian holds 1 % of its weight; the charge is conserved at any reach, only its shape is cut",
+   "minimum": 1.0,
+   "maximum": 6.0
+  },
+  {
+   "key": "charge3d.newton_tolerance",
+   "name": "Poisson-Boltzmann Newton tolerance",
+   "value": 1e-06,
+   "unit": "kT/e",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Largest potential update at which the 3-D Poisson-Boltzmann Newton iteration stops.",
+   "source_note": "A conductance moves as e^{-u}, so 1e-6 kT is a 1e-6 relative change",
+   "minimum": 1e-12,
+   "maximum": 0.01
+  },
+  {
+   "key": "charge3d.newton_max_iterations",
+   "name": "Poisson-Boltzmann Newton cap",
+   "value": 60,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Newton iterations before the 3-D Poisson-Boltzmann solve is reported unconverged.",
+   "source_note": "With the step cap, 8TKF converges well inside it",
+   "minimum": 5,
+   "maximum": 1000
+  },
+  {
+   "key": "charge3d.max_step",
+   "name": "Poisson-Boltzmann step cap",
+   "value": 2.0,
+   "unit": "kT/e",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Largest potential change one Newton step may make; a larger step is scaled down.",
+   "source_note": "The exponential nonlinearity overshoots from a far start; any cap of order kT gives the same root",
+   "minimum": 0.1,
+   "maximum": 20.0
+  },
+  {
    "key": "bench.points_outlier",
    "name": "Score: twilight-zone outlier",
    "value": 20,

@@ -2520,3 +2520,55 @@ field. The wall charge in 3-D is still open, and is the natural 7.11.
 touches the pore's potential).
 
 **Next:** Round 7.11 (science).
+
+## 2026-09-25 (26) — Round 7.11: the wall charge in 3-D
+
+**Why.** In 1-D, 8TKF's lining charges lower its conductance (rings of
+alternating sign as junctions in series), which runs against the intuition
+that a cation-selective wall should raise it. Round 7.6 showed the 1-D
+cylinder misreads the pore's geometry by 1.3–2×. The question left open
+there was whether it also misreads the charge.
+
+**What.**
+- The method needs no 3-D drift-diffusion. At small voltage between equal
+  baths, the slope conductance is the equilibrium ion distribution plus one
+  Laplace solve per species, weighted voxel by voxel by e^{−zu}.
+  `ohmic3d.geometric_conductance(energy=)` (Scharfetter–Gummel face weights,
+  `bernoulli_weight`; `face_pairs` factored out).
+- `physics/charge3d.py`: three placements (`slice`, `local`, `pb`); nonlinear
+  3-D Poisson–Boltzmann by Newton + CG with no field into the protein.
+- `physics/charged3d.py`: `linear_response_1d`, `wall_3d`,
+  `mutant_panel_3d`, `wall_scan`. `pore_charge.charge_per_length` is
+  factored out of `map_charge` so the 1-D and 3-D charges are one function.
+- `python -m ip3r wall3d [--scan] [--mutants]`; four `charge3d.*` method
+  parameters; `tests/test_charged3d.py` (14 tests).
+
+**Calibrated first.** The 1-D linear-response formula matches the Gummel
+solver at 1 mV to 0.6 % on 8TKF and 9HEO, neutral, charged and paired. At the
+registered 20 mV the charged 1-D readings are 8–10 % nonlinear, so the 3-D
+comparisons use the zero-voltage 1-D numbers. A tube equals its 1-D series
+to 1e-8. PB reaches Donnan to 0.1 %, decays at λ_D to 2 %, and obeys Gauss
+to 0.1 %. In a 3 Å cylinder, slice = 1-D (×0.027 vs ×0.0267), and local and
+PB stay within 1.3× of it.
+Two test slips on the way (a sign I expected wrongly, and trapezoid-vs-sum
+normalisation at 1e-5). No solver faults. Choice: the `slice` closure
+conserves charge over the real area. Reusing the 1-D density would have
+put extra charge into the corners.
+
+**Found.** 8TKF's full wall: 1-D ×0.46 → 3-D slice ×0.80, local ×1.24,
+PB ×3.08 (0.5 Å; grid moves ratios < 3 %). The 1-D junctions come from the
+cylinder. With the charge at its own centres a co-ion still passes along
+the axis. Smoothing width 1.5–6 Å moves PB ×2.0–5.7 and slice ×0.39–5.07;
+the lining margin moves local and PB < 10 %; ε 20–80 moves PB ×2.4–4.0.
+With D2478's salt bridges paired, PB lowers g at every width in 8TKF and
+7T3T (×0.53–0.83). RyR1 9HEO's acidic wall raises g under all closures
+(×1.28–1.93). Xu's mutants do not choose a closure: summed |log| error is
+1.89 (1-D) against 1.90–2.14 (3-D), and every closure misses D4899Q
+(×0.20) at ×0.78–0.89. So the placement of point charges is not what the
+continuum is missing, and charge–space competition is the remaining
+candidate.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore's charge). No GUI change.
+
+**Next:** Round 7.12 (GUI).

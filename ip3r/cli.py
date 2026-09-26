@@ -322,6 +322,8 @@ def main(argv: list[str] | None = None) -> int:
     _register_domain(sub)
     from .cli_shortfall import register as _register_shortfall
     _register_shortfall(sub)
+    from .cli_wall3d import register as _register_wall3d
+    _register_wall3d(sub)
     from .cli_graft import register as _register_graft
     _register_graft(sub)
     p = sub.add_parser("modes")

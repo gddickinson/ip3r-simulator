@@ -199,6 +199,96 @@ or a blocker placed on the 1-D axis feels roughly the voltage it would feel
 in 3-D. This does not settle the wall charge in 3-D. There the question is
 the charges' distance from the ions, not the field of a neutral pore.
 
+### The wall charge in 3-D (Round 7.11)
+
+**Question.** In 1-D the lining charges of 8TKF *lower* its conductance,
+because rings of alternating sign act as junctions in series: each carrier
+must cross a zone where it is the excluded co-ion. Does that survive when
+the charges sit where they are, in the lumen's corners, rather than smeared
+over a cylinder?
+
+**Method** (`physics/charge3d.py`, `physics/charged3d.py`,
+`python -m ip3r wall3d [--scan] [--mutants]`). No 3-D drift-diffusion solve
+is needed. Between identical baths at small voltage every species' flux is
+`J = −(D c_eq/kT)∇μ`, divergence-free, with μ fixed at the baths. So the
+slope conductance is the ions' *equilibrium* distribution followed by one
+Laplace solve per species, with conductivity σ_s e^{−z_s u} per voxel
+(Scharfetter–Gummel face weights), the species in parallel. The same
+statement in 1-D (`linear_response_1d`) reproduces the existing Gummel
+solver at 1 mV to 0.6 % on 8TKF and 9HEO, neutral, charged and paired.
+(At the registered 20 mV the charged 1-D readings are 8–10 % nonlinear:
+8TKF 33.0 pS at 20 mV, 30.1 at zero voltage. The 3-D readings are
+zero-voltage, so they are compared with the zero-voltage 1-D numbers.)
+The equilibrium comes from one of three placements, in order of how far
+each departs from the 1-D model:
+
+- `slice`: the 1-D charge per length (the same axial Gaussians, width
+  `pore_charge.smoothing`) spread over each plane's real lumen region, and
+  local Donnan per voxel;
+- `local`: each group a 3-D Gaussian of that width about its own charge
+  centre, over the lumen voxels within `charge3d.gaussian_reach` widths
+  (charge conserved), and local Donnan per voxel;
+- `pb`: the `local` density with nonlinear Poisson–Boltzmann in the lumen
+  (ε = `permeation.permittivity_pore`). u = 0 on the bath voxels and no
+  field into the protein, which is the ε_protein → 0 bound. Solved by Newton
+  with a capped step and CG.
+
+The electrostatics use the smallest ion's volume, and each species conducts
+on its own volume. Ions are points, as in 1-D.
+
+**Calibrations** (`tests/test_charged3d.py`). The weighted Laplace on a
+tube equals its 1-D series to 1e-8, and a uniform energy scales g by
+e^{−E}. Both placements conserve charge, and a charge that reaches no voxel
+is reported. PB reaches Donnan (asinh) in a long charged tube to 0.1 %,
+decays at the Debye length to 2 %, and obeys Gauss's law to 0.1 %. In a 3 Å
+cylinder the slice closure *is* the 1-D reading (×0.027 against ×0.0267 for
+two opposite rings), and local and PB stay within 1.3× of it: in a narrow
+cylinder the junctions survive every closure. Ratios converge with the grid
+(8TKF 1 → 0.5 Å moves each ratio by < 3 %).
+
+**Measured** (h 0.5 Å; ratio to the same deposit's neutral 3-D reading):
+
+| | 1-D | slice | local | pb |
+|---|---|---|---|---|
+| 8TKF, all lining charges (−8 e) | ×0.46 | ×0.80 | ×1.24 | ×3.08 |
+| 8TKF, salt bridges paired (−4 e) | ×0.31 | ×0.45 | ×0.59 | ×0.52 |
+| 7T3T, all (−16 e) | ×0.96 | ×1.44 | ×1.19 | ×4.24 |
+| 7T3T, paired (−12 e) | ×0.42 | ×0.46 | ×0.54 | ×0.56 |
+| 9HEO (RyR1), all (−32 e) | ×1.44 | ×1.33 | ×1.28 | ×1.93 |
+| 9HEO, paired (−28 e) | ×1.23 | ×1.20 | ×1.08 | ×1.54 |
+
+- **For the full wall, no.** Once the real cross-section dilutes the
+  charge, 8TKF's junctions weaken (×0.46 → ×0.80). Once each group sits at
+  its own centre, they reverse (×1.24), because a co-ion excluded from a
+  corner still passes along the axis. Screened, the net −8 e raises g
+  threefold (302 pS against 98 neutral). The sign is set by the placement,
+  and its size by the smoothing width: over 1.5–6 Å, 8TKF runs
+  ×0.39–5.07 (slice), ×1.21–5.45 (local) and ×1.97–5.65 (PB). The lining
+  margin (1–8 Å) moves local and PB by < 10 %, and ε 20–80 moves PB
+  ×2.4–4.0.
+- **With D2478's salt bridges paired, yes.** In 8TKF and 7T3T the paired
+  wall lowers g under PB at every width (×0.53–0.83) and under slice at
+  every width (×0.23–0.46). Local lowers it at every width but the
+  narrowest, 1.5 Å (×1.13 and ×1.06). Which reading is right is whether
+  D2478 is charged. That is a question about the deposit, not the
+  closure.
+- **RyR1's mutants do not choose.** Xu 2006's ratios (h 1 Å), measured /
+  1-D / slice / local / PB: D4899Q 0.20 / 0.90 / 0.89 / 0.80 / 0.78,
+  D4938N 0.65 / 0.78 / 0.79 / 0.85 / 0.72, D4945N 0.92 / 0.90 / 0.95 /
+  0.97 / 0.96, E4900N 0.63 / 0.76 / 0.86 / 0.97 / 0.94, E4955Q 1.01 /
+  1.00 across. Summed |log| error: 1.89 / 2.02 / 2.14 / 1.90. Every closure
+  misses D4899Q by 4×. So where the charge sits in the lumen is not what the
+  point-ion continuum lacks at RyR1's filter. Round 7.4 reached the same
+  conclusion from selectivity: the missing physics is charge–space
+  competition (finite ion size), which remains the open item.
+
+**What it means.** The 1-D result that "the ITPR3 lining charges lower the
+conductance" is an artefact of the cylinder for the full wall, and holds only
+if the filter's D2478 is neutralised by its bridge to R2471′. The charged 3-D
+reading of 8TKF is not a number to quote: it spans 0.4–5.7× the neutral
+reading over one unmeasured width, and its largest values (PB, 302–510 pS)
+would reach Mak's 358 pS for reasons the calibration cannot support.
+
 ## Selectivity and the unitary Ca²⁺ current (Vais 2010)
 
 `physics/selectivity.py`, `python -m ip3r selectivity [8TKF]`.

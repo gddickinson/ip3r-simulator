@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.11 (science, to be chosen from the open IP3R items below; the wall charge in 3-D is the natural follow-on to 7.10). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.12 (GUI, to be chosen from the open IP3R items below). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -451,11 +451,7 @@ item carried over from round n; it stays listed there too.
   - At bulk diffusivity and a 1 Å K+ exclusion, RyR1 gives 787 pS against
     801 measured, and ITPR3 gives 261–278 pS against 358–545 (1.3–2.1×).
   Emergent:
-  - [ ] The wall charge in 3-D. In 1-D, rings of alternating sign act as
-    junctions in series and lower g. Do they still, with the charges in
-    the lumen's corners? A Donnan-partitioned conductivity per voxel
-    first, then (if it matters) 3-D PNP. RyR1's mutants are the
-    calibration.
+  - [x] The wall charge in 3-D (Round 7.11).
   - [x] Show the lumen and its potential in the viewer (Round 7.10).
 - [x] **7.7 Publication: re-derive what is still read.** Five new checks,
   all confirmed (49: 47 confirmed, 2 discrepancies, unchanged).
@@ -546,6 +542,32 @@ item carried over from round n; it stays listed there too.
   - [ ] Colour the lumen by the charged reading's potential once the wall
     charge is solved in 3-D (Round 7.6's open item); the neutral φ is only
     geometry.
+
+- [x] **7.11 Science: the wall charge in 3-D.** No 3-D drift-diffusion
+  solve is needed. At small voltage between equal baths, the slope
+  conductance is the ions' equilibrium plus one Boltzmann-weighted Laplace
+  solve per species. The 1-D form reproduces the Gummel solver at 1 mV to
+  0.6 %. The registered 20 mV is 8–10 % nonlinear when charged. There are
+  three placements (`python -m ip3r wall3d`): the 1-D charge per length
+  over the real cross-section (`slice`), each group at its own centre
+  (`local`), and that screened by 3-D Poisson–Boltzmann (`pb`). They are
+  calibrated on a tube (exact series), Donnan, Debye decay, Gauss, and a
+  3 Å cylinder, where every closure keeps the 1-D junctions (slice = 1-D).
+  **Found:** for 8TKF's full wall (−8 e) the 1-D ×0.46 becomes ×0.80 /
+  ×1.24 / ×3.08. The junction result is the cylinder's, and the sign is set
+  by the placement: over the 1.5–6 Å width, PB spans ×2.0–5.7. With
+  D2478's salt bridges paired, PB lowers g at every width in 8TKF and 7T3T
+  (×0.53–0.83). RyR1's mutants do not choose between closures: summed
+  |log| error 1.89 (1-D) against 1.90–2.14 (3-D), with D4899Q missed 4× by
+  all of them. So the placement of point charges is not what the continuum
+  lacks at the filter.
+  Emergent:
+  - [ ] Is 8TKF's D2478 charged? The 3-D readings now turn on it (×3.1
+    unpaired, ×0.52 paired). Round 7.4's network and PROPKA pKas for it,
+    with the R2471′ bridge counted, and 7T3T's equivalent.
+  - [ ] The charge–space item above is now the only candidate left for
+    D4899Q. Test it in the 3-D linear-response frame (a local excess
+    chemical potential per voxel enters the equilibrium, nothing else).
 
 ## Round 6 — ryanodine receptors
 

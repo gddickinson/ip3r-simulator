@@ -56,4 +56,25 @@ PORE3D = [
     _p("display.lumen_alpha", "Lumen surface opacity", 0.6, "",
        "convention", "display", "convention", "Opacity of the drawn lumen.",
        "Lets the lining side chains show through", 0.1, 1.0),
+    _p("charge3d.gaussian_reach", "3-D charge Gaussian reach", 3.0,
+       "width", "method", "pore3d", "method_choice", "A lining group's "
+       "charge is spread over the lumen voxels within this many Gaussian "
+       "widths (pore_charge.smoothing) of its centre, normalised over them "
+       "(Round 7.11, the local and pb closures).", "Beyond 3 widths the "
+       "Gaussian holds 1 % of its weight; the charge is conserved at any "
+       "reach, only its shape is cut", 1.0, 6.0),
+    _p("charge3d.newton_tolerance", "Poisson-Boltzmann Newton tolerance",
+       1e-6, "kT/e", "method", "pore3d", "method_choice", "Largest "
+       "potential update at which the 3-D Poisson-Boltzmann Newton "
+       "iteration stops.", "A conductance moves as e^{-u}, so 1e-6 kT is "
+       "a 1e-6 relative change", 1e-12, 1e-2),
+    _p("charge3d.newton_max_iterations", "Poisson-Boltzmann Newton cap", 60,
+       "", "method", "pore3d", "method_choice", "Newton iterations before "
+       "the 3-D Poisson-Boltzmann solve is reported unconverged.",
+       "With the step cap, 8TKF converges well inside it", 5, 1000),
+    _p("charge3d.max_step", "Poisson-Boltzmann step cap", 2.0, "kT/e",
+       "method", "pore3d", "method_choice", "Largest potential change one "
+       "Newton step may make; a larger step is scaled down.", "The "
+       "exponential nonlinearity overshoots from a far start; any cap of "
+       "order kT gives the same root", 0.1, 20.0),
 ]

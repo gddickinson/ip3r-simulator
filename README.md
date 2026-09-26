@@ -150,6 +150,16 @@ the panel plots both curves.
 
 ![8TKF's lumen coloured by the potential, and where the voltage falls](docs/img/gui_lumen.png)
 
+The lining charges' effect does not survive the move to 3-D
+(`python -m ip3r wall3d`). Solved in the lumen's real shape (the ions'
+equilibrium, then one Laplace solve per species), 8TKF's full wall changes
+g by ×0.80, ×1.24 or ×3.1, depending on whether the charge fills the cross-section, sits
+at each group's own centre, or is screened by Poisson–Boltzmann. The 1-D model's ×0.46 holds
+only in a cylinder, and one unmeasured smoothing width moves the 3-D
+reading 0.4–5.7×. With the filter's D2478 salt bridges paired, the wall
+lowers g under every closure at the registered width (×0.45–0.59). RyR1's charge mutants cannot tell the
+closures apart: all of them miss D4899Q (×0.20 measured) by 4×.
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of
@@ -414,6 +424,7 @@ python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
 python -m ip3r lumen [8TKF ...]     # where the voltage falls: 3-D potential vs the 1-D model
+python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
