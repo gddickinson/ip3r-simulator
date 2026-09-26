@@ -5,8 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.17 (science): charge–space competition, through the
-same per-voxel energy hook as the image cost (`self_energy`). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.18 (GUI): per the alternation, a GUI upgrade; the
+obvious one is Round 7.16's "K+ energy (u + W)" colouring. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -404,7 +404,7 @@ item carried over from round n; it stays listed there too.
   missing the selectivity physics, and protonation is not the IP3R
   wall's problem.
   Emergent:
-  - [ ] Charge–space competition: finite ion size (a local excess chemical
+  - [x] (Round 7.17: binds Ca²⁺ as Gillespie's, but the gate caps P_Ca:P_K at 0.64) Charge–space competition: finite ion size (a local excess chemical
     potential, e.g. Bikerman or a mean-spherical-approximation term) in
     the drift-diffusion pore. Test it first on RyR1, where Xu's six
     P_Ca:P_K values and conductances are the calibration (Gillespie's
@@ -667,7 +667,7 @@ item carried over from round n; it stays listed there too.
   rest, so it is not what the continuum lacks at the filter.
   Robust (8TKF): box ±8/12/16 Å gives filter W 1.01/1.19/1.25 kT and the charged pore ×3.55/3.42/3.39; reach 6–14 Å changes nothing; ε protein 2–10 gives W 1.35–0.85 kT, the neutral pore ×0.22–0.38 and the charged one ×3.60–3.19 (×3.38 without W).
   Emergent:
-  - [ ] Charge–space (Round 7.4's emergent item) is now the last candidate
+  - [x] (Round 7.17, in 1-D; 3-D is its emergent item) Charge–space (Round 7.4's emergent item) is now the last candidate
     for D4899Q. Its local excess chemical potential enters the 3-D
     linear response exactly as W does here (a per-voxel energy in both
     the equilibrium and the conduction), so `self_energy` is its hook.
@@ -693,6 +693,32 @@ item carried over from round n; it stays listed there too.
   - [ ] The "wall potential" colouring is u, not what a cation feels
     once W is counted; a "K+ energy (u + W)" colouring would show the
     well the summary names.
+
+- [x] **7.17 Science: charge–space competition** (`python -m ip3r csc`,
+  `physics/csc.py`, `docs/SCIENCE_CSC.md`). A `csc` closure for the 1-D
+  pore: each species' hard-sphere (BMCSL) + MSA excess in every slice,
+  the lining acids as two half-charged 2.8 Å oxygens, water as a 2.8 Å
+  sphere, solved by capped Newton under local neutrality (Picard ran
+  away). It shares one Gummel loop with the radial closure
+  (`pnp_closures.py`). Calibrated on Carnahan–Starling, both μ = their
+  free energies' derivatives, Debye–Hückel, the RPM closed form, terms
+  off = Donnan, and Gillespie's Li⁺/Cs⁺ crowding. **Found:** 9HEO's
+  filter binds Ca²⁺ as in Gillespie 2008 (10.3 M Ca²⁺ vs 0.86 M K⁺ at
+  1 mM / 150 mM; screening +4.18 kT, excluded volume +0.86 kT vs his ~4
+  and ~0.5–1). But P_Ca:P_K only rises 0.46 → 0.64 (7.0 measured), and
+  the mutants' summed |ln| error falls 3.54 → 2.61 while D4899Q stays
+  ×0.85 (×0.14). The uncharged gate window (±3 Å about Q4933) holds 72 %
+  of Ca²⁺'s linear-response resistance, and its own ratio, by hand, is
+  0.54. The filter's physics is not what is missing; the gate's field is.
+  8TKF: 0.00 → 0.07 against 15.2. Robust over wall volume, ε 40–78.4,
+  water and oxygen diameters (wild type 0.31–0.91, D4899Q ×0.54–0.95).
+  Emergent:
+  - [ ] Selectivity in 3-D: a permeability ratio from the charged 3-D
+    linear response (7.11–7.15's wall field reaches into the gate, which
+    the 1-D local-neutrality closure cannot), with the csc excess as a
+    per-voxel energy (the `self_energy` hook).
+  - [ ] A mutant's lost group is removed with its volume here; an
+    Asn/Gln side chain keeps most of it. Keep the volume, drop the charge.
 
 ## Round 6 — ryanodine receptors
 

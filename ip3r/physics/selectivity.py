@@ -125,14 +125,16 @@ def ghk_reversal(ratios: dict[str, float], lumen: dict, cytosol: dict) -> float:
 # ------------------------------------------------------------- the model
 def reversal_potential(z_A, radius_A, species, fixed_charge=None,
                        bracket: float = 0.1,
-                       closure: str = "donnan") -> tuple[float, bool]:
+                       closure: str = "donnan",
+                       structural=None) -> tuple[float, bool]:
     """Voltage at which the model's pore current is zero, V; and whether
     every solve on the way converged."""
     ok = [True]
 
     def current(v):
         r = solve_pnp(z_A, radius_A, voltage=v, species=species,
-                      fixed_charge=fixed_charge, closure=closure)
+                      fixed_charge=fixed_charge, closure=closure,
+                      structural=structural)
         ok[0] &= r.converged
         return r.pore_current
     lo, hi = -bracket, bracket
@@ -171,22 +173,24 @@ class Selectivity:
 
 def selectivity(z_A, radius_A, fixed_charge=None, label: str = "",
                 cation_radius: float | None = None,
-                closure: str = "donnan") -> Selectivity:
-    """Vais's two bi-ionic experiments on one profile and wall charge."""
+                closure: str = "donnan", structural=None) -> Selectivity:
+    """Vais's two bi-ionic experiments on one profile and wall charge
+    (``structural``: the csc closure's wall groups, Round 7.17)."""
     cyt, kcl_lum, ca_lum = _conditions()
     v_kcl, ok1 = reversal_potential(
         z_A, radius_A, ions(kcl_lum, cyt, cation_radius), fixed_charge,
-        closure=closure)
+        closure=closure, structural=structural)
     pcl = ghk_ratio(v_kcl, "Cl-", kcl_lum, cyt, {})
     v_ca, ok2 = reversal_potential(
         z_A, radius_A, ions(ca_lum, cyt, cation_radius), fixed_charge,
-        closure=closure)
+        closure=closure, structural=structural)
     pca = ghk_ratio(v_ca, "Ca2+", ca_lum, cyt, {"Cl-": pcl})
     return Selectivity(label, v_kcl, v_ca, pcl, pca, ok1 and ok2)
 
 
 def ryr1_calcium_ratio(z_A, radius_A, fixed_charge=None,
-                       closure: str = "donnan") -> tuple[float, float, bool]:
+                       closure: str = "donnan",
+                       structural=None) -> tuple[float, float, bool]:
     """Xu 2006's protocol on one wall: symmetric KCl (the RyR1 bath) with
     CaCl2 added on the luminal side, read with their Eq. 1, which is GHK
     with no Cl- term (``known`` P_Cl = 0). Returns (V_rev, P_Ca:P_K,
@@ -196,7 +200,7 @@ def ryr1_calcium_ratio(z_A, radius_A, fixed_charge=None,
     cyt = {"K+": kcl, "Cl-": kcl}
     lum = {"K+": kcl, "Cl-": kcl + 2.0 * ca, "Ca2+": ca}
     v, ok = reversal_potential(z_A, radius_A, ions(lum, cyt), fixed_charge,
-                               closure=closure)
+                               closure=closure, structural=structural)
     return v, ghk_ratio(v, "Ca2+", lum, cyt, {"Cl-": 0.0}), ok
 
 

@@ -2813,3 +2813,48 @@ the pore).
 
 **Next:** Round 7.17 (science): charge–space competition.
 
+
+## 2026-09-26 (32) — Round 7.17: charge–space competition
+
+**Why.** Rounds 7.4–7.15 left RyR1's P_Ca:P_K at 0.46 against Xu's 7.0,
+with D4899Q in the wrong place (×0.74 against ×0.14). Placement of charges
+(7.13) and the image cost (7.15) were ruled out. Ion size in a crowded,
+charged fluid (Nonner 2000, Gillespie 2008) was the candidate left.
+
+**What.**
+- `physics/csc.py`: BMCSL hard spheres and the MSA, each the derivative of
+  its own free energy; the wall's lining groups as fluid species (two
+  half-charged oxygens per acid, one sphere per base, carrying the fixed
+  map's charge exactly); water as a hard sphere; `partition`, the
+  per-slice equilibrium under local neutrality. Picard on μ ran away at
+  the RyR1 filter (100 M K⁺, no water), so it is capped Newton with
+  backtracking. A first bug: starting a slice at c = activity. In water at
+  0.38 packing a K⁺ costs ~8 kT, so the activity is ~3000× the
+  concentration.
+- `physics/pnp_closures.py`: the per-species-offset Gummel loop, now
+  shared by `radial` (moved unchanged; its tests pass) and the new `csc`
+  closure. `solve_pnp(closure="csc", structural=)`; the selectivity
+  protocols pass `structural` through.
+- `physics/csc_readings.py`, `cli_csc.py` (`python -m ip3r csc [--scan]`);
+  eleven `csc.*` parameters; references gillespie2008, nonner2000.
+- `tests/test_csc.py` (19): the limits, terms off = Donnan (one slice and
+  through the Gummel loop), Gillespie's Li⁺/Cs⁺ crowding, 9HEO's filter
+  split, and the gate finding.
+
+**Found.** 9HEO's filter binds Ca²⁺ as in Gillespie's model: 10.3 M Ca²⁺
+against 0.86 M K⁺ at 1 mM / 150 mM, with screening +4.18 kT and excluded
+volume +0.86 kT (his ~4 and ~0.5–1). But P_Ca:P_K only rises from 0.46 to
+0.64. The mutants' summed |ln| error falls 3.54 → 2.61 (E4900N now ×0.70
+against ×0.64), and D4899Q stays ×0.85. The reason is series resistance.
+The uncharged gate window holds 72 % of Ca²⁺'s linear-response resistance,
+and its own ratio, (D_Ca/D_K) × area, is 0.54 by hand. So the missing
+physics is the field at the gate, which 1-D local neutrality cannot put
+there, not the filter's. 8TKF: 0.00 → 0.07 against 15.2. The scan (wall
+volume, ε 40–78.4, water and oxygen diameters) keeps the wild type at
+0.31–0.91 and D4899Q at ×0.54–0.95. Tables in `docs/SCIENCE_CSC.md`.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore). No GUI change, so no screenshots.
+
+**Next:** Round 7.18 (GUI), then selectivity in 3-D with the csc excess
+as a per-voxel energy.

@@ -163,6 +163,15 @@ REFERENCES = [
      "title": "Ion-pairs in proteins",
      "journal": "J Mol Biol 168:867-885",
      "doi": "10.1016/S0022-2836(83)80079-5"},
+    {"key": "gillespie2008", "authors": "Gillespie D", "year": 2008,
+     "title": "Energetics of divalent selectivity in a calcium channel: the "
+              "ryanodine receptor case study",
+     "journal": "Biophys J 94:1169-1184", "doi": "10.1529/biophysj.107.116798"},
+    {"key": "nonner2000", "authors": "Nonner W, Catacuzzeno L, Eisenberg B",
+     "year": 2000,
+     "title": "Binding and selectivity in L-type calcium channels: a mean "
+              "spherical approximation",
+     "journal": "Biophys J 79:1976-1992", "doi": "10.1016/S0006-3495(00)76446-0"},
     {"key": "xu2006", "authors": "Xu L, Wang Y, Gillespie D, Meissner G",
      "year": 2006,
      "title": "Two rings of negative charges in the cytosolic vestibule of "

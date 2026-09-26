@@ -21,6 +21,7 @@ from parameter_table_ec import EC
 from parameter_table_domain import DOMAIN
 from parameter_table_pka import PKA
 from parameter_table_pore3d import PORE3D
+from parameter_table_csc import CSC
 from parameter_table_bench import BENCH
 from parameter_table_views import VIEWS
 
@@ -400,5 +401,6 @@ P += EC
 P += DOMAIN
 P += PKA
 P += PORE3D
+P += CSC
 P += BENCH
 P += VIEWS

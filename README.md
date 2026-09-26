@@ -210,6 +210,19 @@ the cost. RyR1's wall does not pin it everywhere, so 9HEO falls ×3.86 →
 unchanged. The image cost is not what singles out D4899. Ion size at the
 crowded filter is the candidate left.
 
+That candidate is charge–space competition: ions with size, in a
+crowded, charged fluid that screens a divalent best (hard spheres + the
+mean spherical approximation, as in Nonner 2000 and Gillespie 2008;
+`python -m ip3r csc`, `docs/SCIENCE_CSC.md`). RyR1's filter now binds
+Ca²⁺ as Gillespie's model does: at 150 mM K⁺ and 1 mM Ca²⁺ it holds 10 M
+Ca²⁺ against 0.9 M K⁺, with a screening advantage of 4.2 kT and an
+excluded-volume advantage of 0.9 kT (his ~4 and ~0.5–1). But P_Ca:P_K
+only rises from 0.46 to 0.64, against 7.0. The uncharged gate stretch is
+in series with the filter and holds 72 % of Ca²⁺'s resistance, and on its
+own it reads 0.54 by hand (the diffusivity × area ratio). D4899Q stays
+mild (×0.85 against ×0.14). What the model lacks is the field at the gate,
+not the filter's physics.
+
 The lumen box counts it too (dielectric → "+ image"; `python -m ip3r lumen
 8TKF --charge dielectric --image`), on a 1 Å grid, from the cache in about
 20 s. The surface can be coloured by W itself. With W, a cation's well is
@@ -488,6 +501,7 @@ python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired] [--image]]  # wh
 python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
 python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
 python -m ip3r born [PDB] [--scan] [--mutants]    # the image cost of the low-eps wall on K+ g and Xu's mutants
+python -m ip3r csc [PDB] [--scan]                 # charge-space competition: filter binding, Xu's six P_Ca:P_K, Vais's ratios
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)

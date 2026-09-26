@@ -12,6 +12,7 @@ testable and scriptable:
     python -m ip3r selectivity 8TKF # P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
     python -m ip3r bridge 8TKF      # the lining salt bridge: pKas, then its field (cli_bridge)
     python -m ip3r born 8TKF        # the image cost of the low-eps wall (cli_born)
+    python -m ip3r csc [9HEO 8TKF]  # charge-space competition vs Xu / Vais (cli_csc)
     python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
@@ -326,6 +327,8 @@ def main(argv: list[str] | None = None) -> int:
     _register_shortfall(sub)
     from .cli_born import register as _register_born
     _register_born(sub)
+    from .cli_csc import register as _register_csc
+    _register_csc(sub)
     from .cli_wall3d import register as _register_wall3d
     _register_wall3d(sub)
     from .cli_bridge import register as _register_bridge
