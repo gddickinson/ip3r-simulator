@@ -1,5 +1,5 @@
 """The lumen overlay: solve for the potential on a worker, draw the surface,
-plot where the voltage falls (Rounds 7.10, 7.12).
+plot where the voltage falls (Rounds 7.10, 7.12, 7.16).
 
 Like the fill (:mod:`.fill_controller`), the lumen belongs to one deposit:
 a load rebuilds it if it is switched on, and a result arriving after a
@@ -8,7 +8,13 @@ dropped. The neutral solve takes about ten seconds on an open deposit at the
 registered 0.5 Å grid, and a wall charge 10–30 s more (the dielectric
 closure, solved over the whole box, longer), so neither runs on
 the main thread. A new charge choice re-solves only the charge (the neutral
-field is kept); a new colouring only recolours the surface.
+field is kept, unless the image cost changes the grid); a new colouring
+only recolours the surface.
+
+Round 7.16's image cost is Round 7.15's W on a 1 Å grid
+(``born.lumen_spacing``): ticking it re-cuts the neutral field there too.
+Its first solve on a deposit is a quarter hour on every core, on the
+worker, and it is cached on disk after that.
 """
 
 from __future__ import annotations
@@ -18,7 +24,7 @@ import numpy as np
 from ..physics.dielectric3d import DIELECTRIC
 from ..physics.lumen_charge import charged_lumen
 from ..physics.lumen_field import lumen_field
-from ..render.lumen_mesh import lumen_mesh, wall_colors
+from ..render.lumen_mesh import image_colors, lumen_mesh, wall_colors
 from ..render.colormaps import ramp
 from .workers import run_async
 
@@ -63,17 +69,17 @@ class LumenController:
             self.panel.set_lumen_info("")
             return
         closure, pairs = self.box.closure, self.box.pairs.isChecked()
+        image, spacing = self.box.image, self.box.spacing
         self.panel.set_lumen_info(
             f"solving for the potential in {st.name}'s lumen (3-D, about ten "
-            "seconds" + ("" if not closure else
-                         ", and the wall charge two or three minutes more"
-                         if closure == DIELECTRIC else
-                         ", and the wall charge half a minute more") + ")…")
+            "seconds" + ("" if not closure else self._wait(closure, image))
+            + ")…")
 
         def work():
-            field = lumen_field(st, summary)
+            field = lumen_field(st, summary, spacing=spacing)
             mesh = lumen_mesh(field, summary.frame)
-            charged = (charged_lumen(st, field, closure, summary, pairs)
+            charged = (charged_lumen(st, field, closure, summary, pairs,
+                                     image=image)
                        if closure and field.conducts else None)
             return token, field, mesh, charged
         run_async(work, on_done=self._built,
@@ -87,17 +93,31 @@ class LumenController:
         token, st, summary = self._token, self.scene.structure, self.scene.summary
         field, mesh = self.field, self.mesh
         closure, pairs = self.box.closure, self.box.pairs.isChecked()
+        image = self.box.image
+        if not _same_grid(field, self.box.spacing):    # the image's grid
+            return self.request(True)
         self.charged = None
         self.message = ""
         if closure is None or not field.conducts:
             return self._built((token, field, mesh, None))
-        wait = "two or three minutes" if closure == DIELECTRIC else "10–30 seconds"
-        self.panel.set_lumen_info(f"placing {st.name}'s wall charge ({closure}) "
-                                  f"on the lumen ({wait})…")
+        self.panel.set_lumen_info(f"placing {st.name}'s wall charge ({closure}"
+                                  f"{' + image' if image else ''}) on the lumen "
+                                  f"({self._wait(closure, image).lstrip(', ')})…")
         run_async(lambda: (token, field, mesh,
-                           charged_lumen(st, field, closure, summary, pairs)),
+                           charged_lumen(st, field, closure, summary, pairs,
+                                         image=image)),
                   on_done=self._built,
                   on_error=lambda e: token == self._token and self._failed(e))
+
+    @staticmethod
+    def _wait(closure: str, image: bool) -> str:
+        if image:
+            return (", and the wall charge with the image cost a minute more "
+                    "if the deposit's W is cached, else about a quarter hour "
+                    "on every core")
+        return (", and the wall charge two or three minutes more"
+                if closure == DIELECTRIC else ", and the wall charge half a "
+                "minute more")
 
     def _built(self, result) -> None:
         token, field, mesh, charged = result
@@ -113,6 +133,10 @@ class LumenController:
         """What the surface shows at each vertex, per the colour choice."""
         if self.mesh is None:
             return None
+        if self.box.colouring == "image":     # grey unless W was solved
+            w = None if self.charged is None else self.charged.w
+            return (np.full(len(self.mesh.positions), np.nan) if w is None
+                    else self.mesh.sample(w))
         if self.box.colouring == "wall":
             if self.charged is None:          # the neutral pore: no wall potential
                 return np.zeros(len(self.mesh.positions))
@@ -126,7 +150,9 @@ class LumenController:
             self.scene.show_lumen(None)
             return
         v = self.values()
-        self.mesh.colors = wall_colors(v) if self.box.colouring == "wall" else ramp(v)
+        paint = {"wall": wall_colors, "image": image_colors}.get(
+            self.box.colouring, ramp)
+        self.mesh.colors = paint(v)
         self.scene.show_lumen(self.mesh)
 
     def _failed(self, error) -> None:
@@ -134,3 +160,10 @@ class LumenController:
         self.scene.show_lumen(None)
         self.panel.set_lumen_info(f"<span style='color:#e06c6c'>{self.message}</span>")
         self.status(self.message)
+
+
+def _same_grid(field, spacing: float | None) -> bool:
+    """``field`` is cut on ``spacing`` (None: the registered grid)."""
+    from ..parameters import PARAMETERS as _P
+    want = _P.value("pore3d.spacing") if spacing is None else spacing
+    return abs(field.volume.spacing - want) < 1e-9

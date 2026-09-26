@@ -51,6 +51,7 @@ def _shortfall(args) -> int:
 
 
 def _lumen(args) -> int:
+    import numpy as np
     from .io import loader
     from .parameters import PARAMETERS as _P
     from .physics.lumen_field import lumen_field
@@ -65,12 +66,15 @@ def _lumen(args) -> int:
     for pdb in args.pdb or [e.pdb_id for e in open_entries()]:
         st = loader.load(pdb)
         s = measure_channel(st)
-        f = lumen_field(st, s)
+        image = bool(args.image and args.charge == "dielectric")
+        f = lumen_field(st, s, spacing=_P.value("born.lumen_spacing")
+                        if image else None)
         print(f.summary())
         charged = None
         if args.charge and f.conducts:
             from .physics.lumen_charge import charged_lumen
-            charged = charged_lumen(st, f, args.charge, s, args.paired)
+            charged = charged_lumen(st, f, args.charge, s, args.paired,
+                                    image=image)
             print(charged.summary() + ("" if charged.converged else "  [n.c.]"))
         for c in s.constrictions.values():
             d3, d1 = f.drop_across(c.z, w)
@@ -78,6 +82,8 @@ def _lumen(args) -> int:
                     f"3-D {d3:.1%}, 1-D {d1:.1%}")
             if charged is not None:
                 text += f", charged K+ {charged.drop_across(c.z, w):.1%}"
+            if charged is not None and charged.image:
+                text += f", W on axis {np.interp(c.z, f.z, charged.w_axis):.2f} kT"
             print(text)
     return 0
 
@@ -92,6 +98,9 @@ def register(sub) -> None:
                    "where the K+ drop falls with it")
     q.add_argument("--paired", action="store_true",
                    help="with --charge: salt bridges paired")
+    q.add_argument("--image", action="store_true",
+                   help="with --charge dielectric: add Round 7.15's image cost "
+                   "(1 A grid; a quarter hour per deposit unless cached)")
     q.add_argument("--fetch", action="store_true")
     q.set_defaults(fn=_lumen)
     p = sub.add_parser("shortfall", help="the open pore in 1-D and 3-D against "

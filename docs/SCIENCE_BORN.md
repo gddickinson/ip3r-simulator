@@ -154,6 +154,42 @@ neutral 3-D g without W (1 Å; IP3R in 140 mM, RyR1 in 250 mM KCl):
   cost (×0.22–0.38). The charged pore stays within 7 % of its no-image
   reading at every ε. The pinning result does not depend on it.
 
+## 4. In the viewer (Round 7.16)
+
+Channel panel → "Wall charge" → dielectric → "+ image" (`python -m ip3r
+lumen PDB --charge dielectric --image [--paired]`). The reading is §2's on
+the same volume: unpaired it is "dipole + image" and paired "pair omitted +
+image", each equal in K⁺ g to 1e-6 (tested). W is solved at 1 Å, so the
+whole reading moves to `born.lumen_spacing`'s grid; from the cache a
+deposit takes about 20 s, a first solve a quarter hour on every core. The
+surface can be coloured by W on a fixed 0–`display.lumen_image_range` kT
+ramp (6 kT; grey where it was not solved), and the plot adds W on the axis.
+
+With W a cation's energy is u + W. The electrostatic potential u alone
+deepens to −16 kT/e where W is 15–16 kT (the wall-contact voxels): the
+counter-ion density stays pinned, so u pays for W. The cation's own well
+(u + W) is *shallower*, −5.1 against −6.2 kT in 8TKF. The panel reports
+the well as u + W and names u's depth beside it.
+
+Where the K⁺ drop falls, 1 Å grid, share within ±3 Å (neutral pore: 8TKF
+filter 30 %, 7T3T 30 %, 9HEO 29 %):
+
+| deposit | reading | K⁺ g, no W → W | filter share | gate share |
+|---|---|---|---|---|
+| 8TKF | dipole | ×4.87 → ×5.32 | 24 → 29 % | 26 → 23 % |
+| 8TKF | pair omitted | ×2.67 → ×3.08 | 38 → 50 % | 13 → 12 % |
+| 7T3T | dipole | ×5.75 → ×5.98 | 20 → 27 % | 3 → 2 % |
+| 7T3T | pair omitted | ×3.28 → ×2.49 | 36 → 56 % | 1 → 1 % |
+| 9HEO | dipole | ×5.64 → ×3.28 | 13 → 12 % | 36 → 38 % |
+| 9HEO | pair omitted | ×5.50 → ×3.10 | 19 → 19 % | 33 → 35 % |
+
+(K⁺ alone, relative to the neutral pore without W. §2's ratios are the
+whole current, which the image's lost Cl⁻ lowers.) In ITPR3 the image puts
+the K⁺ resistance back at the filter. The dipole's filter share (29 %,
+27 %) comes back to the neutral pore's, and the steepest drop stays at
+−83.9 Å. RyR1's profile does not move: its gate carries the drop with or
+without W, and only the conductance falls.
+
 ## What this does not settle
 
 - W exceeds 10 kT on 0.4 % of 8TKF's lumen voxels (631 of 152,534; 2.7 %

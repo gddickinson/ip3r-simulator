@@ -8,7 +8,7 @@ from ip3r.physics.lumen_charge import ChargedLumen
 from ip3r.physics.lumen_field import field_from_volume
 from ip3r.physics.ohmic3d import cylinder_volume
 from ip3r.render.colormaps import MISSING, ramp
-from ip3r.render.lumen_mesh import lumen_mesh, wall_colors
+from ip3r.render.lumen_mesh import image_colors, lumen_mesh, wall_colors
 
 H, L, MARGIN, HALF = 0.5, 30.0, 15.0, 10.0
 
@@ -74,6 +74,16 @@ def test_the_wall_ramp_is_fixed_and_grey_where_missing():
     assert np.allclose(c[2], ramp(np.array([1.0]))[0])       # repulsive: red
     assert np.allclose(c[3], MISSING)
     assert np.allclose(c[4], c[0])                           # saturates, no rescale
+
+
+def test_the_image_ramp_is_fixed_from_zero_and_grey_where_unsolved():
+    top = 4.0
+    c = image_colors(np.array([0.0, top / 2, top, 3 * top, np.nan]), top=top)
+    assert np.allclose(c[0], ramp(np.array([0.0]))[0])
+    assert np.allclose(c[1], ramp(np.array([0.5]))[0])
+    assert np.allclose(c[2], ramp(np.array([1.0]))[0])
+    assert np.allclose(c[3], c[2])                           # saturates, no rescale
+    assert np.allclose(c[4], MISSING)
 
 
 def test_a_mesh_samples_its_own_voxels():
@@ -158,3 +168,51 @@ def test_8tkf_dielectric_is_round_7_13s_dipole_and_pair_omitted(tkf):
         assert "in the box" in c.summary()
     inside = f.volume.mask
     assert np.all(np.isfinite(c.u[inside])) and np.all(np.isnan(c.u[~inside]))
+
+
+def test_8tkf_image_is_round_7_15s_dipole_and_pair_omitted_with_it(tkf, monkeypatch):
+    """Round 7.16: the lumen box's "+ image" is Round 7.15's reading on the
+    same 1 Å volume: unpaired, the K+ g of "dipole + image"; paired, of
+    "pair omitted + image". Uses Round 7.15's cached W (a quarter hour to
+    solve), so it skips where the cache is absent."""
+    from ip3r.physics import born3d
+    from ip3r.physics.bridge_charge import lining_bridges
+    from ip3r.physics.charged3d import wall_3d
+    from ip3r.physics.lumen_charge import charged_lumen
+    from ip3r.physics.lumen_field import lumen_field
+
+    def uncached(*a, **k):
+        pytest.skip("8TKF's image field is not cached (python -m ip3r born)")
+    monkeypatch.setattr(born3d, "self_energy", uncached)
+    st, s = tkf
+    f = lumen_field(st, s, spacing=1.0)
+    w = born3d.born_field(st, s.frame, f.volume, _species(s)).energy
+    ref = {label: wall_3d(st, s, closures=("dielectric",), spacing=1.0,
+                          neutralise=off, surface="swept", self_energy=w)
+           for label, off in (("dipole + image", frozenset()),
+                              ("pair omitted + image",
+                               frozenset(lining_bridges(st)[0])))}
+    for paired, label in ((False, "dipole + image"), (True, "pair omitted + image")):
+        c = charged_lumen(st, f, "dielectric", s, pair_bridges=paired, image=True)
+        assert c.converged and c.image and c.born.cached
+        assert c.g == pytest.approx(ref[label].per_species["dielectric"]["K+"],
+                                    rel=1e-6), label
+    inside = f.volume.mask
+    assert np.all(np.isfinite(c.w[inside])) and np.all(np.isnan(c.w[~inside]))
+    assert np.all(c.w[inside] >= -1e-9)
+    # A cation feels u + W: u alone deepens where W is large.
+    assert c.well()[0] > c.well(energy=False)[0]
+    assert "+ image" in c.summary() and "u + W" in c.summary()
+    # Round 7.15's filter-axis W (1.19 kT), read on the lumen's own axis.
+    zf = s.constrictions["filter"].z
+    assert np.interp(zf, c.z, c.w_axis) == pytest.approx(1.19, abs=0.03)
+    plain = charged_lumen(st, f, "dielectric", s)
+    assert plain.w is None and np.all(np.isnan(plain.w_axis))
+    with pytest.raises(ValueError):
+        charged_lumen(st, f, "pb", s, image=True)
+
+
+def _species(s):
+    from ip3r.physics.permeation import potassium_species
+    from ip3r.physics.unitary import bath_for
+    return potassium_species(bath=bath_for(s.numbering.paralog))

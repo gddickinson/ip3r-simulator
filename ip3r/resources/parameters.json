@@ -4533,6 +4533,32 @@
    "maximum": 0.001
   },
   {
+   "key": "born.lumen_spacing",
+   "name": "Image-reading grid in the viewer",
+   "value": 1.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Voxel spacing of the lumen box's dielectric reading with the image cost (Round 7.16); the neutral field and the charge are solved on it too, so the reading is Round 7.15's.",
+   "source_note": "Round 7.15's readings and its cache are at 1 A (13-14 min per deposit on ten processes); W at 0.5 A would cost about 64 times that. The dielectric closure moves < 3 % between 1 and 0.5 A (Round 7.13's grid scan, x3.18 / 3.11)",
+   "minimum": 0.5,
+   "maximum": 2.0
+  },
+  {
+   "key": "display.lumen_image_range",
+   "name": "Lumen image-cost colour scale",
+   "value": 6.0,
+   "unit": "kT",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "The image cost W is drawn on a fixed ramp from 0 (blue) to this value (red); higher is drawn at the top colour (Round 7.16).",
+   "source_note": "Fixed, never auto-ranged: on the surface of 8TKF, 7T3T and 9HEO W's median is 1.9-2.0 kT and its 90th percentile 4.8-5.3 kT, so a tenth or less saturates and deposits compare by colour",
+   "minimum": 1.0,
+   "maximum": 30.0
+  },
+  {
    "key": "bench.points_outlier",
    "name": "Score: twilight-zone outlier",
    "value": 20,

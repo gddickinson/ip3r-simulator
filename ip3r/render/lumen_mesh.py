@@ -14,6 +14,9 @@ swapped by :meth:`LumenMesh.sample` without contouring again: the K+ drop
 on the same 0–1 ramp, or the wall potential on a fixed diverging scale of
 ± ``display.lumen_potential_range`` kT/e, cation wells blue and repulsive
 regions red (higher potential red, as for the drop).
+
+Round 7.16 adds the image cost W (:mod:`ip3r.physics.born3d`) on a fixed
+0 – ``display.lumen_image_range`` kT ramp, grey where it was not solved.
 """
 
 from __future__ import annotations
@@ -25,11 +28,12 @@ from ..parameters import PARAMETERS as _P
 from .colormaps import ramp
 
 __all__ = ["LumenMesh", "lumen_mesh", "drawn_mask", "wall_colors",
-           "COLOURINGS"]
+           "image_colors", "COLOURINGS"]
 
 #: What the surface can be coloured by: key -> label.
 COLOURINGS = {"drop": "voltage drop (0 lumen, 1 cytosol)",
-              "wall": "wall potential at equilibrium (kT/e)"}
+              "wall": "wall potential at equilibrium (kT/e)",
+              "image": "image cost W (kT per z², dielectric + image)"}
 
 
 class LumenMesh:
@@ -94,3 +98,10 @@ def wall_colors(u: np.ndarray, span: float | None = None) -> np.ndarray:
     0 pale, +span red; NaN grey."""
     span = _P.value("display.lumen_potential_range") if span is None else span
     return ramp(0.5 + 0.5 * np.asarray(u, float) / span)
+
+
+def image_colors(w: np.ndarray, top: float | None = None) -> np.ndarray:
+    """The image cost W (kT) on a fixed ramp: 0 blue to ``top`` red, higher
+    at the top colour; NaN (not solved) grey."""
+    top = _P.value("display.lumen_image_range") if top is None else top
+    return ramp(np.clip(np.asarray(w, float) / top, 0.0, 1.0))

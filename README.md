@@ -210,6 +210,17 @@ the cost. RyR1's wall does not pin it everywhere, so 9HEO falls ×3.86 →
 unchanged. The image cost is not what singles out D4899. Ion size at the
 crowded filter is the candidate left.
 
+The lumen box counts it too (dielectric → "+ image"; `python -m ip3r lumen
+8TKF --charge dielectric --image`), on a 1 Å grid, from the cache in about
+20 s. The surface can be coloured by W itself. With W, a cation's well is
+u + W. The potential u alone deepens to −16 kT/e at the wall, but K⁺'s
+well gets shallower (8TKF −6.2 → −5.1 kT). The image moves ITPR3's K⁺ drop
+back to the filter: 8TKF's dipole leaves it 29 % (24 % without W), near
+the neutral pore's 30 %. RyR1 9HEO's gate carries the drop with or without
+it (`docs/SCIENCE_BORN.md` §4).
+
+![8TKF's lumen coloured by the image cost](docs/img/gui_lumen_image.png)
+
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were
 run through the same pore (`python -m ip3r selectivity`). No reading of
@@ -473,7 +484,7 @@ python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
-python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired]]  # where the voltage falls: 3-D vs 1-D, neutral or charged
+python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired] [--image]]  # where the voltage falls: 3-D vs 1-D, neutral or charged
 python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
 python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
 python -m ip3r born [PDB] [--scan] [--mutants]    # the image cost of the low-eps wall on K+ g and Xu's mutants

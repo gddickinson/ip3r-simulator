@@ -5,7 +5,7 @@ Transition tab, and the park/drive cluster in its microdomain; Round
 publication views (the Genomes lesion layer opened from its check, a Range
 clade's S23 genomes, the VUS thresholds' intervals); Round 7.9's rat fill;
 Round 7.10's lumen and where the voltage falls; Round 7.12's charged lumen;
-Round 7.14's dielectric closure in it.
+Round 7.14's dielectric closure in it, and Round 7.16's image cost on that.
 
 ``ip3r_step`` follows the spark steps' contract: True means a worker is
 still running (call again), and a wrong result raises.
@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from ip3r.render.colormaps import ramp
-from ip3r.render.lumen_mesh import wall_colors
+from ip3r.render.colormaps import MISSING, ramp
+from ip3r.render.lumen_mesh import image_colors, wall_colors
 
 __all__ = ["IP3R_STEPS", "ip3r_step", "check_transition_headline"]
 
@@ -271,7 +271,7 @@ def _lumen_charged(win, app, out) -> bool:
 
 def _lumen_dielectric(win, app, out) -> bool:
     """Round 7.14: 8TKF's wall under the dielectric closure, the salt bridge
-    a dipole, equal to the headless reading; then everything switched off."""
+    a dipole, equal to the headless reading; then "+ image" ticked."""
     from ip3r.physics.lumen_charge import charged_lumen
     lc, sc = win.lumen, win.scene
     if lc.busy:
@@ -286,18 +286,57 @@ def _lumen_dielectric(win, app, out) -> bool:
         raise RuntimeError("the panel's dielectric reading is not the headless one")
     app.processEvents()
     win.grab().save(str(out / "gui_lumen_dielectric.png"))
+    box = win.channel.lumen_box                          # on to Round 7.16
+    if not box.image_box.isEnabled():
+        raise RuntimeError("'+ image' is not offered under the dielectric closure")
+    box.colour.setCurrentIndex(box.colour.findData("image"))
+    if not np.allclose(lc.mesh.colors, MISSING):
+        raise RuntimeError("the image colouring is not grey before W is solved")
+    box.image_box.setChecked(True)
+    return False
+
+
+def _lumen_image(win, app, out) -> bool:
+    """Round 7.16: 8TKF's dielectric wall with the image cost (Round 7.15's
+    cached W, the lumen re-cut at 1 Å), the surface coloured by W, equal to
+    the headless reading; then everything switched off."""
+    from ip3r.parameters import PARAMETERS as _P
+    from ip3r.physics.lumen_charge import charged_lumen
+    lc, sc = win.lumen, win.scene
+    if lc.busy:
+        return True
+    c = lc.charged
+    if c is None or not c.image:
+        raise RuntimeError(f"8TKF's image reading not built: {lc.message}")
+    if lc.field.volume.spacing != _P.value("born.lumen_spacing"):
+        raise RuntimeError("the image reading is not on its grid")
+    if not np.allclose(lc.mesh.colors, image_colors(lc.mesh.sample(c.w))):
+        raise RuntimeError("the surface is not coloured by the image cost")
+    labels = [ln.get_label() for ln in win.channel.canvas.axes[2, 0].get_lines()]
+    if not any("image cost" in t for t in labels) or \
+            "+ image" not in win.channel.lumen_info.text():
+        raise RuntimeError(f"image plot / text: {labels}")
+    head = charged_lumen(sc.structure, lc.field, "dielectric", sc.summary,
+                         image=True)
+    if abs(head.g - c.g) > 1e-9 * abs(c.g):
+        raise RuntimeError("the panel's image reading is not the headless one")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_image.png"))
     box = win.channel.lumen_box
-    for w, v in ((box.charge, "none"), (box.colour, "drop")):
-        w.setCurrentIndex(w.findData(v))
-    win.channel.show_lumen.setChecked(False)
+    win.channel.show_lumen.setChecked(False)     # first: no re-solve behind us
     if sc.scene.get("lumen") is not None:
         raise RuntimeError("unticking left the lumen drawn")
+    box.image_box.setChecked(False)
+    for w, v in ((box.charge, "none"), (box.colour, "drop")):
+        w.setCurrentIndex(w.findData(v))
+    if lc.busy:
+        raise RuntimeError("resetting the unticked lumen box started a solve")
     return False
 
 
 _STEPS = (_gating, _domain, _tree_pair_start, _tree_pair, _lesion_start, _lesion,
           _range_genomes, _vus_bands, _rat_fill_start, _rat_fill, _lumen_start, _lumen,
-          _lumen_charged, _lumen_dielectric)
+          _lumen_charged, _lumen_dielectric, _lumen_image)
 IP3R_STEPS = len(_STEPS)
 
 

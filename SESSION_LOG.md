@@ -2770,3 +2770,46 @@ the pore). No GUI change, so no screenshots. `make test` 621 passed; lint and
 sizes clean.
 
 **Next:** Round 7.16 (GUI): the image cost in the lumen box.
+
+## 2026-09-26 (31) — Round 7.16: the image cost in the lumen box
+
+**Why.** Round 7.15 measured the image cost only as conductances. The
+viewer could not show where W sits, or whether it moves the K+ drop. The
+roadmap asked for "+ image" on the dielectric closure and a W colouring.
+
+**What.**
+- `physics/lumen_charge.py`: `charged_lumen(image=True)` (dielectric only)
+  reads the deposit's W (`born_field`, cached) and solves on the swept
+  surface with z²W, exactly Round 7.15's readings. `ChargedLumen` gains
+  `born`, `w`, `w_axis`. `well()` reads u + W with the image.
+- `render/lumen_mesh.py`: `image_colors` and the "image" colouring.
+- `ui/lumen_view.py`, `ui/lumen_controller.py`: the "+ image" box (enabled
+  under dielectric; saved in the session's lumen view), W on the axis in
+  the plot and per constriction in the text. Ticking it re-cuts the
+  neutral field at `born.lumen_spacing`, because W at 0.5 Å would cost
+  about 64× Round 7.15's quarter hour.
+- `lumen --image` on the CLI. Two parameters: `born.lumen_spacing` (1 Å),
+  `display.lumen_image_range` (6 kT, from W's distribution on the three
+  surfaces: median 1.9–2.0, 90th percentile 4.8–5.3 kT).
+- Tests: the image ramp; "+ image" = Round 7.15's `wall_3d` readings to
+  1e-6 in K+ g (skipped when the cache is absent), filter-axis W 1.19 kT,
+  the well. Smoke-test step `_lumen_image` (grey before W, then coloured by
+  it, equal to the headless reading); `docs/img/gui_lumen_image.png`.
+
+**One correction on the way.** The first summary reported the deepest
+"cation well" as u, which went from −6 to −16 kT/e with the image. That
+is u paying for W at wall-contact voxels (W 15–16 kT there), not a deeper
+well. K+'s energy u + W is shallower (−5.1 kT). The summary now reports
+u + W and names u's depth beside it.
+
+**Found.** The image moves ITPR3's K+ drop back to the filter (8TKF dipole
+24 → 29 %, neutral 30 %; pair omitted 38 → 50 %; 7T3T 20 → 27 %, 36 →
+56 %). The steepest point stays at −83.9 Å. RyR1 9HEO's gate carries the
+drop with or without it; only g falls (K+ ×5.64 → ×3.28). Table in
+`docs/SCIENCE_BORN.md` §4.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore).
+
+**Next:** Round 7.17 (science): charge–space competition.
+

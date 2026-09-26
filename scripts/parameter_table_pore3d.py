@@ -118,4 +118,19 @@ PORE3D = [
        "started from the bulk solution (Round 7.15).", "W is half the "
        "difference of two potentials of order 40 kT; 1e-7 and 1e-10 agree "
        "to 1e-4 kT on the planar wall (tested)", 1e-12, 1e-3),
+    _p("born.lumen_spacing", "Image-reading grid in the viewer", 1.0, "A",
+       "method", "pore3d", "method_choice", "Voxel spacing of the lumen "
+       "box's dielectric reading with the image cost (Round 7.16); the "
+       "neutral field and the charge are solved on it too, so the reading "
+       "is Round 7.15's.", "Round 7.15's readings and its cache are at 1 A "
+       "(13-14 min per deposit on ten processes); W at 0.5 A would cost "
+       "about 64 times that. The dielectric closure moves < 3 % between "
+       "1 and 0.5 A (Round 7.13's grid scan, x3.18 / 3.11)", 0.5, 2.0),
+    _p("display.lumen_image_range", "Lumen image-cost colour scale", 6.0,
+       "kT", "convention", "display", "convention", "The image cost W is "
+       "drawn on a fixed ramp from 0 (blue) to this value (red); higher "
+       "is drawn at the top colour (Round 7.16).", "Fixed, never "
+       "auto-ranged: on the surface of 8TKF, 7T3T and 9HEO W's median is "
+       "1.9-2.0 kT and its 90th percentile 4.8-5.3 kT, so a tenth or less "
+       "saturates and deposits compare by colour", 1.0, 30.0),
 ]

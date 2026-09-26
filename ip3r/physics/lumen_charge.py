@@ -21,6 +21,12 @@ protein at ``dielectric.eps_protein``), two ways:
   potential itself would need Poisson at first order, which no reading
   here solves, so the panel names this the K+ drop and nothing else.
 
+Round 7.16 adds the image cost to the dielectric reading (``image=True``):
+Round 7.15's W (:mod:`.born3d`, cached per deposit) enters the equilibrium
+and the conduction as z²W on the swept surface, exactly its "dipole + image"
+(paired: "pair omitted + image"). W is solved on the neutral field's grid;
+the viewer cuts it at ``born.lumen_spacing``, Round 7.15's 1 Å grid and cache.
+
 The cation is the smallest ion of the family's bath, so the lumen field's
 volume *is* :func:`.charged3d.wall_3d`'s electrostatic volume, and ``g``
 here equals that function's K+ reading for the same closure (tested).
@@ -36,6 +42,7 @@ from ..core.structure import Structure
 from ..structure.channel import ChannelSummary, measure_channel
 from ._pnp_kernels import _donnan_potential
 from .charge3d import CLOSURES_3D, WallField, group_positions, wall_field
+from .born3d import BornField, born_field
 from .dielectric3d import DIELECTRIC, dielectric_field
 from .lumen_field import LumenField, plane_means
 from .ohmic3d import geometric_conductance
@@ -72,6 +79,28 @@ class ChargedLumen:
     mu_3d: np.ndarray                     # mean K+ drop over each plane (raw)
     area_1d: np.ndarray                   # Å², the 1-D model's K+ area
     converged: bool = True
+    #: Round 7.16: the image cost counted (dielectric only), its field.
+    born: BornField | None = field(default=None, repr=False)
+
+    @property
+    def image(self) -> bool:
+        return self.born is not None
+
+    @property
+    def w(self) -> np.ndarray | None:
+        """The image cost W (kT per z²) on the lumen, NaN outside; None
+        when not counted."""
+        if self.born is None:
+            return None
+        return np.where(self.neutral.volume.mask, self.born.energy, np.nan)
+
+    @property
+    def w_axis(self) -> np.ndarray:
+        """W at the lumen voxel nearest the axis on each window plane."""
+        if self.born is None:
+            return np.full(len(self.z), np.nan)
+        zs, w = self.born.on_axis(self.neutral.volume)
+        return np.interp(self.z, zs, w)
 
     @property
     def z(self) -> np.ndarray:
@@ -120,9 +149,12 @@ class ChargedLumen:
         return float(np.interp(z0 + half_width, self.z, f)
                      - np.interp(z0 - half_width, self.z, f))
 
-    def well(self) -> tuple[float, float]:
-        """The deepest cation well on the drawn voxels: (u in kT/e, its z)."""
-        vals = np.where(np.isfinite(self.u), self.u, np.inf)
+    def well(self, energy: bool = True) -> tuple[float, float]:
+        """The deepest cation well on the lumen: (kT/e, its z). With the
+        image cost the cation's energy is u + W, and u alone deepens where
+        W is large, so ``energy`` (the default) reads u + W; False reads u."""
+        e = self.u if (self.born is None or not energy) else self.u + self.w
+        vals = np.where(np.isfinite(e), e, np.inf)
         k = np.unravel_index(int(np.argmin(vals)), vals.shape)
         return float(vals[k]), float(self.neutral.volume.zs[k[2]])
 
@@ -131,9 +163,17 @@ class ChargedLumen:
         box = (f" ({self.wall.placed:+.1f} e in the box)"
                if self.closure == DIELECTRIC else "")
         u, z = self.well()
+        image, well = "", "deepest cation well"
+        if self.born is not None:
+            how = ("cached" if self.born.cached else
+                   f"solved in {self.born.seconds / 60:.0f} min")
+            image = (f" + image (W up to {np.nanmax(self.w_axis):.2f} kT on "
+                     f"the axis; {how})")
+            u0, _ = self.well(energy=False)
+            well = f"u alone reaches {u0:+.1f} kT/e where W is large; deepest K+ well (u + W)"
         text = (f"{self.neutral.name}, wall {self.charge.net_charge:+.1f} e{box}"
-                f"{pair}, {self.closure}: K+ g ×{self.ratio:.2f} of neutral; "
-                f"deepest cation well {u:+.1f} kT/e at z = {z:+.1f} Å; "
+                f"{pair}, {self.closure}{image}: K+ g ×{self.ratio:.2f} of neutral; "
+                f"{well} {u:+.1f} {'kT' if self.born else 'kT/e'} at z = {z:+.1f} Å; "
                 f"the K+ drop is steepest at z = {self.steepest_z():+.1f} Å")
         return text
 
@@ -155,15 +195,21 @@ def donnan_1d(charge: PoreCharge, species, z: np.ndarray) -> np.ndarray:
 
 def charged_lumen(st: Structure, neutral: LumenField, closure: str,
                   summary: ChannelSummary | None = None,
-                  pair_bridges: bool = False, species=None) -> ChargedLumen:
+                  pair_bridges: bool = False, species=None,
+                  image: bool = False, workers: int | None = None) -> ChargedLumen:
     """The wall charge of ``st`` placed by ``closure`` on ``neutral``'s
     volume, its equilibrium potential and the K+ drop through it. Under
     ``dielectric`` every modelled group in the box carries charge (scope
     ``all``): unpaired, a salt bridge is its two charges (Round 7.13's
-    dipole); paired, both partners are left out (its "pair omitted")."""
+    dipole); paired, both partners are left out (its "pair omitted").
+    ``image`` (dielectric only) adds Round 7.15's image cost on the swept
+    surface; its first solve on a deposit takes a quarter hour on
+    ``workers`` processes (default all), then it is read from the cache."""
     from .unitary import bath_for, permeation_profile
     if closure not in LUMEN_CLOSURES:
         raise ValueError(f"closure must be one of {LUMEN_CLOSURES}, not {closure!r}")
+    if image and closure != DIELECTRIC:
+        raise ValueError("the image cost needs the dielectric closure's protein")
     summary = summary or measure_channel(st)
     if species is None:
         paralog = summary.numbering.paralog if summary.numbering else None
@@ -176,8 +222,14 @@ def charged_lumen(st: Structure, neutral: LumenField, closure: str,
     vol = neutral.volume
     charge = pore_charge(st, summary.frame, permeation_profile(st, summary),
                          pair_bridges=pair_bridges)
+    born = None
     if closure == DIELECTRIC:
-        wf = dielectric_field(st, summary.frame, vol, species, charge, scope="all")
+        extra = {}
+        if image:
+            born = born_field(st, summary.frame, vol, species, workers=workers)
+            extra = {"surface": "swept", "self_energy": born.energy}
+        wf = dielectric_field(st, summary.frame, vol, species, charge,
+                              scope="all", **extra)
     else:
         positions = group_positions(st, summary.frame, charge.groups)
         wf = wall_field(vol, closure, species, charge, positions=positions)
@@ -193,4 +245,4 @@ def charged_lumen(st: Structure, neutral: LumenField, closure: str,
         charge=charge, u=u, mu=mu, g=lap.g,
         u_3d=plane_means(vol, u, keep), u_1d=donnan_1d(charge, species, neutral.z),
         mu_3d=plane_means(vol, mu, keep), area_1d=neutral.area_1d,
-        converged=wf.converged and lap.converged)
+        converged=wf.converged and lap.converged, born=born)

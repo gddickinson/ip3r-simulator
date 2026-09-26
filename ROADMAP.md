@@ -5,10 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.16 (GUI): the image cost in the Channel panel's lumen
-box: "+ image" on the dielectric closure (cached W, a 14-min first solve
-on a worker), and the lumen coloured by W. Then 7.17 (science):
-charge–space competition, through the same per-voxel energy hook. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.17 (science): charge–space competition, through the
+same per-voxel energy hook as the image cost (`self_energy`). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -677,6 +675,24 @@ item carried over from round n; it stays listed there too.
     ITPR3 filter's mean-field counter-ions are molar, and they would
     screen it further; a consistent treatment needs a reference at the
     local ionic strength, not the bath's.
+
+- [x] **7.16 GUI: the image cost in the lumen box.** Channel panel →
+  dielectric → "+ image"; `python -m ip3r lumen PDB --charge dielectric
+  --image [--paired]`. The whole reading moves to `born.lumen_spacing`
+  (1 Å, Round 7.15's grid and cache; ~20 s cached, a quarter hour on every
+  core uncached, on the worker). Colour by W on a fixed 0–6 kT ramp
+  (`display.lumen_image_range`), grey unsolved; W on the axis in the
+  plot. Equal to Round 7.15's "dipole + image" / "pair omitted + image"
+  in K+ g to 1e-6 (tested). **Found:** with W, u alone deepens to −16
+  kT/e at the wall while K+'s well (u + W) gets shallower (8TKF −6.2 →
+  −5.1 kT), so the panel reports the well as u + W. The image moves
+  ITPR3's K+ drop back to the filter: 8TKF dipole 24 → 29 % (neutral
+  30 %), pair omitted 38 → 50 %; 7T3T 20 → 27 %, 36 → 56 %. 9HEO's gate
+  carries 36–38 % either way; only its g falls (K+ ×5.64 → ×3.28).
+  Emergent:
+  - [ ] The "wall potential" colouring is u, not what a cation feels
+    once W is counted; a "K+ energy (u + W)" colouring would show the
+    well the summary names.
 
 ## Round 6 — ryanodine receptors
 
