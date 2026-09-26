@@ -597,3 +597,7 @@ Xu's charge mutants, formal wall (P_Ca:P_K relative to wild type):
   PROPKA buries it (pKa 8.0, −0.18 e), and the network keeps it at −1.00.
   D4945N barely moves anything (×0.93), which the network's ε ≤ 10 bound
   (−0.19 e) allows and does not require.
+
+**Continued in `SCIENCE_BRIDGE.md`** (Round 7.13): D2478 is ionised by
+both routes, and its salt bridge is read as a dipole with the protein in the
+field.

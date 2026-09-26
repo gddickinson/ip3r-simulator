@@ -2628,3 +2628,47 @@ conductance.
 the pore). `make test` 591 passed; lint, sizes, screenshots clean.
 
 **Next:** Round 7.13 (science): is 8TKF's D2478 charged?
+
+## 2026-09-25 (28) — Round 7.13: the lining salt bridge
+
+**Why.** Round 7.11's 3-D conductance and Round 7.12's drop both turned on
+how 8TKF's D2478–R2471′ bridges were counted: ×3.1 with D2478 alone,
+×0.5 with the pair removed. The roadmap asked whether D2478 is charged.
+
+**Reframed on the way.** Round 7.4's table already had D2478: charged by
+both routes. The real gap was the arginine. "Full" ignores its +1, and
+"paired" removes both charges, as if an ion pair had no field. Neither
+closure could put a charge *behind* the wall, because `pb` lets no field
+into the protein.
+
+**What.**
+- `physics/bridge_charge.py`: `lining_bridges`, `titrate_pair` (network
+  sigmoidal / ε 10 / ε 4, each with and without the base; PROPKA),
+  `pair_readings`, `pair_scan`. Command: `python -m ip3r bridge
+  [--scan] [--mutants]` (`cli_bridge.py`).
+- `physics/dielectric3d.py`: the `dielectric` closure. Nonlinear PB over
+  the whole box with harmonic-mean face ε, protein ε
+  `dielectric.eps_protein` (4, Schutz & Warshel 2001, a new reference), and
+  each group a `dielectric.charge_width` Gaussian at its own centre. Ions
+  are in the lumen only, and the Newton step is capped by its change there.
+  `wall_3d` accepts it (`scope`, `eps_protein`).
+- `tests/test_dielectric3d.py` (8 tests); `docs/SCIENCE_BRIDGE.md`.
+
+**Calibrated first.** Coulomb 3 %, interface flux 1e-6, the ε_p → 0 limit
+= `pb` to 0.02 kT/e, charge conserved. One test expectation was wrong:
+I tested the partner's cancellation at the lumen voxel next to the acid,
+where the acid's near field dominates (ratio 0.95). On the axis the
+cancellation is 0.51 against Coulomb's 0.46. Grid 1.0 / 0.75 / 0.5 Å:
+×3.18 / 3.11 / 3.11.
+
+**Found.** D2478's pKa is 2.0–2.5 with the bridge counted (4.0–4.8
+without) and 4.9–5.2 by PROPKA, in 8TKF and 7T3T. The Arg sits at 12–19.
+Read as a dipole, 8TKF's wall gives ×3.18 (partner omitted ×5.30, pair
+omitted ×1.79), and 7T3T ×3.47. With the rest of the box's charge
+counted, every reading raises g. The sensitivity scans are in the
+roadmap. RyR1 D4899Q is still ×0.79 against ×0.20.
+
+**Not changed.** `make sync-check` clean; no verdict moved (no check reads
+the pore). No GUI change. `make test` 600 passed; lint and sizes clean.
+
+**Next:** Round 7.14 (GUI): the dielectric closure in the lumen box.

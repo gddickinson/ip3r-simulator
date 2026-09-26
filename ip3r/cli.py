@@ -10,6 +10,7 @@ testable and scriptable:
     python -m ip3r states           # pore of every ITPR3 gating state (--paralog RYR1)
     python -m ip3r unitary          # K+ conductance of each state (--paralog RYR1)
     python -m ip3r selectivity 8TKF # P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
+    python -m ip3r bridge 8TKF      # the lining salt bridge: pKas, then its field (cli_bridge)
     python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
@@ -324,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
     _register_shortfall(sub)
     from .cli_wall3d import register as _register_wall3d
     _register_wall3d(sub)
+    from .cli_bridge import register as _register_bridge
+    _register_bridge(sub)
     from .cli_graft import register as _register_graft
     _register_graft(sub)
     p = sub.add_parser("modes")

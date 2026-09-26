@@ -83,4 +83,18 @@ PORE3D = [
        "Newton step may make; a larger step is scaled down.", "The "
        "exponential nonlinearity overshoots from a far start; any cap of "
        "order kT gives the same root", 0.1, 20.0),
+    _p("dielectric.eps_protein", "Protein relative permittivity", 4.0, "",
+       "method", "pore3d", "schutz2001", "Permittivity of every voxel not "
+       "open to the ion probe (protein, and the sealed membrane) in the "
+       "dielectric closure (Round 7.13).", "The value for charge-charge "
+       "interactions inside a protein depends on what the model treats "
+       "explicitly; 2-4 for a model without relaxation, higher for one "
+       "that folds it in. Swept 2-20, never tuned", 1.0, 40.0),
+    _p("dielectric.charge_width", "Dielectric charge width", 1.0, "A",
+       "method", "pore3d", "method_choice", "Gaussian width of each "
+       "ionisable group's charge about its own centre in the dielectric "
+       "closure, over every voxel it reaches (Round 7.13).", "About the "
+       "spread of a carboxylate's or guanidinium's charge over its atoms; "
+       "it regularises the point charge on the grid, and is swept", 0.25,
+       6.0),
 ]

@@ -169,6 +169,19 @@ carries almost none of it. With D2478's salt bridges paired the filter
 takes 23–38 % again. So where the voltage falls in the filter depends on
 the same open question as the conductance: whether D2478 is charged.
 
+That question is now answered (`python -m ip3r bridge`,
+`docs/SCIENCE_BRIDGE.md`). D2478 is ionised by both pKa routes (network
+pKa 2.0–2.2 with its R2471′ partner counted, 4.0–4.8 without it; PROPKA
+5.2), and the arginine never titrates. So the pair is two charges, a radial
+dipole behind the filter wall, and neither the full wall nor the paired one
+is a physical state. A new closure solves Poisson–Boltzmann over the whole
+box with the protein at ε 4 and every charged group at its own centre. It
+puts 8TKF's wall at ×3.18: between the partner omitted (×5.30) and the pair
+omitted (×1.79), and raising g in every reading once the rest of the
+protein's charge is counted (7T3T ×3.47). The protein's permittivity
+(2–20) moves this < 3 %. RyR1's D4899Q is still missed (×0.79 against
+×0.20), so no placement of point charges explains it.
+
 ![8TKF's lumen coloured by the paired wall's potential](docs/img/gui_lumen_charged.png)
 
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
@@ -436,6 +449,7 @@ python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
 python -m ip3r lumen [8TKF ...]     # where the voltage falls: 3-D potential vs the 1-D model
 python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
+python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)

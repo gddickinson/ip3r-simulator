@@ -5,7 +5,7 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.13 (science, from the open IP3R items below; 7.11's D2478 question is now the sharpest). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.14 (GUI, from the open IP3R items below: the dielectric closure in the lumen box is the nearest). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -560,9 +560,8 @@ item carried over from round n; it stays listed there too.
   all of them. So the placement of point charges is not what the continuum
   lacks at the filter.
   Emergent:
-  - [ ] Is 8TKF's D2478 charged? The 3-D readings now turn on it (×3.1
-    unpaired, ×0.52 paired). Round 7.4's network and PROPKA pKas for it,
-    with the R2471′ bridge counted, and 7T3T's equivalent.
+  - [x] Is 8TKF's D2478 charged? Yes (Round 7.13): the pair is a dipole,
+    and read so it gives ×3.18.
   - [ ] The charge–space item above is now the only candidate left for
     D4899Q. Test it in the 3-D linear-response frame (a local excess
     chemical potential per voxel enters the equilibrium, nothing else).
@@ -596,6 +595,33 @@ item carried over from round n; it stays listed there too.
   Emergent:
   - [ ] The panel's charged reading is K+'s alone; Cl-'s drop (the co-ion,
     which carries the rings' junction resistance in 1-D) is not drawn.
+
+- [x] **7.13 Science: the lining salt bridge** (`python -m ip3r bridge`,
+  `docs/SCIENCE_BRIDGE.md`). **D2478 is charged.** Its pKa is 2.0–2.5 by
+  the network with R2471′ counted (−3.6 at ε 4), 4.0–4.8 with it left out,
+  and 4.9–5.2 by PROPKA in 8TKF and 7T3T, and the arginine never titrates
+  (12–19). So the pair is two charges, a radial dipole (Arg CZ 3.6 Å
+  outward, same height). A new `dielectric` closure (`physics/dielectric3d.py`)
+  solves nonlinear PB over the whole box: protein ε 4 (a new
+  `dielectric.eps_protein`), every Asp/Glu/Lys/Arg in the box at its own
+  centre, ions only in the lumen. Calibrated on Coulomb (3 %), the
+  interface flux (1e-6), the ε_p → 0 limit = 7.11's `pb` (0.02 kT/e), and
+  a buried partner's axis cancellation (0.51 against Coulomb's 0.46).
+  **Found:** 8TKF's dipole ×3.18, between the partner omitted (×5.30) and
+  the pair omitted (×1.79). 7T3T is ×3.47 (5.77 / 2.01). With the rest of
+  the protein's charge in the field (−24 e in the box), the wall raises g
+  in every reading, so 7.11's "paired lowers g" was a lining-only
+  artefact. Robust: ε_p 2–20 ×3.18–3.25, width 0.5–3 Å ×3.17–4.00, water ε
+  20–80 ×2.67–3.81, box and margin < 1 %, grid 0.5 Å ×3.11. RyR1 9HEO:
+  D4899 is the weaker acid (pKa 4.1–6.7, still ≥ −0.8 e), and D4899Q under
+  the new closure is ×0.79 against ×0.20. So no placement of point
+  charges explains it.
+  Emergent:
+  - [ ] Offer the dielectric closure in the Channel panel's lumen box
+    (and where it puts the filter's share of the drop).
+  - [ ] Born (image) repulsion from the low-ε wall: the one electrostatic
+    term every closure still omits, and the cheapest step toward the
+    charge–space candidate for D4899Q.
 
 ## Round 6 — ryanodine receptors
 

@@ -4468,6 +4468,32 @@
    "maximum": 20.0
   },
   {
+   "key": "dielectric.eps_protein",
+   "name": "Protein relative permittivity",
+   "value": 4.0,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "schutz2001",
+   "description": "Permittivity of every voxel not open to the ion probe (protein, and the sealed membrane) in the dielectric closure (Round 7.13).",
+   "source_note": "The value for charge-charge interactions inside a protein depends on what the model treats explicitly; 2-4 for a model without relaxation, higher for one that folds it in. Swept 2-20, never tuned",
+   "minimum": 1.0,
+   "maximum": 40.0
+  },
+  {
+   "key": "dielectric.charge_width",
+   "name": "Dielectric charge width",
+   "value": 1.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Gaussian width of each ionisable group's charge about its own centre in the dielectric closure, over every voxel it reaches (Round 7.13).",
+   "source_note": "About the spread of a carboxylate's or guanidinium's charge over its atoms; it regularises the point charge on the grid, and is swept",
+   "minimum": 0.25,
+   "maximum": 6.0
+  },
+  {
    "key": "bench.points_outlier",
    "name": "Score: twilight-zone outlier",
    "value": 20,

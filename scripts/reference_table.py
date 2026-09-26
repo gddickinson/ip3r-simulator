@@ -263,6 +263,10 @@ REFERENCES = [
      "Garcia-Moreno B, McIntosh LP", "year": 2015,
      "title": "Arginine: its pKa value revisited",
      "journal": "Protein Sci 24:752-761", "doi": "10.1002/pro.2647"},
+    {"key": "schutz2001", "authors": "Schutz CN, Warshel A", "year": 2001,
+     "title": "What are the dielectric \"constants\" of proteins and how to "
+              "validate electrostatic models?",
+     "journal": "Proteins 44:400-417", "doi": "10.1002/prot.1106"},
     {"key": "mehler1991", "authors": "Mehler EL, Solmajer T", "year": 1991,
      "title": "Electrostatic effects in proteins: comparison of dielectric "
               "and charge models",

@@ -36,6 +36,7 @@ from ..structure.channel import ChannelSummary, measure_channel
 from ..structure.pore_volume import pore_volume
 from ._pnp_kernels import _donnan_potential
 from .charge3d import CLOSURES_3D, WallField, group_positions, wall_field
+from .dielectric3d import DIELECTRIC, dielectric_field
 from .ohmic3d import geometric_conductance
 from .permeation import (_accessible_area, _species_conductivity,
                          access_resistance, bulk_conductivity,
@@ -114,10 +115,13 @@ def wall_3d(st: Structure, summary: ChannelSummary | None = None,
             pair_bridges: bool = False, spacing: float | None = None,
             species=None, width: float | None = None,
             permittivity: float | None = None,
-            keep_fields: bool = False) -> Wall3D:
+            keep_fields: bool = False, scope: str = "all",
+            eps_protein: float | None = None) -> Wall3D:
     """A deposit's K+ conductance in 3-D, neutral and under each closure,
     in its family's bath. The electrostatics live on the smallest ion's
-    volume; each species conducts on its own."""
+    volume; each species conducts on its own. A closure may also be
+    ``dielectric`` (:mod:`.dielectric3d`, with ``scope`` and
+    ``eps_protein``)."""
     from .unitary import bath_for
     summary = summary or measure_channel(st)
     paralog = summary.numbering.paralog if summary.numbering else None
@@ -142,8 +146,13 @@ def wall_3d(st: Structure, summary: ChannelSummary | None = None,
         ok &= lap.converged
     charged, fields = {}, {}
     for closure in closures:
-        wf = wall_field(elec, closure, species, charge, positions=positions,
-                        width=width, permittivity=permittivity)
+        if closure == DIELECTRIC:
+            wf = dielectric_field(st, summary.frame, elec, species, charge,
+                                  scope=scope, neutralise=neutralise,
+                                  eps_protein=eps_protein)
+        else:
+            wf = wall_field(elec, closure, species, charge, positions=positions,
+                            width=width, permittivity=permittivity)
         ok &= wf.converged
         total, per[closure] = 0.0, {}
         for s in species:
