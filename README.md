@@ -614,6 +614,12 @@ calculation uses is a registered parameter with a unit, bounds and a source
 the SHA-256 of its source tables (`make sync-check`). Files stay under 500
 lines. What is next is in [`ROADMAP.md`](ROADMAP.md).
 
+The GUI is tested by driving the real application (`make screenshots`),
+which also writes the screenshots here. Its steps are in named groups, so a
+change can be checked by the groups it touches: `make screenshots
+STEPS=lumen,extras`, and `make screenshot-groups` lists them. `make
+screenshots-full` also runs every findings check in the GUI first.
+
 ## References
 
 De Young & Keizer 1992 (PNAS 89:9895); Li & Rinzel 1994 (J Theor Biol

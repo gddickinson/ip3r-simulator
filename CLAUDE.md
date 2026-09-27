@@ -24,8 +24,13 @@ on the roadmap. Port the method; never port a result.
 3. **Environment.** `conda activate ip3r_sim` (every `make` target does this
    itself). Structures: `make fetch` (idempotent, ~27 MB into `ref/`).
 4. **Work** the one task. Before finishing: `make test`, `make lint`,
-   `make sizes`, and — after any change under `ip3r/ui/` — `make screenshots`
-   (the scripted GUI smoke test; it exits non-zero on a broken panel).
+   `make sizes`, and — after any change under `ip3r/ui/` — the scripted GUI
+   smoke test, which exits non-zero on a broken panel. Run only the step
+   groups the change touches (`make screenshots STEPS=lumen,extras`; `make
+   screenshot-groups` lists them), or plain `make screenshots` (every group,
+   no findings checks) when unsure. Use `make screenshots-full` (adds every
+   findings check, ~13 min more) after changing the Findings panel or before
+   refreshing the README's findings screenshot.
 5. **Close.** Tick the round in `ROADMAP.md` with the result it measured;
    append to `SESSION_LOG.md` (what, and *why*); update `INTERFACE.md` for any
    structural change and `README.md` for any user-visible one; commit with a

@@ -82,7 +82,7 @@ class GatingPanel(QWidget):
         self.model = QComboBox()
         for key, label in MODELS.items():
             self.model.addItem(label, key)
-        self.model.currentIndexChanged.connect(self.draw)
+        self.model.currentIndexChanged.connect(self._redraw)
         row.addWidget(self.model)
         row.addStretch(1)
         lay.addLayout(row)
@@ -96,10 +96,13 @@ class GatingPanel(QWidget):
         lay.addWidget(self.text)
         self._stale = False
         self.follower = ParameterFollower(self)
-        self.follower.changed.connect(self._parameters_changed)
-        self.draw()
+        self.follower.changed.connect(self._redraw)
+        self._redraw()
 
-    def _parameters_changed(self) -> None:
+    def _redraw(self) -> None:
+        """Draw now if shown, else when next shown: a canvas never laid out
+        has no size, and matplotlib's transforms are singular there (a
+        restored session selecting the comparison aborted the app)."""
         if self.isVisible():
             self.draw()
         else:

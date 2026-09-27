@@ -119,25 +119,56 @@ def _fullscreen_start(win, app, out) -> bool:
     return False
 
 
+def _check_f11_binding(win):
+    """The design, independent of focus: full screen hides the menu bar,
+    so its shortcut must be the window's own action, in window context."""
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QKeySequence
+    act = win.fullscreen_action
+    if act not in win.actions() or not act.isEnabled():
+        raise RuntimeError("the full-screen action is not the window's own, or is disabled")
+    if QKeySequence("F11") not in act.shortcuts() or \
+            act.shortcutContext() != Qt.ShortcutContext.WindowShortcut:
+        raise RuntimeError(f"full screen's shortcuts {act.shortcuts()} / context")
+
+
 def _fullscreen(win, app, out) -> bool:
+    import sys
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QKeySequence, QShortcutEvent
+    from PyQt6.QtTest import QTest
     if not win.isFullScreen():
         return True                              # the platform animates it
-    app.processEvents()
-    if any(d.isVisible() for d in win.docks.docks) or win.statusBar().isVisible():
-        raise RuntimeError("full screen left a panel or the status bar shown")
-    if win.viewport.width() < 0.95 * win.width():
-        raise RuntimeError(f"the viewport fills {win.viewport.width()} of {win.width()} px")
-    if "Esc" not in win.hud.readouts.get("presentation", ""):
-        raise RuntimeError("no hint on how to leave full screen")
-    win.grab().save(str(out / "gui_fullscreen.png"))
-    from PyQt6.QtCore import Qt
-    from PyQt6.QtTest import QTest
+    tries = getattr(win, "_smoke_f11", 0)
+    if tries == 0:
+        app.processEvents()
+        if any(d.isVisible() for d in win.docks.docks) or win.statusBar().isVisible():
+            raise RuntimeError("full screen left a panel or the status bar shown")
+        if win.viewport.width() < 0.95 * win.width():
+            raise RuntimeError(f"the viewport fills {win.viewport.width()} of {win.width()} px")
+        if "Esc" not in win.hud.readouts.get("presentation", ""):
+            raise RuntimeError("no hint on how to leave full screen")
+        win.grab().save(str(out / "gui_fullscreen.png"))
+        _check_f11_binding(win)
+    elif not win.presentation.active:
+        print("  F11 left full screen as a key press", file=sys.stderr)
+        return False                             # F11 left, menu bar hidden
+    if tries >= 4:
+        # A window shortcut fires only in the focused window, and a
+        # background process cannot take focus from the app the user is in.
+        # Deliver F11 as the shortcut map would, to the bound action.
+        app.sendEvent(win.fullscreen_action, QShortcutEvent(QKeySequence("F11"), False))
+        app.processEvents()
+        if win.presentation.active:
+            raise RuntimeError("F11 did not leave full screen with the menu bar hidden")
+        print("  window not focused: F11 delivered to its action as a shortcut event",
+              file=sys.stderr)
+        return False
+    win._smoke_f11 = tries + 1
     win.activateWindow()
     QTest.keyClick(win.viewport, Qt.Key.Key_F11)   # a shortcut, menu bar hidden
     app.processEvents()
-    if win.presentation.active:
-        raise RuntimeError("F11 did not leave full screen with the menu bar hidden")
-    return False
+    return True
 
 
 def _fullscreen_left(win, app, out) -> bool:

@@ -3,7 +3,7 @@ ENV_NAME ?= ip3r_sim
 PY := conda run --no-capture-output -n $(ENV_NAME) python
 
 .DEFAULT_GOAL := help
-.PHONY: help env fetch sync sync-check params test test-quick checks states gui screenshots sizes lint
+.PHONY: help env fetch sync sync-check params test test-quick checks states gui screenshots screenshots-full screenshot-groups sizes lint
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -41,8 +41,16 @@ states:  ## Measure the pore of every ITPR3 gating state
 gui:  ## Launch the application
 	$(PY) -m ip3r
 
-screenshots:  ## GUI smoke test; writes docs/img screenshots
+STEPS ?= all
+
+screenshots:  ## GUI smoke test, no findings checks; STEPS=lumen,extras runs only those groups (list: make screenshot-groups)
+	$(PY) scripts/screenshot_app.py --steps $(STEPS)
+
+screenshots-full:  ## GUI smoke test with every findings check first (~13 min more); refreshes the findings screenshot
 	$(PY) scripts/screenshot_app.py --checks
+
+screenshot-groups:  ## List the smoke test's step groups
+	@$(PY) scripts/screenshot_app.py --list
 
 sizes:  ## Fail if any Python file exceeds 500 lines
 	@find ip3r scripts tests -name '*.py' -exec wc -l {} + | awk '$$1 > 500 && $$2 != "total" {print "TOO LONG: " $$2; bad=1} END {exit bad}'

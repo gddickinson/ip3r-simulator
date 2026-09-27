@@ -2980,3 +2980,58 @@ Round 7.18's extras alone (all pass, including the Analyses menu that
 gained `sel3d`). The run at the last commit hits the same timer, so this
 is not a regression. How to make the smoke test selective is the user's
 call, and is raised with them.
+
+## 2026-09-27 (35) — the smoke test in groups (user request)
+
+**Why.** The user asked whether everything in the smoke test needs to run
+every time; it had grown past its 20 min hang timer. The profile from
+Round 7.19 showed three causes:
+- `make screenshots` ran all 52 findings checks inside the GUI first
+  (~760 s), though `make checks` and the calibration tests already verify
+  them headlessly.
+- macOS App Nap throttled the background window to ~30 % of a core.
+- One global timer covered everything.
+
+**What.**
+- `scripts/screenshot_groups.py`: 14 named groups (`make
+  screenshot-groups`). Each begins by starting the work its first step
+  checks, so it runs the same alone or in sequence. `requires` adds the
+  groups it needs (session → transition, views → publication), and a run
+  without `core` loads the default deposit first.
+- `scripts/screenshot_core.py`: the first 22 steps moved out of the runner
+  unchanged, less the tails that start the next group's work, which became
+  `enter_*` functions.
+- `scripts/screenshot_awake.py`: holds a latency-critical NSProcessInfo
+  activity through ctypes (no PyObjC in the env); `pmset` shows the
+  assertion.
+- `screenshot_app.py` is now the runner: `--steps`, `--list`, a per-step
+  hang limit instead of one global timer, and time per group reported.
+- Makefile: `make screenshots [STEPS=...]` (no checks), `make
+  screenshots-full` (with them; the only run that saves the findings
+  screenshot, which needs verdicts), `make screenshot-groups`. The
+  CLAUDE.md protocol now says to run the groups a change touches.
+
+**Found on the way: a real GUI bug.** Running `params,session` alone
+aborted the app. A restored session selecting the gating comparison drew
+it on a Dynamics tab never shown; on a canvas with no size matplotlib's
+transform is singular, and an exception in a Qt slot aborts PyQt6. The full
+sequence always showed that tab earlier, which hid it. `GatingPanel` now
+defers a model change as it already deferred a parameter edit: drawn now
+if shown, else when next shown.
+
+**Measured.** Every group was run alone (load ~2 s, then: core 5, transition
+6, publication 1, dynamics 1, unitary 10, params 1, session 15 with
+transition, ryr 2, sparks 58, models 10, views 2 with publication, ratfill
+1, extras 2 s). The full default run took ~11 min, 438 s of it the lumen
+group, against ~20 min + a timeout before.
+
+**A flaky step, found by running with --checks.** The full-screen step
+pressed F11 and expected the window shortcut to fire, but a window shortcut
+fires only in the focused window. A background process cannot take focus
+from the app the user is in: `NSApplication activateIgnoringOtherApps:` is
+ignored on this macOS, and Qt never reports the window active. So it passed
+or failed with whatever the user was doing. The step now checks the design
+itself, focus-free: the full-screen action is the window's own, with F11,
+in window context. It then presses F11 for ~2 s, and if focus is
+elsewhere, delivers F11 to that action as a shortcut event. It prints which
+route it took.
