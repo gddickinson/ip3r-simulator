@@ -104,7 +104,16 @@ dielectric closure (every charged group behind a protein of low ε).
 voltage drop; the wall potential u; the <b>K<sup>+</sup> energy u + W</b>,
 the well a cation actually feels (Round 7.18; u alone without the image);
 or W itself. Scales are fixed (± display.lumen_potential_range kT,
-0–display.lumen_image_range kT).</p>""",
+0–display.lumen_image_range kT).</p>
+<p><b>Steady state → at reversal</b> (Round 7.24) replaces the wall charge
+with Round 7.23's bi-ionic experiment (Ca<sup>2+</sup>, or Cl<sup>−</sup>
+for IP3R) solved to the voltage where no net current flows, under the
+neutral, pb or pb + csc reading, on the 1 Å reversal grid (a minute or
+two). Colour by each ion's <b>concentration</b> (fixed log scale,
+display.lumen_conc_min–display.lumen_conc_max M) or its
+<b>electrochemical drop</b> (0 lumen, 1 cytosol: where it rises steeply is
+where that ion's resistance lies). The plot gives each ion's concentration
+against its baths and its drop beside the neutral pore's.</p>""",
 
     "Analyses menu": """
 <p>Analyses runs the command-line science in its own process, the same

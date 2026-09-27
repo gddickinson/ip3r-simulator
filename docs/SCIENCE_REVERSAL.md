@@ -159,6 +159,52 @@ P_Cl:P_K falls as soon as the wall is charged. It halves by a twentieth of
 the deposit's charge. P_Ca:P_K never reaches 1 and turns down past the
 deposit's own charge. No scale comes near the measured pair.
 
+## In the viewer: each ion at reversal (Round 7.24)
+
+Channel panel → lumen box → **Steady state: at reversal** solves one
+experiment of the family's protocol under one reading
+(`physics/lumen_reversal.py`; headless `python -m ip3r reversal PDB
+--lumen [READING ...] [--experiment Ca2+|Cl-]`). The surface is cut from
+the reversal grid's electrostatic volume (1 Å, Ca²⁺'s radius), and is
+coloured by one ion's
+
+- **concentration** `c = n e^{−(zψ + μ)}`, the charge Poisson counts, on
+  a fixed log scale (`display.lumen_conc_min`–`display.lumen_conc_max`,
+  1 mM–10 M);
+- **electrochemical drop** `(n − n_lumen)/(n_cytosol − n_lumen)`, 0 at the
+  luminal bath and 1 at the cytosolic. With flux `−D e^{−E} ∇n`, this is
+  the ion's own series resistance accumulated from the lumen.
+
+Calibrated on tubes: an uncharged 0.3/1.4 M junction's concentrations are
+Planck's straight lines and electroneutral (to 1 % of the range); across an
+acidic band each ion's drop equals ∫e^{E}dz accumulated, normalised, to
+2×10⁻⁴ (the other ion's resistance misses by 0.72). The counter-ion K⁺
+drops 0.2 % across the band and the co-ion Cl⁻ 72 %.
+
+The Ca²⁺ experiment (Vais's for 8TKF and 7T3T, Xu's for 9HEO), shares of
+each ion's drop within ± 3 Å of each constriction:
+
+| deposit, reading | V_rev | Ca²⁺ peak (z) | Ca²⁺ filter / gate | Ca²⁺ steepest | K⁺ filter / gate | Cl⁻ filter / gate |
+|---|---|---|---|---|---|---|
+| 8TKF neutral | −0.09 mV | 0.01 M | 28 / 11 % | −84.9 | 31 / 13 % | 49 / 10 % |
+| 8TKF pb + csc | +3.59 mV | 5.8 M (−89.9) | 7 / 31 % | −76.9 | 24 / 20 % | 45 / 7 % |
+| 9HEO neutral | +0.13 mV | 0.01 M | 25 / 20 % | −75.9 | 31 / 20 % | 27 / 30 % |
+| 9HEO pb + csc | +1.72 mV | 8.2 M (−90.9) | 3 / 60 % | −75.9 | 22 / 35 % | 28 / 18 % |
+| 7T3T neutral | +0.37 mV | 0.01 M | 26 / 13 % | −83.9 | 30 / 15 % | 37 / 14 % |
+| 7T3T pb + csc | +4.63 mV | 6.2 M (−90.9) | 6 / 0 % | −82.9 | 25 / 4 % | 27 / 30 % |
+
+(filter z −85.9 / −86.9 / −86.9 Å; gate −76.4 / −76.9 / −66.4 Å.)
+
+**What it shows.** The wall gathers Ca²⁺ to 6–8 M a few ångström luminal of
+the filter, 600–800× its bath, and that well carries almost none of Ca²⁺'s
+drop (3–7 %, from about a quarter in the neutral pore). Ca²⁺'s resistance
+sits in the uncharged stretch cytosolic of the well: at the gate in 9HEO
+(60 %) and 8TKF (31 %), and just past the filter in 7T3T, whose gate is
+20 Å away and wide. Round 7.19 found this in linear response, and Round
+7.21 found that widening the gate only moves it. At reversal the picture
+holds, and the viewer shows it directly: P_Ca:P_K is set where the
+deposits place no charge.
+
 ## What it means
 
 GHK's two readings of permeability, linear response and reversal, agree

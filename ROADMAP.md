@@ -5,11 +5,10 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.24 (GUI): the lumen at reversal: colour the lumen by
-each ion's concentration and electrochemical drop in Round 7.23's steady
-state at the family's reversal, Cl⁻ included (closing 7.10's open item).
-The viewer then shows where Ca²⁺ binds and where each ion's resistance lies
-when no current flows. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.25 (Science): the Cl⁻ reading as a constraint (7.23's
+emergent item). Search wall models, scored on P_Cl:P_K and P_Ca:P_K at
+once, for charge placements or missing groups that pass Cl⁻ at 0.27 and
+still select Ca²⁺. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -849,6 +848,22 @@ item carried over from round n; it stays listed there too.
   - [ ] The Cl⁻ reading as a constraint: which charge placements (or
     missing groups) pass Cl⁻ at 0.27 and still select Ca²⁺? A search over
     wall models scored on both ratios at once.
+
+- [x] **7.24 GUI: the lumen at reversal** (`physics/lumen_reversal.py`,
+  `ui/lumen_reversal_view.py`, `reversal --lumen`). Lumen box → Steady
+  state → at reversal (neutral / pb / pb + csc), with the experiment
+  (Ca²⁺, or Cl⁻ for IP3R). It solves Round 7.23's steady state and colours
+  the reversal grid's lumen by each ion's concentration (fixed log scale,
+  1 mM–10 M) or electrochemical drop. The plot shows each ion's
+  concentration against its baths and its drop beside the neutral pore's.
+  This closes 7.10's Cl⁻ item. Calibrated on tubes: Planck's straight
+  lines, and each ion's drop equal to its own accumulated resistance
+  (2×10⁻⁴; the other ion's misses by 0.72). **Found:** the well carries
+  almost none of Ca²⁺'s drop. Under pb + csc, Ca²⁺ reaches 5.8 / 8.2 /
+  6.2 M near the filter (8TKF / 9HEO / 7T3T), which is 3–7 % of its drop.
+  Its resistance lies at the gate (8TKF 31 %, 9HEO 60 %), or just past the
+  filter where the gate is far and wide (7T3T). That is 7.19's and 7.21's
+  finding, seen at reversal.
 
 ## Round 6 — ryanodine receptors
 

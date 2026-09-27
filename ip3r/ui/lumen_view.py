@@ -5,7 +5,10 @@ Controls: draw the lumen; the wall charge's placement (none = the neutral
 pore of Round 7.10, one of Round 7.11's closures, or Round 7.13's
 dielectric one) and whether salt bridges are paired; under dielectric,
 whether the image cost is counted (Round 7.15's W, which puts the whole
-reading on ``born.lumen_spacing``'s grid); what the surface is coloured by. The solve itself is
+reading on ``born.lumen_spacing``'s grid); or, instead of all three,
+Round 7.24's steady state at reversal (a reading of Round 7.23 and one
+experiment of the family's protocol, on ``reversal3d.spacing``'s grid);
+what the surface is coloured by. The solve itself is
 :class:`~ip3r.ui.lumen_controller.LumenController`'s.
 
 The plot sets the 3-D reading beside the 1-D model's on S0's window: the
@@ -24,14 +27,21 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QHBoxLayout, QLabel,
 
 from ..physics.dielectric3d import DIELECTRIC
 from ..physics.lumen_charge import CLOSURE_LABELS, LUMEN_CLOSURES
+from ..physics.reversal3d import READINGS as REVERSAL_READINGS
 from ..render.lumen_mesh import COLOURINGS
 from .plot_canvas import PALETTE
 from .view_state import set_check, set_combo
 
-__all__ = ["LumenControls", "draw_lumen", "NO_CHARGE"]
+__all__ = ["LumenControls", "draw_lumen", "NO_CHARGE", "EQUILIBRIUM",
+           "EXPERIMENTS"]
 
 #: The wall-charge choice meaning "the neutral pore".
 NO_CHARGE = "none"
+#: The reversal choice meaning "not at reversal" (Rounds 7.10–7.18).
+EQUILIBRIUM = "equilibrium"
+#: Round 7.23's experiments: key -> label (RyR1's protocol has only Ca2+).
+EXPERIMENTS = {"Ca2+": "Ca2+ (luminal CaCl2)",
+               "Cl-": "Cl- (dilute luminal KCl + NMDG-Cl; IP3R only)"}
 
 
 class LumenControls(QWidget):
@@ -87,6 +97,33 @@ class LumenControls(QWidget):
         row.addWidget(self.image_box)
         lay.addLayout(row)
         row = QHBoxLayout()
+        row.addWidget(QLabel("Steady state"))
+        self.reversal_box = QComboBox()
+        self.reversal_box.addItem("equilibrium / linear response (the wall "
+                                  "charge above)", EQUILIBRIUM)
+        for r in REVERSAL_READINGS:
+            self.reversal_box.addItem(f"at reversal: {r}", r)
+        self.reversal_box.setToolTip(
+            "Round 7.23's bi-ionic reversal: the family's protocol solved by "
+            "3-D Poisson-Nernst-Planck to the voltage where no net current "
+            "flows, under one reading (neutral / pb / pb + csc; the wall "
+            "charge above is then not used). Solved on reversal3d.spacing's "
+            "grid (1 A) for the smallest ion, so the surface is that grid's. "
+            "Colour by one ion's concentration or electrochemical drop. "
+            "About a minute (pb + csc longer).")
+        self.reversal_box.currentIndexChanged.connect(self._charge)
+        row.addWidget(self.reversal_box, 1)
+        self.experiment = QComboBox()
+        for k, label in EXPERIMENTS.items():
+            self.experiment.addItem(label, k)
+        self.experiment.setToolTip(
+            "Which experiment of the protocol: Vais 2010's P_Ca:P_K (IP3R) or "
+            "Xu 2006's (RyR1), with luminal CaCl2; or Vais's P_Cl:P_K, dilute "
+            "luminal KCl with impermeant NMDG-Cl (IP3R only).")
+        self.experiment.currentIndexChanged.connect(self._charge)
+        row.addWidget(self.experiment)
+        lay.addLayout(row)
+        row = QHBoxLayout()
         row.addWidget(QLabel("Colour by"))
         self.colour = QComboBox()
         for k, label in COLOURINGS.items():
@@ -99,7 +136,12 @@ class LumenControls(QWidget):
             "W is large). K+ energy: u + W on the same scale, the well the "
             "summary names (u alone without the image). Image "
             "cost: a fixed 0 to display.lumen_image_range kT, grey unless "
-            "'+ image' is on.")
+            "'+ image' is on. At reversal: one ion's concentration on a fixed "
+            "log scale (display.lumen_conc_min to display.lumen_conc_max M), "
+            "or its electrochemical drop 0 lumen to 1 cytosol (where it "
+            "rises steeply is where that ion's resistance lies); grey unless "
+            "a reversal is drawn and its experiment carries the ion. Wall, "
+            "K+ energy and image are grey at reversal.")
         self.colour.currentIndexChanged.connect(lambda _: self.colour_changed.emit())
         row.addWidget(self.colour, 1)
         lay.addLayout(row)
@@ -116,9 +158,16 @@ class LumenControls(QWidget):
         return None if c == NO_CHARGE else c
 
     @property
+    def reversal(self) -> str | None:
+        """Round 7.23's reading to solve at reversal, or None."""
+        r = self.reversal_box.currentData()
+        return None if r == EQUILIBRIUM else r
+
+    @property
     def image(self) -> bool:
         """The image cost counted (ticked, under the dielectric closure)."""
-        return self.image_box.isChecked() and self.closure == DIELECTRIC
+        return (self.image_box.isChecked() and self.closure == DIELECTRIC
+                and self.reversal is None)
 
     @property
     def spacing(self) -> float | None:
@@ -141,20 +190,26 @@ class LumenControls(QWidget):
 
     def _enable(self) -> None:
         on = self.show.isChecked()
-        self.charge.setEnabled(on)
         self.colour.setEnabled(on)
-        self.pairs.setEnabled(on and self.closure is not None)
-        self.image_box.setEnabled(on and self.closure == DIELECTRIC)
+        eq = self.reversal is None
+        self.charge.setEnabled(on and eq)
+        self.pairs.setEnabled(on and eq and self.closure is not None)
+        self.image_box.setEnabled(on and eq and self.closure == DIELECTRIC)
+        self.reversal_box.setEnabled(on)
+        self.experiment.setEnabled(on and not eq)
 
     def view_state(self) -> dict:
         return {"charge": self.charge.currentData(), "pairs": self.pairs.isChecked(),
                 "image": self.image_box.isChecked(),
+                "reversal": self.reversal_box.currentData(),
+                "experiment": self.experiment.currentData(),
                 "colour": self.colour.currentData()}
 
     def restore(self, d: dict) -> list[str]:
         """Set the controls without emitting; the caller re-requests."""
         notes: list[str] = []
-        widgets = (self.charge, self.pairs, self.image_box, self.colour)
+        widgets = (self.charge, self.pairs, self.image_box, self.reversal_box,
+                   self.experiment, self.colour)
         for w in widgets:
             w.blockSignals(True)
         try:
@@ -164,6 +219,12 @@ class LumenControls(QWidget):
                 set_check(self.pairs, d["pairs"], "lumen salt bridges", notes)
             if "image" in d:
                 set_check(self.image_box, d["image"], "lumen image cost", notes)
+            if "reversal" in d:
+                set_combo(self.reversal_box, d["reversal"], "lumen steady state",
+                          notes)
+            if "experiment" in d:
+                set_combo(self.experiment, d["experiment"],
+                          "lumen reversal experiment", notes)
             if "colour" in d:
                 set_combo(self.colour, d["colour"], "lumen colouring", notes)
         finally:

@@ -1,0 +1,76 @@
+"""The lumen box's plot at reversal (Round 7.24).
+
+Three rows on S0's window, the reversal grid's lumen:
+
+- the lumen's area, 3-D against the 1-D inscribed circle (as Round 7.10);
+- each ion's plane-mean concentration on a log scale, its two baths marked
+  at the ends, so a well (Ca²⁺ in the filter) or an exclusion (Cl⁻ in a
+  charged wall) reads against the solution it came from;
+- each ion's electrochemical drop beside the neutral pore's: where each
+  rises steeply is where its resistance lies.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+
+from .plot_canvas import PALETTE
+
+__all__ = ["draw_reversal", "ION_COLOURS"]
+
+#: One colour per ion, the same on every row.
+ION_COLOURS = {"K+": PALETTE[0], "Cl-": PALETTE[2], "Ca2+": PALETTE[1]}
+
+
+def draw_reversal(canvas, rev, s) -> str:
+    """Plot ``rev`` (a :class:`~ip3r.physics.lumen_reversal.ReversalLumen`)
+    for the channel summary ``s`` on ``canvas``; returns the panel's text."""
+    from ..parameters import PARAMETERS as _P
+    f = rev.lumen
+    axes = canvas.reset(3, 1)
+    area, conc, drop = axes[0, 0], axes[1, 0], axes[2, 0]
+    area.plot(f.z, f.area_3d, color=PALETTE[0], lw=1.4, label="3-D: lumen region")
+    area.plot(f.z, f.area_1d, color=PALETTE[2], lw=1.0,
+              label="1-D: π (r_free − r_ion)²")
+    area.set_ylabel("area (Å²)")
+    area.set_title(f"{f.name}: {rev.experiment} experiment at reversal "
+                   f"({rev.reading}), V = {rev.v * 1e3:+.1f} mV", fontsize=8)
+    for ion in rev.species:
+        col = ION_COLOURS[ion]
+        c = rev.conc_3d(ion)
+        conc.plot(f.z, np.where(c > 0, c, np.nan), color=col, lw=1.4,
+                  label=f"{ion}: plane mean")
+        lum, cyt = rev.baths[ion]
+        for z, b in ((f.z[0], lum), (f.z[-1], cyt)):
+            if b > 0:
+                conc.plot([z], [b], marker="o", ms=4, color=col, ls="none")
+        drop.plot(f.z, rev.drop_3d(ion), color=col, lw=1.4, label=ion)
+    conc.set_yscale("log")
+    conc.set_ylabel("c (M), ● bath")
+    drop.plot(f.z, f.drop_3d, color="#8a8f99", lw=1.0, ls="--",
+              label="neutral pore (Laplace)")
+    drop.set_ylabel("ion drop")
+    drop.set_ylim(-0.02, 1.02)
+    drop.set_xlabel("z along the four-fold axis (Å; luminal ← → cytosolic)")
+    w = _P.value("lumen.constriction_half_width")
+    for c in s.constrictions.values():
+        for ax in axes[:, 0]:
+            ax.axvline(c.z, color="#8a8f99", lw=0.6, ls=":")
+        drop.annotate(c.name, (c.z, 0.05), xytext=(3, 0),
+                      textcoords="offset points", color="#d7dbe3", fontsize=7,
+                      xycoords=("data", "axes fraction"))
+    for ax in axes[:, 0]:
+        canvas.legend(ax, loc="upper left")
+    canvas.draw_now()
+    lines = [rev.summary() + "."]
+    for c in s.constrictions.values():
+        shares = ", ".join(f"{ion} {rev.drop_across(ion, c.z, w):.0%}"
+                           for ion in rev.species)
+        lines.append(f"{c.name} (z {c.z:+.1f} ± {w:.0f} Å): {shares} of each "
+                     "ion's drop")
+    note = (f"Round 7.23's steady state on its own {f.volume.spacing:g} Å grid "
+            f"({f.species}'s volume, the electrostatic one), not the "
+            "equilibrium box's. Concentrations are what Poisson counts; an ion "
+            "too large for a voxel takes its nearest own voxel's n there. At "
+            "reversal the ions' currents cancel, each still flows.")
+    return "<br>".join(lines) + f"<br><i>{note}</i>"

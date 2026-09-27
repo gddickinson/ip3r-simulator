@@ -17,6 +17,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QCheckBox, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from ..core import genes_data as G
+from .lumen_reversal_view import draw_reversal
 from .lumen_view import LumenControls, draw_lumen
 from .plot_canvas import PALETTE, PlotCanvas
 
@@ -119,6 +120,10 @@ class ChannelPanel(QWidget):
         """The lumen's area and where the voltage falls along the window, 3-D
         against the 1-D model; with a wall charge, its potential too."""
         self.set_lumen_info(draw_lumen(self.canvas, f, s, charged))
+
+    def show_lumen_reversal(self, rev, s) -> None:
+        """Round 7.24: each ion's concentration and drop at reversal."""
+        self.set_lumen_info(draw_reversal(self.canvas, rev, s))
 
     def set_paralog(self, paralog: str | None) -> None:
         """Point the state and conductance buttons at the loaded deposit's

@@ -3170,3 +3170,46 @@ Added as an emergent item: search wall models scored on both ratios.
 
 **Next.** Round 7.24 (GUI): the lumen at reversal, coloured by each ion's
 concentration and electrochemical drop, Cl⁻ included.
+
+## 2026-09-27 (39) — Round 7.24: the lumen at reversal, each ion
+
+**Why.** The Next item. The viewer had shown only equilibrium or linear
+response, and only for K+ (7.10's open item: Cl⁻ never drawn). The
+measured ratios are read at bi-ionic reversal, which Round 7.23 solved but
+did not show.
+
+**What.** `physics/lumen_reversal.py`: one experiment under one reading,
+solved to reversal (`reversal3d.steady_at_reversal`, split out of
+`_reading` with `concentration`; Round 7.23's numbers unchanged). It is
+read on a `LumenField` of the reversal grid's own electrostatic volume
+(1 Å, Ca²⁺'s radius; the 0.5 Å K+ box is a different grid, so the surface
+is recut rather than resampled). Each ion's concentration is what Poisson
+counts, and its drop is (n − n_lum)/(n_cyt − n_lum). GUI: a "Steady state"
+row (equilibrium, or at reversal under neutral / pb / pb + csc) and the
+experiment; six new colourings (`conc:ion`, `rdrop:ion`). A colouring that
+does not apply is grey, as the image cost already was. The plot is in
+`ui/lumen_reversal_view.py`. There is a headless `reversal --lumen`, two
+registered display scales (`display.lumen_conc_min/max`), session keys
+`reversal`/`experiment`, a guide paragraph, and smoke group `reversal`.
+One reading takes 50–85 s on 8TKF.
+
+**Calibrated.** Tubes: an uncharged junction's concentrations are
+Planck's straight lines; each ion's drop = its own ∫e^E dz accumulated
+(2e-4, against 0.72 for the other ion's), so "steep drop = resistance"
+is exact in 1-D.
+
+**Found.** Under pb + csc the well holds Ca²⁺ at 6–8 M near the filter
+yet carries 3–7 % of its drop. The resistance sits in the uncharged
+stretch cytosolic of the well: 8TKF gate 31 %, 9HEO gate 60 %, 7T3T just
+past the filter (its gate far and wide). This is Rounds 7.19/7.21's
+finding at reversal, now visible on the structure.
+
+**Also.** The smoke step ticked the box while 6DQN (shut) was still
+loaded, and the solve there died with a bare numpy error. Now a deposit
+where any of the experiment's ions has no path is refused by name
+(tested on 6DQN). 8TKG's 1 Å Ca²⁺ path is refused by reversal3d's own
+"no reversal within ±100 mV".
+
+**Checks.** `make test`: 701 passed (the new file's final edits rerun on
+their own). Lint and sizes are clean. Smoke groups `lumen`, `reversal` and
+`extras` pass, and `reversal` also passes alone.

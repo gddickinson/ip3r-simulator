@@ -133,6 +133,19 @@ PORE3D = [
        "auto-ranged: on the surface of 8TKF, 7T3T and 9HEO W's median is "
        "1.9-2.0 kT and its 90th percentile 4.8-5.3 kT, so a tenth or less "
        "saturates and deposits compare by colour", 1.0, 30.0),
+    _p("display.lumen_conc_min", "Lumen concentration scale, low end",
+       1e-3, "M", "convention", "display", "convention", "Round 7.24: an "
+       "ion's concentration at reversal is drawn on a fixed log ramp from "
+       "this (blue; lower, including none, drawn at it) to "
+       "display.lumen_conc_max (red).", "Fixed, never auto-ranged: a "
+       "decade below the lowest bath (Vais's 10 mM CaCl2), so every bath "
+       "reads above the floor and deposits compare by colour", 1e-6, 0.1),
+    _p("display.lumen_conc_max", "Lumen concentration scale, high end",
+       10.0, "M", "convention", "display", "convention", "Round 7.24: the "
+       "top of the fixed log ramp for an ion's concentration at reversal; "
+       "higher is drawn at the top colour.", "8TKF's pb + csc reversal "
+       "reaches 5.8 M Ca2+ (Ca2+ experiment) and 8.7 M K+ (Cl- experiment), "
+       "so nothing saturates", 0.5, 100.0),
     _p("gate.widen_half_width", "Gate widening half-width", 8.0, "A",
        "method", "pore3d", "method_choice", "Round 7.21: atoms within this "
        "axial distance of the gate constriction are moved radially outward "

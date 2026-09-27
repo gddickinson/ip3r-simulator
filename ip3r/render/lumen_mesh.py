@@ -17,6 +17,12 @@ regions red (higher potential red, as for the drop).
 
 Round 7.16 adds the image cost W (:mod:`ip3r.physics.born3d`) on a fixed
 0 – ``display.lumen_image_range`` kT ramp, grey where it was not solved.
+
+Round 7.24 adds each ion at reversal (:mod:`ip3r.physics.lumen_reversal`):
+its concentration on a fixed log ramp from ``display.lumen_conc_min`` to
+``display.lumen_conc_max`` (M), and its electrochemical drop on the 0–1
+ramp. Both are grey outside a reversal reading, or for an ion the
+experiment does not carry.
 """
 
 from __future__ import annotations
@@ -28,13 +34,28 @@ from ..parameters import PARAMETERS as _P
 from .colormaps import ramp
 
 __all__ = ["LumenMesh", "lumen_mesh", "drawn_mask", "wall_colors",
-           "image_colors", "COLOURINGS"]
+           "image_colors", "conc_colors", "COLOURINGS", "REVERSAL_IONS",
+           "reversal_key"]
 
 #: What the surface can be coloured by: key -> label.
 COLOURINGS = {"drop": "voltage drop (0 lumen, 1 cytosol)",
               "wall": "wall potential at equilibrium (kT/e)",
               "energy": "K+ energy u + W (kT; = u without the image)",
               "image": "image cost W (kT per z², dielectric + image)"}
+
+#: The ions a reversal colouring can show (Round 7.24).
+REVERSAL_IONS = ("K+", "Cl-", "Ca2+")
+for _ion in REVERSAL_IONS:
+    COLOURINGS[f"conc:{_ion}"] = f"at reversal: {_ion} concentration (log M)"
+for _ion in REVERSAL_IONS:
+    COLOURINGS[f"rdrop:{_ion}"] = (f"at reversal: {_ion} electrochemical drop "
+                                   "(0 lumen, 1 cytosol)")
+
+
+def reversal_key(key: str) -> tuple[str, str] | None:
+    """``("conc" | "rdrop", ion)`` for a reversal colouring, else None."""
+    kind, _, ion = key.partition(":")
+    return (kind, ion) if kind in ("conc", "rdrop") and ion else None
 
 
 class LumenMesh:
@@ -106,3 +127,15 @@ def image_colors(w: np.ndarray, top: float | None = None) -> np.ndarray:
     at the top colour; NaN (not solved) grey."""
     top = _P.value("display.lumen_image_range") if top is None else top
     return ramp(np.clip(np.asarray(w, float) / top, 0.0, 1.0))
+
+
+def conc_colors(c: np.ndarray, lo: float | None = None,
+                hi: float | None = None) -> np.ndarray:
+    """A concentration (M) on the fixed log ramp: ``lo`` blue to ``hi`` red,
+    clipped at both ends (zero is below any ``lo``); NaN grey."""
+    lo = _P.value("display.lumen_conc_min") if lo is None else lo
+    hi = _P.value("display.lumen_conc_max") if hi is None else hi
+    c = np.asarray(c, float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        x = (np.log10(np.maximum(c, lo)) - np.log10(lo)) / np.log10(hi / lo)
+    return ramp(np.where(np.isfinite(c), np.clip(x, 0.0, 1.0), np.nan))

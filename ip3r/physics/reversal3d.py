@@ -53,7 +53,7 @@ from .selectivity import _conditions, ghk_ratio, ions, thermal_voltage
 from .selectivity3d import Pore, measured_ratio, prepare
 
 __all__ = ["READINGS", "Experiment", "experiments", "Wall", "wall",
-           "reversal", "RevReading", "Reversal3D", "reversal_3d",
+           "reversal", "steady_at_reversal", "concentration", "RevReading", "Reversal3D", "reversal_3d",
            "mutant_panel", "charge_scan", "bath_gamma_difference"]
 
 READINGS = ("neutral", "pb", "pb + csc")
@@ -190,25 +190,42 @@ def _excess(pore: Pore, w: Wall, exp: Experiment, **fluid_kw):
     return ref.excess, ref.converged
 
 
-def _reading(pore, dom, w, label, exps, **fluid_kw) -> RevReading:
+def steady_at_reversal(pore: Pore, dom: Domain, w: Wall, label: str,
+                       exp: Experiment, **fluid_kw):
+    """One experiment under one reading at its reversal: (V_rev in V, the
+    :class:`.pnp3d.Steady` there, each species' held excess (kT grid) or
+    None, converged, steady states solved)."""
     fixed = np.zeros_like(w.fixed) if label == "neutral" else w.fixed
+    excess, ok = None, True
+    if label.endswith("csc"):
+        excess, ok = _excess(pore, w, exp, **fluid_kw)
+    v, st, n = reversal(dom, exp.species(), fixed, excess,
+                        _impermeant(pore, exp))
+    return v, st, excess, bool(ok and st.converged), n
+
+
+def concentration(dom: Domain, st: Steady, name: str, valence: int,
+                  excess=None) -> np.ndarray:
+    """A species' concentration (mol/m³) on the grid in the steady state
+    ``st``: c = n e^{−(zψ + μ)}, the charge Poisson counts; 0 off the
+    electrostatic volume."""
+    psi = st.v / thermal_voltage() * dom.phi0 + st.u
+    e = valence * psi + (excess[name] if excess and name in excess else 0.0)
+    c = st.n[name] * np.exp(-np.clip(e, -40, 40))
+    return np.where(dom.elec.mask, c, 0.0)
+
+
+def _reading(pore, dom, w, label, exps, **fluid_kw) -> RevReading:
     v, cur, ok, solves = {}, {}, True, 0
     peak = 0.0
     for exp in exps:
-        excess = None
-        if label.endswith("csc"):
-            excess, c_ok = _excess(pore, w, exp, **fluid_kw)
-            ok &= c_ok
-        sp = exp.species()
-        v[exp.name], st, n = reversal(dom, sp, fixed, excess,
-                                      _impermeant(pore, exp))
-        ok &= st.converged
+        v[exp.name], st, excess, e_ok, n = steady_at_reversal(
+            pore, dom, w, label, exp, **fluid_kw)
+        ok &= e_ok
         solves += n
         cur[exp.name] = st.currents
         if exp.name == "Ca2+":
-            psi = v[exp.name] / thermal_voltage() * dom.phi0 + st.u
-            e = 2.0 * psi + (excess["Ca2+"] if excess else 0.0)
-            c = st.n["Ca2+"] * np.exp(-np.clip(e, -40, 40))
+            c = concentration(dom, st, "Ca2+", 2, excess)
             peak = float(c[pore.elec.mask].max() / 1000.0)
     by = {e.name: e for e in exps}
     if pore.ryr:

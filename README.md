@@ -332,6 +332,16 @@ wall charge from 0 to 2× never gives both measured ratios: P_Cl:P_K halves
 by a twentieth of the charge, and P_Ca:P_K never reaches 1
 (`docs/SCIENCE_REVERSAL.md`).
 
+The viewer shows that state (Round 7.24; lumen box → Steady state → "at
+reversal", or `python -m ip3r reversal 8TKF --lumen`). The lumen is
+coloured by each ion's concentration or electrochemical drop at the
+experiment's reversal, Cl⁻ included. Under pb + csc the wall gathers Ca²⁺
+to 6–8 M just luminal of the filter. That well carries only 3–7 % of
+Ca²⁺'s drop. Its resistance lies in the uncharged stretch cytosolic of it:
+60 % at 9HEO's gate, 31 % at 8TKF's.
+
+![8TKF's lumen at the Ca²⁺ experiment's reversal, coloured by Ca²⁺](docs/img/gui_lumen_reversal.png)
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,
@@ -586,6 +596,7 @@ python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three c
 python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
 python -m ip3r born [PDB] [--scan] [--mutants]    # the image cost of the low-eps wall on K+ g and Xu's mutants
 python -m ip3r csc [PDB] [--scan]                 # charge-space competition: filter binding, Xu's six P_Ca:P_K, Vais's ratios
+python -m ip3r reversal PDB --lumen [READING ...] [--experiment Ca2+|Cl-]  # each ion on the lumen at reversal
 python -m ip3r sel3d [PDB] [--mutants]            # P_Ca:P_K from the 3-D charged lumen, point ions and with the csc fluid
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each

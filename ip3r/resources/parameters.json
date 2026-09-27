@@ -4559,6 +4559,32 @@
    "maximum": 30.0
   },
   {
+   "key": "display.lumen_conc_min",
+   "name": "Lumen concentration scale, low end",
+   "value": 0.001,
+   "unit": "M",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "Round 7.24: an ion's concentration at reversal is drawn on a fixed log ramp from this (blue; lower, including none, drawn at it) to display.lumen_conc_max (red).",
+   "source_note": "Fixed, never auto-ranged: a decade below the lowest bath (Vais's 10 mM CaCl2), so every bath reads above the floor and deposits compare by colour",
+   "minimum": 1e-06,
+   "maximum": 0.1
+  },
+  {
+   "key": "display.lumen_conc_max",
+   "name": "Lumen concentration scale, high end",
+   "value": 10.0,
+   "unit": "M",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "Round 7.24: the top of the fixed log ramp for an ion's concentration at reversal; higher is drawn at the top colour.",
+   "source_note": "8TKF's pb + csc reversal reaches 5.8 M Ca2+ (Ca2+ experiment) and 8.7 M K+ (Cl- experiment), so nothing saturates",
+   "minimum": 0.5,
+   "maximum": 100.0
+  },
+  {
    "key": "gate.widen_half_width",
    "name": "Gate widening half-width",
    "value": 8.0,

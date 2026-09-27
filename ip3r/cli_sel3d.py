@@ -5,6 +5,7 @@
     python -m ip3r sel3d 7T3T --spacing 1.0
     python -m ip3r gate 9HEO             # Round 7.21: the gate widened
     python -m ip3r reversal 9HEO 8TKF    # Round 7.23: at bi-ionic reversal
+    python -m ip3r reversal 8TKF --lumen neutral "pb + csc"   # Round 7.24
 """
 
 from __future__ import annotations
@@ -141,6 +142,10 @@ def _reversal(args) -> int:
                       f"{'' if r.converged else '  (n.c.)'}")
             print(f"  {'sum |ln|':19s}" + "".join(f"{err[h]:13.2f}" for h in heads))
             continue
+        if args.lumen is not None:
+            args.lumen = args.lumen or ["pb + csc"]
+            _rev_lumen(st, args)
+            continue
         if args.scale:
             print(f"\n{pdb}: the pb wall's charge scaled (point ions), at the "
                   "family's reversal; IP3R measured P_Cl:P_K 0.27, P_Ca:P_K 15.2 "
@@ -152,6 +157,33 @@ def _reversal(args) -> int:
             continue
         _rev_deposit(r3.reversal_3d(st, spacing=args.spacing))
     return 0
+
+
+def _rev_lumen(st, args) -> None:
+    """Round 7.24: each ion on the lumen at the experiment's reversal."""
+    from .parameters import PARAMETERS as _P
+    from .physics.lumen_reversal import reversal_lumen
+    from .structure.channel import measure_channel
+    s = measure_channel(st)
+    w = _P.value("lumen.constriction_half_width")
+    for reading in args.lumen:
+        r = reversal_lumen(st, reading, args.experiment, s, spacing=args.spacing)
+        print(f"\n{st.name}, {args.experiment} experiment, {reading}: V_rev "
+              f"{r.v * 1e3:+.2f} mV{'' if r.converged else ' (n.c.)'}")
+        heads = list(s.constrictions)
+        print(f"  {'ion':5s} {'bath lum/cyt M':>15s} {'peak M':>8s} {'at z':>7s} "
+              f"{'I pA':>7s} {'steepest z':>11s}"
+              + "".join(f"{h + ' share':>13s}" for h in heads))
+        for ion in r.species:
+            c, z = r.peak(ion)
+            lum, cyt = r.baths[ion]
+            print(f"  {ion:5s} {lum:7.3f}/{cyt:<7.3f} {c:8.3g} {z:+7.1f} "
+                  f"{r.currents[ion] * 1e12:+7.2f} {r.steepest_z(ion):+11.1f}"
+                  + "".join(f"{r.drop_across(ion, s.constrictions[h].z, w):13.0%}"
+                            for h in heads))
+        print("  " + ", ".join(f"{h} z {c.z:+.1f} A" for h, c in
+                               s.constrictions.items())
+              + f"; shares over +/- {w:g} A")
 
 
 def register(sub) -> None:
@@ -184,5 +216,10 @@ def register(sub) -> None:
                    help="voxel spacing, A (default reversal3d.spacing)")
     p.add_argument("--scale", type=float, action="append", default=None,
                    help="scale every wall charge (repeatable; pb only)")
+    p.add_argument("--lumen", nargs="*", default=None, metavar="READING",
+                   help="Round 7.24: each ion's peak and drop on the lumen at "
+                   "one experiment's reversal, per reading (default pb + csc)")
+    p.add_argument("--experiment", default="Ca2+", choices=("Ca2+", "Cl-"),
+                   help="with --lumen: which experiment (Cl- is IP3R only)")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_reversal)

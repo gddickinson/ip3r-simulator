@@ -18,6 +18,7 @@ from dataclasses import dataclass
 import screenshot_core as core
 import screenshot_extras as se
 import screenshot_ip3r as si
+import screenshot_reversal as sr
 import screenshot_sparks as sk
 import screenshot_superpose as ss
 
@@ -80,6 +81,8 @@ GROUPS = (
           "(the slow group: minutes)",
           _plain((si._lumen_start, si._lumen, si._lumen_charged, si._lumen_dielectric,
                   si._lumen_image))),
+    Group("reversal", "8TKF's lumen at the Ca2+ experiment's reversal (pb + csc): "
+          "Ca2+ concentration, Cl- drop (Round 7.24; minutes)", _plain(sr.STEPS)),
     Group("extras", "HUD, selection, sequence, context menu, distance, layout, "
           "Analyses menu, full screen", _plain(se._STEPS)),
     Group("superpose", "8TKF drawn on 8TKG, then 8TKG on 8TKF (Round 7.20)",
