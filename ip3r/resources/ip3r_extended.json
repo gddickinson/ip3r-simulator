@@ -1,0 +1,288 @@
+{
+ "provenance": {
+  "retrieved": "2026-09-27",
+  "sources": {
+   "https://search.rcsb.org/rcsbsearch/v2/query ebb3a5892564": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "https://search.rcsb.org/rcsbsearch/v2/query 11beb6959194": "3ed6bc54903a9d68a8e31729eb6378c1b73887c7106005b7ef4492152f581bdc",
+   "https://search.rcsb.org/rcsbsearch/v2/query 52778091dbf4": "5167666307e1125252762d3a6e28e87418d6dbbdd9b41c2f47a58b4f824c0b37",
+   "https://search.rcsb.org/rcsbsearch/v2/query 1712f640f822": "73f6a58bdb4de9ab205df00449368365af9c2329ff44f6b38569872cf140212c",
+   "https://data.rcsb.org/graphql f61537558bb7": "f1f4298b766117680bcc130d82a1fae5a22e5a2228939aaadcc524f6e5e16418"
+  },
+  "rules": {
+   "accessions": [
+    "P29994",
+    "Q14571",
+    "Q14573",
+    "Q14643"
+   ],
+   "min_chain_length": 2600,
+   "min_modelled": 7000,
+   "max_resolution_A": 4.0
+  }
+ },
+ "structures": [
+  {
+   "pdb_id": "6MU2",
+   "paralog": "ITPR1",
+   "organism": "Rattus norvegicus",
+   "uniprot": "",
+   "resolution": 3.9,
+   "state": "apo",
+   "title": "Structure of full-length IP3R1 channel in the Apo-state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1038/s41422-018-0108-5"
+  },
+  {
+   "pdb_id": "7LHE",
+   "paralog": "ITPR1",
+   "organism": "Rattus norvegicus",
+   "uniprot": "",
+   "resolution": 3.3,
+   "state": "apo (nanodisc)",
+   "title": "Structure of full-length IP3R1 channel reconstituted into lipid nanodisc in the apo-state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1038/s42003-021-02156-4"
+  },
+  {
+   "pdb_id": "8EAQ",
+   "paralog": "ITPR1",
+   "organism": "Rattus norvegicus",
+   "uniprot": "",
+   "resolution": 3.26,
+   "state": "high Ca2+",
+   "title": "Structure of the full-length IP3R1 channel determined at high Ca2+",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1038/s41467-022-34574-1"
+  },
+  {
+   "pdb_id": "8EAR",
+   "paralog": "ITPR1",
+   "organism": "Rattus norvegicus",
+   "uniprot": "",
+   "resolution": 3.5,
+   "state": "Ca2+/IP3/ATP",
+   "title": "Structure of the full-length IP3R1 channel determined in the presence of Calcium/IP3/ATP",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-022-34574-1"
+  },
+  {
+   "pdb_id": "9YKY",
+   "paralog": "ITPR2",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14571",
+   "resolution": 3.31,
+   "state": "resting",
+   "title": "IP3/ATP-bound human type 2 IP3 receptor in the resting state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-026-74494-y"
+  },
+  {
+   "pdb_id": "9YLI",
+   "paralog": "ITPR2",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14571",
+   "resolution": 3.33,
+   "state": "preactivated",
+   "title": "IP3/ATP-bound human type 2 IP3 receptor in the preactivated state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-026-74494-y"
+  },
+  {
+   "pdb_id": "6DQV",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.82,
+   "state": "IP3-bound (class 2)",
+   "title": "Class 2 IP3-bound human type 3 1,4,5-inositol trisphosphate receptor",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41594-018-0089-6"
+  },
+  {
+   "pdb_id": "6DRA",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.96,
+   "state": "low IP3 + Ca2+",
+   "title": "Low IP3 Ca2+ human type 3 1,4,5-inositol trisphosphate receptor",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": false,
+   "doi": "10.1038/s41594-018-0089-6"
+  },
+  {
+   "pdb_id": "6DRC",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.92,
+   "state": "high IP3 + Ca2+",
+   "title": "High IP3 Ca2+ human type 3 1,4,5-inositol trisphosphate receptor",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41594-018-0089-6"
+  },
+  {
+   "pdb_id": "7T3Q",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.3,
+   "state": "preactivated (B)",
+   "title": "IP3 and ATP bound type 3 IP3 receptor in the pre-active B state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-022-29073-2"
+  },
+  {
+   "pdb_id": "7T3R",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.4,
+   "state": "preactivated (C)",
+   "title": "IP3 and ATP bound type 3 IP3 receptor in the pre-active C state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-022-29073-2"
+  },
+  {
+   "pdb_id": "7T3U",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.7,
+   "state": "inactive",
+   "title": "IP3, ATP, and Ca2+ bound type 3 IP3 receptor in the inactive state",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-022-29073-2"
+  },
+  {
+   "pdb_id": "8TK8",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 2.7,
+   "state": "resting",
+   "title": "Human Type 3 IP3 Receptor - Resting State (+IP3/ATP)",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-023-42707-3"
+  },
+  {
+   "pdb_id": "8TKD",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.7,
+   "state": "preactivated",
+   "title": "Human Type 3 IP3 Receptor - Preactivated State (+IP3/ATP)",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-023-42707-3"
+  },
+  {
+   "pdb_id": "8TKE",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.6,
+   "state": "preactivated + Ca2+",
+   "title": "Human Type 3 IP3 Receptor - Preactivated+Ca2+ State (+IP3/ATP/JD Ca2+)",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-023-42707-3"
+  },
+  {
+   "pdb_id": "8TKI",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.6,
+   "state": "labile resting (2)",
+   "title": "Human Type 3 IP3 Receptor - Labile Resting State 2 (+IP3/ATP)",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-023-42707-3"
+  },
+  {
+   "pdb_id": "8TL9",
+   "paralog": "ITPR3",
+   "organism": "Homo sapiens",
+   "uniprot": "Q14573",
+   "resolution": 3.3,
+   "state": "resting",
+   "title": "Human Type 3 IP3 Receptor - Resting State (+IP3/ATP)",
+   "roles": [
+    "extended"
+   ],
+   "ip3_bound": true,
+   "doi": "10.1038/s41467-023-42707-3"
+  }
+ ],
+ "rejected": {
+  "3JAV": "3: resolution",
+  "3T8S": "1: not EM",
+  "3UJ0": "1: not EM",
+  "3UJ4": "1: not EM",
+  "6DQJ": "4: already registered",
+  "6DQN": "4: already registered",
+  "6DQS": "3: resolution",
+  "6DQZ": "3: resolution",
+  "6DR0": "3: resolution",
+  "6DR2": "3: resolution",
+  "6MU1": "3: resolution",
+  "6UQK": "1: not four full-length chains",
+  "7LHF": "4: already registered",
+  "7T3P": "4: already registered",
+  "7T3T": "4: already registered",
+  "8TKF": "4: already registered",
+  "8TKG": "4: already registered",
+  "8TKH": "4: already registered",
+  "8TLA": "4: already registered",
+  "9YKK": "4: already registered",
+  "9YMZ": "1: too little modelled",
+  "9YNK": "1: too little modelled",
+  "9YNO": "1: not four full-length chains"
+ }
+}

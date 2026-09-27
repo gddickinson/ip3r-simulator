@@ -10,7 +10,7 @@ step where their state exists. What they hold the GUI to:
 - ``check_subunit_refit``: hiding three subunits re-fits to the one left.
 - ``check_site_view``: a shell check's "Show" centres the camera on an IP3
   site and the pocket fills the view.
-- ``check_list``: the deposition list is grouped by family, RyR1 collapsed.
+- ``check_list``: the deposition list is grouped (IP3R, more IP3R, RyR1), the last two collapsed.
 - ``check_puff_rows``: the RyR-only Puffs controls are hidden for IP3R.
 """
 
@@ -82,10 +82,11 @@ def check_list(win) -> None:
     heads = {lst.topLevelItem(i).text(0).split(" (")[0]: lst.topLevelItem(i)
              for i in range(lst.topLevelItemCount())}
     ryr = [h for k, h in heads.items() if k.startswith("RyR1")]
-    if len(heads) != 2 or len(ryr) != 1:
+    more = [h for k, h in heads.items() if k.startswith("More IP3R")]
+    if len(heads) != 3 or len(ryr) != 1 or len(more) != 1:
         raise RuntimeError(f"deposition list headings {list(heads)}")
-    if ryr[0].isExpanded():
-        raise RuntimeError("RyR1 group open while an IP3R deposit is shown")
+    if ryr[0].isExpanded() or more[0].isExpanded():
+        raise RuntimeError("RyR1 or extended group open while a panel deposit is shown")
 
 
 def check_puff_rows(pz) -> None:

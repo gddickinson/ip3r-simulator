@@ -25,10 +25,17 @@ from ..structure.shells import SHELLS
 from ..structure.transition import FITS
 from .view_state import ParameterFollower
 
-__all__ = ["StructurePanel", "FAMILY_LABELS"]
+__all__ = ["StructurePanel", "FAMILY_LABELS", "group_of"]
 
 #: Headings of the deposition list, by registry family.
-FAMILY_LABELS = {"IP3R": "IP3 receptors", "RyR": "RyR1 (rabbit)"}
+FAMILY_LABELS = {"IP3R": "IP3 receptors", "IP3R+": "More IP3R deposits",
+                 "RyR": "RyR1 (rabbit)"}
+
+
+def group_of(e) -> str:
+    """The list heading of a registry entry: the publication's IP3R
+    deposits, the extended ones (``scripts/curate_ip3r.py``), RyR1."""
+    return "IP3R+" if e.is_extended else e.family
 _FAMILY_ROLE = Qt.ItemDataRole.UserRole + 1
 
 
@@ -160,8 +167,9 @@ class StructurePanel(QWidget):
         first = not self.list.topLevelItemCount()
         self.list.clear()
         groups: dict[str, QTreeWidgetItem] = {}
-        for e in load_registry():
-            fam = e.family
+        order = ("IP3R", "IP3R+", "RyR")
+        for e in sorted(load_registry(), key=lambda e: order.index(group_of(e))):
+            fam = group_of(e)
             if fam not in groups:
                 groups[fam] = QTreeWidgetItem(self.list, [fam])
                 groups[fam].setFlags(Qt.ItemFlag.ItemIsEnabled)   # a heading, not a deposit
@@ -176,7 +184,7 @@ class StructurePanel(QWidget):
                 self.list.setCurrentItem(item)
         for fam, g in groups.items():
             g.setText(0, f"{FAMILY_LABELS.get(fam, fam)} ({g.childCount()})")
-            # IP3R open on first build, RyR1 collapsed; afterwards as the user left them.
+            # IP3R open on first build, the rest collapsed; afterwards as the user left them.
             g.setExpanded(fam == "IP3R" if first else fam in expanded)
         if current is not None:
             it = self._item(current)

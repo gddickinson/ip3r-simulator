@@ -124,10 +124,9 @@ class ChannelPanel(QWidget):
         """Point the state and conductance buttons at the loaded deposit's
         panel: RyR1's for a RyR1 deposit, otherwise ITPR3's."""
         from ..core.annotations import is_ryr
-        from ..io.registry import load_registry
+        from ..structure.states import panel_entries
         self.panel_paralog = "RYR1" if is_ryr(paralog) else "ITPR3"
-        n = sum(1 for e in load_registry() if e.paralog == self.panel_paralog
-                and (e.human or e.family == "RyR"))
+        n = len(panel_entries(self.panel_paralog))
         self.states_btn.setText(f"Compare the {self.panel_paralog} gating states "
                                 f"(measures {n} deposits)")
         self.mutants_btn.setVisible(self.panel_paralog == "RYR1")

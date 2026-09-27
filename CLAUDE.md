@@ -22,7 +22,7 @@ on the roadmap. Port the method; never port a result.
    verdicts moved. A moved verdict is a finding about the publication
    project — report it to the user; **never edit `ip3r_genes` from here**.
 3. **Environment.** `conda activate ip3r_sim` (every `make` target does this
-   itself). Structures: `make fetch` (idempotent, ~27 MB into `ref/`).
+   itself). Structures: `make fetch` (idempotent, ~86 MB into `ref/`).
 4. **Work** the one task. Before finishing: `make test`, `make lint`,
    `make sizes`, and — after any change under `ip3r/ui/` — the scripted GUI
    smoke test, which exits non-zero on a broken panel. Run only the step

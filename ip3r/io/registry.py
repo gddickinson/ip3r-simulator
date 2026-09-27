@@ -9,7 +9,11 @@ The RyR1 state panel is appended from ``resources/ryr1.json``, which
 ``scripts/curate_ryr.py`` selects from the PDB by stated rules (no RyR
 structure is in ``ip3r_genes``). Open-state controls not in ip3r_genes'
 panel (7T3T, Round 7.6) come from ``resources/ip3r_controls.json`` with the
-role ``open_control``; the state panel leaves them out.
+role ``open_control``; the state panel leaves them out. Every other
+full-length EM tetramer of an ITPR (``scripts/curate_ip3r.py``, by stated
+rules) comes from ``resources/ip3r_extended.json`` with the role
+``extended``: viewable, measurable, superposable, but outside every panel
+and check, so no publication number depends on it.
 """
 
 from __future__ import annotations
@@ -52,6 +56,12 @@ class StructureEntry:
         return "open_control" in self.roles
 
     @property
+    def is_extended(self) -> bool:
+        """Added by ``scripts/curate_ip3r.py``: every other full-length
+        IP3R deposit, outside the panels."""
+        return "extended" in self.roles
+
+    @property
     def family(self) -> str:
         return "RyR" if self.paralog.startswith("RYR") else "IP3R"
 
@@ -59,7 +69,7 @@ class StructureEntry:
 @lru_cache(maxsize=1)
 def load_registry() -> tuple[StructureEntry, ...]:
     raw = json.loads((RESOURCE_DIR / "structures.json").read_text())["structures"]
-    for extra in ("ryr1.json", "ip3r_controls.json"):
+    for extra in ("ryr1.json", "ip3r_controls.json", "ip3r_extended.json"):
         path = RESOURCE_DIR / extra
         if path.exists():
             raw = raw + json.loads(path.read_text())["structures"]

@@ -131,7 +131,7 @@ def open_entries() -> list:
     7T3T control, RyR1's 9HEO."""
     return [e for e in load_registry()
             if e.state.lower().split()[0] in OPEN_STATES
-            and (e.human or is_ryr(e.paralog))]
+            and (e.human or is_ryr(e.paralog)) and not e.is_extended]
 
 
 def open_panel(corner: bool = True, progress=None) -> list[Reading]:

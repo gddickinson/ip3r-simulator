@@ -3,7 +3,7 @@ ENV_NAME ?= ip3r_sim
 PY := conda run --no-capture-output -n $(ENV_NAME) python
 
 .DEFAULT_GOAL := help
-.PHONY: help env fetch sync sync-check params test test-quick checks states gui screenshots screenshots-full screenshot-groups sizes lint
+.PHONY: help env fetch sync extended sync-check params test test-quick checks states gui screenshots screenshots-full screenshot-groups sizes lint
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -16,6 +16,9 @@ fetch:  ## Download every registry structure into ref/structures
 
 sync:  ## Re-import curated resources from ../ip3r_genes
 	$(PY) scripts/sync_genes.py
+
+extended:  ## Re-curate the extended IP3R deposits (every other full-length EM tetramer) from RCSB
+	$(PY) scripts/curate_ip3r.py
 
 ryr:  ## Re-curate the RyR1 resource (sequence, domains, state panel) from UniProt/InterPro/RCSB
 	$(PY) scripts/curate_ryr.py
