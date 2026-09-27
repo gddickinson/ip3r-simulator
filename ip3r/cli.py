@@ -14,6 +14,7 @@ testable and scriptable:
     python -m ip3r born 8TKF        # the image cost of the low-eps wall (cli_born)
     python -m ip3r csc [9HEO 8TKF]  # charge-space competition vs Xu / Vais (cli_csc)
     python -m ip3r sel3d [--mutants] # P_Ca:P_K from the 3-D charged lumen (cli_sel3d)
+    python -m ip3r gate [PDB ...]    # the gate widened, conductance and P_Ca:P_K (cli_sel3d)
     python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap
@@ -180,7 +181,7 @@ def _states(args) -> int:
     from .structure.states import state_panel
     loader.ALLOW_FETCH = args.fetch
     print(f"{'PDB':5s} {'state':24s} {'res':>5s} {'IP3':>4s} {'gate r':>7s} {'filter r':>8s}  gate lining")
-    for r in state_panel(args.paralog):
+    for r in state_panel(args.paralog, extended=args.extended):
         g = r.summary.constrictions.get("gate")
         print(f"{r.pdb_id:5s} {r.state:24s} {r.resolution:5.2f} {'yes' if r.ip3_bound else 'no':>4s} "
               f"{r.radius('gate'):7.2f} {r.radius('filter'):8.2f}  {', '.join(g.residues) if g else ''}")
@@ -317,6 +318,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(fn=_checks)
     p = sub.add_parser("states")
     p.add_argument("--paralog", default="ITPR3")
+    p.add_argument("--extended", action="store_true",
+                   help="also every extended deposit (scripts/curate_ip3r.py)")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_states)
     p = sub.add_parser("unitary", help="K+ conductance of every state from "

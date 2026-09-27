@@ -133,4 +133,18 @@ PORE3D = [
        "auto-ranged: on the surface of 8TKF, 7T3T and 9HEO W's median is "
        "1.9-2.0 kT and its 90th percentile 4.8-5.3 kT, so a tenth or less "
        "saturates and deposits compare by colour", 1.0, 30.0),
+    _p("gate.widen_half_width", "Gate widening half-width", 8.0, "A",
+       "method", "pore3d", "method_choice", "Round 7.21: atoms within this "
+       "axial distance of the gate constriction are moved radially outward "
+       "by the widening times a cos^2 taper (full at the gate, zero here).",
+       "About one helical turn and a half either side; 9HEO's filter lies "
+       "10 A luminal of its gate, so the filter keeps its radius", 2.0, 20.0),
+    _p("gate.widen_max", "Largest gate widening", 4.0, "A", "method",
+       "pore3d", "method_choice", "Round 7.21: the scan widens the gate by "
+       "0 to this, in steps of `gate.widen_step`.", "At 4 A 9HEO's gate "
+       "holds <= 6 % of either ion's resistance: the scan runs past the "
+       "point where the gate stops limiting", 0.5, 10.0),
+    _p("gate.widen_step", "Gate widening step", 2.0, "A", "method",
+       "pore3d", "method_choice", "Round 7.21: the scan's step.", "Three "
+       "points: deposited, half, full", 0.25, 10.0),
 ]

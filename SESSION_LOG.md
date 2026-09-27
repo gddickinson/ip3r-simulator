@@ -3072,3 +3072,52 @@ one). `extras` hangs at full screen waiting for `isFullScreen()`, and it
 hangs the same way on the unmodified last commit in a separate worktree.
 So the cause is this machine's display state, not this change; the
 full-screen step should be rerun with the user at the screen.
+
+## 2026-09-27 (37) — Round 7.21: the gate widened; Round 7.22: every full-length IP3R deposit
+
+**Why.** 7.21 was the Next item: Round 7.19 read "the gate holds over half
+of Ca²⁺'s resistance" as the cap on P_Ca:P_K, and the deposits' gates are
+narrower than a pore that conducts the measured current. 7.22 is the
+user's request ("please add more IP3R structures").
+
+**7.21 what.** `physics/gate_geometry.py`: `widen_gate` moves every atom
+within `gate.widen_half_width` (8 Å) of the gate radially outward by Δ ×
+cos² (C4 and the axis kept, charges riding with their residues);
+`gate_scan` reads K⁺ g and Round 7.19's readings at Δ = 0, 2, 4 Å, with
+the shares at the *deposited* constrictions. CLI `gate`, Analyses menu
+entry, three registered `gate.*` parameters. Calibrated on synthetic
+atoms (exact shift, nothing else moved, C4 kept) and on 9HEO (gate +Δ ±
+0.3 Å, filter < 0.05 Å, axis < 0.1°).
+
+**7.21 found.** Taking the gate away does not free the ratio. 9HEO: gate
+share of Ca²⁺ 53 % → 6 %, P_Ca:P_K (pb + csc) 1.08 → 1.27 (7.0). 8TKF
+1.39 → 1.50 (15.2); 7T3T 1.79 → 1.53. K⁺ g +11–24 %, saturated by 2 Å, so
+no gate radius conducts 801 pS either. Round 7.19's causal reading was a
+correlation: the resistance moves to the uncharged stretches beside the
+gate, where the ratio returns toward D_Ca/D_K. This revises SCIENCE_SEL3D's
+"what remains" list (the geometry item is now closed, negative). Next:
+the bi-ionic reversal in 3-D, the one protocol difference left.
+
+**7.22 what.** `scripts/curate_ip3r.py` (`make extended`) searches RCSB
+for every entry mapped to a human ITPR or rat ITPR1 (a full-text search of
+27k entries found only domain crystals beyond them) and keeps full-length,
+wild-type EM tetramers at ≤ 4 Å not already registered: 17 deposits,
+written with source hashes to `resources/ip3r_extended.json`, role
+`extended`. The state label is read from the title (`state_of`; "inactive"
+is not "active"). The registry loads them. `panel_entries` keeps them out of the
+state panel (`states --extended` includes them), `open_entries` keeps
+them out of the shortfall panel, and no check reads them, so no
+publication number moves (tested). The structure list shows them under a
+collapsed "More IP3R deposits". The human ones enter the Superpose and
+Transition lists by the existing rule. `make fetch` is now ~86 MB.
+
+**7.22 found.** Every human extended deposit passes the numbering check in
+its paralog. All 17 are shut (gate 1.57–2.71 Å; 7T3U inactive the
+narrowest), so across 18 ITPR3 deposits only 8TKF and the 7T3T control are
+open. ITPR2 now has three states (9YKK apo, 9YKY resting, 9YLI
+preactivated), so a morph within ITPR2 is possible.
+
+**Checks.** `make test`: 679 passed, plus the new files; the one failure
+(`test_json_matches_the_table`) was the parameter table edited while the
+suite ran, and it passes on rerun. Lint and sizes clean. Smoke groups
+`core` and `superpose` pass (the list's three headings checked).

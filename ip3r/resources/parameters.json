@@ -4559,6 +4559,45 @@
    "maximum": 30.0
   },
   {
+   "key": "gate.widen_half_width",
+   "name": "Gate widening half-width",
+   "value": 8.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.21: atoms within this axial distance of the gate constriction are moved radially outward by the widening times a cos^2 taper (full at the gate, zero here).",
+   "source_note": "About one helical turn and a half either side; 9HEO's filter lies 10 A luminal of its gate, so the filter keeps its radius",
+   "minimum": 2.0,
+   "maximum": 20.0
+  },
+  {
+   "key": "gate.widen_max",
+   "name": "Largest gate widening",
+   "value": 4.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.21: the scan widens the gate by 0 to this, in steps of `gate.widen_step`.",
+   "source_note": "At 4 A 9HEO's gate holds <= 6 % of either ion's resistance: the scan runs past the point where the gate stops limiting",
+   "minimum": 0.5,
+   "maximum": 10.0
+  },
+  {
+   "key": "gate.widen_step",
+   "name": "Gate widening step",
+   "value": 2.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.21: the scan's step.",
+   "source_note": "Three points: deposited, half, full",
+   "minimum": 0.25,
+   "maximum": 10.0
+  },
+  {
    "key": "csc.permittivity",
    "name": "Permittivity of the MSA fluid",
    "value": 78.4,

@@ -5,9 +5,10 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.21 (science): the gate's own geometry — widen 9HEO's
-gate to the radius that conducts 801 pS and read P_Ca:P_K again (Round
-7.19's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.23 (science): P_Ca:P_K at reversal in 3-D — Xu's and
+Vais's bi-ionic protocols through the 3-D charged lumen, since Round 7.21
+showed linear response stays at or below 1.8 on every open wall, gate or no gate (the 1-D model
+already separates the two readings). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -782,9 +783,8 @@ item carried over from round n; it stays listed there too.
     field behind the wall and the ions' size together (the fluid would
     need the lining groups' lumen-side density as its wall, while the
     electrostatics keep the charges in the protein).
-  - [ ] The gate's own geometry: widen 9HEO's gate to the radius that
-    conducts 801 pS (Round 7.6) and read P_Ca:P_K again, the one route
-    left inside the continuum.
+  - [x] (Round 7.21) The gate's own geometry: widen 9HEO's gate and read
+    P_Ca:P_K again. No radius conducts 801 pS, and the ratio barely moves.
 
 - [x] **7.20 GUI: a second deposit superposed** (`structure/superpose.py`,
   `ui/superpose_controller.py`). Representation → Superpose draws another
@@ -796,6 +796,34 @@ item carried over from round n; it stays listed there too.
   3.14 Å over the fitted pore sites, 16.11 Å overall. A session keeps the choice
   (`superpose` {pdb, fit}, refitted on restore); the Transition tab's end
   list now comes from the same `candidates`. Smoke group `superpose`.
+
+- [x] **7.21 Science: the gate's own geometry** (`python -m ip3r gate`,
+  `physics/gate_geometry.py`, `docs/SCIENCE_GATE.md`). Every atom within
+  8 Å of the gate moved radially outward by Δ × a cos² taper (C4 and the
+  axis kept; calibrated exact on synthetic atoms, 9HEO's gate +Δ with its
+  filter fixed). **Found:** widening by 4 Å strips the gate of Ca²⁺'s
+  resistance (9HEO 53 % → 6 %), yet `pb + csc` P_Ca:P_K goes 1.08 → 1.27
+  (7.0 measured). 8TKF goes 1.39 → 1.50 (15.2), and 7T3T falls from 1.79 to
+  1.53. K⁺ g gains ≤ 24 % and saturates by 2 Å (9HEO 249 → 308 pS). So
+  Round 7.19's "the gate caps the ratio" was a correlation: without the
+  gate, the resistance moves to the uncharged stretches either side, where
+  the ratio returns toward D_Ca/D_K. Linear response needs Ca²⁺ enriched
+  12–25× along most of the path, and the deposits' acidic charge covers
+  ≤ 10 % of it.
+
+- [x] **7.22 Data/GUI: every full-length IP3R deposit** (`scripts/curate_ip3r.py`,
+  `make extended`, `resources/ip3r_extended.json`). User request. Rules: EM,
+  four full-length chains of one human ITPR or rat ITPR1, ≥ 7,000 residues
+  modelled, wild type, ≤ 4 Å, not already registered. They add 17 deposits
+  (ITPR2 resting 9YKY and preactivated 9YLI; ITPR3 6DQV, 6DRA, 6DRC, 7T3Q,
+  7T3R, 7T3U, 8TK8, 8TKD, 8TKE, 8TKI, 8TL9; rat ITPR1 6MU2, 7LHE, 8EAQ,
+  8EAR). Rejected: 6 on resolution, 7 as crystals, partial models,
+  6UQK's deletion or 9YNO's dimer. Role `extended`: in the viewer under
+  "More IP3R deposits", in the Superpose and Transition lists, `states
+  --extended`, but outside every panel and check. Every human one
+  measures in its paralog's numbering. **Found:** all 17 are shut (gate
+  1.57–2.71 Å). Across 18 ITPR3 deposits, only 8TKF (and the 7T3T control)
+  are open.
 
 ## Round 6 — ryanodine receptors
 

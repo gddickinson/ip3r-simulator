@@ -170,7 +170,9 @@ the gate together (this round) closes the gap.
 What remains is outside the continuum at this wall:
 - **the gate's own geometry**: the deposits' gates are narrower than the
   channels that conduct the measured currents (Round 7.6's shortfall), and
-  Ca²⁺'s resistance sits there;
+  Ca²⁺'s resistance sits there. *Tested in Round 7.21
+  (`SCIENCE_GATE.md`), with a negative result:* a gate 4 Å wider holds 6 % of
+  Ca²⁺'s resistance, and 9HEO still reads 1.27;
 - **charges the deposit does not place**: unresolved or mis-protonated
   groups nearer the gate;
 - **the dehydration and binding** a mean field of spheres does not carry.

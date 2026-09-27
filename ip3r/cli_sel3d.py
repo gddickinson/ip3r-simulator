@@ -3,6 +3,7 @@
     python -m ip3r sel3d                 # 9HEO, then 8TKF
     python -m ip3r sel3d 9HEO --mutants  # Xu 2006's five mutants on 9HEO
     python -m ip3r sel3d 7T3T --spacing 1.0
+    python -m ip3r gate 9HEO             # Round 7.21: the gate widened
 """
 
 from __future__ import annotations
@@ -68,6 +69,28 @@ def _sel3d(args) -> int:
     return 0
 
 
+def _gate(args) -> int:
+    from .io import loader
+    from .physics.gate_geometry import READINGS, gate_scan
+    loader.ALLOW_FETCH = args.fetch
+    print("The gate widened radially (gate.widen_half_width taper), then "
+          "Round 7.6's neutral K+ conductance and Round 7.19's P_Ca:P_K "
+          "(linear response); shares are Ca2+'s, at the deposited gate and filter.")
+    for pdb in args.pdb or ("9HEO", "8TKF"):
+        st = loader.load(pdb)
+        scan = gate_scan(st, widths=args.delta, spacing=args.spacing,
+                         progress=lambda i, n, d: print(f"  [{i + 1}/{n}] +{d:g} A", flush=True))
+        print(f"\n{pdb}: measured P_Ca:P_K {scan.measured:g}")
+        print(f"  {'+A':>4s} {'gate r':>6s} {'narrowest':>9s} {'g K+ pS':>8s}   "
+              + "   ".join(f"{k:>11s} (gate/filter)" for k in READINGS))
+        for r in scan.rows:
+            cells = "   ".join(f"{r.ratios[k]:11.2f} ({r.gate_share[k]:4.0%}/"
+                               f"{r.filter_share[k]:4.0%})" for k in READINGS)
+            print(f"  {r.delta:4g} {r.gate_radius:6.2f} {r.narrowest:>9s} "
+                  f"{r.conductance:8.0f}   {cells}{'' if r.converged else '  (n.c.)'}")
+    return 0
+
+
 def register(sub) -> None:
     p = sub.add_parser("sel3d", help="P_Ca:P_K from the 3-D charged lumen, "
                        "with the charge-space excess (Round 7.19)")
@@ -80,3 +103,12 @@ def register(sub) -> None:
                    help="csc.structural_volume for this run (0..1)")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_sel3d)
+    p = sub.add_parser("gate", help="the gate widened: conductance and "
+                       "P_Ca:P_K again (Round 7.21)")
+    p.add_argument("pdb", nargs="*", help="deposits (default 9HEO 8TKF)")
+    p.add_argument("--delta", type=float, action="append", default=None,
+                   help="widening, A (repeatable; default 0..gate.widen_max)")
+    p.add_argument("--spacing", type=float, default=None,
+                   help="voxel spacing, A (default pore3d.spacing)")
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_gate)

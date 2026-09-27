@@ -24,7 +24,14 @@ cartoon, tube, spheres or sticks, coloured by functional element, subunit,
 secondary structure, B-factor or **per-residue conservation** (the S17
 tables, four layers, on a fixed scale with unscored residues grey). Residue
 annotation is painted only when the deposit is verified to be in that
-paralog's human numbering (rat 7LHF is not, and is left grey).
+paralog's human numbering (rat 7LHF is not, and is left grey). Beside
+them, under **More IP3R deposits**, 17 more: every other full-length EM
+tetramer of a human ITPR or rat ITPR1 in the PDB at ≤ 4 Å, wild type,
+chosen by stated rules (`scripts/curate_ip3r.py`, `make extended`). They
+include ITPR2's resting and preactivated states (9YKY, 9YLI), ITPR3's
+pre-active B/C, inactive and Ca²⁺ classes, and rat ITPR1 in a nanodisc and
+under Ca²⁺/IP3/ATP. They can be viewed, measured, superposed and morphed,
+but no panel or check uses them, so no publication number depends on them.
 
 **Work in it.** A click selects a residue (gold); shift-click adds one. The
 right-click menu selects the same residue on every subunit, a chain,
@@ -62,6 +69,10 @@ and shows the gating transition at the pore:
 | 6DQJ | apo | 2.69 |
 | 8TKG | resting | 2.73 |
 | **8TKF** | **activated** | **5.85** |
+
+`states --extended` adds the 11 more ITPR3 deposits: every one is shut
+(gate 1.57–2.59 Å; inactive 7T3U the narrowest), so 8TKF (and the 7T3T
+control) remain the only open IP3R pores in the PDB.
 
 **Move it.** An elastic-network model of the tetramer gives its collective
 modes, each labelled by its C4 irreducible representation: **A** (all four
@@ -299,6 +310,15 @@ missing piece is therefore the continuum model, not the IP3R wall. Xu's
 E4900N also shows that PROPKA wrongly buries E4900 (pKa 8).
 
 ![Unitary conductance](docs/img/gui_unitary.png)
+
+**The gate is not the cap (Round 7.21).** `python -m ip3r gate` widens a
+deposit's gate by up to 4 Å (a radial, C4-preserving move, calibrated on
+synthetic atoms) and reads the pore again. On 9HEO the gate's share of
+Ca²⁺'s resistance falls from 53 % to 6 %, yet P_Ca:P_K moves only from
+1.08 to 1.27 against 7.0. On 8TKF it moves from 1.39 to 1.50 against 15.2,
+and on 7T3T it falls. K⁺ conductance gains at most 24 %. Neither the
+conductance shortfall nor the selectivity gap is the gate's shape
+(`docs/SCIENCE_GATE.md`).
 
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
@@ -546,6 +566,7 @@ python -m ip3r                      # the GUI, from an activated environment
 python -m ip3r --session view.json  # the GUI, reopened on a saved session
 python -m ip3r checks [--paper constraint] [--figures out/]
 python -m ip3r states               # the ITPR3 gating states at the pore
+python -m ip3r states --extended    # ... and every other full-length ITPR3 deposit
 python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
 python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
 python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired] [--image]]  # where the voltage falls: 3-D vs 1-D, neutral or charged
