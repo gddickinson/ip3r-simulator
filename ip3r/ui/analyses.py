@@ -86,6 +86,11 @@ ANALYSES = (
              ("reversal", "{pdb}"), "four to eight minutes",
              "P_Ca:P_K at the family's bi-ionic reversal (Xu 2006 / Vais 2010) through "
              "the 3-D charged lumen, beside linear response and 1-D (Round 7.23)."),
+    Analysis("wallsearch", "Permeation", "What a wall can do to Cl- and Ca2+",
+             ("wallsearch", "{pdb}", "--no-reversal"), "a minute or two",
+             "The series bound (P_Cl:P_K)(P_Ca:P_K)^2 <= 1 and the ways around it: how far "
+             "a Ca2+-only well can lift P_Ca:P_K, and opposite-charge rings (Round 7.25; "
+             "drop --no-reversal for the 45-minute search at reversal)."),
     Analysis("gating", "Gating and puffs", "Gating bells, three models",
              ("gating", "--model", "pd"), "seconds",
              "Park/drive open probability against Ca2+ at four IP3 levels."),

@@ -348,6 +348,8 @@ def build_parser() -> argparse.ArgumentParser:
     _register_bridge(sub)
     from .cli_graft import register as _register_graft
     _register_graft(sub)
+    from .cli_wallsearch import register as _register_wallsearch
+    _register_wallsearch(sub)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

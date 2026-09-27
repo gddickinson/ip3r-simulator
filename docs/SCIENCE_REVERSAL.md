@@ -223,3 +223,9 @@ Left outside the model:
   mean charge excludes Cl⁻ in proportion. The measured channel passes Cl⁻
   at a quarter of K⁺ and still selects Ca²⁺ 15-fold, which a single mean
   field cannot do.
+
+*Tested in Round 7.25 (`SCIENCE_WALLSEARCH.md`), negative:* no point-ion
+wall can pass Cl⁻ and select Ca²⁺ together, because the series bound
+(P_Cl:P_K)(P_Ca:P_K)² ≤ 1 holds over the uncharged pore. A Ca²⁺-only well
+that spans the whole membrane reaches only 4.5 (8TKF) / 6.9 (7T3T) at
+reversal.

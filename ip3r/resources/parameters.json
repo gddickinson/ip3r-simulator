@@ -5038,6 +5038,97 @@
    "source_note": "As the 1-D search (Round 7.4), which holds every reversal it has read; a root outside is refused by name",
    "minimum": 0.01,
    "maximum": 0.3
+  },
+  {
+   "key": "wallsearch.scale_min",
+   "name": "Search: smallest charge scale",
+   "value": 0.01,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: the deposit's lining charge is scaled on a geometric grid from this to 1.",
+   "source_note": "7.23 found P_Cl:P_K halved already at 0.05; 0.01 reaches back to the uncharged pore's reading",
+   "minimum": 0.0001,
+   "maximum": 0.5
+  },
+  {
+   "key": "wallsearch.scale_points",
+   "name": "Search: charge scales",
+   "value": 5,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: points on that grid.",
+   "source_note": "Half-decade steps; each costs two reversal solves",
+   "minimum": 2,
+   "maximum": 20
+  },
+  {
+   "key": "wallsearch.depth_step",
+   "name": "Search: Ca2+ well depth step",
+   "value": 2.0,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: the Ca2+-only well is tried at this step up to the maximum.",
+   "source_note": "Resolves the rise and fall of P_Ca:P_K with depth (both within 2-8 kT on 8TKF)",
+   "minimum": 0.25,
+   "maximum": 10.0
+  },
+  {
+   "key": "wallsearch.depth_max",
+   "name": "Search: deepest Ca2+ well",
+   "value": 8.0,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: the deepest Ca2+-only well tried.",
+   "source_note": "Past its peak on 8TKF: the well fills with Ca2+ and its own charge repels further entry",
+   "minimum": 1.0,
+   "maximum": 30.0
+  },
+  {
+   "key": "wallsearch.ceiling_depth",
+   "name": "Search: well depth for the ceiling",
+   "value": 15.0,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: the Ca2+-only well's depth when reading how far any well can lift P_Ca:P_K in linear response.",
+   "source_note": "e^15 leaves the well's own resistance below 1e-6 of the rest; 8TKF's span ceiling moves 1.5 % from 10 to 20 kT, and deeper wells stall the weighted Laplace solve",
+   "minimum": 5.0,
+   "maximum": 25.0
+  },
+  {
+   "key": "wallsearch.ring_step",
+   "name": "Search: ring spacing",
+   "value": 5.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: opposite-charge ring pairs are tried at this axial step through the membrane span.",
+   "source_note": "About the 3-D charge's Gaussian width (pore_charge.smoothing) times two, so neighbouring heights overlap",
+   "minimum": 1.0,
+   "maximum": 20.0
+  },
+  {
+   "key": "wallsearch.ring_charge_max",
+   "name": "Search: ring charge",
+   "value": 2.0,
+   "unit": "e",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.25: each ring is tried at 1 e per site and at this.",
+   "source_note": "Two charged groups per subunit at one height, as the densest lining rings of the deposits",
+   "minimum": 0.1,
+   "maximum": 4.0
   }
  ]
 }

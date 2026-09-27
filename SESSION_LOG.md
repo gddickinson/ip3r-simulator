@@ -3213,3 +3213,46 @@ where any of the experiment's ions has no path is refused by name
 **Checks.** `make test`: 701 passed (the new file's final edits rerun on
 their own). Lint and sizes are clean. Smoke groups `lumen`, `reversal` and
 `extras` pass, and `reversal` also passes alone.
+
+## 2026-09-27 (40) — Round 7.25: the Cl⁻ reading as a constraint
+
+**Why.** The Next item, Round 7.23's emergent one. The deposits' walls shut
+out Cl⁻ long before they select Ca²⁺. Is there any wall that does both?
+
+**What.** First, the reason the search could not simply sweep charge
+placements. For point ions in series, in linear response, each ratio over
+the uncharged pore's obeys B = (P_Cl:P_K)(P_Ca:P_K)² ≤ 1. This follows
+from Hölder's inequality: log E[e^{tψ}] is convex. It holds for any
+potential profile, so any placement, sign, spread or screening of charge.
+Vais's pair is B ≈ 3,200 on 8TKF. `physics/selectivity_bound.py` holds
+the bound, a 3-D linear-response reader for any charge map plus
+species-specific energies, and a Ca²⁺-only well's ceiling.
+`physics/wall_search.py` measures the bound's three exits: opposite C4
+ring pairs (parallel paths), the charge scaled at reversal
+(non-linearity), and a Ca²⁺-only well by band and depth, alone and with
+the charge, at Vais's reversal and scored on both ratios. Command
+`wallsearch`, with an Analyses entry (ceilings and rings; the 45-minute
+reversal search from the CLI). There are seven method parameters
+`wallsearch.*`.
+
+**Calibrated.** The bound holds on 2,000 random profiles, with equality
+for a uniform potential by hand; opposite parallel paths exceed it. On a
+tube the ceiling is 1/(1 − the band's share of the drop). The band's edge
+faces count as well, which the test states. A 30 kT well stalled the
+weighted Laplace solve (the ceiling read negative), so the ceiling depth
+is registered at 15 kT and an unconverged reading is refused.
+
+**Found.** 8TKF / 7T3T, 1 Å. Non-linearity gives B ≤ 1.20. Ring pairs give
+≤ 1.01 in 8TKF; 7T3T's wide gate reaches 7.9, gained in Cl⁻. The
+Ca²⁺-only well has a linear ceiling over the span of 46 / 28×, and 1.1–1.9×
+at one constriction. At reversal it peaks at P_Ca:P_K 4.48 / 6.86 (4 kT,
+whole span, Cl⁻ untouched at 0.29 / 0.37), then falls as uncompensated
+Ca²⁺ fills it. A local well blocks. Best scores: 1.30 / 0.90 (uncharged
+4.15 / 3.69; 8TKF's own wall 7.40). Nothing reaches 15.2. The pair needs
+Ca²⁺ occupancy blocking K⁺, or a compensated site: the emergent item. Raw
+output is in `data/wallsearch/`.
+
+**Checks.** `make test`: 714 passed. Lint and sizes are clean, and smoke group `extras` passes
+(the Analyses menu gained an entry).
+
+**Next.** Round 7.26 (GUI): the candidate walls drawn on the lumen.

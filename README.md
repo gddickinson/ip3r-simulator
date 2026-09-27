@@ -342,6 +342,19 @@ Ca²⁺'s drop. Its resistance lies in the uncharged stretch cytosolic of it:
 
 ![8TKF's lumen at the Ca²⁺ experiment's reversal, coloured by Ca²⁺](docs/img/gui_lumen_reversal.png)
 
+**No mean-field wall gives both ratios (Round 7.25).** `python -m ip3r
+wallsearch` scores wall models on P_Cl:P_K and P_Ca:P_K together. Take
+each ratio over the uncharged pore's. For point ions in series, Hölder's
+inequality then gives (P_Cl:P_K)(P_Ca:P_K)² ≤ 1 for any potential
+profile. Vais's pair needs about 3,200. The two exits open to a charged
+wall are small. The reversal's non-linearity reaches 1.2. Opposite-charge
+ring pairs reach 1.01 in 8TKF's lumen and 7.9 only in 7T3T's wide gate,
+and that gain is in Cl⁻. A Ca²⁺-only well leaves Cl⁻ untouched, but it
+peaks at P_Ca:P_K 4.5 (8TKF) / 6.9 (7T3T) at reversal, spanning the whole
+membrane at 4 kT. Deeper wells fill with Ca²⁺ and repel. The measured pair
+needs an interaction this continuum does not carry, such as Ca²⁺
+occupancy blocking K⁺ (`docs/SCIENCE_WALLSEARCH.md`).
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,

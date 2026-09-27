@@ -5,10 +5,11 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.25 (Science): the Cl⁻ reading as a constraint (7.23's
-emergent item). Search wall models, scored on P_Cl:P_K and P_Ca:P_K at
-once, for charge placements or missing groups that pass Cl⁻ at 0.27 and
-still select Ca²⁺. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.26 (GUI): the wall search on the structure. Draw the
+best candidate walls (the span well, the ring pairs) on the lumen beside
+the deposit's own, coloured by each ion's concentration at reversal
+(7.24's colourings). Round 7.25's emergent item, a compensated Ca²⁺
+site, follows as science. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -845,7 +846,7 @@ item carried over from round n; it stays listed there too.
   charge scaled 0 → 2×, P_Cl:P_K halves by 0.05× and P_Ca:P_K never reaches
   1. No mean-field wall of this shape gives both measured ratios.
   Emergent:
-  - [ ] The Cl⁻ reading as a constraint: which charge placements (or
+  - [x] (Round 7.25) The Cl⁻ reading as a constraint: which charge placements (or
     missing groups) pass Cl⁻ at 0.27 and still select Ca²⁺? A search over
     wall models scored on both ratios at once.
 
@@ -864,6 +865,33 @@ item carried over from round n; it stays listed there too.
   Its resistance lies at the gate (8TKF 31 %, 9HEO 60 %), or just past the
   filter where the gate is far and wide (7T3T). That is 7.19's and 7.21's
   finding, seen at reversal.
+
+- [x] **7.25 Science: the Cl⁻ reading as a constraint** (`python -m ip3r
+  wallsearch`, `physics/selectivity_bound.py`, `physics/wall_search.py`,
+  `docs/SCIENCE_WALLSEARCH.md`). The bound: for point ions in series, in
+  linear response, (P_Cl:P_K)(P_Ca:P_K)² over the uncharged pore's is at
+  most 1 (Hölder), for any potential profile. Equality holds only for
+  uniform ψ. Tested on 2,000 random profiles; opposite parallel paths
+  exceed it, as they should. Vais's pair needs B ≈ 3,200 on 8TKF. Its
+  three exits, measured on 8TKF and 7T3T at 1 Å:
+  - non-linearity at reversal (charge scaled 0.01–1): B ≤ 1.20;
+  - parallel paths (opposite C4 rings through the span): 8TKF ≤ 1.01;
+    7T3T reaches 7.9 at its wide cytosolic end, with the gain in Cl⁻;
+  - a Ca²⁺-only well. Its linear ceiling over the whole span is 46× / 28×
+    (access holds the rest), and at one constriction 1.1–1.9×. At Vais's
+    reversal it peaks at P_Ca:P_K 4.48 / 6.86 at 4 kT across the span,
+    with Cl⁻ at the uncharged 0.29 / 0.37. Deeper wells fill with
+    uncompensated Ca²⁺ and fall; local wells block (< 0 by GHK).
+  **Found:** no wall scored reaches the pair. The best is the 4 kT span
+  well, which scores 1.30 on 8TKF (uncharged 4.15, deposit wall 7.40) and
+  0.90 on 7T3T. Adding the charge to it reaches 5.37 / 8.89 but shuts
+  Cl⁻. The measured pair is not a mean-field property of any wall in this
+  lumen. It needs Ca²⁺ occupancy that blocks K⁺, or a site compensated
+  as it fills.
+  Emergent:
+  - [ ] A compensated Ca²⁺ site (−2e fixed per bound Ca²⁺, so filling
+    costs no field), and occupancy-dependent K⁺ block at reversal: can
+    either reach 15.2 with Cl⁻ at 0.27?
 
 ## Round 6 — ryanodine receptors
 
