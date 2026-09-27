@@ -10,9 +10,7 @@ Drawing extras (pore, highlights, mode animation) is in
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QKeySequence
-from PyQt6.QtWidgets import (QComboBox, QDockWidget, QFileDialog, QMainWindow, QMessageBox,
-                             QScrollArea, QTabWidget, QToolBar)
+from PyQt6.QtWidgets import QApplication, QComboBox, QMainWindow, QMessageBox, QTabWidget, QToolBar
 
 from .. import __version__
 from ..config import DEFAULT_STRUCTURE, SETTINGS, genes_results
@@ -22,6 +20,10 @@ from ..io.fetch import fetch_all
 from ..io.registry import get_entry
 from ..structure.channel import measure_channel
 from .channel_panel import ChannelPanel
+from .docks import DockManager
+from .window_extras import WindowExtras
+from .menus import build_menus
+from .selection import SelectionController
 from .dynamics_panel import DynamicsPanel
 from .fill_controller import FillController
 from .lumen_controller import LumenController
@@ -88,8 +90,8 @@ def compact_combos(root, chars: int = 10, wide: int = 160) -> None:
         combo.view().setMinimumWidth(combo.view().sizeHintForColumn(0) + 24)  # popup: full text
 
 
-class MainWindow(QMainWindow):
-    def __init__(self) -> None:
+class MainWindow(WindowExtras, QMainWindow):
+    def __init__(self, remember_layout: bool = False) -> None:
         super().__init__()
         self.setWindowTitle(f"IP3R Structural Simulator {__version__}")
         self.resize(1560, 960)
@@ -99,6 +101,7 @@ class MainWindow(QMainWindow):
         self.params_banner = ParametersBanner()
         self.params_banner.edit_requested.connect(self.edit_parameters)
         self.params_strip = strip = QToolBar("Parameters modified")
+        strip.setObjectName("params_strip")            # the saved layout names it
         strip.setMovable(False)
         strip.setFloatable(False)
         strip.toggleViewAction().setVisible(False)
@@ -111,10 +114,19 @@ class MainWindow(QMainWindow):
         self._pending_transition: tuple | None = None
         self.morph = TransitionController(self.scene)
         self.sessions = SessionController(self)
+        self.hud = self.viewport.hud
+        self.scene.hud = self.hud
+        self.selection = SelectionController(self.scene, self.hud,
+                                             self.statusBar().showMessage)
+        self.docks = DockManager(self, remember=remember_layout)
+        self.sequence_window = None
+        self.help_dialog = None
+        #: Open analysis windows (kept referenced while shown).
+        self.result_windows: list = []
 
         self.structure_panel = StructurePanel()
         compact_combos(self.structure_panel)
-        self._dock("Structure", self.structure_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.docks.add("Structure", self.structure_panel, Qt.DockWidgetArea.LeftDockWidgetArea)
         self.channel = ChannelPanel()
         self.modes = ModesPanel()
         self.transition = TransitionPanel()
@@ -133,7 +145,8 @@ class MainWindow(QMainWindow):
                         (self.variants, "Variants")):
             tabs.addTab(w, name)
         compact_combos(tabs)
-        self._dock("Analysis", tabs, Qt.DockWidgetArea.RightDockWidgetArea, scroll=False)
+        self.docks.add("Analysis", tabs, Qt.DockWidgetArea.RightDockWidgetArea, scroll=False,
+                       min_width=480)
 
         sp = self.structure_panel
         sp.load_requested.connect(self.load_structure)
@@ -163,67 +176,33 @@ class MainWindow(QMainWindow):
         self.variants.highlight_residue.connect(self._highlight_variant)
         self.variants.draw_requested.connect(self._draw_variants)
         self.viewport.atom_picked.connect(self._picked)
+        self.viewport.context_requested.connect(self.context_menu)
         self.viewport.scene_ready.connect(lambda _: self.scene.attach())
         self.viewport.status.connect(self.statusBar().showMessage)
         self.viewport.navigated.connect(self.scene.navigated)
         self.viewport.resized.connect(self.scene.resized)
         self._docks_sized = False
-        self._menus()
+        build_menus(self)
         self.statusBar().showMessage(f"ip3r_genes results: {genes_results()}")
 
     def showEvent(self, event) -> None:
         super().showEvent(event)
         if not self._docks_sized:
             self._docks_sized = True
-            self.resizeDocks(self._docks, list(DOCK_WIDTHS), Qt.Orientation.Horizontal)
+            self.resizeDocks(self.docks.docks, list(DOCK_WIDTHS), Qt.Orientation.Horizontal)
+            self.docks.capture_default()
+            self.docks.restore()
 
-    def _dock(self, title, widget, area, scroll=True) -> None:
-        dock = QDockWidget(title, self)
-        if scroll:
-            area_w = QScrollArea()
-            area_w.setWidget(widget)
-            area_w.setWidgetResizable(True)
-            # Fit the width, scroll only vertically: a sideways scroll hid subunit D.
-            area_w.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-            widget = area_w
-        dock.setWidget(widget)
-        dock.setMinimumWidth(300 if area == Qt.DockWidgetArea.LeftDockWidgetArea else 480)
-        self.addDockWidget(area, dock)
-        self._docks = [*getattr(self, "_docks", []), dock]
-
-    def _menus(self) -> None:
-        mb = self.menuBar()
-        f = mb.addMenu("&File")
-        self._action(f, "Open session…", self.sessions.open, "Ctrl+O")
-        self._action(f, "Save session…", self.sessions.save, "Ctrl+Shift+S")
-        f.addSeparator()
-        self._action(f, "Fetch all registry structures", self._fetch_all)
-        self._action(f, "Save screenshot…", self._screenshot, "Ctrl+S")
-        f.addSeparator()
-        self._action(f, "Quit", self.close, QKeySequence.StandardKey.Quit)
-        v = mb.addMenu("&View")
-        self._action(v, "Side view (cytosol up)", self.scene.side_view, "Ctrl+1")
-        self._action(v, "Top view (down the pore)", self.scene.top_view, "Ctrl+2")
-        self._action(v, "IP3 site", self._site_view, "Ctrl+3")
-        self._action(v, "Fit to view", self.scene.fit_view, "Ctrl+0")
-        self._action(v, "Toggle spin", lambda: self.viewport.set_spin(
-            0.0 if self.viewport._spin_speed else 20.0), "Space")
-        h = mb.addMenu("&Help")
-        self._action(h, "Parameters…", self.edit_parameters, "Ctrl+Shift+P")
-        self._action(h, "About", self._about)
+    def closeEvent(self, event) -> None:          # noqa: N802
+        self.docks.save()
+        for w in self.result_windows:
+            w.close()
+        super().closeEvent(event)
 
     def edit_parameters(self) -> None:
         """The registry editor; the banner follows the registry by itself."""
         self.params_dialog = ParametersDialog(self)
         self.params_dialog.exec()
-
-    def _action(self, menu, text, slot, shortcut=None) -> QAction:
-        a = QAction(text, self)
-        if shortcut:
-            a.setShortcut(QKeySequence(shortcut))
-        a.triggered.connect(slot)
-        menu.addAction(a)
-        return a
 
     # ------------------------------------------------------------- loading
 
@@ -243,6 +222,10 @@ class MainWindow(QMainWindow):
         self.structure_panel.refresh_list()
         self.structure_panel.set_chains(st.chains)
         entry = get_entry(st.name)
+        numbering = summary.numbering.paralog if summary.numbering else None
+        self.hud.set_title(f"{st.name}" + (f" — {entry.paralog} {entry.state}" if entry else ""),
+                           summary.frame.axis)
+        self.hud.set_provenance("")
         self.structure_panel.set_info(
             f"<b>{st.name}</b>: {entry.title if entry else ''}<br>"
             f"{st.n_atoms:,} atoms, {st.n_residues:,} residues, chains "
@@ -257,6 +240,8 @@ class MainWindow(QMainWindow):
         self.fills.loaded(st)
         self.lumen.loaded(st)
         self.variants.follow(summary.numbering.paralog if summary.numbering else None)
+        if self.sequence_window is not None:
+            self.sequence_window.set_structure(st, numbering)
         self.statusBar().showMessage(
             f"{st.name} loaded — numbering "
             f"{summary.numbering.paralog if summary.numbering else 'none'}; "
@@ -428,26 +413,14 @@ class MainWindow(QMainWindow):
             self.variants.report(msg)
 
     def _picked(self, index: int) -> None:
-        self.statusBar().showMessage(self.scene.describe_atom(index))
+        shift = bool(QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier)
+        self.statusBar().showMessage(self.selection.pick(index, extend=shift))
 
     # --------------------------------------------------------------- misc
 
-    def _fetch_all(self) -> None:
+    def fetch_all(self) -> None:
         self.statusBar().showMessage("fetching registry structures…")
         run_async(fetch_all, log=lambda *_: None, on_done=lambda s: (
             self.structure_panel.refresh_list(),
             self.statusBar().showMessage(f"fetched: {s}")))
 
-    def _screenshot(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(self, "Save screenshot", "ip3r.png",
-                                              "PNG (*.png)")
-        if path:
-            self.viewport.grabFramebuffer().save(path)
-
-    def _about(self) -> None:
-        QMessageBox.about(self, "About", (
-            f"<b>IP3R Structural Simulator {__version__}</b><p>Physics-driven "
-            "3-D model of the IP3 receptor, and a re-derivation of the "
-            f"ip3r_genes results found at<br><code>{genes_results()}</code>.</p>"
-            "<p>Ported from the PIEZO1 simulator. See README.md and "
-            "INTERFACE.md.</p>"))

@@ -38,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
     configure_surface_format(SETTINGS.render)
     app = QApplication(sys.argv[:1])
     apply_dark_theme(app)
-    win = MainWindow()
+    win = MainWindow(remember_layout=not args.geometry)   # an explicit size wins
     if args.geometry:
         w, h = (int(v) for v in args.geometry.lower().split("x"))
         win.resize(w, h)

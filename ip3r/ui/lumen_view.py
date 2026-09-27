@@ -96,7 +96,8 @@ class LumenControls(QWidget):
             "Wall potential: a fixed ± display.lumen_potential_range kT/e, "
             "cation wells blue; zero everywhere in the neutral pore (with "
             "the image cost a cation feels u + W, and u alone deepens where "
-            "W is large). Image "
+            "W is large). K+ energy: u + W on the same scale, the well the "
+            "summary names (u alone without the image). Image "
             "cost: a fixed 0 to display.lumen_image_range kT, grey unless "
             "'+ image' is on.")
         self.colour.currentIndexChanged.connect(lambda _: self.colour_changed.emit())

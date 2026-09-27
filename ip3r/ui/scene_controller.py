@@ -57,6 +57,13 @@ class SceneController:
         #: What the camera keeps framed while the user has not moved it:
         #: "all" (the visible subunits), "site" (one IP3 site) or None.
         self.fit_target: str | None = None
+        #: Callbacks given the displayed coordinates on every morph or mode
+        #: frame, and callbacks run when a new deposit replaces the old one
+        #: (the selection's, Round 7.18).
+        self.followers: list = []
+        self.on_clear: list = []
+        #: The HUD (Round 7.18), told when a prediction is drawn.
+        self.hud = None
 
     @property
     def fill(self) -> FillOverlay:
@@ -81,9 +88,13 @@ class SceneController:
         self.scene.remove("pore")
         self.scene.remove("lumen")
         self.scene.remove("variants")
+        for name in ("selection", "distances"):
+            self.scene.remove(name)
         self.fill.clear()
         self._variants, self._variant_atoms = None, np.zeros(0, int)
         self.structure, self.summary, self.modes = st, summary, None
+        for cb in self.on_clear:
+            cb()
         paralog = summary.numbering.paralog if summary.numbering else None
         self.view = MolecularView(self.scene, st, name="model", paralog=paralog, **style)
         self.view.rebuild()
@@ -320,6 +331,8 @@ class SceneController:
         if lumen is not None:
             lumen.visible = self._at_deposit(xyz)
         self.fill.move(xyz)
+        for cb in self.followers:
+            cb(xyz)
 
     def show_fill(self, model) -> None:
         """Draw an AlphaFold fill (None clears) on the coordinates now shown."""
@@ -328,6 +341,11 @@ class SceneController:
         else:
             self.fill.show(model, self.view.structure.xyz, self.view.style,
                            self.view.visible_chains)
+        if self.hud is not None:
+            self.hud.set_provenance(
+                "" if model is None or self.view is None or not model.n_residues else
+                f"includes {model.n_residues:,} predicted residues ({model.prediction}, "
+                "pLDDT colours): a model, not the deposit")
         self.viewport.update()
 
     def describe_atom(self, i: int) -> str:

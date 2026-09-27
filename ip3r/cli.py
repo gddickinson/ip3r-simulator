@@ -31,7 +31,7 @@ import json
 import sys
 from pathlib import Path
 
-__all__ = ["main"]
+__all__ = ["main", "build_parser"]
 
 _ICON = {"confirmed": "✓", "discrepancy": "✗", "not_run": "·", "error": "!"}
 
@@ -290,6 +290,12 @@ def main(argv: list[str] | None = None) -> int:
     if not argv or argv[0] == "gui" or argv[0].startswith("--"):
         from .ui.app import main as gui
         return gui(argv[1:] if argv and argv[0] == "gui" else argv)
+    args = build_parser().parse_args(argv)
+    return args.fn(args)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Every subcommand (the GUI's Analyses menu is tested against it)."""
     ap = argparse.ArgumentParser(prog="python -m ip3r")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("fetch")
@@ -378,5 +384,4 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=_puffs)
     p = sub.add_parser("params")
     p.set_defaults(fn=_params)
-    args = ap.parse_args(argv)
-    return args.fn(args)
+    return ap

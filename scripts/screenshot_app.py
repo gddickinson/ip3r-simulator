@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from screenshot_ip3r import IP3R_STEPS, check_transition_headline, ip3r_step  # noqa: E402
 from screenshot_sparks import SPARK_STEPS, spark_step  # noqa: E402
+from screenshot_extras import EXTRAS_STEPS, extras_step  # noqa: E402
 import screenshot_session as ss_  # noqa: E402
 import screenshot_view as sv  # noqa: E402
 
@@ -460,6 +461,10 @@ def main() -> int:
                     return QTimer.singleShot(500, step)
             elif s < 22 + SPARK_STEPS + IP3R_STEPS:    # Round 7.3: IP3R models
                 if ip3r_step(s - 22 - SPARK_STEPS, win, app, out):
+                    state["step"] -= 1
+                    return QTimer.singleShot(500, step)
+            elif s < 22 + SPARK_STEPS + IP3R_STEPS + EXTRAS_STEPS:   # Round 7.18
+                if extras_step(s - 22 - SPARK_STEPS - IP3R_STEPS, win, app, out):
                     state["step"] -= 1
                     return QTimer.singleShot(500, step)
             else:

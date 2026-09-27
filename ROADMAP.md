@@ -5,8 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.18 (GUI): per the alternation, a GUI upgrade; the
-obvious one is Round 7.16's "K+ energy (u + W)" colouring. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.19 (science): selectivity in 3-D, with the csc excess
+as a per-voxel energy (Round 7.17's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -690,9 +690,9 @@ item carried over from round n; it stays listed there too.
   30 %), pair omitted 38 → 50 %; 7T3T 20 → 27 %, 36 → 56 %. 9HEO's gate
   carries 36–38 % either way; only its g falls (K+ ×5.64 → ×3.28).
   Emergent:
-  - [ ] The "wall potential" colouring is u, not what a cation feels
+  - [x] The "wall potential" colouring is u, not what a cation feels
     once W is counted; a "K+ energy (u + W)" colouring would show the
-    well the summary names.
+    well the summary names (Round 7.18).
 
 - [x] **7.17 Science: charge–space competition** (`python -m ip3r csc`,
   `physics/csc.py`, `docs/SCIENCE_CSC.md`). A `csc` closure for the 1-D
@@ -719,6 +719,40 @@ item carried over from round n; it stays listed there too.
     per-voxel energy (the `self_energy` hook).
   - [ ] A mutant's lost group is removed with its volume here; an
     Asn/Gln side chain keeps most of it. Keep the volume, drop the charge.
+
+- [x] **7.18 GUI: the K+ energy colouring, and PIEZO1's missing
+  features.** Lumen box → Colour by → "K+ energy": z·u + z²·W for K+
+  (`ChargedLumen.k_energy`), u + W on the wall's fixed ± scale, u alone
+  without the image; equal to the headless u + W in the smoke test. Then,
+  from a comparison with the PIEZO1 GUI, the major features this one
+  lacked. Click selection (gold, in its own batch), shift-click, and a
+  right-click menu: the same residue on every subunit, a chain, centre
+  here, measure from. Distances are Ctrl+M rods labelled in Å. Both
+  follow morph and mode frames and are dropped on a new deposit. A HUD
+  shows the title, a scale bar exact at the pivot, a gnomon with the
+  four-fold axis's cytosolic end, and readouts; an amber, unswitchable
+  line appears whenever AlphaFold residues are drawn. Screenshots carry
+  the HUD. A sequence window shows each chain's *construct* (poly-seq
+  scheme) in author numbers, unresolved residues dimmed. Its tracks are
+  element, deep JSD and resolved, with the sites underlined; they are
+  residue-keyed only in the deposit's numbering (7LHF grey). A drag there
+  selects on the model, on one subunit or all. The Analyses menu runs 18
+  CLI commands (most of Round 7's science had no GUI way in) as `python
+  -m ip3r …` in a QProcess. Each result window is stamped with the
+  command, the deposit and the parameter set; the GUI's overrides are
+  handed over as `IP3R_PARAMETERS`, and the window can be stopped. Docks
+  gained View → Panels, Reset layout, and a layout remembered through
+  QSettings (off in the smoke test). Help → Guide (F1) is topics plus a
+  shortcut table tested against the menus. Menus moved to `ui/menus.py`
+  and the new window methods to `ui/window_extras.py`, which keeps
+  `main_window.py` at 425 lines. Not ported, and why: PIEZO1's companions and
+  superposition (the Transition tab already superposes two states),
+  guided tours, light theme and presentation mode (conveniences, not
+  capabilities), topology diagram (PIEZO1-specific figure).
+  Emergent:
+  - [ ] A second deposit drawn superposed in its own colour (PIEZO1's
+    overlay), reusing the transition's residue-matched fit, so any two
+    states can be compared without building a morph.
 
 ## Round 6 — ryanodine receptors
 

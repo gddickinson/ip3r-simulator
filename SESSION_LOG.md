@@ -2858,3 +2858,51 @@ the pore). No GUI change, so no screenshots.
 
 **Next:** Round 7.18 (GUI), then selectivity in 3-D with the csc excess
 as a per-voxel energy.
+
+
+## 2026-09-26 (33) — Round 7.18: the K+ energy colouring, and PIEZO1's missing GUI features
+
+**Why.** This was a GUI round by the alternation. Round 7.16 had left the lumen coloured by u
+while the summary named the K+ well as u + W. The user also asked for a
+comparison with the PIEZO1 GUI and for its major missing features to be added.
+Beside PIEZO1's GUI, this one had no selection beyond a status-bar
+line, no right-click menu, no distances, no HUD (scale bar, orientation,
+prediction banner), no sequence view, no guide, fixed docks, and no way
+into most of Round 7's science except the command line.
+
+**What.**
+- `ChargedLumen.k_energy` (z·u + z²·W, K+) and the "K+ energy" colouring
+  on the wall's fixed scale; `well()` reads it.
+- `ui/selection.py`, `ui/context_menu.py`: residue selection in its own
+  sphere batch, so the site highlights stay untouched. Measured distances
+  are rods with labels. Both follow frames through
+  `SceneController.followers` and are cleared through `on_clear`.
+- `ui/hud.py`: title, scale bar, a gnomon with the axis's cytosolic end,
+  readouts, and the amber prediction line (set by `show_fill`). The bar
+  reads "at the pivot" in perspective, where it is exact in that plane
+  only, and drops the caveat in orthographic (O), where it holds at every
+  depth (asked for by the user). File →
+  Save screenshot now grabs the widget, so the HUD is in the PNG.
+- `ui/sequence_model.py` / `sequence_view.py` / `sequence_window.py`: the
+  construct from the poly-seq scheme, gaps kept, tracks gated on the
+  numbering, selection shared with the model both ways.
+- `ui/analyses.py` / `result_window.py`: 18 CLI commands in a QProcess.
+  The child is given the GUI's parameter set explicitly and never
+  inherits a stale `IP3R_PARAMETERS`. `cli.build_parser()` split out so
+  a test parses every entry.
+- `ui/docks.py` (Panels, Reset layout, QSettings layout with a clamp,
+  off under `--geometry` and in the smoke test), `ui/help_content.py` /
+  `help_dialog.py` (F1; shortcuts tested against `menus.py`),
+  `ui/menus.py`, `ui/window_extras.py` (main_window 453 → 425 lines).
+- Tests: `tests/test_gui_extras.py` (14) and a K+ energy case in
+  `test_lumen_charge.py`. Smoke test: `scripts/screenshot_extras.py` (4
+  steps) and the energy colouring in the 7.16 step.
+
+**Not ported, and why.** Companions and superposition: the Transition tab
+already superposes two states; a plain overlay is the emergent item.
+Tours, the light theme and presentation mode are conveniences, not
+capabilities. The topology diagram is PIEZO1's own figure.
+
+**Not changed.** `make sync-check` clean; no verdict moved.
+
+**Next:** Round 7.19 (science): selectivity in 3-D with the csc excess.

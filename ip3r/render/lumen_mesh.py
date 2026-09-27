@@ -33,6 +33,7 @@ __all__ = ["LumenMesh", "lumen_mesh", "drawn_mask", "wall_colors",
 #: What the surface can be coloured by: key -> label.
 COLOURINGS = {"drop": "voltage drop (0 lumen, 1 cytosol)",
               "wall": "wall potential at equilibrium (kT/e)",
+              "energy": "K+ energy u + W (kT; = u without the image)",
               "image": "image cost W (kT per z², dielectric + image)"}
 
 

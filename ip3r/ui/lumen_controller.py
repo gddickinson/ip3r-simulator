@@ -137,10 +137,11 @@ class LumenController:
             w = None if self.charged is None else self.charged.w
             return (np.full(len(self.mesh.positions), np.nan) if w is None
                     else self.mesh.sample(w))
-        if self.box.colouring == "wall":
+        if self.box.colouring in ("wall", "energy"):
             if self.charged is None:          # the neutral pore: no wall potential
                 return np.zeros(len(self.mesh.positions))
-            return self.mesh.sample(self.charged.u)
+            return self.mesh.sample(self.charged.u if self.box.colouring == "wall"
+                                    else self.charged.k_energy)
         if self.charged is None:
             return self.mesh.phi
         return self.mesh.sample(self.charged.mu)
@@ -150,7 +151,7 @@ class LumenController:
             self.scene.show_lumen(None)
             return
         v = self.values()
-        paint = {"wall": wall_colors, "image": image_colors}.get(
+        paint = {"wall": wall_colors, "energy": wall_colors, "image": image_colors}.get(
             self.box.colouring, ramp)
         self.mesh.colors = paint(v)
         self.scene.show_lumen(self.mesh)

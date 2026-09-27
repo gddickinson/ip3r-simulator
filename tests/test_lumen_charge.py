@@ -86,6 +86,29 @@ def test_the_image_ramp_is_fixed_from_zero_and_grey_where_unsolved():
     assert np.allclose(c[4], MISSING)
 
 
+def test_k_energy_is_u_without_the_image_and_u_plus_w_with_it():
+    """Round 7.18's colouring: K+ (z = 1) feels z·u + z²·W. Without the
+    image it is u exactly; with a W planted by hand it is u + W, and the
+    well it names moves to where u + W is lowest, not u."""
+    import dataclasses
+    f = _cylinder()
+    shape = f.volume.mask.shape
+    u = np.where(f.volume.mask, -1.0, np.nan)
+    k = tuple(s // 2 for s in shape)
+    u[k] = -5.0                                   # u's deepest voxel
+    c = dataclasses.replace(_charged(f, np.zeros(len(f.z))), u=u)
+    assert c.k_energy is c.u
+    w = np.where(f.volume.mask, 0.0, np.nan)
+    w[k] = 4.5                                    # the image lifts it to -0.5
+
+    class _Born:
+        energy = w
+    ci = dataclasses.replace(c, born=_Born())
+    assert np.allclose(ci.k_energy[f.volume.mask], (u + w)[f.volume.mask])
+    assert np.all(np.isnan(ci.k_energy[~f.volume.mask]))
+    assert ci.well(energy=False)[0] == -5.0 and ci.well()[0] == -1.0
+
+
 def test_a_mesh_samples_its_own_voxels():
     """Recolouring reads the voxel each vertex was coloured from."""
     f = _cylinder()
@@ -201,6 +224,7 @@ def test_8tkf_image_is_round_7_15s_dipole_and_pair_omitted_with_it(tkf, monkeypa
     assert np.all(np.isfinite(c.w[inside])) and np.all(np.isnan(c.w[~inside]))
     assert np.all(c.w[inside] >= -1e-9)
     # A cation feels u + W: u alone deepens where W is large.
+    assert np.allclose(c.k_energy[inside], (c.u + c.w)[inside])
     assert c.well()[0] > c.well(energy=False)[0]
     assert "+ image" in c.summary() and "u + W" in c.summary()
     # Round 7.15's filter-axis W (1.19 kT), read on the lumen's own axis.

@@ -95,6 +95,12 @@ class ChargedLumen:
         return np.where(self.neutral.volume.mask, self.born.energy, np.nan)
 
     @property
+    def k_energy(self) -> np.ndarray:
+        """What a K+ ion feels on the lumen (kT): z·u + z²·W with z = 1, so
+        u + W with the image cost and u alone without it; NaN outside."""
+        return self.u if self.born is None else self.u + self.w
+
+    @property
     def w_axis(self) -> np.ndarray:
         """W at the lumen voxel nearest the axis on each window plane."""
         if self.born is None:
@@ -153,7 +159,7 @@ class ChargedLumen:
         """The deepest cation well on the lumen: (kT/e, its z). With the
         image cost the cation's energy is u + W, and u alone deepens where
         W is large, so ``energy`` (the default) reads u + W; False reads u."""
-        e = self.u if (self.born is None or not energy) else self.u + self.w
+        e = self.k_energy if energy else self.u
         vals = np.where(np.isfinite(e), e, np.inf)
         k = np.unravel_index(int(np.argmin(vals)), vals.shape)
         return float(vals[k]), float(self.neutral.volume.zs[k[2]])

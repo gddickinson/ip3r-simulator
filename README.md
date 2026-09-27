@@ -26,6 +26,23 @@ tables, four layers, on a fixed scale with unscored residues grey). Residue
 annotation is painted only when the deposit is verified to be in that
 paralog's human numbering (rat 7LHF is not, and is left grey).
 
+**Work in it.** A click selects a residue (gold); shift-click adds one. The
+right-click menu selects the same residue on every subunit, a chain,
+centres on an atom or starts a distance (Ctrl+M measures: two clicks, a
+rod labelled in Å). A HUD carries the deposit, a scale bar exact at the
+pivot and a gnomon with the four-fold axis's cytosolic end. An amber line
+shows whenever AlphaFold residues are drawn. View → Sequence shows each
+chain's whole construct in the deposit's numbering, unresolved residues
+dimmed. It is tracked by element, deep JSD or resolution, with the sites
+underlined, and a drag there selects on the model. The **Analyses** menu
+runs the command-line science (selectivity, protonation, the 3-D wall, the
+salt bridge, the image cost, charge–space, shortfall, …) in its own
+process, stamped with the deposit and the parameter set. Panels are
+movable docks (View → Reset layout), and Help → Guide (F1) explains all
+of it.
+
+![A selection on 8TKF, measured, with the sequence window](docs/img/gui_selection_window.png)
+
 **Measure it.** The four-fold axis is found by superposing each subunit on
 its neighbour; the pore profile, the selectivity filter (GGGVGD) and the gate
 are located; every bound IP3 is found and its contacts listed.
@@ -233,6 +250,12 @@ the neutral pore's 30 %. RyR1 9HEO's gate carries the drop with or without
 it (`docs/SCIENCE_BORN.md` §4).
 
 ![8TKF's lumen coloured by the image cost](docs/img/gui_lumen_image.png)
+
+"Colour by → K+ energy" paints u + W, the energy a cation actually feels,
+on the wall potential's fixed ± scale (u alone without the image). That is
+the well the summary names.
+
+![8TKF's lumen coloured by the K+ energy u + W](docs/img/gui_lumen_energy.png)
 
 Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
 and tests the wall charge directly. Vais et al. 2010's own solutions were

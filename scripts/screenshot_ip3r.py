@@ -323,6 +323,11 @@ def _lumen_image(win, app, out) -> bool:
     app.processEvents()
     win.grab().save(str(out / "gui_lumen_image.png"))
     box = win.channel.lumen_box
+    box.colour.setCurrentIndex(box.colour.findData("energy"))   # Round 7.18
+    if not np.allclose(lc.mesh.colors, wall_colors(lc.mesh.sample(c.u + c.w))):
+        raise RuntimeError("the K+ energy colouring is not u + W")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_energy.png"))
     win.channel.show_lumen.setChecked(False)     # first: no re-solve behind us
     if sc.scene.get("lumen") is not None:
         raise RuntimeError("unticking left the lumen drawn")

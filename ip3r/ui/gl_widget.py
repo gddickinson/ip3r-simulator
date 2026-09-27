@@ -1,4 +1,5 @@
-"""The OpenGL viewport widget (ported from the PIEZO1 simulator, HUD removed).
+"""The OpenGL viewport widget (ported from the PIEZO1 simulator; its HUD,
+:mod:`ip3r.ui.hud`, came back in Round 7.18).
 
 Hosts a moderngl context inside a ``QOpenGLWidget`` and forwards mouse and
 wheel input to the scene camera.
@@ -20,6 +21,7 @@ from PyQt6.QtWidgets import QWidget
 
 from ..config import RenderSettings
 from ..render.scene import Scene
+from .hud import HudOverlay
 
 __all__ = ["ViewportWidget", "configure_surface_format", "CLICK_SLOP",
            "nearest_hit", "PRIMARY_SOURCE"]
@@ -146,6 +148,7 @@ class ViewportWidget(QOpenGLWidget):
         # simply failed to appear. A sibling widget has its own paint event and
         # cannot interfere with the scene at all.
         self.overlay = _LabelOverlay(self)
+        self.hud = HudOverlay(self)
 
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._on_tick)
@@ -191,6 +194,7 @@ class ViewportWidget(QOpenGLWidget):
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         self.overlay.setGeometry(self.rect())
+        self.hud.setGeometry(self.rect())
         if self.scene is not None:          # the camera must know the new aspect
             ratio = self.devicePixelRatioF()
             self.scene.resize(int(self.width() * ratio), int(self.height() * ratio))
@@ -212,6 +216,7 @@ class ViewportWidget(QOpenGLWidget):
         """Repaint the 2-D overlays. The scale bar depends on camera distance,
         so it goes stale on every zoom unless it is repainted with the scene."""
         self.overlay.update()
+        self.hud.update()
 
     def _on_tick(self) -> None:
         dt = 1.0 / max(self.settings.target_fps, 1)
