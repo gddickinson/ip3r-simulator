@@ -5,10 +5,11 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.23 (science): P_Ca:P_K at reversal in 3-D — Xu's and
-Vais's bi-ionic protocols through the 3-D charged lumen, since Round 7.21
-showed linear response stays at or below 1.8 on every open wall, gate or no gate (the 1-D model
-already separates the two readings). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.24 (GUI): the lumen at reversal: colour the lumen by
+each ion's concentration and electrochemical drop in Round 7.23's steady
+state at the family's reversal, Cl⁻ included (closing 7.10's open item).
+The viewer then shows where Ca²⁺ binds and where each ion's resistance lies
+when no current flows. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -824,6 +825,30 @@ item carried over from round n; it stays listed there too.
   measures in its paralog's numbering. **Found:** all 17 are shut (gate
   1.57–2.71 Å). Across 18 ITPR3 deposits, only 8TKF (and the 7T3T control)
   are open.
+
+- [x] **7.23 Science: P_Ca:P_K at bi-ionic reversal in 3-D**
+  (`python -m ip3r reversal`, `physics/pnp3d.py`, `physics/reversal3d.py`,
+  `docs/SCIENCE_REVERSAL.md`). Steady Poisson–Nernst–Planck on the voxels.
+  Nernst–Planck in Slotboom form is Round 7.11's weighted Laplace solve with
+  n held at each bath; Poisson is `poisson_boltzmann` with the applied
+  field and ln n in its offset; Gummel alternates the two. The reversal is
+  the root of the net current. Xu's protocol (RyR1) and Vais's two (IP3R,
+  NMDG⁺ confined to the luminal bath) are the 1-D ones. Calibrated: v = 0
+  = PB exactly, 0.1 mV = linear response, Planck's junction, TMS and
+  NMDG⁺'s Donnan jump on tubes (each converging as it should), and 9HEO's
+  neutral pore read with its own P_Cl = its linear response (0.608 /
+  0.607). **Found:** the protocol does not rescue the ratio. At reversal,
+  `pb + csc` reads 9HEO 0.90 (linear 1.06, measured 7.0), 8TKF 1.15 (1.34,
+  15.2) and 7T3T 1.54 (1.68). Every reading is within 15 % of linear, and
+  the 1-D gap (8TKF 0.34 → 0.07) was the local-neutrality closure's. Xu's
+  mutants at reversal: Σ|ln| 2.67, D4938N still ahead of D4899Q. The
+  charged wall shuts out Cl⁻ (P_Cl:P_K 0.003 against 0.27). With 8TKF's
+  charge scaled 0 → 2×, P_Cl:P_K halves by 0.05× and P_Ca:P_K never reaches
+  1. No mean-field wall of this shape gives both measured ratios.
+  Emergent:
+  - [ ] The Cl⁻ reading as a constraint: which charge placements (or
+    missing groups) pass Cl⁻ at 0.27 and still select Ca²⁺? A search over
+    wall models scored on both ratios at once.
 
 ## Round 6 — ryanodine receptors
 

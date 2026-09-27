@@ -24,6 +24,7 @@ from parameter_table_pore3d import PORE3D
 from parameter_table_csc import CSC
 from parameter_table_bench import BENCH
 from parameter_table_views import VIEWS
+from parameter_table_rev3d import REV3D
 
 _DYK = ("De Young & Keizer 1992, Table 1; the same values are used "
         "unchanged by Li & Rinzel 1994")
@@ -404,3 +405,4 @@ P += PORE3D
 P += CSC
 P += BENCH
 P += VIEWS
+P += REV3D

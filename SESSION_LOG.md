@@ -3121,3 +3121,52 @@ preactivated), so a morph within ITPR2 is possible.
 (`test_json_matches_the_table`) was the parameter table edited while the
 suite ran, and it passes on rerun. Lint and sizes clean. Smoke groups
 `core` and `superpose` pass (the list's three headings checked).
+
+## 2026-09-27 (38) — Round 7.23: P_Ca:P_K at bi-ionic reversal in 3-D
+
+**Why.** The Next item. Rounds 7.19 and 7.21 left every open wall at or
+below 1.8 in linear response, gate or no gate. The measurements (Xu 7.0,
+Vais 15.2) are bi-ionic reversal readings, and in 1-D the two protocols
+differ (8TKF 0.34 → 0.07). The protocol was the last model–experiment
+difference untested in 3-D.
+
+**What.** `physics/pnp3d.py`: steady Poisson–Nernst–Planck on the voxels.
+Nernst–Planck in Slotboom form is exactly Round 7.11's Boltzmann-weighted
+Laplace solve with n held at each bath (so `geometric_conductance` gained a
+warm start, `initial=`). Poisson is `poisson_boltzmann` with ψ = vφ₀ + u,
+and the applied field, the held csc excess and ln n all go in its offset.
+Gummel alternates the two. Impermeant NMDG⁺ is Boltzmann in the luminal
+bath below the span. `physics/reversal3d.py`: Xu's one experiment and
+Vais's two (tested equal to the 1-D ones), readings neutral / pb / pb + csc,
+the reversal by Brent from warm starts (6–7 solves each), Xu's mutants, a
+wall-charge scale scan. CLI `reversal`, Analyses menu entry, six registered
+`pnp3d.*`/`reversal3d.*` method constants (new `parameter_table_rev3d.py`).
+The grid is 1 Å (Round 7.19 measured 1 Å within 4 % of 0.5 Å; a
+reversal is ~7 full PNP solves).
+
+**Calibrated first.** v = 0 = PB to 1e-10; 0.1 mV = linear response to
+2e-5. On tubes: Planck's junction (0.02 mV at a short Debye length), TMS
+(1/length convergence, 0.1 and 1.0 mV at 300 Å), an excluded NMDG⁺'s
+Donnan jump (0.2 mV). On 9HEO the uncharged pore obeys GHK: its reversal
+read with its own P_Cl:P_K gives 0.608 against its linear 0.607. Xu's
+ruler (P_Cl = 0) gives 0.064 on the same pore, so that ruler assumes a
+cation-selective pore.
+
+**Found.** The protocol does not rescue the ratio. `pb + csc` at
+reversal: 9HEO 0.90 (linear 1.06; 7.0), 8TKF 1.15 (1.34; 15.2), 7T3T 1.54
+(1.68). Within 15 % of linear everywhere; the 1-D gap was its closure's.
+Robust to the charge's spread (6 Å: 9HEO 2.70, 8TKF 2.36, again just below
+linear) and the grid (9HEO at 0.5 Å: 0.91, within 1.5 %). Xu's mutants at reversal: Σ|ln| 2.67
+(linear 3.02, 1-D reversal 2.61), with D4938N ×0.66 still ahead of D4899Q
+×0.80 (measured ×0.47 / ×0.14). New: the charged wall over-excludes Cl⁻
+(P_Cl:P_K 0.001–0.003 against Vais's 0.27; the neutral pore reads 0.29).
+Scaling 8TKF's charge 0 → 2×: P_Cl:P_K 0.29 → 0.13 at 0.05×, while P_Ca:P_K
+peaks at 0.98. No mean-field wall of this shape gives both measured ratios.
+That points at specific binding or charges the deposits do not place.
+Added as an emergent item: search wall models scored on both ratios.
+
+**Checks.** `make test`: 696 passed. Lint and sizes are clean, and the
+`extras` smoke group passes (the Analyses menu gained an entry).
+
+**Next.** Round 7.24 (GUI): the lumen at reversal, coloured by each ion's
+concentration and electrochemical drop, Cl⁻ included.

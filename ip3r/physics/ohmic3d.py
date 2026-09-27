@@ -78,12 +78,16 @@ def bernoulli_weight(ea: np.ndarray, eb: np.ndarray) -> np.ndarray:
 
 
 def geometric_conductance(vol: PoreVolume, tol: float | None = None,
-                          energy: np.ndarray | None = None) -> Laplace:
+                          energy: np.ndarray | None = None,
+                          initial: np.ndarray | None = None) -> Laplace:
     """Solve Laplace's equation in ``vol`` and return ``g = I / (σ ΔV)``.
 
     ``energy`` (the grid's shape, kT) makes it ``∇·(e^{−E}∇μ) = 0``: the
     linear response of a species whose equilibrium concentration is the
-    bath's times ``e^{−E}`` (:mod:`.charged3d`); ``g`` is then per bulk σ."""
+    bath's times ``e^{−E}`` (:mod:`.charged3d`); ``g`` is then per bulk σ.
+    ``initial`` (per conducting voxel, as :attr:`Laplace.potential`) starts
+    the iteration there (Round 7.23's Gummel loop re-solves each species
+    many times)."""
     tol = _P.value("pore3d.cg_tolerance") if tol is None else tol
     mask = vol.mask
     n = int(mask.sum())
@@ -116,7 +120,9 @@ def geometric_conductance(vol: PoreVolume, tol: float | None = None,
     phi = value.copy()
     info = 0
     if free.any():
-        x, info = cg(lap, rhs, M=sparse.diags(1.0 / np.maximum(degree[free], 1e-300)),
+        x0 = None if initial is None else np.asarray(initial, float)[free]
+        x, info = cg(lap, rhs, x0=x0,
+                     M=sparse.diags(1.0 / np.maximum(degree[free], 1e-300)),
                      rtol=tol, maxiter=int(_P.value("pore3d.cg_max_iterations")),
                      callback=_count)
         phi[free] = x

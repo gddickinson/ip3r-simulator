@@ -82,6 +82,10 @@ ANALYSES = (
     Analysis("gate", "Permeation", "The gate widened", ("gate", "{pdb}"),
              "several minutes", "The gate opened by 0-4 Å: K+ conductance and P_Ca:P_K "
              "again, with the gate's and filter's share of Ca2+'s resistance (Round 7.21)."),
+    Analysis("reversal", "Permeation", "Selectivity at reversal, 3-D",
+             ("reversal", "{pdb}"), "four to eight minutes",
+             "P_Ca:P_K at the family's bi-ionic reversal (Xu 2006 / Vais 2010) through "
+             "the 3-D charged lumen, beside linear response and 1-D (Round 7.23)."),
     Analysis("gating", "Gating and puffs", "Gating bells, three models",
              ("gating", "--model", "pd"), "seconds",
              "Park/drive open probability against Ca2+ at four IP3 levels."),

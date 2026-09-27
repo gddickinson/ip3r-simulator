@@ -15,6 +15,7 @@ testable and scriptable:
     python -m ip3r csc [9HEO 8TKF]  # charge-space competition vs Xu / Vais (cli_csc)
     python -m ip3r sel3d [--mutants] # P_Ca:P_K from the 3-D charged lumen (cli_sel3d)
     python -m ip3r gate [PDB ...]    # the gate widened, conductance and P_Ca:P_K (cli_sel3d)
+    python -m ip3r reversal [PDB ...] # P_Ca:P_K at bi-ionic reversal in 3-D (cli_sel3d)
     python -m ip3r mutants | ryr-gating | sparks | spark-termination  # RyR1
     python -m ip3r modes 6DQN       # elastic-network modes with C4 irreps
     python -m ip3r transition 8TKG 8TKF   # displacement, morph, mode overlap

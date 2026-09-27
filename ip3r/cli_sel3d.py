@@ -4,6 +4,7 @@
     python -m ip3r sel3d 9HEO --mutants  # Xu 2006's five mutants on 9HEO
     python -m ip3r sel3d 7T3T --spacing 1.0
     python -m ip3r gate 9HEO             # Round 7.21: the gate widened
+    python -m ip3r reversal 9HEO 8TKF    # Round 7.23: at bi-ionic reversal
 """
 
 from __future__ import annotations
@@ -91,6 +92,68 @@ def _gate(args) -> int:
     return 0
 
 
+def _rev_deposit(r) -> None:
+    ruler = ("Xu's Eq. 1 (P_Cl taken 0)" if r.ryr
+             else "Vais's Eq. 1 (P_Cl:P_K from the KCl/NMDG experiment)")
+    print(f"\n{r.name}: formal wall {r.net:+.0f} e, grid {r.spacing:g} A; "
+          f"measured P_Ca:P_K {r.measured:g}; ruler {ruler}"
+          f"{'' if r.converged else '  (n.c.)'}")
+    if r.unreached:
+        print(f"  groups reaching no lumen voxel (left out): {', '.join(r.unreached)}")
+    if r.one_d:
+        print("  1-D, same wall: " + ", ".join(f"{k} {v:.2f}" for k, v in r.one_d.items()))
+    extra = "  own P_Cl" if r.ryr else ""
+    print(f"  {'reading':10s} {'V_rev mV':>18s} {'P_Ca:P_K':>9s} {'linear':>7s} "
+          f"{'P_Cl:P_K':>9s}{extra}   highest Ca2+ (M)   solves")
+    for label, x in r.readings.items():
+        v = " / ".join(f"{x.v[k] * 1e3:+6.2f}" for k in sorted(x.v, reverse=True))
+        lin = r.linear.get(label, math.nan)
+        own = f"  {x.pca_pk_model_cl:8.2f}" if r.ryr else ""
+        print(f"  {label:10s} {v:>18s} {x.pca_pk:9.2f} {lin:7.2f} "
+              f"{x.pcl_pk:9.3f}{own}   {x.peak_ca:16.2f}   {x.solves:6d}"
+              f"{'' if x.converged else '  (n.c.)'}")
+
+
+def _reversal(args) -> int:
+    from .io import loader
+    from .physics import reversal3d as r3
+    loader.ALLOW_FETCH = args.fetch
+    print("P_Ca:P_K at bi-ionic reversal in 3-D: steady Poisson-Nernst-Planck "
+          "on the voxels (Gummel), the root of the net current, read by the "
+          "family's GHK ruler; 'linear' is Round 7.19's reading on the same grid.")
+    for pdb in args.pdb or _DEFAULT:
+        st = loader.load(pdb)
+        if args.mutants:
+            rows = r3.mutant_panel(st, spacing=args.spacing, progress=lambda i, n, name: print(
+                f"  [{i + 1}/{n}] {name}", flush=True))
+            _rev_deposit(rows[0][2])
+            wt, heads = rows[0], list(rows[0][2].readings)
+            print("\n  Xu 2006's mutants at reversal, P_Ca:P_K over the wild type:")
+            print(f"  {'':10s}{'measured':>9s}" + "".join(f"{h:>13s}" for h in heads))
+            err = dict.fromkeys(heads, 0.0)
+            for name, pca, r in rows[1:]:
+                cells = ""
+                for h in heads:
+                    x = r.readings[h].pca_pk / wt[2].readings[h].pca_pk
+                    err[h] += abs(math.log(x / (pca / wt[1])))
+                    cells += f"{'x':>8s}{x:5.2f}"
+                print(f"  {name:10s}{'x':>5s}{pca / wt[1]:4.2f}{cells}"
+                      f"{'' if r.converged else '  (n.c.)'}")
+            print(f"  {'sum |ln|':19s}" + "".join(f"{err[h]:13.2f}" for h in heads))
+            continue
+        if args.scale:
+            print(f"\n{pdb}: the pb wall's charge scaled (point ions), at the "
+                  "family's reversal; IP3R measured P_Cl:P_K 0.27, P_Ca:P_K 15.2 "
+                  "(Vais 2010); RyR1 P_Ca:P_K 7.0 (Xu 2006, P_Cl taken 0)")
+            print(f"  {'scale':>6s} {'P_Cl:P_K':>9s} {'P_Ca:P_K':>9s}")
+            for f, x in r3.charge_scan(st, args.scale, spacing=args.spacing):
+                print(f"  {f:6g} {x.pcl_pk:9.3f} {x.pca_pk:9.2f}"
+                      f"{'' if x.converged else '  (n.c.)'}")
+            continue
+        _rev_deposit(r3.reversal_3d(st, spacing=args.spacing))
+    return 0
+
+
 def register(sub) -> None:
     p = sub.add_parser("sel3d", help="P_Ca:P_K from the 3-D charged lumen, "
                        "with the charge-space excess (Round 7.19)")
@@ -112,3 +175,14 @@ def register(sub) -> None:
                    help="voxel spacing, A (default pore3d.spacing)")
     p.add_argument("--fetch", action="store_true")
     p.set_defaults(fn=_gate)
+    p = sub.add_parser("reversal", help="P_Ca:P_K at bi-ionic reversal in "
+                       "the 3-D charged lumen (Round 7.23)")
+    p.add_argument("pdb", nargs="*", help=f"deposits (default {' '.join(_DEFAULT)})")
+    p.add_argument("--mutants", action="store_true",
+                   help="Xu 2006's RyR1 mutants (give a RyR1 deposit)")
+    p.add_argument("--spacing", type=float, default=None,
+                   help="voxel spacing, A (default reversal3d.spacing)")
+    p.add_argument("--scale", type=float, action="append", default=None,
+                   help="scale every wall charge (repeatable; pb only)")
+    p.add_argument("--fetch", action="store_true")
+    p.set_defaults(fn=_reversal)

@@ -4934,6 +4934,84 @@
    "source_note": "Conover, Practical Nonparametric Statistics \u00a73.2: the distribution-free binomial interval for a median; 0.95 by convention",
    "minimum": 0.5,
    "maximum": 0.999
+  },
+  {
+   "key": "pnp3d.gummel_tolerance",
+   "name": "Gummel tolerance",
+   "value": 0.0001,
+   "unit": "kT/e",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.23: the loop between Nernst-Planck and Poisson stops when the potential moves less than this anywhere in the lumen.",
+   "source_note": "1e-4 kT/e is 2.6 uV, far below the 0.01 mV the reversal is read to",
+   "minimum": 1e-08,
+   "maximum": 0.1
+  },
+  {
+   "key": "pnp3d.gummel_damping",
+   "name": "Gummel damping",
+   "value": 1.0,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.23: fraction of each Poisson update taken (1 = undamped).",
+   "source_note": "Undamped converges on every deposit and protocol measured; kept as a control for a harder wall",
+   "minimum": 0.05,
+   "maximum": 1.0
+  },
+  {
+   "key": "pnp3d.gummel_max_iterations",
+   "name": "Gummel iteration limit",
+   "value": 200,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.23: the loop gives up (and the reading is flagged n.c.) after this many sweeps.",
+   "source_note": "A converged solve takes far fewer; the limit only bounds a failure",
+   "minimum": 5,
+   "maximum": 5000
+  },
+  {
+   "key": "reversal3d.spacing",
+   "name": "Reversal grid spacing",
+   "value": 1.0,
+   "unit": "A",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.23: voxel edge for the 3-D reversal solves (each reversal is a root over several full Poisson-Nernst-Planck solves).",
+   "source_note": "Round 7.19 found P_Ca:P_K at 1.0 A within 4 % of 0.5 A on 9HEO and 8TKF; the CLI's --spacing reads 0.5 A",
+   "minimum": 0.25,
+   "maximum": 2.0
+  },
+  {
+   "key": "reversal3d.voltage_tolerance",
+   "name": "Reversal voltage tolerance",
+   "value": 1e-05,
+   "unit": "V",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.23: the reversal root is found to this (0.01 mV).",
+   "source_note": "As the 1-D reversal's 1e-6 V order; 0.01 mV moves a ratio of 1 by < 0.1 %",
+   "minimum": 1e-08,
+   "maximum": 0.001
+  },
+  {
+   "key": "reversal3d.bracket",
+   "name": "Reversal search bracket",
+   "value": 0.1,
+   "unit": "V",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.23: the reversal is searched within +/- this.",
+   "source_note": "As the 1-D search (Round 7.4), which holds every reversal it has read; a root outside is refused by name",
+   "minimum": 0.01,
+   "maximum": 0.3
   }
  ]
 }

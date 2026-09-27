@@ -176,3 +176,7 @@ What remains is outside the continuum at this wall:
 - **charges the deposit does not place**: unresolved or mis-protonated
   groups nearer the gate;
 - **the dehydration and binding** a mean field of spheres does not carry.
+- *and the protocol*: Xu's and Vais's ratios are bi-ionic reversal
+  readings, not linear response. *Tested in Round 7.23
+  (`SCIENCE_REVERSAL.md`), negative:* the 3-D reversal reads within 15 %
+  of the linear response here.

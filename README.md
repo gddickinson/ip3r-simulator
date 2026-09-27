@@ -320,6 +320,18 @@ and on 7T3T it falls. K⁺ conductance gains at most 24 %. Neither the
 conductance shortfall nor the selectivity gap is the gate's shape
 (`docs/SCIENCE_GATE.md`).
 
+**Nor is the protocol (Round 7.23).** `python -m ip3r reversal` runs Xu's
+and Vais's bi-ionic experiments through the 3-D charged lumen: steady
+Poisson–Nernst–Planck on the voxels (Gummel), the reversal found as the
+root of the net current. It is calibrated on Planck's junction,
+Teorell–Meyer–Sievers and an excluded NMDG⁺'s Donnan jump. At reversal,
+P_Ca:P_K lies within 15 % of the linear-response reading: 9HEO 0.90
+against 7.0, 8TKF 1.15 and 7T3T 1.54 against 15.2. Meanwhile the charged
+wall shuts out Cl⁻ (P_Cl:P_K 0.003 against Vais's 0.27). Scaling 8TKF's
+wall charge from 0 to 2× never gives both measured ratios: P_Cl:P_K halves
+by a twentieth of the charge, and P_Ca:P_K never reaches 1
+(`docs/SCIENCE_REVERSAL.md`).
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,

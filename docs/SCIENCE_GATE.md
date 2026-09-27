@@ -84,3 +84,5 @@ wall:
   setting the conductance ratio. The 1-D model already reads 0.87 in
   linear response against 0.64 at reversal (Round 7.19), a difference in
   the opposite direction, so a 3-D reversal solve is the test.
+  *Tested in Round 7.23 (`SCIENCE_REVERSAL.md`), negative:* in 3-D the
+  reversal reads within 15 % of linear response (9HEO 0.90, 8TKF 1.15).
