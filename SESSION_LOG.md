@@ -3035,3 +3035,40 @@ itself, focus-free: the full-screen action is the window's own, with F11,
 in window context. It then presses F11 for ~2 s, and if focus is
 elsewhere, delivers F11 to that action as a shortcut event. It prints which
 route it took.
+
+## 2026-09-27 (36) — Round 7.20: a second deposit superposed
+
+**Why.** Round 7.18's emergent item. The only way to see two states
+together was to build a morph. PIEZO1 had an overlay; this port had not
+taken it, because the Transition tab already superposes, but only as a
+path.
+
+**What.**
+- `structure/superpose.py`: `superpose(shown, other, fit)` reuses
+  `prepare_transition` unchanged (the residue-matched basis, the cyclic
+  subunit correspondence, the pore or global fit onto the shown deposit
+  as deposited). It applies the fit's `end_transform` to every atom, so
+  side chains and IP3 are the deposit's own, not carried on a Cα. Chains
+  are relabelled to the matched subunits, so the Subunits toggles hide
+  pairs, and any unmatched chain is primed. `candidates` is the one list
+  rule, now also behind the Transition tab's end list.
+- `ui/superpose_controller.py` and a Superpose row (deposit + fit) in the
+  Representation box. The overlay is fitted on a worker (latest request
+  wins), drawn as `overlay:*` in `SUPERPOSE_COLOR` via a new
+  `MolecularView.uniform_rgb`, and follows style, ligands and subunits. It
+  stays at the deposit's coordinates through a morph (a fixed reference).
+  The choice is kept across loads while it is still a candidate.
+- Session field `superpose` {pdb, fit}: the choice, refitted on restore;
+  malformed values refused by name.
+
+**Calibrated.** A turned, shifted, chain-shuffled copy of 8TKG lands back
+atom for atom (< 0.01 Å) with its chain labels restored. The drawn basis
+Cα equal the transition's `end`; 7LHF is refused. 8TKF on 8TKG: 3.14 Å
+over the fitted pore sites, 16.11 Å overall.
+
+**Checks.** `make test`: 674 passed. Lint and sizes clean. Smoke groups:
+`superpose` and `session` pass (the drawn overlay equals the headless
+one). `extras` hangs at full screen waiting for `isFullScreen()`, and it
+hangs the same way on the unmodified last commit in a separate worktree.
+So the cause is this machine's display state, not this change; the
+full-screen step should be rerun with the user at the screen.

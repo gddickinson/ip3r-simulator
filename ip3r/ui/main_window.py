@@ -27,6 +27,7 @@ from .menus import build_menus
 from .selection import SelectionController
 from .dynamics_panel import DynamicsPanel
 from .fill_controller import FillController
+from .superpose_controller import SuperposeController
 from .lumen_controller import LumenController
 from .findings_panel import FindingsPanel
 from .genomes_panel import GenomesPanel
@@ -155,6 +156,8 @@ class MainWindow(WindowExtras, QMainWindow):
         sp.style_changed.connect(self.restyle)
         sp.sites_toggled.connect(lambda *_: self._apply_sites())
         self.fills = FillController(self.scene, sp, self.statusBar().showMessage)
+        self.superposed = SuperposeController(self.scene, sp, self._style_kwargs,
+                                              self.statusBar().showMessage)
         self.channel.pore_toggled.connect(self.scene.show_pore)
         self.lumen = LumenController(self.scene, self.channel,
                                      self.statusBar().showMessage)
@@ -241,6 +244,7 @@ class MainWindow(WindowExtras, QMainWindow):
                                   if summary.numbering else None)
         self._apply_sites()
         self.fills.loaded(st)
+        self.superposed.loaded(st, numbering)
         self.lumen.loaded(st)
         self.variants.follow(summary.numbering.paralog if summary.numbering else None)
         if self.sequence_window is not None:
@@ -265,6 +269,7 @@ class MainWindow(WindowExtras, QMainWindow):
 
     def restyle(self) -> None:
         self.scene.restyle(self._style_kwargs())
+        self.superposed.restyle()
 
     def _apply_sites(self) -> None:
         on = [k for k, b in self.structure_panel.site_boxes.items() if b.isChecked()]

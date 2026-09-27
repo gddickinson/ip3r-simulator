@@ -491,6 +491,18 @@ they are not positions.
 
 ![AlphaFold fills with their seams](docs/img/gui_alphafold.png)
 
+**Compare two states by eye.** Representation → Superpose draws another
+deposit of the same paralog on the one shown, in orange. It uses the
+Transition tab's residue-matched fit (on the pore domain, or global), with
+no morph built. Every atom of the second deposit is moved by that fit's
+transform, so side chains and IP3 are its own. Its subunits are relabelled
+to the ones they were matched to, so the Subunits toggles hide the pair
+together. 8TKF on 8TKG: 3.14 Å over the pore, 16.11 Å overall, the
+cytosolic cap swinging while the membrane domain stays put. A session
+keeps the choice and refits it on restore.
+
+![8TKF (orange) superposed on 8TKG](docs/img/gui_superpose.png)
+
 ## The checks, as of Round 7.7
 
 52 checks: 50 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither

@@ -68,6 +68,9 @@ class Session:
     #: The Completeness choice (``structure.graft.FILL_MODES`` key): which
     #: AlphaFold fill is drawn. The choice only; the fill is rebuilt on restore.
     completeness: str = "none"
+    #: ``{pdb, fit}`` of a second deposit drawn superposed (Round 7.20); the
+    #: choice only, refitted on restore.
+    superpose: dict = field(default_factory=dict)
     tab: str = ""
 
     #: Camera: unit quaternion (w, x, y, z), pivot, distance, pan (Å).
@@ -138,6 +141,12 @@ class Session:
             raise ValueError(f"transition has unknown keys {sorted(unknown)}")
         if self.transition and not isinstance(self.transition.get("end"), str):
             raise ValueError("transition needs an 'end' deposit id")
+        if self.superpose and not (
+                set(self.superpose) <= {"pdb", "fit"}
+                and all(isinstance(v, str) for v in self.superpose.values())
+                and self.superpose.get("pdb")):
+            raise ValueError("superpose needs a 'pdb' deposit id and an optional "
+                             "'fit', both text")
         if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
                    for v in self.parameters.values()):
             raise ValueError("parameters must map a key to a number")
@@ -163,6 +172,8 @@ class Session:
         if self.transition:
             t = self.transition
             bits.append(f"transition → {t['end']} frame {t.get('frame', 0)}")
+        if self.superpose:
+            bits.append(f"{self.superpose['pdb']} superposed")
         if self.modes:
             bits.append(f"mode #{self.modes['index'] + 1} animating")
         bits.append(f"{len(self.parameters)} parameter(s) modified"

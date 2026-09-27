@@ -19,6 +19,7 @@ import screenshot_core as core
 import screenshot_extras as se
 import screenshot_ip3r as si
 import screenshot_sparks as sk
+import screenshot_superpose as ss
 
 __all__ = ["Group", "GROUPS", "select", "schedule", "describe"]
 
@@ -81,6 +82,8 @@ GROUPS = (
                   si._lumen_image))),
     Group("extras", "HUD, selection, sequence, context menu, distance, layout, "
           "Analyses menu, full screen", _plain(se._STEPS)),
+    Group("superpose", "8TKF drawn on 8TKG, then 8TKG on 8TKF (Round 7.20)",
+          _plain(ss.STEPS)),
 )
 
 _BY_NAME = {g.name: g for g in GROUPS}

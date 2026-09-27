@@ -5,8 +5,9 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.20 (GUI): a second deposit drawn superposed in its own
-colour (Round 7.18's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.21 (science): the gate's own geometry — widen 9HEO's
+gate to the radius that conducts 801 pS and read P_Ca:P_K again (Round
+7.19's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -750,7 +751,7 @@ item carried over from round n; it stays listed there too.
   guided tours, light theme and presentation mode (conveniences, not
   capabilities), topology diagram (PIEZO1-specific figure).
   Emergent:
-  - [ ] A second deposit drawn superposed in its own colour (PIEZO1's
+  - [x] (Round 7.20) A second deposit drawn superposed in its own colour (PIEZO1's
     overlay), reusing the transition's residue-matched fit, so any two
     states can be compared without building a morph.
 
@@ -784,6 +785,17 @@ item carried over from round n; it stays listed there too.
   - [ ] The gate's own geometry: widen 9HEO's gate to the radius that
     conducts 801 pS (Round 7.6) and read P_Ca:P_K again, the one route
     left inside the continuum.
+
+- [x] **7.20 GUI: a second deposit superposed** (`structure/superpose.py`,
+  `ui/superpose_controller.py`). Representation → Superpose draws another
+  deposit of the paralog in orange, by `prepare_transition`'s own fit (pore
+  or global): its `end_transform` moves every atom, and the chains are
+  relabelled to the matched subunits. Calibrated on a turned, shifted,
+  chain-shuffled copy of 8TKG, which lands back atom for atom (< 0.01 Å)
+  with its labels restored. 8TKF on 8TKG (a 2,194-residue × 4 basis):
+  3.14 Å over the fitted pore sites, 16.11 Å overall. A session keeps the choice
+  (`superpose` {pdb, fit}, refitted on restore); the Transition tab's end
+  list now comes from the same `candidates`. Smoke group `superpose`.
 
 ## Round 6 — ryanodine receptors
 

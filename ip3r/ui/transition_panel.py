@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QFormLayout, QHBoxLayout,
 from ..core.annotations import ELEMENT_LABELS
 from ..io.registry import load_registry
 from ..structure.morph import NOTE
+from ..structure.superpose import candidates
 from .plot_canvas import PALETTE, PlotCanvas
 
 __all__ = ["TransitionPanel", "PRESET", "preset_for", "LOWER_PLOTS"]
@@ -153,9 +154,8 @@ class TransitionPanel(QWidget):
         if pdb_id and paralog:
             entries = [e for e in load_registry() if e.paralog == paralog]
             self._set_preset(entries[0].family if entries else "IP3R")
-            for e in entries:
-                if (e.human or e.family == "RyR") and e.pdb_id != pdb_id:
-                    self.end.addItem(f"{e.pdb_id} — {e.state}", e.pdb_id)
+            for pid, label in candidates(pdb_id, paralog):
+                self.end.addItem(label, pid)
             i = self.end.findData(self._preset[1])
             self.end.setCurrentIndex(max(i, 0))
         self.build.setEnabled(self.end.count() > 0)

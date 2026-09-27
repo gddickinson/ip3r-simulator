@@ -104,6 +104,7 @@ class MolecularView:
     highlight: np.ndarray | None = None       # per-atom bool, drawn as balls
     highlight_color: tuple = (1.0, 0.85, 0.2)
     highlight_rgb: np.ndarray | None = None   # per-atom colours; overrides the above
+    uniform_rgb: tuple | None = None          # ColorBy.UNIFORM's colour (None = default)
     visible_chains: frozenset | None = None
     traces: list[ChainTrace] = field(default_factory=list)
 
@@ -166,6 +167,8 @@ class MolecularView:
             for tr in self.traces:
                 out[tr.indices] = SS_COLORS[tr.ss]
             return out
+        if self.uniform_rgb is not None:
+            return colormaps.uniform_color(st, self.uniform_rgb)
         return colormaps.uniform_color(st)
 
     # ------------------------------------------------------------- building

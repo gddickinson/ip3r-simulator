@@ -61,6 +61,8 @@ class SessionController:
             show_pore=win.channel.show_pore.isChecked(),
             show_lumen=win.channel.show_lumen.isChecked(),
             completeness=sp.current_completeness(),
+            superpose=dict(zip(("pdb", "fit"), sp.current_superpose()))
+            if sp.current_superpose()[0] else {},
             tab=win.tabs.tabText(win.tabs.currentIndex()),
             dynamics=win.dynamics.view_state(), variants=win.variants.view_state(),
             lumen=win.channel.lumen_box.view_state(),
@@ -225,6 +227,10 @@ class SessionController:
         win.lumen.request(s.show_lumen)
         sp._update_legend()
         win.fills.request(sp.current_completeness())
+        other = s.superpose.get("pdb", "")
+        if not sp.set_superpose(other, s.superpose.get("fit", "pore")):
+            self.notes.append(f"{other} cannot be superposed on {st.name}; not drawn")
+            sp.set_superpose("", s.superpose.get("fit", "pore"))
         self._set_camera(s)
         self.notes += win.dynamics.restore(s.dynamics) + win.variants.restore(s.variants)
         win.scene.stop_animation()          # a running mode belongs to the old view

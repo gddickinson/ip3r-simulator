@@ -18,10 +18,11 @@ from ..core.modules import MODULES_KEY
 from ..io.loader import is_local
 from ..parameters import PARAMETERS as _P
 from ..io.registry import load_registry
-from ..render.colormaps import PLDDT_COLORS, SEAM_COLORS, SHELL_COLORS
+from ..render.colormaps import PLDDT_COLORS, SEAM_COLORS, SHELL_COLORS, SUPERPOSE_COLOR
 from ..render.representations import COLOR_LABELS, STYLE_LABELS, ColorBy, Style
 from ..structure.graft import FILL_MODES
 from ..structure.shells import SHELLS
+from ..structure.transition import FITS
 from .view_state import ParameterFollower
 
 __all__ = ["StructurePanel", "FAMILY_LABELS"]
@@ -41,6 +42,7 @@ class StructurePanel(QWidget):
     style_changed = pyqtSignal()
     sites_toggled = pyqtSignal(str, bool)       # site class, on
     completeness_changed = pyqtSignal(str)      # a FILL_MODES key
+    superpose_changed = pyqtSignal()            # deposit or fit of the overlay
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -99,6 +101,23 @@ class StructurePanel(QWidget):
         self.fill_info.setWordWrap(True)
         self.fill_info.setTextFormat(Qt.TextFormat.RichText)
         form.addRow(self.fill_info)
+        self.superpose = QComboBox()
+        self.superpose.setToolTip("Draw another state of this paralog on this one, "
+                                  "by the Transition tab's residue-matched fit")
+        self.superpose.addItem("none", "")
+        self.superpose_fit = QComboBox()
+        for f in FITS:
+            self.superpose_fit.addItem(f"{f} fit", f)
+        for w in (self.superpose, self.superpose_fit):
+            w.currentIndexChanged.connect(self._superpose)
+        row = QHBoxLayout()
+        row.addWidget(self.superpose, 1)
+        row.addWidget(self.superpose_fit)
+        form.addRow("Superpose", row)
+        self.superpose_info = QLabel("")
+        self.superpose_info.setWordWrap(True)
+        self.superpose_info.setTextFormat(Qt.TextFormat.RichText)
+        form.addRow(self.superpose_info)
         lay.addWidget(box)
 
         box = QGroupBox("Subunits")
@@ -242,6 +261,45 @@ class StructurePanel(QWidget):
     def set_fill_info(self, html: str) -> None:
         self.fill_info.setText(html)
 
+    # ------------------------------------------------------------ superpose
+
+    def current_superpose(self) -> tuple[str, str]:
+        """(deposit id or "" for none, fit)."""
+        return self.superpose.currentData() or "", self.superpose_fit.currentData()
+
+    def set_superpose_candidates(self, items: list[tuple[str, str]]) -> None:
+        """The deposits the shown one can carry; the choice kept if still one."""
+        keep = self.superpose.currentData()
+        self.superpose.blockSignals(True)
+        self.superpose.clear()
+        self.superpose.addItem("none", "")
+        for pid, label in items:
+            self.superpose.addItem(label, pid)
+        self.superpose.setCurrentIndex(max(self.superpose.findData(keep), 0))
+        self.superpose.setEnabled(bool(items))
+        self.superpose.blockSignals(False)
+        self._update_legend()
+
+    def set_superpose(self, pdb_id: str, fit: str) -> bool:
+        """Choose an overlay (one signal); False if it is not a candidate."""
+        i, j = self.superpose.findData(pdb_id or ""), self.superpose_fit.findData(fit)
+        if i < 0:
+            return False
+        for combo, k in ((self.superpose_fit, j), (self.superpose, i)):
+            combo.blockSignals(True)
+            if k >= 0:
+                combo.setCurrentIndex(k)
+            combo.blockSignals(False)
+        self._superpose()
+        return True
+
+    def set_superpose_info(self, html: str) -> None:
+        self.superpose_info.setText(html)
+
+    def _superpose(self) -> None:
+        self._update_legend()
+        self.superpose_changed.emit()
+
     def _fill_legend(self) -> str:
         if self.current_completeness() == "none":
             return ""
@@ -272,7 +330,9 @@ class StructurePanel(QWidget):
 
     def _update_legend(self) -> None:
         self._colour_legend()
-        self.legend.setText(self.legend.text() + self._fill_legend())
+        other = self.current_superpose()[0]
+        overlay = (f"<br>{_swatch(SUPERPOSE_COLOR)} {other}, superposed" if other else "")
+        self.legend.setText(self.legend.text() + self._fill_legend() + overlay)
 
     def _colour_legend(self) -> None:
         if self.current_color() is ColorBy.ELEMENT_DOMAIN:

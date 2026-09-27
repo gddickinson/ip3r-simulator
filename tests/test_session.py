@@ -16,7 +16,7 @@ from ip3r.parameters import PARAMETERS
 def _session() -> Session:
     return Session(structure="8TKG", n_atoms=12345, style="tube", color_by="chain",
                    visible_chains=["A", "C"], sites=["ip3_contact"], show_pore=True,
-                   show_lumen=True,
+                   show_lumen=True, superpose={"pdb": "8TKF", "fit": "global"},
                    tab="Channel", camera_rotation=[0.5, 0.5, 0.5, 0.5],
                    camera_pivot=[1.0, 2.0, 3.0], camera_distance=420.0,
                    camera_pan=[0.0, -4.0, 0.0],
@@ -42,7 +42,7 @@ def test_holds_the_view_and_its_inputs_only():
     """A new field is a decision: a result stored here would go stale."""
     assert {f.name for f in fields(Session)} == {
         "structure", "n_atoms", "style", "color_by", "layer", "show_ligands",
-        "visible_chains", "sites", "show_pore", "show_lumen", "completeness", "tab", "camera_rotation",
+        "visible_chains", "sites", "show_pore", "show_lumen", "completeness", "superpose", "tab", "camera_rotation",
         "camera_pivot", "camera_distance", "camera_pan", "camera_slab", "orthographic",
         "transition", "dynamics", "modes", "variants", "lumen", "parameters", "notes", "format_version",
         "software_version", "saved_at"}
@@ -76,7 +76,10 @@ def test_wrong_type_is_refused_by_name(key, value):
     ({"dynamics": {"puff_n": float("inf")}}, "dynamics holds"),
     ({"modes": {"index": -1, "amplitude": 12}}, "modes needs"),
     ({"modes": {"index": True, "amplitude": 12}}, "modes needs"),
-    ({"modes": {"index": 3}}, "modes needs")])
+    ({"modes": {"index": 3}}, "modes needs"),
+    ({"superpose": {"fit": "pore"}}, "superpose needs"),
+    ({"superpose": {"pdb": "8TKF", "xyz": "0"}}, "superpose needs"),     # never coordinates
+    ({"superpose": {"pdb": 8}}, "superpose needs")])
 def test_malformed_is_refused(change, match):
     with pytest.raises(ValueError, match=match):
         Session.from_dict(_session().as_dict() | change)
@@ -85,11 +88,12 @@ def test_malformed_is_refused(change, match):
 def test_a_file_without_panel_views_opens_with_them_empty(tmp_path):
     """Round 7.5 added the panel views without a format bump."""
     d = {k: v for k, v in _session().as_dict().items()
-         if k not in ("dynamics", "modes", "variants", "lumen")}
+         if k not in ("dynamics", "modes", "variants", "lumen", "superpose")}
     s = Session.from_dict(d)
     assert s.dynamics == s.modes == s.variants == s.lumen == {}
     assert "animating" not in s.describe()
     assert "mode #7 animating" in _session().describe()
+    assert s.superpose == {} and "superposed" not in s.describe()
 
 
 def test_rotation_is_normalised():

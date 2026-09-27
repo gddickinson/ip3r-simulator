@@ -129,6 +129,12 @@ def uniform_color(st: Structure, rgb=(0.55, 0.62, 0.75)) -> np.ndarray:
     return np.tile(np.asarray(rgb, np.float32), (st.n_atoms, 1))
 
 
+#: A superposed second deposit (Round 7.20): one warm colour against the
+#: default uniform blue-grey, so the pair reads best with the shown deposit
+#: in Uniform.
+SUPERPOSE_COLOR = (0.96, 0.60, 0.22)
+
+
 #: AlphaFold DB's own pLDDT colours, very low -> very high, so a fill reads
 #: the way the model's entry page does. Band edges are registered.
 PLDDT_COLORS = np.array([(1.00, 0.49, 0.27), (1.00, 0.86, 0.07),

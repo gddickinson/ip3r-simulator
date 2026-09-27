@@ -86,7 +86,12 @@ structure, and a missing value is grey, never the low end of a scale.
 Element, conservation, variants and shells are painted only on a deposit
 in human numbering of the named paralog (Q14643 / Q14571 / Q14573).</p>
 <p>Completeness adds AlphaFold's residues where the deposit has none,
-coloured by pLDDT band; seams are drawn, red when broken.</p>""",
+coloured by pLDDT band; seams are drawn, red when broken.</p>
+<p>Superpose draws another state of the same paralog on the one shown, in
+orange, by the Transition tab's residue-matched fit (pore or global); the
+panel gives the RMSD over the fitted sites and over all. Colour the shown
+deposit Uniform to read the pair. It stays at the deposit's coordinates
+through a morph, a fixed reference.</p>""",
 
     "Channel and the lumen": """
 <p>The Channel tab measures the pore (S0's quantity), compares the states
