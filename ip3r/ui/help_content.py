@@ -20,8 +20,10 @@ SHORTCUTS = (
     ("Ctrl+3", "the first IP3 site on a visible subunit"),
     ("Ctrl+0", "fit the visible subunits (resumes the automatic fit)"),
     ("Ctrl+Shift+Q", "the sequence window"),
+    ("F11", "full screen: only the 3-D view and its HUD (also the "
+            "platform's own full-screen key)"),
     ("Ctrl+M", "measure distances: click two atoms"),
-    ("Esc", "clear the selection and stop measuring"),
+    ("Esc", "leave full screen; otherwise clear the selection and stop measuring"),
     ("Ctrl+Shift+P", "the parameter editor"),
     ("F1", "this guide"),
     ("Space", "spin on / off (viewport focused)"),
@@ -51,7 +53,11 @@ the selection and last distance. An amber line appears whenever an
 AlphaFold prediction is drawn: it is not switchable.</p>
 <p>Panels are docks: drag them anywhere, float or close them; View →
 Panels brings one back and View → Reset layout restores the shipped
-arrangement. The layout is remembered between runs.</p>""",
+arrangement. The layout is remembered between runs.</p>
+<p><b>Full screen</b> (View → Full screen, F11, or the right-click menu)
+leaves only the 3-D view and its HUD; the parameters banner stays if
+parameters are modified. Every shortcut still works. Esc or F11 leaves,
+and each panel comes back as it was, closed ones closed.</p>""",
 
     "Selection and measuring": """
 <p>A click selects a residue, drawn as gold spheres in their own layer, so

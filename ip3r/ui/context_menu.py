@@ -108,3 +108,6 @@ def _view_entries(win, menu: QMenu) -> None:
     _add(menu, "Top view (down the pore)", sc.top_view)
     _add(menu, "IP3 site", win._site_view)
     _add(menu, "Fit to view", sc.fit_view)
+    menu.addSeparator()
+    _add(menu, "Leave full screen" if win.presentation.active else "Full screen",
+         lambda: win.presentation.toggle())

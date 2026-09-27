@@ -38,8 +38,12 @@ underlined, and a drag there selects on the model. The **Analyses** menu
 runs the command-line science (selectivity, protonation, the 3-D wall, the
 salt bridge, the image cost, charge–space, shortfall, …) in its own
 process, stamped with the deposit and the parameter set. Panels are
-movable docks (View → Reset layout), and Help → Guide (F1) explains all
-of it.
+movable docks (View → Reset layout). **Full screen** (F11, View → Full
+screen or the right-click menu; Esc leaves) keeps only the 3-D view and
+its HUD, and puts every panel back as it was. Help → Guide (F1) explains
+all of it.
+
+![8TKF in full screen](docs/img/gui_fullscreen.png)
 
 ![A selection on 8TKF, measured, with the sequence window](docs/img/gui_selection_window.png)
 

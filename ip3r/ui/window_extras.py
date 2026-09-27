@@ -30,6 +30,13 @@ class WindowExtras:
                     st, s.numbering.paralog if s.numbering else None)
         self.sequence_window.show_residue(chain, residue)
 
+    def escape(self) -> None:
+        """Esc: out of full screen if in it, else clear the selection."""
+        if self.presentation.active:
+            self.presentation.leave()
+        else:
+            self.clear_selection()
+
     def clear_selection(self) -> None:
         self.selection.clear()
         self.selection.clear_distances()

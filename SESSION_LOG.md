@@ -2906,3 +2906,16 @@ capabilities. The topology diagram is PIEZO1's own figure.
 **Not changed.** `make sync-check` clean; no verdict moved.
 
 **Next:** Round 7.19 (science): selectivity in 3-D with the csc excess.
+
+**Added the same day (user request): full screen.** `ui/presentation.py`
+(after PIEZO1's): View → Full screen, F11 or the platform's key, and the
+right-click menu. The docks, menu bar and status bar are hidden; the HUD
+stays, and so does the parameters strip when parameters are modified. Esc
+leaves full screen first and clears the selection otherwise. Leaving
+restores each dock's visibility and floating, and the window state. Every
+menu action is also the window's own, because a hidden menu bar stops its
+shortcuts on some platforms. Close leaves full screen before saving the
+layout, so a hidden-panel layout is never remembered. The smoke test
+closes the Structure dock, enters, checks the viewport fills the window,
+leaves by an F11 key press with no menu bar, and checks the Structure dock
+is still closed.

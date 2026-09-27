@@ -4,8 +4,9 @@ HUD (title, scale bar, the four-fold axis), a click selection drawn and
 shown in the sequence window, a drag in the sequence window selecting on
 every subunit, the right-click menu, a measured distance equal to the
 coordinates', a screenshot that carries the HUD, a closed dock restored by
-Reset layout, the guide's shortcut table, and an Analyses-menu command run
-in its own process and stamped.
+Reset layout, the guide's shortcut table, an Analyses-menu command run
+in its own process and stamped, and full screen: panels hidden, F11 still
+firing with the menu bar gone, and each panel restored as it was.
 """
 
 from __future__ import annotations
@@ -110,7 +111,50 @@ def _analysis(win, app, out) -> bool:
     return False
 
 
-_STEPS = (_view, _layout, _analysis_start, _analysis)
+def _fullscreen_start(win, app, out) -> bool:
+    """Close the Structure dock first: leaving must not reopen it."""
+    win.docks.docks[0].hide()
+    win._smoke_fit = win.scene.fit_target
+    win.fullscreen_action.trigger()
+    return False
+
+
+def _fullscreen(win, app, out) -> bool:
+    if not win.isFullScreen():
+        return True                              # the platform animates it
+    app.processEvents()
+    if any(d.isVisible() for d in win.docks.docks) or win.statusBar().isVisible():
+        raise RuntimeError("full screen left a panel or the status bar shown")
+    if win.viewport.width() < 0.95 * win.width():
+        raise RuntimeError(f"the viewport fills {win.viewport.width()} of {win.width()} px")
+    if "Esc" not in win.hud.readouts.get("presentation", ""):
+        raise RuntimeError("no hint on how to leave full screen")
+    win.grab().save(str(out / "gui_fullscreen.png"))
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtTest import QTest
+    win.activateWindow()
+    QTest.keyClick(win.viewport, Qt.Key.Key_F11)   # a shortcut, menu bar hidden
+    app.processEvents()
+    if win.presentation.active:
+        raise RuntimeError("F11 did not leave full screen with the menu bar hidden")
+    return False
+
+
+def _fullscreen_left(win, app, out) -> bool:
+    if win.isFullScreen():
+        return True
+    app.processEvents()
+    structure, analysis = win.docks.docks[0], win.docks.docks[-1]
+    if structure.isVisible() or not analysis.isVisible():
+        raise RuntimeError("leaving full screen did not restore each panel as it was")
+    if win.fullscreen_action.isChecked() or not win.statusBar().isVisible():
+        raise RuntimeError("the menu check or the status bar was not restored")
+    structure.show()
+    return False
+
+
+_STEPS = (_view, _layout, _analysis_start, _analysis, _fullscreen_start, _fullscreen,
+          _fullscreen_left)
 EXTRAS_STEPS = len(_STEPS)
 
 

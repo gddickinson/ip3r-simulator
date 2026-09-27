@@ -238,6 +238,6 @@ def test_the_stamp_names_the_command_the_deposit_and_the_parameters():
 
 def test_the_guide_lists_every_menu_shortcut_and_no_other():
     text = (UI / "menus.py").read_text()
-    used = set(re.findall(r'"((?:Ctrl\+[\w+]+)|F1|Esc|Space)"', text))
-    listed = {k for k, _ in SHORTCUTS if re.fullmatch(r"(Ctrl\+[\w+]+)|F1|Esc|Space", k)}
+    used = set(re.findall(r'"((?:Ctrl\+[\w+]+)|F\d+|Esc|Space)"', text))
+    listed = {k for k, _ in SHORTCUTS if re.fullmatch(r"(Ctrl\+[\w+]+)|F\d+|Esc|Space", k)}
     assert used == listed

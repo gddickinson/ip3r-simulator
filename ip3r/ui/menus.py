@@ -17,7 +17,7 @@ from .analyses import ANALYSES, GROUPS
 from .help_content import DOCS
 from .help_dialog import open_document
 
-__all__ = ["build_menus", "add_action", "HUD_LABELS"]
+__all__ = ["build_menus", "add_action", "leaf_actions", "HUD_LABELS"]
 
 HUD_LABELS = {"title": "Deposit title", "scale_bar": "Scale bar",
               "gnomon": "Orientation (four-fold axis)", "readouts": "Selection and distance"}
@@ -25,7 +25,9 @@ HUD_LABELS = {"title": "Deposit title", "scale_bar": "Scale bar",
 
 def add_action(win, menu, text, slot, shortcut=None, checkable=False, tip="") -> QAction:
     a = QAction(text, win)
-    if shortcut:
+    if isinstance(shortcut, (list, tuple)):
+        a.setShortcuts([QKeySequence(k) for k in shortcut])
+    elif shortcut:
         a.setShortcut(QKeySequence(shortcut))
     if checkable:
         a.setCheckable(True)
@@ -42,6 +44,20 @@ def build_menus(win) -> None:
     _view(win, mb.addMenu("&View"))
     _analyses(win, mb.addMenu("&Analyses"))
     _help(win, mb.addMenu("&Help"))
+    # The window owns every action too, so shortcuts still fire while the
+    # menu bar is hidden (full screen).
+    win.addActions(leaf_actions(mb))
+
+
+def leaf_actions(menu) -> list[QAction]:
+    """Every action under ``menu`` that is not itself a submenu."""
+    out = []
+    for a in menu.actions():
+        if a.menu() is not None:
+            out += leaf_actions(a.menu())
+        elif not a.isSeparator():
+            out.append(a)
+    return out
 
 
 def _file(win, f) -> None:
@@ -65,12 +81,18 @@ def _view(win, v) -> None:
     add_action(win, v, "Fit to view", sc.fit_view, "Ctrl+0")
     add_action(win, v, "Toggle spin", lambda: win.viewport.set_spin(
         0.0 if win.viewport._spin_speed else 20.0), "Space")
+    win.fullscreen_action = add_action(
+        win, v, "Full screen", win.presentation.toggle,
+        [QKeySequence.StandardKey.FullScreen, "F11"], checkable=True,
+        tip="Only the 3-D view and its HUD; Esc or F11 leaves, and every "
+            "panel comes back as it was.")
     v.addSeparator()
     add_action(win, v, "Sequence…", lambda: win.show_sequence(), "Ctrl+Shift+Q")
     win.measure_action = add_action(
         win, v, "Measure distances", win.selection.arm, "Ctrl+M", checkable=True,
         tip="Every two clicked atoms close a distance.")
-    add_action(win, v, "Clear selection and distances", win.clear_selection, "Esc")
+    add_action(win, v, "Clear selection and distances (leaves full screen first)",
+               win.escape, "Esc")
     v.addSeparator()
     hud = v.addMenu("HUD")
     win.hud_actions = {}

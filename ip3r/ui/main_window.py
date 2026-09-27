@@ -21,6 +21,7 @@ from ..io.registry import get_entry
 from ..structure.channel import measure_channel
 from .channel_panel import ChannelPanel
 from .docks import DockManager
+from .presentation import PresentationController
 from .window_extras import WindowExtras
 from .menus import build_menus
 from .selection import SelectionController
@@ -119,6 +120,7 @@ class MainWindow(WindowExtras, QMainWindow):
         self.selection = SelectionController(self.scene, self.hud,
                                              self.statusBar().showMessage)
         self.docks = DockManager(self, remember=remember_layout)
+        self.presentation = PresentationController(self)
         self.sequence_window = None
         self.help_dialog = None
         #: Open analysis windows (kept referenced while shown).
@@ -194,6 +196,7 @@ class MainWindow(WindowExtras, QMainWindow):
             self.docks.restore()
 
     def closeEvent(self, event) -> None:          # noqa: N802
+        self.presentation.leave()                  # never save the hidden-panel layout
         self.docks.save()
         for w in self.result_windows:
             w.close()
