@@ -76,6 +76,9 @@ ANALYSES = (
     Analysis("csc", "Permeation", "Charge–space competition", ("csc", "{pdb}"),
              "a few minutes", "Filter binding split as Gillespie's Fig. 7; P_Ca:P_K under "
              "donnan / csc (Round 7.17)."),
+    Analysis("sel3d", "Permeation", "Selectivity in 3-D", ("sel3d", "{pdb}"),
+             "five to seven minutes", "P_Ca:P_K from the 3-D charged lumen, point ions and "
+             "with the charge–space excess, beside the 1-D readings (Round 7.19)."),
     Analysis("gating", "Gating and puffs", "Gating bells, three models",
              ("gating", "--model", "pd"), "seconds",
              "Park/drive open probability against Ca2+ at four IP3 levels."),

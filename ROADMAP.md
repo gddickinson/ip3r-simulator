@@ -5,8 +5,8 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.19 (science): selectivity in 3-D, with the csc excess
-as a per-voxel energy (Round 7.17's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.20 (GUI): a second deposit drawn superposed in its own
+colour (Round 7.18's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -563,7 +563,7 @@ item carried over from round n; it stays listed there too.
   Emergent:
   - [x] Is 8TKF's D2478 charged? Yes (Round 7.13): the pair is a dipole,
     and read so it gives ×3.18.
-  - [ ] The charge–space item above is now the only candidate left for
+  - [x] (Round 7.19: D4899Q ×0.85 in 3-D, ×0.14 measured) The charge–space item above is now the only candidate left for
     D4899Q. Test it in the 3-D linear-response frame (a local excess
     chemical potential per voxel enters the equilibrium, nothing else).
 
@@ -713,7 +713,7 @@ item carried over from round n; it stays listed there too.
   8TKF: 0.00 → 0.07 against 15.2. Robust over wall volume, ε 40–78.4,
   water and oxygen diameters (wild type 0.31–0.91, D4899Q ×0.54–0.95).
   Emergent:
-  - [ ] Selectivity in 3-D: a permeability ratio from the charged 3-D
+  - [x] (Round 7.19: 9HEO 1.08, 8TKF 1.39, the gate still holds Ca²⁺) Selectivity in 3-D: a permeability ratio from the charged 3-D
     linear response (7.11–7.15's wall field reaches into the gate, which
     the 1-D local-neutrality closure cannot), with the csc excess as a
     per-voxel energy (the `self_energy` hook).
@@ -753,6 +753,37 @@ item carried over from round n; it stays listed there too.
   - [ ] A second deposit drawn superposed in its own colour (PIEZO1's
     overlay), reusing the transition's residue-matched fit, so any two
     states can be compared without building a morph.
+
+- [x] **7.19 Science: selectivity in 3-D** (`python -m ip3r sel3d`,
+  `physics/csc3d.py`, `physics/selectivity3d.py`, `docs/SCIENCE_SEL3D.md`).
+  P_Ca:P_K from the charged lumen's linear response: P = D × the
+  Boltzmann-weighted Laplace conductance (GHK's permeability at 0 mV), in a
+  symmetric family KCl + 10 mM CaCl₂. The csc fluid lives on the voxels,
+  with the wall's groups placed as the charge is. It enters locally
+  neutral (`local_csc`, voxel by voxel) or under Poisson with the neutral
+  fluid's excess held per species (`pb_csc`, via
+  `poisson_boltzmann(offset=)`). The fully self-consistent version was
+  tried first and has no root below u ≈ −5 kT/e: MSA's screening outgrows
+  ln c in a non-neutral voxel, which is why the excess comes from a neutral
+  reference. Calibrated: terms off = Donnan / PB exactly, the Donnan limit,
+  the field past a charged band, the ruler = the 1-D series on a tube.
+  **Found:** the 3-D field reaches the gate and the filter binds Ca²⁺
+  (9HEO 8.6 M against 1.2 M K⁺). But P_Ca:P_K in linear response is 9HEO
+  1.08 (1-D 0.87, measured 7.0), 8TKF 1.39 (1-D 0.34, 15.2) and 7T3T 1.79
+  (0.63). 9HEO's gate still holds 53 % of Ca²⁺'s resistance. Xu's mutants:
+  D4899Q ×0.85 (×0.14), summed |ln| error 3.02 against 1-D 2.80.
+  Robust: grid 1 Å within 4 %; wall volume, ε_pore, MSA ε (which lifts
+  Cl⁻ as much) all within 1.0–1.6. Only the charge's spread moves it (6 Å:
+  2.7; 1.5 Å with the wall volume omitted: 0.75); with it, 1.5 Å is refused
+  by name (the oxygens alone over-pack).
+  Emergent:
+  - [ ] The dielectric closure (7.13) with the csc excess: the protein's
+    field behind the wall and the ions' size together (the fluid would
+    need the lining groups' lumen-side density as its wall, while the
+    electrostatics keep the charges in the protein).
+  - [ ] The gate's own geometry: widen 9HEO's gate to the radius that
+    conducts 801 pS (Round 7.6) and read P_Ca:P_K again, the one route
+    left inside the continuum.
 
 ## Round 6 — ryanodine receptors
 

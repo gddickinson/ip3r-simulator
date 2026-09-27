@@ -2919,3 +2919,64 @@ layout, so a hidden-panel layout is never remembered. The smoke test
 closes the Structure dock, enters, checks the viewport fills the window,
 leaves by an F11 key press with no menu bar, and checks the Structure dock
 is still closed.
+
+## 2026-09-26 (34) — Round 7.19: selectivity in 3-D, with the csc excess
+
+**Why.** Round 7.17 left one candidate for the continuum's missing Ca²⁺
+selectivity: the field at the gate. In 1-D the uncharged gate window, in
+series, held 72 % of Ca²⁺'s resistance, and a local-neutrality closure
+carries no field into it. The 3-D wall field of Rounds 7.11–7.15 does reach
+past its charges. So the csc fluid was put on the voxels and P_Ca:P_K was
+read from the 3-D linear response.
+
+**What.**
+- `physics/csc3d.py`: the lining groups as fluid species on the voxels
+  (`wall_fluid`, placed exactly as the charge, so charge = the map);
+  `local_csc` (every voxel neutral with the bath; identical voxels solved
+  once, which took the slice placement from 1.2 M solves to one per
+  plane); `pb_csc` (Poisson with the neutral fluid's excess held per
+  species, via the new `charge3d.poisson_boltzmann(offset=)`).
+- `physics/selectivity3d.py`: P_i = D_i × the Boltzmann-weighted Laplace
+  conductance (GHK's permeability at 0 mV), seven readings, the filter and
+  gate shares of each ion's resistance, the 1-D linear-response and
+  reversal readings beside them, and Xu's mutants.
+- `python -m ip3r sel3d [--mutants]` (`cli_sel3d.py`), plus an Analyses
+  menu entry. `tests/test_csc3d.py` (8 tests). `docs/SCIENCE_SEL3D.md`.
+
+**A design that failed first, and why it matters.** The self-consistent
+version solved the fluid at each voxel's held potential inside PB's Newton
+loop. That solve has no root below u ≈ −5 kT/e. The MSA is a theory of a
+neutral mixture, and without neutrality its screening term (Γ ∝ √ρ)
+outgrows ln c, so cations run away. The excess is therefore taken from the
+locally neutral fluid, as Gillespie's functional takes its screening from a
+reference fluid. Outside the groups' reach that reference is the bath, so
+the gate feels the mean field alone, which is the question. The price is
+that inside the filter the excess belongs to a neutral composition PB does
+not hold.
+
+**Found.** The 3-D field reaches the gate, and the filter binds Ca²⁺ (9HEO
+8.6 M against 1.2 M K⁺). P_Ca:P_K in linear response under `pb + csc`:
+9HEO 1.08 (1-D 0.87; 7.0 measured), 8TKF 1.39 (0.34; 15.2), 7T3T 1.79
+(0.63). The 3-D field is worth ×1.6 in RyR1, and csc adds 7 % on top of
+it. 9HEO's gate still holds 53 % of Ca²⁺'s resistance. For Xu's mutants,
+D4899Q comes out ×0.85 (×0.14 measured), and the summed error is 3.02
+against 1-D 2.80. Robust over grid, wall volume, ε_pore and MSA ε; the MSA
+ε lifts Cl⁻ as much as Ca²⁺. Only the charge's spread moves the ratio (6 Å:
+2.7). At 1.5 Å the wall's oxygens alone pack to 1.69, which is now refused
+by name.
+
+**Not changed.** `make sync-check` clean; no verdict moved.
+
+**Next:** Round 7.20 (GUI): a second deposit superposed (7.18's emergent
+item).
+
+**Smoke test.** `make screenshots` did not finish inside its 1200 s hang
+timer in this session. The profile shows why. `--checks` spends ~760 s
+running all findings checks inside the GUI before step 7. The GUI, in the
+background, got ~30 % of one core (macOS App Nap). Round 7.14's dielectric
+lumen step alone takes ~5 min. Every step was then checked: steps 0–39 in
+the full run, the lumen steps 36–40 alone (all pass, image step 36 s), and
+Round 7.18's extras alone (all pass, including the Analyses menu that
+gained `sel3d`). The run at the last commit hits the same timer, so this
+is not a regression. How to make the smoke test selective is the user's
+call, and is raised with them.

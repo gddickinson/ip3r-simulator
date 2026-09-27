@@ -169,14 +169,17 @@ def donnan_field(vol: PoreVolume, fixed: np.ndarray, species) -> np.ndarray:
 
 def poisson_boltzmann(vol: PoreVolume, fixed: np.ndarray, species,
                       permittivity: float | None = None,
-                      initial: np.ndarray | None = None
+                      initial: np.ndarray | None = None,
+                      offset: np.ndarray | None = None
                       ) -> tuple[np.ndarray, bool, int]:
     """Nonlinear Poisson–Boltzmann on the lumen, Newton with a capped step.
 
     Seven-point finite volumes on ``vol.mask`` (no flux into protein), u = 0
     on the bath voxels. The Jacobian ``L + h²A Σ z² c e^{−zu}`` is symmetric
     positive definite, solved by preconditioned conjugate gradients.
-    Returns ``(u, converged, iterations)``."""
+    ``offset`` ((species, *grid), kT) adds a fixed energy per species and
+    voxel to its Boltzmann factor: Round 7.19's excess chemical potential
+    of the charge–space fluid. Returns ``(u, converged, iterations)``."""
     eps = (_P.value("permeation.permittivity_pore") if permittivity is None
            else permittivity)
     temperature = _P.value("permeation.temperature")
@@ -194,6 +197,8 @@ def poisson_boltzmann(vol: PoreVolume, fixed: np.ndarray, species,
     h = vol.spacing * 1e-10
     scale = h * h * F_FARADAY ** 2 / (EPS0 * eps * R_GAS * temperature)
     x = fixed[mask][free]
+    extra = (np.zeros((len(valences), int(free.sum()))) if offset is None
+             else np.stack([o[mask][free] for o in offset]))
     u_full = np.zeros(n) if initial is None else initial[mask].astype(float)
     u_full[~free] = 0.0
     u = u_full[free]
@@ -204,7 +209,7 @@ def poisson_boltzmann(vol: PoreVolume, fixed: np.ndarray, species,
     cg_max = int(_P.value("pore3d.cg_max_iterations"))
     converged, used = False, 0
     for used in range(1, int(_P.value("charge3d.newton_max_iterations")) + 1):  # noqa: B007
-        arg = np.clip(-valences[:, None] * u[None, :], -_EXP_CLIP, _EXP_CLIP)
+        arg = np.clip(-valences[:, None] * u[None, :] - extra, -_EXP_CLIP, _EXP_CLIP)
         boltz = conc[:, None] * np.exp(arg)
         g = degree * u + offdiag @ u - scale * ((valences[:, None] * boltz).sum(0) + x)
         diag = degree + scale * (valences[:, None] ** 2 * boltz).sum(0)

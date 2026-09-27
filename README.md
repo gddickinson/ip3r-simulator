@@ -244,6 +244,18 @@ own it reads 0.54 by hand (the diffusivity × area ratio). D4899Q stays
 mild (×0.85 against ×0.14). What the model lacks is the field at the gate,
 not the filter's physics.
 
+In 3-D that field is there (`python -m ip3r sel3d`,
+`docs/SCIENCE_SEL3D.md`). P_Ca:P_K is read from the charged lumen's linear
+response, P = D × a Boltzmann-weighted Laplace conductance, with the csc
+fluid in every voxel. Under Poisson the wall's field reaches the gate, and
+the filter still binds Ca²⁺ (8.6 M against 1.2 M K⁺ in 9HEO). But the
+ratio reaches only 1.08 in RyR1 (7.0 measured; 1-D 0.87), and 1.39 / 1.79
+in ITPR3's 8TKF / 7T3T (15.2 measured; 1-D 0.34 / 0.63). 9HEO's gate
+still holds over half of Ca²⁺'s resistance. The one constant that moves it
+is how far each charge is spread toward the gate (smoothing 6 Å: 2.7).
+Xu's mutants still do not single out D4899Q (×0.85 under `pb + csc`
+against ×0.14; D4938N ×0.83 against ×0.47).
+
 The lumen box counts it too (dielectric → "+ image"; `python -m ip3r lumen
 8TKF --charge dielectric --image`), on a 1 Å grid, from the cache in about
 20 s. The surface can be coloured by W itself. With W, a cation's well is
@@ -529,6 +541,7 @@ python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three c
 python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
 python -m ip3r born [PDB] [--scan] [--mutants]    # the image cost of the low-eps wall on K+ g and Xu's mutants
 python -m ip3r csc [PDB] [--scan]                 # charge-space competition: filter binding, Xu's six P_Ca:P_K, Vais's ratios
+python -m ip3r sel3d [PDB] [--mutants]            # P_Ca:P_K from the 3-D charged lumen, point ions and with the csc fluid
 python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
 python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
 python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
