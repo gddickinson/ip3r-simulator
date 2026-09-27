@@ -8,6 +8,10 @@ Three rows on S0's window, the reversal grid's lumen:
   charged wall) reads against the solution it came from;
 - each ion's electrochemical drop beside the neutral pore's: where each
   rises steeply is where its resistance lies.
+
+Round 7.26: with a candidate wall, the deposit's own reading of the same
+experiment (``beside``) is drawn dashed on both ion rows, and the text sets
+the two reversal potentials and each ion's peak side by side.
 """
 
 from __future__ import annotations
@@ -22,9 +26,11 @@ __all__ = ["draw_reversal", "ION_COLOURS"]
 ION_COLOURS = {"K+": PALETTE[0], "Cl-": PALETTE[2], "Ca2+": PALETTE[1]}
 
 
-def draw_reversal(canvas, rev, s) -> str:
+def draw_reversal(canvas, rev, s, beside=None) -> str:
     """Plot ``rev`` (a :class:`~ip3r.physics.lumen_reversal.ReversalLumen`)
-    for the channel summary ``s`` on ``canvas``; returns the panel's text."""
+    for the channel summary ``s`` on ``canvas``, with ``beside`` (another on
+    the same grid, the deposit's own wall) dashed; returns the panel's
+    text."""
     from ..parameters import PARAMETERS as _P
     f = rev.lumen
     axes = canvas.reset(3, 1)
@@ -45,6 +51,15 @@ def draw_reversal(canvas, rev, s) -> str:
             if b > 0:
                 conc.plot([z], [b], marker="o", ms=4, color=col, ls="none")
         drop.plot(f.z, rev.drop_3d(ion), color=col, lw=1.4, label=ion)
+        if beside is not None and ion in beside.conc:
+            # one legend entry for every dashed line, the ions share colours
+            first = ion == next(i for i in rev.species if i in beside.conc)
+            b = beside.conc_3d(ion)
+            conc.plot(beside.z, np.where(b > 0, b, np.nan), color=col, lw=0.9,
+                      ls="--", label=(f"dashed: deposit ({beside.reading})"
+                                      if first else "_nolegend_"))
+            drop.plot(beside.z, beside.drop_3d(ion), color=col, lw=0.9,
+                      ls="--", label="_nolegend_")
     conc.set_yscale("log")
     conc.set_ylabel("c (M), ● bath")
     drop.plot(f.z, f.drop_3d, color="#8a8f99", lw=1.0, ls="--",
@@ -63,6 +78,13 @@ def draw_reversal(canvas, rev, s) -> str:
         canvas.legend(ax, loc="upper left")
     canvas.draw_now()
     lines = [rev.summary() + "."]
+    if beside is not None:
+        peaks = ", ".join(f"{ion} {rev.peak(ion)[0]:.3g} M against "
+                          f"{beside.peak(ion)[0]:.3g} M" for ion in rev.species
+                          if ion in beside.conc)
+        lines.append(f"Beside the deposit's own wall ({beside.reading}, dashed):"
+                     f" V_rev {rev.v * 1e3:+.2f} against {beside.v * 1e3:+.2f} "
+                     f"mV; peaks {peaks}.")
     for c in s.constrictions.values():
         shares = ", ".join(f"{ion} {rev.drop_across(ion, c.z, w):.0%}"
                            for ion in rev.species)

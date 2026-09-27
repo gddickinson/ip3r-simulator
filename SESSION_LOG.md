@@ -3256,3 +3256,42 @@ output is in `data/wallsearch/`.
 (the Analyses menu gained an entry).
 
 **Next.** Round 7.26 (GUI): the candidate walls drawn on the lumen.
+
+## 2026-09-27 (41) — Round 7.26: the wall search on the structure
+
+**Why.** This was the Next item. Round 7.25's candidate walls existed only
+as rows of numbers. Drawing them on the lumen at reversal shows *where*
+each one puts each ion's resistance, next to the deposit's own wall.
+
+**What.** `physics/wall_candidates.py` builds the candidates on a deposit's
+reversal grid: the uncharged Ca²⁺-only well over the span at
+`wallsearch.gui_well_depth` (4 kT, new, the search's best uncharged well on
+both deposits), that well with the deposit's charge, and the ring pair with
+the highest B (`ring_search`, memoised per deposit and grid and cleared on
+any parameter change). `reversal_lumen` accepts a candidate name in place
+of a reading. It solves the candidate as the search did (point ions under
+Poisson; the csc fluid is the deposit's own groups, which a candidate
+replaces). The lumen box's Steady state selector lists the candidates. The
+controller keeps the deposit's own reversal reading last drawn (`own`), and
+`draw_reversal` plots it dashed beside a candidate, with both V_rev and
+peaks in the text. I collapsed the dashed lines into one legend entry after
+the first screenshot came out crowded. Also added: a guide paragraph, and a
+smoke step (span well = headless, the deposit's reading beside it,
+`gui_lumen_candidate.png`).
+
+**Calibrated.** 8TKF's span well reverses at Round 7.25's +8.09 mV with
+Ca²⁺ peaking at 0.326 M, and with the charge at +11.78 mV. Both are exact.
+
+**Found.** (Raw output: `data/wallsearch/candidates.out`.) The well puts
+Ca²⁺'s resistance at its edge: 8TKF z −54.9 Å (the cytosolic end of the
+span), 7T3T at the luminal mouth. Leaving the well is the barrier it adds.
+7T3T's ring pair (±2 e at z −61.4 Å) keeps B ≈ 4.6 at reversal (7.9 in
+linear response), but the gain is Cl⁻'s: P_Cl:P_K 1.29 and P_Ca:P_K 0.60,
+which scores 4.81 against 3.69 uncharged. 8TKF's best ring gives B 1.29.
+Parallel paths favour the anion here.
+
+**Checks.** `make test`: 719 passed. Lint and sizes are clean. Smoke groups
+`reversal` (360 s) and `extras` pass after the legend fix.
+
+**Next.** Round 7.27 (science): the compensated Ca²⁺ site and
+occupancy-dependent K⁺ block.

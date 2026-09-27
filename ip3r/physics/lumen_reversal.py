@@ -22,6 +22,10 @@ protocol (:func:`.reversal3d.experiments`) under one reading
 The surface is cut from the reversal's own grid (``reversal3d.spacing``,
 the electrostatic volume), so it is not the equilibrium box's 0.5 Å K+
 lumen; the panel says so. Plane means over S0's window give the plot.
+
+Round 7.26: ``reading`` may instead name one of Round 7.25's candidate walls
+(:data:`.wall_candidates.CANDIDATES`), solved as the search solved it: point
+ions under Poisson with that wall's charge and Ca²⁺-only energy.
 """
 
 from __future__ import annotations
@@ -36,12 +40,14 @@ from ..structure.channel import ChannelSummary, measure_channel
 from ..structure.pore import PROFILE_MARGIN
 from .lumen_field import LumenField, field_from_volume, plane_means
 from .pnp3d import domain
-from .reversal3d import (READINGS, concentration, experiments,
-                         steady_at_reversal, wall)
+from .reversal3d import (READINGS, _impermeant, concentration, experiments,
+                         reversal, steady_at_reversal, wall)
 from .selectivity import thermal_voltage
 from .selectivity3d import prepare
+from .wall_candidates import CANDIDATES, candidate_wall
 
-__all__ = ["ReversalLumen", "reversal_lumen", "ion_grids", "SPECIES", "READINGS"]
+__all__ = ["ReversalLumen", "reversal_lumen", "ion_grids", "SPECIES",
+           "READINGS", "CANDIDATES"]
 
 #: Every ion a protocol can carry, in the order the panel lists them.
 SPECIES = ("K+", "Cl-", "Ca2+")
@@ -61,6 +67,12 @@ class ReversalLumen:
     baths: dict[str, tuple[float, float]] = field(default_factory=dict)  # M
     converged: bool = True
     solves: int = 0
+    wall: str = ""                          # a candidate wall's description
+
+    @property
+    def candidate(self) -> bool:
+        """A Round 7.25 candidate wall, not the deposit's own."""
+        return self.reading in CANDIDATES
 
     @property
     def z(self) -> np.ndarray:
@@ -115,7 +127,8 @@ class ReversalLumen:
         cur = ", ".join(f"{k} {self.currents[k] * 1e12:+.2f} pA"
                         for k in self.species)
         text = (f"{self.lumen.name}, {self.experiment} experiment, "
-                f"{self.reading}, at reversal V = {self.v * 1e3:+.2f} mV"
+                f"{self.reading}{f' ({self.wall})' if self.wall else ''}, "
+                f"at reversal V = {self.v * 1e3:+.2f} mV"
                 f"{'' if self.converged else ' (n.c.)'}; each ion's current "
                 f"there: {cur}")
         for name in self.species:
@@ -148,11 +161,12 @@ def reversal_lumen(st: Structure, reading: str = "pb + csc",
                    experiment: str = "Ca2+",
                    summary: ChannelSummary | None = None,
                    spacing: float | None = None, **fluid_kw) -> ReversalLumen:
-    """``experiment`` of ``st``'s family protocol under ``reading``, solved
-    to its reversal on ``reversal3d.spacing``'s grid (or ``spacing``) and
-    read on the lumen."""
-    if reading not in READINGS:
-        raise ValueError(f"reading must be one of {READINGS}, not {reading!r}")
+    """``experiment`` of ``st``'s family protocol under ``reading`` (or one
+    of the candidate walls), solved to its reversal on
+    ``reversal3d.spacing``'s grid (or ``spacing``) and read on the lumen."""
+    if reading not in READINGS + CANDIDATES:
+        raise ValueError(f"reading must be one of {READINGS + CANDIDATES}, "
+                         f"not {reading!r}")
     summary = summary or measure_channel(st)
     h = _P.value("reversal3d.spacing") if spacing is None else spacing
     pore = prepare(st, summary, spacing=h)
@@ -174,10 +188,19 @@ def reversal_lumen(st: Structure, reading: str = "pb + csc",
                          "to solve")
     dom = domain(pore.elec, pore.vols)
     w = wall(pore)
-    v, steady, excess, ok, n = steady_at_reversal(pore, dom, w, reading, exp,
-                                                  **fluid_kw)
+    note = ""
+    if reading in CANDIDATES:
+        cw = candidate_wall(pore, reading, w.fixed)
+        names = {s.name for s in exp.species()}
+        excess = {k: e for k, e in (cw.excess or {}).items() if k in names} or None
+        v, steady, n = reversal(dom, exp.species(), cw.fixed, excess,
+                                _impermeant(pore, exp))
+        ok, note = steady.converged, cw.description
+    else:
+        v, steady, excess, ok, n = steady_at_reversal(pore, dom, w, reading,
+                                                      exp, **fluid_kw)
     conc, drop, baths = ion_grids(dom, steady, exp.species(), excess)
     return ReversalLumen(f, reading, experiment, float(v), conc, drop,
                          dict(steady.currents), baths,
-                         bool(ok and f.converged), n)
+                         bool(ok and f.converged), n, note)
 

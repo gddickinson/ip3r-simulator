@@ -113,7 +113,14 @@ two). Colour by each ion's <b>concentration</b> (fixed log scale,
 display.lumen_conc_min–display.lumen_conc_max M) or its
 <b>electrochemical drop</b> (0 lumen, 1 cytosol: where it rises steeply is
 where that ion's resistance lies). The plot gives each ion's concentration
-against its baths and its drop beside the neutral pore's.</p>""",
+against its baths and its drop beside the neutral pore's.</p>
+<p>The same selector offers Round 7.25's <b>candidate walls</b> (Round 7.26,
+IP3R only), read as the search read them (point ions under Poisson): a
+Ca<sup>2+</sup>-only well of wallsearch.gui_well_depth kT over the span,
+that well with the deposit's charge, or the opposite-charge C4 ring pair
+with the highest B (two minutes more the first time, for its search). Draw
+the deposit's own reading first: the plot then sets it dashed beside the
+candidate, with both reversal potentials and peaks in the text.</p>""",
 
     "Analyses menu": """
 <p>Analyses runs the command-line science in its own process, the same

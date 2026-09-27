@@ -355,6 +355,16 @@ membrane at 4 kT. Deeper wells fill with Ca²⁺ and repel. The measured pair
 needs an interaction this continuum does not carry, such as Ca²⁺
 occupancy blocking K⁺ (`docs/SCIENCE_WALLSEARCH.md`).
 
+The candidates can be drawn (Round 7.26). In the lumen box, Steady state →
+"at reversal, candidate wall" offers the span well, that well with the
+deposit's charge, and the best ring pair. Each is coloured by each ion's
+concentration at reversal. The deposit's own reading, if drawn first, is
+plotted dashed beside it. Inside the well, Ca²⁺'s resistance is at the
+well's edge, where it has to climb out. 7T3T's ring pair keeps some of its
+parallel-path gain at reversal (B ≈ 4.6), but that gain is Cl⁻'s.
+
+![8TKF's span well at reversal, the deposit's own wall dashed beside it](docs/img/gui_lumen_candidate.png)
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,

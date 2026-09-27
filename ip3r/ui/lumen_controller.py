@@ -19,6 +19,9 @@ worker, and it is cached on disk after that.
 Round 7.24's steady state at reversal replaces the whole reading: its own
 lumen (the reversal grid's electrostatic volume) and surface, each ion's
 concentration and drop; any change to it solves again from scratch.
+Round 7.26: one of Round 7.25's candidate walls is read the same way, and
+the deposit's own reading of the same experiment last drawn (``own``) is
+plotted beside it.
 """
 
 from __future__ import annotations
@@ -48,6 +51,9 @@ class LumenController:
         self.charged = None
         #: Round 7.24's reading at reversal drawn, or None.
         self.reversal = None
+        #: The deposit's own wall at reversal last drawn on this deposit
+        #: (Round 7.26: set beside a candidate wall of the same experiment).
+        self.own = None
         self._token = 0
         #: The last outcome as text (for the smoke test and the status bar).
         self.message = ""
@@ -65,7 +71,7 @@ class LumenController:
                                       and self.charged is None)
 
     def loaded(self, st) -> None:
-        self.field = self.mesh = self.charged = self.reversal = None
+        self.field = self.mesh = self.charged = self.reversal = self.own = None
         self.request(self.box.show.isChecked())
 
     def request(self, on: bool) -> None:
@@ -155,7 +161,14 @@ class LumenController:
         self.message = (self.reversal or charged or field).summary()
         self.recolour()
         if self.reversal is not None:
-            self.panel.show_lumen_reversal(self.reversal, self.scene.summary)
+            beside = None
+            if not self.reversal.candidate:
+                self.own = self.reversal
+            elif (self.own is not None
+                  and self.own.experiment == self.reversal.experiment):
+                beside = self.own
+            self.panel.show_lumen_reversal(self.reversal, self.scene.summary,
+                                           beside)
         else:
             self.panel.show_lumen_field(field, self.scene.summary, charged)
         self.status(self.message)

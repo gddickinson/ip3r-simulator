@@ -71,4 +71,10 @@ REV3D = [
        "at 1 e per site and at this.", "Two charged groups per subunit at "
        "one height, as the densest lining rings of the deposits", 0.1,
        4.0),
+    _p("wallsearch.gui_well_depth", "Drawn Ca2+ well depth", 4.0, "kT",
+       "method", "pore3d", "method_choice", "Round 7.26: the depth of the "
+       "Ca2+-only well over the span that the lumen box draws at reversal.",
+       "Round 7.25: the best uncharged well on both 8TKF (score 1.30) and "
+       "7T3T (1.10); 6 kT is within 2 % on 8TKF, 8 kT past the peak", 0.5,
+       15.0),
 ]

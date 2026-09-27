@@ -5129,6 +5129,19 @@
    "source_note": "Two charged groups per subunit at one height, as the densest lining rings of the deposits",
    "minimum": 0.1,
    "maximum": 4.0
+  },
+  {
+   "key": "wallsearch.gui_well_depth",
+   "name": "Drawn Ca2+ well depth",
+   "value": 4.0,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.26: the depth of the Ca2+-only well over the span that the lumen box draws at reversal.",
+   "source_note": "Round 7.25: the best uncharged well on both 8TKF (score 1.30) and 7T3T (1.10); 6 kT is within 2 % on 8TKF, 8 kT past the peak",
+   "minimum": 0.5,
+   "maximum": 15.0
   }
  ]
 }

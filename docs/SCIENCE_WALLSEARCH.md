@@ -174,6 +174,30 @@ interaction that this continuum does not carry: Ca²⁺ occupancy that
 blocks K⁺ in the bi-ionic condition (the anomalous-mole-fraction
 mechanism), or a Ca²⁺ affinity whose site is compensated as it fills.
 
+## On the structure (Round 7.26)
+
+`physics/wall_candidates.py` builds three candidates on a deposit's 1 Å
+reversal grid, and the lumen box draws them at reversal: the uncharged
+span well at `wallsearch.gui_well_depth` (4 kT), the same with the
+deposit's charge, and the ring pair with the highest linear-response B.
+They are read as the search read them (point ions under Poisson). The span
+well lands on the search's numbers exactly (8TKF +8.09 mV).
+
+| deposit | candidate | V_Cl mV | V_Ca mV | P_Cl:P_K | P_Ca:P_K |
+|---|---|---|---|---|---|
+| 8TKF | span well | −23.92 | +8.09 | 0.291 | 4.48 |
+| 8TKF | span well + charge | −39.05 | +11.78 | 0.003 | 5.33 |
+| 8TKF | ring pair (±1 e, z −103.4) | −22.37 | −0.20 | 0.345 | 0.268 |
+| 7T3T | span well | −21.81 | +10.56 | 0.367 | 6.86 |
+| 7T3T | ring pair (±2 e, z −61.4) | −10.70 | −1.03 | 1.29 | 0.595 |
+
+Two things become visible. First, the well moves Ca²⁺'s resistance to the
+well's edge: its drop is steepest at 8TKF's z −54.9 Å, the span's
+cytosolic end, and at 7T3T's luminal mouth. That is the barrier to leaving
+a well. Second, 7T3T's ring pair keeps B ≈ 4.6 at reversal (7.9 in linear
+response), almost all of it in Cl⁻ (×3.5 over uncharged; Ca²⁺ ×1.14).
+Parallel paths are real in this lumen, but they favour the anion.
+
 Left open:
 - a compensated site (fixed charge −2e per bound Ca²⁺, so filling costs
   no field), and a well that extends into the vestibules' access regions;

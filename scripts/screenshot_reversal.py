@@ -1,8 +1,9 @@
 """The GUI smoke test's Round 7.24 steps (group ``reversal``): 8TKF's lumen
 at the Ca²⁺ experiment's reversal under ``pb + csc``, coloured by Ca²⁺'s
 concentration and then Cl⁻'s drop, equal to the headless reading; the
-equilibrium colourings grey there, and the reversal colourings grey back at
-equilibrium; then everything switched off.
+equilibrium colourings grey there; then (Round 7.26) Round 7.25's span well
+drawn in its place, equal to the headless candidate, with the deposit's own
+reading dashed beside it; then everything switched off.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from ip3r.render.lumen_mesh import conc_colors
 __all__ = ["STEPS"]
 
 _READING, _EXPERIMENT = "pb + csc", "Ca2+"
+_CANDIDATE = "span well"
 
 
 def _pick(combo, value) -> None:
@@ -74,6 +76,36 @@ def _reversal(win, app, out) -> bool:
     _pick(box.colour, "wall")                 # no wall potential at reversal
     if not np.allclose(lc.mesh.colors, ramp(np.array([np.nan]))):
         raise RuntimeError("the wall colouring is not grey at reversal")
+    _pick(box.colour, "conc:Ca2+")
+    _pick(box.reversal_box, _CANDIDATE)
+    return False
+
+
+def _candidate(win, app, out) -> bool:
+    from ip3r.physics.lumen_reversal import reversal_lumen
+    lc, sc = win.lumen, win.scene
+    if lc.message.startswith("lumen not built"):
+        raise RuntimeError(lc.message)
+    if lc.busy:
+        return True
+    rev = lc.reversal
+    if rev is None or rev.reading != _CANDIDATE or not rev.candidate:
+        raise RuntimeError(f"the candidate wall was not drawn: {lc.message}")
+    if lc.own is None or lc.own.reading != _READING:
+        raise RuntimeError("the deposit's own reading was not kept beside it")
+    ca = lc.mesh.sample(rev.conc["Ca2+"])
+    if not np.allclose(lc.mesh.colors, conc_colors(ca)):
+        raise RuntimeError("the candidate is not coloured by Ca2+'s concentration")
+    labels = [ln.get_label() for ln in win.channel.canvas.axes[1, 0].get_lines()]
+    if not any("deposit (pb + csc)" in t for t in labels):
+        raise RuntimeError(f"the deposit's reading is not beside it: {labels}")
+    text = win.channel.lumen_info.text()
+    head = reversal_lumen(sc.structure, _CANDIDATE, _EXPERIMENT, sc.summary)
+    if abs(head.v - rev.v) > 1e-9 or "Beside the deposit's own wall" not in text:
+        raise RuntimeError("the panel's candidate is not the headless one")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_candidate.png"))
+    box = win.channel.lumen_box
     win.channel.show_lumen.setChecked(False)  # first: no re-solve behind us
     _pick(box.reversal_box, "equilibrium")
     _pick(box.colour, "drop")
@@ -82,4 +114,4 @@ def _reversal(win, app, out) -> bool:
     return False
 
 
-STEPS = (_reversal_start, _reversal)
+STEPS = (_reversal_start, _reversal, _candidate)

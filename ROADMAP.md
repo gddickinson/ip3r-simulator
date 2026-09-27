@@ -5,11 +5,9 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.26 (GUI): the wall search on the structure. Draw the
-best candidate walls (the span well, the ring pairs) on the lumen beside
-the deposit's own, coloured by each ion's concentration at reversal
-(7.24's colourings). Round 7.25's emergent item, a compensated Ca²⁺
-site, follows as science. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.27 (science): a compensated Ca²⁺ site and
+occupancy-dependent K⁺ block at reversal (Round 7.25's emergent item). Can
+either reach P_Ca:P_K 15.2 with Cl⁻ at 0.27? **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -892,6 +890,23 @@ item carried over from round n; it stays listed there too.
   - [ ] A compensated Ca²⁺ site (−2e fixed per bound Ca²⁺, so filling
     costs no field), and occupancy-dependent K⁺ block at reversal: can
     either reach 15.2 with Cl⁻ at 0.27?
+
+- [x] **7.26 GUI: the wall search on the structure**
+  (`physics/wall_candidates.py`). Round 7.25's candidate walls are now in
+  the lumen box's Steady state selector (IP3R only): the uncharged 4 kT
+  Ca²⁺ well over the span (`wallsearch.gui_well_depth`), that well with the
+  deposit's charge, and the opposite C4 ring pair with the highest B. Each
+  is solved at reversal as the search solved it (point ions under Poisson)
+  and coloured by each ion's concentration or drop, as in 7.24. The
+  deposit's own reading last drawn is plotted dashed beside it, with both
+  V_rev and peaks. The span well reproduces 7.25 exactly (8TKF +8.09 mV,
+  Ca²⁺ peak 0.326 M; tested). **Seen:** in the well, Ca²⁺'s drop is
+  steepest at the well's cytosolic edge (8TKF z −54.9 Å) or its luminal
+  mouth (7T3T), not in the filter: the resistance a well adds is getting
+  out of it. **Found:** at reversal, 7T3T's ring pair (±2 e at z −61.4 Å,
+  B 7.9 in linear response) keeps B ≈ 4.6, but the gain is Cl⁻'s
+  (P_Cl:P_K 1.29, P_Ca:P_K 0.60; score 4.81 against 3.69 uncharged). 8TKF's
+  ring gives B 1.29. The parallel-path route helps the wrong ion.
 
 ## Round 6 — ryanodine receptors
 

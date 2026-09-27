@@ -6,8 +6,9 @@ pore of Round 7.10, one of Round 7.11's closures, or Round 7.13's
 dielectric one) and whether salt bridges are paired; under dielectric,
 whether the image cost is counted (Round 7.15's W, which puts the whole
 reading on ``born.lumen_spacing``'s grid); or, instead of all three,
-Round 7.24's steady state at reversal (a reading of Round 7.23 and one
-experiment of the family's protocol, on ``reversal3d.spacing``'s grid);
+Round 7.24's steady state at reversal (a reading of Round 7.23, or one of
+Round 7.25's candidate walls (Round 7.26), and one experiment of the
+family's protocol, on ``reversal3d.spacing``'s grid);
 what the surface is coloured by. The solve itself is
 :class:`~ip3r.ui.lumen_controller.LumenController`'s.
 
@@ -28,6 +29,7 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QHBoxLayout, QLabel,
 from ..physics.dielectric3d import DIELECTRIC
 from ..physics.lumen_charge import CLOSURE_LABELS, LUMEN_CLOSURES
 from ..physics.reversal3d import READINGS as REVERSAL_READINGS
+from ..physics.wall_candidates import CANDIDATE_LABELS, CANDIDATES
 from ..render.lumen_mesh import COLOURINGS
 from .plot_canvas import PALETTE
 from .view_state import set_check, set_combo
@@ -103,6 +105,9 @@ class LumenControls(QWidget):
                                   "charge above)", EQUILIBRIUM)
         for r in REVERSAL_READINGS:
             self.reversal_box.addItem(f"at reversal: {r}", r)
+        for c in CANDIDATES:
+            self.reversal_box.addItem(f"at reversal, candidate wall: "
+                                      f"{CANDIDATE_LABELS[c]}", c)
         self.reversal_box.setToolTip(
             "Round 7.23's bi-ionic reversal: the family's protocol solved by "
             "3-D Poisson-Nernst-Planck to the voltage where no net current "
@@ -110,7 +115,14 @@ class LumenControls(QWidget):
             "charge above is then not used). Solved on reversal3d.spacing's "
             "grid (1 A) for the smallest ion, so the surface is that grid's. "
             "Colour by one ion's concentration or electrochemical drop. "
-            "About a minute (pb + csc longer).")
+            "About a minute (pb + csc longer). Round 7.26's candidate walls "
+            "(IP3R only) replace the deposit's wall with one of Round 7.25's: "
+            "a Ca2+-only well of wallsearch.gui_well_depth kT over the span, "
+            "that well with the deposit's charge, or the opposite-charge C4 "
+            "ring pair with the highest B (its search adds two minutes the "
+            "first time); point ions under Poisson, as the search read them. "
+            "The plot sets the deposit's own reading of the same experiment "
+            "beside a candidate when one was drawn before it.")
         self.reversal_box.currentIndexChanged.connect(self._charge)
         row.addWidget(self.reversal_box, 1)
         self.experiment = QComboBox()

@@ -121,9 +121,10 @@ class ChannelPanel(QWidget):
         against the 1-D model; with a wall charge, its potential too."""
         self.set_lumen_info(draw_lumen(self.canvas, f, s, charged))
 
-    def show_lumen_reversal(self, rev, s) -> None:
-        """Round 7.24: each ion's concentration and drop at reversal."""
-        self.set_lumen_info(draw_reversal(self.canvas, rev, s))
+    def show_lumen_reversal(self, rev, s, beside=None) -> None:
+        """Round 7.24: each ion's concentration and drop at reversal (Round
+        7.26: a candidate wall with the deposit's own reading ``beside``)."""
+        self.set_lumen_info(draw_reversal(self.canvas, rev, s, beside))
 
     def set_paralog(self, paralog: str | None) -> None:
         """Point the state and conductance buttons at the loaded deposit's
