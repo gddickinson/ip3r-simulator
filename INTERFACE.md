@@ -22,6 +22,7 @@ headless (CLI, tests, notebooks).
 | `tests/` | pytest suite; real-data tests skip when data is absent |
 | `README.md` | the front page: background (the biology, the publication, the RyR control, a glossary), what the simulator does (captioned figures 1–8), the findings in brief, installing, running |
 | `LICENSE` | MIT, the terms under which the code is released |
+| `CITATION.cff` | how to cite the simulator (and the ip3r_genes project it re-derives); GitHub's "Cite this repository" |
 | `CONTRIBUTING.md` | for changing the code: the layers and layout, the test commands, the project rules, the session protocol |
 | `docs/USER_GUIDE.md` | the app and the command line: window, mouse and keys, selection, Structure panel (superpose, AlphaFold), each tab with captioned figures, Analyses menu, parameters, sessions, every command by topic, environment variables, common problems |
 | `docs/RESULTS.md` | the conductance and selectivity results in plain language (Rounds 7.x and RyR1's pore), figures R1–R12 |

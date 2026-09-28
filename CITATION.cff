@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it as below, together with the
+  ip3r_genes project whose results it re-derives.
+type: software
+title: "IP3R Structural Simulator"
+abstract: >-
+  An interactive, physics-based 3-D model of the inositol 1,4,5-trisphosphate
+  receptor (IP3R) that measures its cryo-EM structures, morphs between gating
+  states, runs gating, puff and ion-permeation models, and independently
+  re-derives the published results of the ip3r_genes project.
+authors:
+  - family-names: Dickinson
+    given-names: George
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/gddickinson/ip3r-simulator"
+keywords:
+  - IP3 receptor
+  - ITPR
+  - calcium signalling
+  - ion channel
+  - cryo-EM
+  - elastic network model
+references:
+  - type: software
+    title: "ip3r_genes"
+    abstract: >-
+      Census, evolution and constraint of the IP3 receptor family: the
+      publication project whose findings this simulator re-derives.
+    authors:
+      - family-names: Dickinson
+        given-names: George
+    repository-code: "https://github.com/gddickinson/ip3r_genes"

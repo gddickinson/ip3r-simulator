@@ -444,9 +444,9 @@ the screenshots and movies in `docs/img/`.
 ## Licence and citation are described here.
 
 The code is released under the MIT licence; see [`LICENSE`](LICENSE). If you
-use it, please cite this repository
-(`https://github.com/gddickinson/ip3r-simulator`) together with the
-`ip3r_genes` project whose results it re-derives. Structures come from the
+use it, please cite this repository as given in
+[`CITATION.cff`](CITATION.cff) (GitHub's "Cite this repository" button uses
+it), together with the `ip3r_genes` project whose results it re-derives. Structures come from the
 [RCSB Protein Data Bank](https://www.rcsb.org) [6] and predicted models from
 the [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk)
 [12, 13]; please cite the original depositors and AlphaFold when you use
