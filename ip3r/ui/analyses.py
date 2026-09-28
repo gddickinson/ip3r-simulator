@@ -97,6 +97,11 @@ ANALYSES = (
              "A saturable Ca2+ site over the span, compensated (-2e per bound Ca2+), "
              "whose occupancy blocks K+, at Vais's reversal by depth (Round 7.27; "
              "drop --kind for all four kinds and the depth giving 15.2)."),
+    Analysis("molefrac", "Permeation", "The site against luminal Ca2+",
+             ("molefrac", "{pdb}", "--only", "site"), "fifteen minutes or so",
+             "P_Ca:P_K, i_Ca at 0 mV and the K+ current against luminal Ca2+ "
+             "(0.1-100 mM) through Round 7.27's crossing site: the mole-fraction "
+             "prediction (Round 7.29; drop --only for the two controls)."),
     Analysis("gating", "Gating and puffs", "Gating bells, three models",
              ("gating", "--model", "pd"), "seconds",
              "Park/drive open probability against Ca2+ at four IP3 levels."),

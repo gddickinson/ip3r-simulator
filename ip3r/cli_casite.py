@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import math
+
 __all__ = ["register"]
 
 KINDS = {"uncompensated": (False, 0.0), "compensated": (True, 0.0),
@@ -53,7 +55,9 @@ def _casite(args) -> int:
         b = s.best
         print(f"    best: {b.site.label} (score {b.score:.2f})")
         for label, d in s.required.items():
-            print(f"    P_Ca:P_K = {s.measured[1]:g} at d = {d:.2f} kT: {label}")
+            kd = s.density / math.expm1(d)
+            print(f"    P_Ca:P_K = {s.measured[1]:g} at d = {d:.2f} kT "
+                  f"(K_d {kd:.3g} mM): {label}")
         if not args.no_required and not s.required:
             print(f"    no kind crosses P_Ca:P_K {s.measured[1]:g} on the grid")
     return 0
@@ -64,7 +68,8 @@ def register(sub) -> None:
                        "not, and its K+ block, at Vais's reversal (Round 7.27)")
     p.add_argument("pdb", nargs="*", help="IP3R deposits (default 8TKF)")
     p.add_argument("--region", default="span",
-                   choices=("span", "filter", "gate", "filter to gate"),
+                   choices=("span", "filter", "gate", "filter to gate",
+                            "vestibule"),
                    help="the band the sites cover")
     p.add_argument("--kind", action="append", default=None,
                    choices=tuple(KINDS), help="kinds to run (repeatable; "

@@ -113,4 +113,27 @@ REV3D = [
        "reversal.", "Round 7.27: the depth at which that site gives Vais's "
        "P_Ca:P_K 15.2 on 8TKF (4.41 kT, K_d 3.3 mM); 7T3T crosses at 3.98 kT",
        0.5, 15.0),
+    # Round 7.29: the mole-fraction sweep (physics/mole_fraction.py)
+    _p("molefrac.voltage", "Mole-fraction holding voltage", -0.04, "V",
+       "method", "pore3d", "method_choice", "Round 7.29: the voltage "
+       "(cytosol - lumen) at which the K+ current is read against luminal "
+       "Ca2+.", "Negative, so K+ and Ca2+ both flow lumen to cytosol and "
+       "the K+ current is set by the voltage, not by the Ca2+ gradient's "
+       "own potential (which drives K+ at 0 mV); within Vais 2010's "
+       "+/-60 mV recordings", -0.1, -0.005),
+    _p("molefrac.ca_min", "Mole-fraction lowest luminal Ca2+", 1e-4, "M",
+       "method", "pore3d", "method_choice", "Round 7.29: the lowest "
+       "luminal CaCl2 of the sweep.", "Below Vais 2010's lowest i_Ca point "
+       "(160 uM), and 30x below the crossing site's K_d (3.3 mM on 8TKF)",
+       1e-6, 1e-2),
+    _p("molefrac.ca_max", "Mole-fraction highest luminal Ca2+", 0.1, "M",
+       "method", "pore3d", "method_choice", "Round 7.29: the highest "
+       "luminal CaCl2 of the sweep.", "30x above the crossing site's K_d; "
+       "Ca2+ then carries most of a 140 mM KCl bath's cation charge",
+       1e-3, 0.5),
+    _p("molefrac.points_per_decade", "Mole-fraction points per decade", 2.0,
+       "", "method", "pore3d", "method_choice", "Round 7.29: the sweep's "
+       "luminal Ca2+ grid density (log-spaced).", "Two per decade puts "
+       "1 mM and 10 mM (Vais's P_Ca:P_K bath) on the grid; each point "
+       "costs a reversal and two steady states", 1.0, 10.0),
 ]

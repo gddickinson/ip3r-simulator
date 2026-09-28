@@ -49,8 +49,8 @@ from .selectivity_bound import band_mask, bound_product
 from .wall_search import _Solver, regions, score
 
 __all__ = ["N_AVOGADRO", "Site", "SiteCoupling", "SiteResult",
-           "SiteSearch", "site_density", "read", "depths", "search",
-           "required_depth"]
+           "SiteSearch", "site_density", "read", "load", "depths", "search",
+           "required_depth", "site_regions"]
 
 N_AVOGADRO = 6.02214076e23
 #: The largest block energy (kT) on K⁺ where the site is full and f = 1.
@@ -145,6 +145,14 @@ class SiteSearch:
         return min(self.results, key=lambda r: r.score)
 
 
+def site_regions(summary) -> dict[str, tuple[float, float]]:
+    """Round 7.25's bands, plus the luminal vestibule: from the span's
+    luminal end to the filter band (Round 7.29)."""
+    bands = regions(summary)
+    bands["vestibule"] = (summary.span[0], bands["filter"][0])
+    return bands
+
+
 def depths() -> np.ndarray:
     step = _P.value("casite.depth_step")
     return np.arange(step, _P.value("casite.depth_max") + step / 2, step)
@@ -163,16 +171,24 @@ def read(solver: _Solver, site: Site, bands: dict) -> SiteResult:
                         _impermeant(pore, solver.ca), coupling=coupling)
     pca = ghk_ratio(v, "Ca2+", solver.ca.lumen, solver.ca.cytosol,
                     {"Cl-": pcl})
-    psi = v / thermal_voltage() * dom.phi0 + st.u
-    theta = coupling.occupancy(coupling.free(psi, st.n["Ca2+"]))
-    on = coupling.mask
-    held = float(theta[on].sum() * density * (pore.spacing * 1e-10) ** 3
-                 * N_AVOGADRO)
+    theta, held = load(coupling, st, pore.spacing)
     conc = concentration(dom, st, "Ca2+", 2)
     return SiteResult(site, float(pca), pcl, {"Cl-": v_cl, "Ca2+": v},
                       float(conc[pore.elec.mask].max() / 1000.0),
-                      float(theta[on].mean()), held,
-                      bool(ok_cl and st.converged))
+                      theta, held, bool(ok_cl and st.converged))
+
+
+def load(coupling: SiteCoupling, st, spacing: float) -> tuple[float, float]:
+    """The band's mean occupancy θ in steady state ``st``, and the Ca²⁺
+    ions the site holds (0 with no Ca²⁺ in either bath)."""
+    if "Ca2+" not in st.n:
+        return 0.0, 0.0
+    psi = st.v / thermal_voltage() * coupling.dom.phi0 + st.u
+    theta = coupling.occupancy(coupling.free(psi, st.n["Ca2+"]))
+    on = coupling.mask
+    held = float(theta[on].sum() * coupling.s * (spacing * 1e-10) ** 3
+                 * N_AVOGADRO)
+    return float(theta[on].mean()), held
 
 
 def _finish(r: SiteResult, neutral, measured) -> SiteResult:
@@ -197,7 +213,7 @@ def search(st: Structure, spacing: float | None = None, region: str = "span",
                          "an IP3R deposit")
     measured = (_P.value("selectivity.published_pcl_pk"),
                 _P.value("selectivity.published_pca_pk"))
-    solver, bands = _Solver(pore), regions(pore.summary)
+    solver, bands = _Solver(pore), site_regions(pore.summary)
     neutral = solver.read(Candidate("charge", 0.0), bands)
     neutral.score = score(neutral.pca_pk, neutral.pcl_pk, measured)
     mask = band_mask(pore, *bands[region])

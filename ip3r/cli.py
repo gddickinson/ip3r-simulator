@@ -354,6 +354,8 @@ def build_parser() -> argparse.ArgumentParser:
     _register_wallsearch(sub)
     from .cli_casite import register as _register_casite
     _register_casite(sub)
+    from .cli_molefrac import register as _register_molefrac
+    _register_molefrac(sub)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)
