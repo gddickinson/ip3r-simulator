@@ -22,7 +22,10 @@ concentration and drop; any change to it solves again from scratch.
 Round 7.26: one of Round 7.25's candidate walls is read the same way, and
 the deposit's own reading of the same experiment last drawn (``own``) is
 plotted beside it. Round 7.28: the Ca²⁺ site candidate also colours by its
-occupancy and K⁺'s block energy.
+occupancy and K⁺'s block energy. Round 7.30: the Ca²⁺ experiment's
+luminal CaCl₂ is the box's choice, and the same reading last drawn at
+another concentration (``earlier``) is plotted beside it; the deposit's own
+reading is set beside a candidate only at the same concentration.
 """
 
 from __future__ import annotations
@@ -56,6 +59,9 @@ class LumenController:
         #: The deposit's own wall at reversal last drawn on this deposit
         #: (Round 7.26: set beside a candidate wall of the same experiment).
         self.own = None
+        #: Round 7.30: the last reading drawn, set beside the same reading
+        #: of the same experiment at another luminal CaCl2.
+        self.earlier = None
         self._token = 0
         #: The last outcome as text (for the smoke test and the status bar).
         self.message = ""
@@ -74,12 +80,15 @@ class LumenController:
 
     def loaded(self, st) -> None:
         self.field = self.mesh = self.charged = self.reversal = self.own = None
+        self.earlier = None
         self.request(self.box.show.isChecked())
 
     def request(self, on: bool) -> None:
         """Solve everything again (a load, a toggle, a session restore)."""
         self._token += 1
         token, st, summary = self._token, self.scene.structure, self.scene.summary
+        if self.reversal is not None:
+            self.earlier = self.reversal
         self.field = self.mesh = self.charged = self.reversal = None
         self.message = ""
         if not on or st is None:
@@ -107,12 +116,14 @@ class LumenController:
 
     def _request_reversal(self, token, st, summary) -> None:
         reading, experiment = self.box.reversal, self.box.experiment.currentData()
+        ca = self.box.ca
+        at = "" if ca is None else f", luminal CaCl2 {ca * 1e3:.3g} mM"
         self.panel.set_lumen_info(
-            f"solving {st.name}'s {experiment} experiment ({reading}) to its "
+            f"solving {st.name}'s {experiment} experiment ({reading}{at}) to its "
             "reversal in 3-D (about a minute; pb + csc longer)…")
 
         def work():
-            rev = reversal_lumen(st, reading, experiment, summary)
+            rev = reversal_lumen(st, reading, experiment, summary, ca=ca)
             return token, rev.lumen, lumen_mesh(rev.lumen, summary.frame), None, rev
         run_async(work, on_done=self._built,
                   on_error=lambda e: token == self._token and self._failed(e))
@@ -163,14 +174,18 @@ class LumenController:
         self.message = (self.reversal or charged or field).summary()
         self.recolour()
         if self.reversal is not None:
-            beside = None
-            if not self.reversal.candidate:
-                self.own = self.reversal
-            elif (self.own is not None
-                  and self.own.experiment == self.reversal.experiment):
+            rev, beside, earlier = self.reversal, None, self.earlier
+            if not rev.candidate:
+                self.own = rev
+            elif (self.own is not None and self.own.experiment == rev.experiment
+                  and self.own.ca == rev.ca):
                 beside = self.own
-            self.panel.show_lumen_reversal(self.reversal, self.scene.summary,
-                                           beside)
+            if not (earlier is not None and earlier.reading == rev.reading
+                    and earlier.experiment == rev.experiment
+                    and earlier.ca != rev.ca):
+                earlier = None
+            self.panel.show_lumen_reversal(rev, self.scene.summary, beside,
+                                           earlier)
         else:
             self.panel.show_lumen_field(field, self.scene.summary, charged)
         self.status(self.message)

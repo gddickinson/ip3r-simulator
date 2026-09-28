@@ -1,4 +1,4 @@
-# A Ca²⁺ site that blocks K⁺ (Round 7.27)
+# A Ca²⁺ site that blocks K⁺ (Rounds 7.27–7.29)
 
 `python -m ip3r casite [PDB ...] [--region BAND] [--kind KIND]
 [--no-required]`; `ip3r/physics/ca_site.py`, the `hidden` and `coupling`
@@ -165,3 +165,99 @@ occupancy sets both. That is the anomalous-mole-fraction mechanism, seen
 on the structure. The Cl⁻ experiment holds no Ca²⁺, so the site is empty
 there and the reading has no occupancy (V_rev −23.9 mV, the uncharged
 pore's).
+
+## Against luminal Ca²⁺: the mole-fraction prediction (Round 7.29)
+
+`python -m ip3r molefrac [PDB ...] [--depth D] [--region BAND] [--only
+READING]`; `ip3r/physics/mole_fraction.py`; `tests/test_mole_fraction.py`;
+raw output in `data/molefrac/`, figure `scripts/figure_molefrac.py` →
+`docs/img/molefrac.png`.
+
+A site that reaches 15.2 through occupancy predicts that what is measured
+depends on how full the site is, so it depends on luminal Ca²⁺. Vais
+measured P_Ca:P_K at one luminal CaCl₂ (10 mM). The sweep keeps their
+140 mM KCl on both sides and replaces the CaCl₂ with c = 0.1–100 mM
+(`molefrac.*`, two points per decade). At each c it reads V_rev → P_Ca:P_K
+by Eq. 1 with the pore's own P_Cl:P_K, i_Ca at 0 mV (Vais's i_Ca
+protocol), and i_K at −40 mV (`molefrac.voltage`, cytosol − lumen)
+against the same pore with no Ca²⁺. There are three readings: the site as
+7.27 found it (compensated, blocking; 8TKF 4.41 kT, 7T3T 3.98 kT, each
+deposit's own crossing), the same site without the block, and the
+uncharged pore.
+
+**Calibrated** on a tube. A 10 mM point is 7.27's reversal to 1e-6. Without
+a site, the dilute limit is the Ca²⁺-free pore and i_Ca at 0 mV is linear
+in c (1 %). With the block, i_K falls monotonically to < 1 %; without it,
+i_K stays above 0.9. A pinned 8TKF test holds the sweep at 10 mM to 15.2.
+
+| 8TKF / 7T3T | 0.1 mM | 1 mM | 10 mM | 100 mM |
+|---|---|---|---|---|
+| P_Ca:P_K, site | 11.2 / 12.1 | 11.8 / 12.5 | **15.1 / 15.1** | 9.0 / 12.0 |
+| P_Ca:P_K, no block | 11.0 / 12.0 | 10.2 / 11.7 | 6.9 / 9.5 | 2.9 / 5.1 |
+| P_Ca:P_K, uncharged | 0.26 / 0.52 | 0.26 / 0.52 | 0.26 / 0.52 | 0.24 / 0.48 |
+| i_K / i_K(no Ca²⁺), site | 0.99 / 1.00 | 0.92 / 0.97 | 0.31 / 0.69 | 0.05 / 0.08 |
+| θ, site | 0.02 / 0.01 | 0.21 / 0.10 | 0.80 / 0.62 | 0.93 / 0.90 |
+
+**Found.**
+- **The ratio peaks near Vais's 10 mM and falls on either side.** At
+  1 mM it is 11.8 / 12.5, and at 100 mM 9.0 / 12.0. The site without its
+  block falls monotonically (from 11 to 2.9 on 8TKF): a compensated site
+  alone makes P_Ca:P_K a property of the empty site, and filling it
+  lowers it. The block raises it as θ grows, until the site saturates.
+  The measured 15.2 therefore sits at the top of a shallow curve, and a
+  single measurement at 1 or 100 mM would test the mechanism.
+- **The K⁺ current halves at 6.0 / 16.2 mM luminal Ca²⁺** (−40 mV), and
+  falls to 5–8 % at 100 mM. Without the block, i_K never falls below
+  0.94, and the uncharged pore's never below 0.88 (the Ca²⁺ junction
+  potential). The net current rises throughout (the block is paid for by
+  Ca²⁺'s own current), so with K⁺ held and Ca²⁺ added there is no
+  mole-fraction minimum in the total. The testable signature is i_K, or
+  the conductance at a voltage where Ca²⁺ carries little.
+- **i_Ca at 0 mV is not a confirmation.** The site's slope over Vais's
+  0.16–1.1 mM is 0.284 / 0.259 pA/mM against the measured 0.30, and the
+  uncharged pore's is 0.011 / 0.015. But the model's pore conducts K⁺ at
+  59 / 48 pS against 545 pS measured (Round 7.6's shortfall). Relative
+  to its own conductance, the model's i_Ca is 0.87 / 0.97 of GHK
+  independence with its own P_Ca:P_K, while Vais's measured i_Ca is 0.13
+  of independence at 545 pS and 15.2. The absolute agreement comes from
+  the shortfall. The site does not reproduce the measured deficit of
+  i_Ca against GHK: over 0.16–1.1 mM it is at most a fifth full (θ ≤ 0.21).
+
+**The band narrowed** (`casite PDB --region BAND --kind "compensated +
+block"`, `data/molefrac/band_*.out`; `vestibule` = the span's luminal end
+to the filter band, added here). With four sites, no narrower band
+reaches 15.2 at any depth up to 12 kT. Each plateaus when full:
+
+| full site (12 kT), 8TKF / 7T3T | span | filter to gate | vestibule | filter | gate |
+|---|---|---|---|---|---|
+| P_Ca:P_K | 60.8 / 74.7 | 2.05 / 9.70 | 0.86 / 2.38 | 0.83 / 1.37 | 0.60 / 1.06 |
+
+The site works only when its block covers the membrane span. A band at
+one constriction leaves K⁺'s resistance elsewhere untouched, just as 7.25
+showed for Ca²⁺'s well. Four sites spread over ~50 Å is a mean-field
+stand-in for a single-file stretch, not a located binding site.
+
+## Filling on the structure (Round 7.30)
+
+The lumen box's "Luminal CaCl2" choice replaces the Ca²⁺ experiment's
+luminal CaCl₂ with one of Round 7.29's sweep points (Vais's 10 mM is the
+default; IP3R only). The baths are the sweep's, so a site drawn at c
+reverses where the sweep's point did: +2.87 mV at 1 mM, +18.15 at 10 mM
+and +34.38 at 100 mM on 8TKF (`data/lumen730/site_levels.out`; 100 mM is
+pinned in `test_lumen_calcium`). The plot sets the reading last drawn at
+another concentration beside the new one, with its Ca²⁺ plane mean and θ
+drawn thin.
+
+| luminal CaCl₂ | V_rev | Ca²⁺ held | θ max | K⁺ block max | peak Ca²⁺ | K⁺ / Ca²⁺ steepest |
+|---|---|---|---|---|---|---|
+| 1 mM | +2.87 mV | 0.54 | 0.24 | 0.28 kT | 0.065 M | z −85 / −55 Å |
+| 10 mM | +18.15 mV | 2.01 | 0.89 | 2.2 kT | 0.262 M | z −86 / −55 Å |
+| 100 mM | +34.38 mV | 3.01 | 0.98 | 3.8 kT | 0.399 M | z −86 / −55 Å |
+
+**Seen.** The site fills in place. Ca²⁺ always gathers at z −97 Å, and
+each ion's resistance stays where it was: K⁺'s inside the occupied band,
+Ca²⁺'s at the band's cytosolic edge. Only the size changes: the block on
+K⁺ goes from 0.3 to 3.8 kT. The ions held at reversal (3.01 at 100 mM)
+are fewer than the sweep's at −40 mV (3.73). Occupancy depends on the
+voltage as well as on c, so θ read at one voltage is not the site's
+equilibrium binding.

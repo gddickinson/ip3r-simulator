@@ -3444,3 +3444,102 @@ Figure 11.x sits in §11.3, with T85–T90. Its numbers agree with
 centroid axis, 4.66 Å on our superposition axis; 8TLA's subunits resolve
 unequal residue counts). `LEDGER.claims` confirms 289 / 251 / 715 from the
 README.
+
+## 2026-09-28 (45) — Round 7.29: the mole-fraction prediction
+
+**Why.** This was the Next item, 7.27's emergent one. A site that reaches
+Vais's 15.2 through occupancy should make P_Ca:P_K and the K⁺ current
+depend on luminal Ca²⁺. That dependence is the prediction an experiment
+could test, and Vais measured only at 10 mM. The emergent item also asked
+whether a site narrower than the span keeps 15.2.
+
+**What.** `physics/mole_fraction.py` and a `molefrac` command (with an
+Analyses entry). The sweep keeps 140 mM KCl both sides and replaces the
+luminal CaCl₂ with c = 0.1–100 mM (`molefrac.*`, 4 parameters). At each c
+it reads V_rev → P_Ca:P_K, i_Ca at 0 mV, and i_K at −40 mV against the
+Ca²⁺-free pore. Readings: the site, the site without its block, and the
+uncharged pore. `ca_site` gains `load` (θ and ions held in any steady
+state) and `site_regions` (adds the `vestibule` band, also a `casite
+--region` choice). `casite` now prints K_d at the crossing depth.
+`scripts/figure_molefrac.py` → `docs/img/molefrac.png`.
+
+**Calibrated.** On a tube: a 10 mM point equals 7.27's reversal (1e-6);
+without a site the dilute limit is the Ca²⁺-free pore and i_Ca is linear
+in c; the block alone stops K⁺ (< 1 %; > 0.9 without it). Pinned on 8TKF:
+15.2 at 10 mM (`test_mole_fraction`, 9).
+
+**Found.** (Raw output: `data/molefrac/`.) 8TKF / 7T3T at their own
+crossing depths (4.41 / 3.98 kT):
+- P_Ca:P_K peaks near 10 mM (15.1) and falls on either side: 11.8 / 12.5
+  at 1 mM and 9.0 / 12.0 at 100 mM. Without the block it falls
+  monotonically (to 2.9 / 5.1), because filling a compensated site that
+  does not block lowers the ratio. The measured value sits at the top of
+  a shallow curve.
+- i_K at −40 mV halves at 6.0 / 16.2 mM luminal Ca²⁺ and is 5–8 % at
+  100 mM. Without the block, and in the uncharged pore, it stays ≥ 0.88.
+  The net current keeps rising, so there is no minimum in the total with
+  K⁺ held.
+- i_Ca at 0 mV: 0.284 / 0.259 pA/mM against the measured 0.30 (uncharged
+  0.011 / 0.015). **Not a confirmation.** The pore's K⁺ conductance is
+  59 / 48 pS against 545 measured. Relative to that, the model's i_Ca is
+  0.87 / 0.97 of GHK independence at its own ratio, and Vais's is 0.13.
+  The absolute agreement is the shortfall's doing. I checked this before
+  writing it up, because the first reading looked like a match.
+- Narrowed bands (4 sites, compensated + block, d 2–12 kT): none reaches
+  15.2. When full they plateau at filter-to-gate 2.05 / 9.70, vestibule
+  0.86 / 2.38, filter 0.83 / 1.37, gate 0.60 / 1.06 (span: 60.8 / 74.7).
+  The block has to cover the span.
+
+**Lost time.** The first sweep launch used `set -- $a` in zsh, which does
+not word-split, so no sweep started and the band runs ran alone for an
+hour. Relaunched through a bash script.
+
+**Checks.** `make test` (below), lint and sizes clean. No panel changed:
+the only UI change is the Analyses entry, which `test_gui_extras` parses.
+
+**Next.** Round 7.30 (GUI): luminal Ca²⁺ in the lumen box, with the site
+drawn at 1 / 10 / 100 mM. The emergent science item is Vais's i_Ca at 8×
+below independence.
+
+## 2026-09-28 (46) — Round 7.29 committed; Round 7.30: luminal Ca²⁺ in the lumen box
+
+**7.29 first.** The previous session wrote Round 7.29 up but never
+committed it. `make test` passed (742, 50 min), with lint and sizes clean,
+so it is committed on its own. Its doc changes are in this round's commit.
+
+**Why 7.30.** This was the Next item. 7.29's prediction was a set of
+curves, and the site's filling could not be seen on the structure: the
+lumen box could only draw Vais's 10 mM.
+
+**What.** The lumen box has a "Luminal CaCl2" choice: Round 7.29's sweep
+points, with Vais's 10 mM as the default. It applies in the Ca²⁺
+experiment at reversal, IP3R only. `reversal_lumen(ca=)` builds the
+sweep's own baths (`mole_fraction.experiment`), so each level is the
+sweep's point. It refuses the Cl⁻ experiment, RyR1 and a non-positive c
+by name. The controller keeps the reading last drawn (`earlier`). The plot
+sets the same reading at another level beside the new one (Ca²⁺ and θ
+drawn thin; V_rev and ions held in the text). The deposit's own reading
+goes beside a candidate only at the same c, since different baths do not
+compare. Sessions carry the choice.
+
+**Calibrated.** Vais's experiment is the sweep's at 10 mM. On 8TKF the
+site reverses at the sweep's own V at 1 mM (+2.874 against +2.87) and
+100 mM (+34.383 against +34.38) (`data/lumen730/site_levels.out`). 100 mM
+is pinned in `test_lumen_calcium` and in the smoke test's new `site_high`
+step.
+
+**Seen.** The site holds 0.54 / 2.01 / 3.01 Ca²⁺ at 1 / 10 / 100 mM, and
+K⁺'s block rises 0.28 / 2.2 / 3.8 kT. It fills in place. Ca²⁺ gathers at
+z −97 Å at every level, and the steepest drops stay at −85 Å (K⁺) and
+−55 Å (Ca²⁺). The resistances grow and do not move. The ions held at
+reversal are fewer than the sweep's held at −40 mV (3.01 against 3.73 at
+100 mM). θ depends on the voltage, which matters for 7.31.
+
+**Checks.** `make test` for 7.29 (742 passed). The touched files
+(`test_lumen_calcium`, `test_lumen_reversal`, `test_wall_candidates`,
+`test_session`, 51 tests with the 8TKF pins) passed after the edits. `make screenshots
+STEPS=reversal,session` passed (reversal 930 s); new screenshot
+`gui_lumen_site_100mm.png`. Lint and sizes clean.
+
+**Next.** Round 7.31 (science): Vais's i_Ca is 8× below independence. Try
+a site slow to release Ca²⁺, or a second high-affinity site.

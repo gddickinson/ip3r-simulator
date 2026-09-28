@@ -5,7 +5,9 @@ equilibrium colourings grey there; then (Round 7.26) Round 7.25's span well
 drawn in its place, equal to the headless candidate, with the deposit's own
 reading dashed beside it; then (Round 7.28) Round 7.27's Ca²⁺ site,
 coloured by its occupancy and K⁺'s block, at the headless reading's V and
-ions held (pinned in ``test_wall_candidates``);
+ions held (pinned in ``test_wall_candidates``); then (Round 7.30) the same
+site at 100 mM luminal CaCl₂, at the sweep's V (pinned in
+``test_lumen_calcium``), fuller, with the 10 mM reading beside it;
 then everything switched off.
 """
 
@@ -117,7 +119,7 @@ def _candidate(win, app, out) -> bool:
 
 
 def _site(win, app, out) -> bool:
-    lc, sc = win.lumen, win.scene
+    lc = win.lumen
     if lc.message.startswith("lumen not built"):
         raise RuntimeError(lc.message)
     if lc.busy:
@@ -141,7 +143,47 @@ def _site(win, app, out) -> bool:
     _pick(box.colour, "block")
     if not np.allclose(lc.mesh.colors, block_colors(lc.mesh.sample(rev.k_block))):
         raise RuntimeError("the site is not coloured by K+'s block")
+    if box.ca is not None or not box.calcium.isEnabled():
+        raise RuntimeError("the luminal CaCl2 is not Vais's 10 mM, or not offered")
+    _pick(box.calcium, _pick_level(box, _HIGH))
+    return False
+
+
+_HIGH = 0.1                                   # M, the sweep's top point
+
+
+def _pick_level(box, value):
+    for i in range(box.calcium.count()):
+        if abs(box.calcium.itemData(i) - value) < 1e-12:
+            return box.calcium.itemData(i)
+    raise RuntimeError(f"no {value * 1e3:g} mM in the lumen box")
+
+
+def _site_high(win, app, out) -> bool:
+    lc, sc = win.lumen, win.scene
+    if lc.message.startswith("lumen not built"):
+        raise RuntimeError(lc.message)
+    if lc.busy:
+        return True
+    rev, before = lc.reversal, lc.earlier
+    if rev is None or rev.reading != _SITE or abs(rev.ca - _HIGH) > 1e-12:
+        raise RuntimeError(f"the site at 100 mM was not drawn: {lc.message}")
+    if not np.allclose(lc.mesh.colors, block_colors(lc.mesh.sample(rev.k_block))):
+        raise RuntimeError("the 100 mM site is not coloured by K+'s block")
+    # the sweep's point (data/molefrac/mf_8tkf_site.out), test_lumen_calcium
+    if abs(rev.v * 1e3 - 34.38) > 0.05:
+        raise RuntimeError(f"100 mM is not the sweep's reversal: {lc.message}")
+    if before is None or abs(before.ca - 0.01) > 1e-12 or not rev.held > before.held:
+        raise RuntimeError("the 10 mM reading is not kept, or the site did not fill")
+    labels = [ln.get_label() for ln in win.channel.canvas.axes[2, 0].get_lines()]
+    text = win.channel.lumen_info.text()
+    if not any("θ at 10 mM" in t for t in labels) or "at 10 mM luminal" not in text:
+        raise RuntimeError(f"the 10 mM site is not beside it: {labels}")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_site_100mm.png"))
+    box = win.channel.lumen_box
     win.channel.show_lumen.setChecked(False)  # first: no re-solve behind us
+    _pick(box.calcium, _pick_level(box, 0.01))
     _pick(box.reversal_box, "equilibrium")
     _pick(box.colour, "drop")
     if lc.busy or sc.scene.get("lumen") is not None:
@@ -149,4 +191,4 @@ def _site(win, app, out) -> bool:
     return False
 
 
-STEPS = (_reversal_start, _reversal, _candidate, _site)
+STEPS = (_reversal_start, _reversal, _candidate, _site, _site_high)

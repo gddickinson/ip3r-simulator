@@ -8,7 +8,8 @@ whether the image cost is counted (Round 7.15's W, which puts the whole
 reading on ``born.lumen_spacing``'s grid); or, instead of all three,
 Round 7.24's steady state at reversal (a reading of Round 7.23, or one of
 Round 7.25's candidate walls (Round 7.26), and one experiment of the
-family's protocol, on ``reversal3d.spacing``'s grid);
+family's protocol, on ``reversal3d.spacing``'s grid), and in the Ca²⁺
+experiment its luminal CaCl₂ (Round 7.30: Round 7.29's sweep points);
 what the surface is coloured by. The solve itself is
 :class:`~ip3r.ui.lumen_controller.LumenController`'s.
 
@@ -32,7 +33,7 @@ from ..physics.reversal3d import READINGS as REVERSAL_READINGS
 from ..physics.wall_candidates import CANDIDATE_LABELS, CANDIDATES
 from ..render.lumen_mesh import COLOURINGS
 from .plot_canvas import PALETTE
-from .view_state import set_check, set_combo
+from .view_state import ParameterFollower, set_check, set_combo
 
 __all__ = ["LumenControls", "draw_lumen", "NO_CHARGE", "EQUILIBRIUM",
            "EXPERIMENTS"]
@@ -139,6 +140,23 @@ class LumenControls(QWidget):
         row.addWidget(self.experiment)
         lay.addLayout(row)
         row = QHBoxLayout()
+        row.addWidget(QLabel("Luminal CaCl2"))
+        self.calcium = QComboBox()
+        self.calcium.setToolTip(
+            "Round 7.30: the Ca2+ experiment's luminal CaCl2, at Round 7.29's "
+            "sweep points (molefrac.ca_min to molefrac.ca_max, "
+            "molefrac.points_per_decade), 140 mM KCl both sides. Vais 2010 "
+            "measured at selectivity.cacl2_lumen (10 mM), the default. With "
+            "the Ca2+ site, the surface's occupancy and K+ block show it "
+            "filling, and the plot sets the site's last reading at another "
+            "concentration beside it. IP3R only (Xu's protocol is fixed).")
+        self.calcium.currentIndexChanged.connect(self._charge)
+        row.addWidget(self.calcium, 1)
+        lay.addLayout(row)
+        self._levels()
+        self._follow = ParameterFollower(self)
+        self._follow.changed.connect(self._levels)
+        row = QHBoxLayout()
         row.addWidget(QLabel("Colour by"))
         self.colour = QComboBox()
         for k, label in COLOURINGS.items():
@@ -181,6 +199,43 @@ class LumenControls(QWidget):
         return None if r == EQUILIBRIUM else r
 
     @property
+    def ca(self) -> float | None:
+        """Luminal CaCl₂ (M) replacing the protocol's, or None (Vais's own,
+        or no Ca²⁺ experiment at reversal)."""
+        c = self.calcium.currentData()
+        if (self.reversal is None or self.experiment.currentData() != "Ca2+"
+                or c is None or _same_ca(c, _vais())):
+            return None
+        return c
+
+    def _levels(self) -> None:
+        """The sweep's points, Vais's marked; the choice kept if still one."""
+        from ..physics.mole_fraction import concentrations
+        was = self.calcium.currentData()
+        levels = list(concentrations())
+        if not any(_same_ca(c, _vais()) for c in levels):
+            levels = sorted(levels + [_vais()])
+        self.calcium.blockSignals(True)
+        try:
+            self.calcium.clear()
+            for c in levels:
+                own = " (Vais 2010)" if _same_ca(c, _vais()) else ""
+                self.calcium.addItem(f"{c * 1e3:.3g} mM{own}", float(c))
+            self._select_ca(was if was is not None else _vais())
+        finally:
+            self.calcium.blockSignals(False)
+
+    def _select_ca(self, value) -> bool:
+        for i in range(self.calcium.count()):
+            if _same_ca(self.calcium.itemData(i), value):
+                self.calcium.setCurrentIndex(i)
+                return True
+        for i in range(self.calcium.count()):
+            if _same_ca(self.calcium.itemData(i), _vais()):
+                self.calcium.setCurrentIndex(i)
+        return False
+
+    @property
     def image(self) -> bool:
         """The image cost counted (ticked, under the dielectric closure)."""
         return (self.image_box.isChecked() and self.closure == DIELECTRIC
@@ -214,19 +269,22 @@ class LumenControls(QWidget):
         self.image_box.setEnabled(on and eq and self.closure == DIELECTRIC)
         self.reversal_box.setEnabled(on)
         self.experiment.setEnabled(on and not eq)
+        self.calcium.setEnabled(on and not eq
+                                and self.experiment.currentData() == "Ca2+")
 
     def view_state(self) -> dict:
         return {"charge": self.charge.currentData(), "pairs": self.pairs.isChecked(),
                 "image": self.image_box.isChecked(),
                 "reversal": self.reversal_box.currentData(),
                 "experiment": self.experiment.currentData(),
+                "ca": self.calcium.currentData(),
                 "colour": self.colour.currentData()}
 
     def restore(self, d: dict) -> list[str]:
         """Set the controls without emitting; the caller re-requests."""
         notes: list[str] = []
         widgets = (self.charge, self.pairs, self.image_box, self.reversal_box,
-                   self.experiment, self.colour)
+                   self.experiment, self.calcium, self.colour)
         for w in widgets:
             w.blockSignals(True)
         try:
@@ -242,6 +300,11 @@ class LumenControls(QWidget):
             if "experiment" in d:
                 set_combo(self.experiment, d["experiment"],
                           "lumen reversal experiment", notes)
+            if "ca" in d:
+                if not (isinstance(d["ca"], (int, float))
+                        and self._select_ca(d["ca"])):
+                    notes.append(f"lumen luminal CaCl2 {d['ca']!r} is not a "
+                                 "sweep point; Vais's 10 mM used")
             if "colour" in d:
                 set_combo(self.colour, d["colour"], "lumen colouring", notes)
         finally:
@@ -249,6 +312,16 @@ class LumenControls(QWidget):
                 w.blockSignals(False)
         self._enable()
         return notes
+
+
+def _vais() -> float:
+    from ..parameters import PARAMETERS as _P
+    return _P.value("selectivity.cacl2_lumen")
+
+
+def _same_ca(a, b) -> bool:
+    return (isinstance(a, (int, float)) and isinstance(b, (int, float))
+            and not isinstance(a, bool) and abs(a - b) <= 1e-9 * max(abs(b), 1e-12))
 
 
 def _mark(axes, s, bottom) -> None:

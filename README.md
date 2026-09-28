@@ -384,6 +384,28 @@ Ca²⁺'s at the band's cytosolic edge, where it leaves the site.
 
 ![8TKF's Ca²⁺ site at reversal, coloured by its occupancy](docs/img/gui_lumen_site.png)
 
+**The site makes a prediction (Round 7.29).** `python -m ip3r molefrac`
+sweeps luminal CaCl₂ from 0.1 to 100 mM through the crossing site. P_Ca:P_K
+peaks near Vais's 10 mM (15.1) and falls on either side: 11.8 / 12.5 at
+1 mM and 9.0 / 12.0 at 100 mM (8TKF / 7T3T). Without the block it falls
+monotonically. The K⁺ current at −40 mV halves at 6 / 16 mM luminal Ca²⁺.
+These are the curves an experiment could test. The site's i_Ca at 0 mV
+(0.28 pA/mM) lands near the measured 0.30, but only because the pore's K⁺
+conductance is 7–9× short: relative to its own conductance the model
+follows GHK independence, which the measurement does not. Narrowed to the
+filter, the gate, filter-to-gate or the vestibule, the site never reaches
+15.2, so its block has to cover the span.
+
+![P_Ca:P_K, the K⁺ current and the site's occupancy against luminal Ca²⁺](docs/img/molefrac.png)
+
+The lumen box can draw the site at any of the sweep's luminal CaCl₂
+levels (Round 7.30), with the previous level's reading set beside it. On
+8TKF the site holds 0.5, 2.0 and 3.0 Ca²⁺ at 1, 10 and 100 mM, and K⁺'s
+block rises from 0.3 to 3.8 kT. The site fills in place: each ion's
+resistance stays where it was.
+
+![8TKF's Ca²⁺ site at 100 mM luminal CaCl₂, coloured by K⁺'s block](docs/img/gui_lumen_site_100mm.png)
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,

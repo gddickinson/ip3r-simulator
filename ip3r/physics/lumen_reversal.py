@@ -31,6 +31,10 @@ Round 7.28: the ``Ca2+ site`` candidate is Round 7.27's compensated,
 K⁺-blocking site, solved with its coupling; the reading then also carries
 the site's occupancy θ and K⁺'s block energy −ln(1 − fθ) on the grid
 (zero outside the band, NaN off the lumen), and the Ca²⁺ ions it holds.
+
+Round 7.30: ``ca`` replaces the Ca²⁺ experiment's luminal CaCl₂ (IP3R
+only) as Round 7.29's sweep does (:func:`.mole_fraction.experiment`), so
+the site can be drawn filling; at Vais's own 10 mM it is his experiment.
 """
 
 from __future__ import annotations
@@ -78,6 +82,11 @@ class ReversalLumen:
     occupancy: np.ndarray | None = field(default=None, repr=False)
     k_block: np.ndarray | None = field(default=None, repr=False)
     held: float = float("nan")
+
+    @property
+    def ca(self) -> float:
+        """Luminal CaCl₂ (M) of the experiment; 0 without Ca²⁺."""
+        return self.baths.get("Ca2+", (0.0, 0.0))[0]
 
     @property
     def candidate(self) -> bool:
@@ -136,7 +145,9 @@ class ReversalLumen:
     def summary(self) -> str:
         cur = ", ".join(f"{k} {self.currents[k] * 1e12:+.2f} pA"
                         for k in self.species)
-        text = (f"{self.lumen.name}, {self.experiment} experiment, "
+        lum = (f" (luminal CaCl2 {self.ca * 1e3:.3g} mM)" if self.ca > 0
+               else "")
+        text = (f"{self.lumen.name}, {self.experiment} experiment{lum}, "
                 f"{self.reading}{f' ({self.wall})' if self.wall else ''}, "
                 f"at reversal V = {self.v * 1e3:+.2f} mV"
                 f"{'' if self.converged else ' (n.c.)'}; each ion's current "
@@ -178,10 +189,12 @@ def ion_grids(dom, steady, species, excess=None):
 def reversal_lumen(st: Structure, reading: str = "pb + csc",
                    experiment: str = "Ca2+",
                    summary: ChannelSummary | None = None,
-                   spacing: float | None = None, **fluid_kw) -> ReversalLumen:
+                   spacing: float | None = None, ca: float | None = None,
+                   **fluid_kw) -> ReversalLumen:
     """``experiment`` of ``st``'s family protocol under ``reading`` (or one
     of the candidate walls), solved to its reversal on
-    ``reversal3d.spacing``'s grid (or ``spacing``) and read on the lumen."""
+    ``reversal3d.spacing``'s grid (or ``spacing``) and read on the lumen.
+    ``ca`` (M) replaces the luminal CaCl₂ of IP3R's Ca²⁺ experiment."""
     if reading not in READINGS + CANDIDATES:
         raise ValueError(f"reading must be one of {READINGS + CANDIDATES}, "
                          f"not {reading!r}")
@@ -193,6 +206,8 @@ def reversal_lumen(st: Structure, reading: str = "pb + csc",
         raise ValueError(f"{'RyR1' if pore.ryr else 'IP3R'}'s protocol has no "
                          f"{experiment} experiment (it has {sorted(exps)})")
     exp = exps[experiment]
+    if ca is not None:
+        exp = _with_calcium(pore, exp, ca)
     lo, hi = summary.span
     p = summary.profile
     smallest = min(pore.species, key=lambda s: s.radius)
@@ -224,6 +239,17 @@ def reversal_lumen(st: Structure, reading: str = "pb + csc",
     return ReversalLumen(f, reading, experiment, float(v), conc, drop,
                          dict(steady.currents), baths,
                          bool(ok and f.converged), n, note, **site)
+
+
+def _with_calcium(pore, exp, ca: float):
+    """Vais's Ca²⁺ experiment with ``ca`` M luminal CaCl₂ (Round 7.29's)."""
+    from .mole_fraction import experiment
+    if pore.ryr or exp.name != "Ca2+":
+        raise ValueError("luminal Ca2+ is swept in Vais 2010's Ca2+ experiment "
+                         "only: give an IP3R deposit and that experiment")
+    if not ca > 0:
+        raise ValueError(f"luminal CaCl2 must be positive, not {ca!r}")
+    return experiment(float(ca))
 
 
 def _site_grids(dom, steady, coupling, mask) -> dict:

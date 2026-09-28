@@ -15,6 +15,10 @@ the two reversal potentials and each ion's peak side by side.
 
 Round 7.28: with a Ca²⁺ site, its plane-mean occupancy θ is drawn on the
 drop row (the same 0–1 scale), dotted.
+
+Round 7.30: ``earlier`` is the same reading at another luminal CaCl₂; its
+Ca²⁺ plane mean and (with a site) its θ are drawn thin beside the current
+ones, and the text sets the two reversals and ions held side by side.
 """
 
 from __future__ import annotations
@@ -29,11 +33,11 @@ __all__ = ["draw_reversal", "ION_COLOURS"]
 ION_COLOURS = {"K+": PALETTE[0], "Cl-": PALETTE[2], "Ca2+": PALETTE[1]}
 
 
-def draw_reversal(canvas, rev, s, beside=None) -> str:
+def draw_reversal(canvas, rev, s, beside=None, earlier=None) -> str:
     """Plot ``rev`` (a :class:`~ip3r.physics.lumen_reversal.ReversalLumen`)
     for the channel summary ``s`` on ``canvas``, with ``beside`` (another on
-    the same grid, the deposit's own wall) dashed; returns the panel's
-    text."""
+    the same grid, the deposit's own wall) dashed and ``earlier`` (the same
+    reading at another luminal CaCl₂) thin; returns the panel's text."""
     from ..parameters import PARAMETERS as _P
     f = rev.lumen
     axes = canvas.reset(3, 1)
@@ -42,7 +46,8 @@ def draw_reversal(canvas, rev, s, beside=None) -> str:
     area.plot(f.z, f.area_1d, color=PALETTE[2], lw=1.0,
               label="1-D: π (r_free − r_ion)²")
     area.set_ylabel("area (Å²)")
-    area.set_title(f"{f.name}: {rev.experiment} experiment at reversal "
+    at = f", {rev.ca * 1e3:.3g} mM CaCl2" if rev.ca > 0 else ""
+    area.set_title(f"{f.name}: {rev.experiment} experiment{at} at reversal "
                    f"({rev.reading}), V = {rev.v * 1e3:+.1f} mV", fontsize=8)
     for ion in rev.species:
         col = ION_COLOURS[ion]
@@ -63,6 +68,12 @@ def draw_reversal(canvas, rev, s, beside=None) -> str:
                                       if first else "_nolegend_"))
             drop.plot(beside.z, beside.drop_3d(ion), color=col, lw=0.9,
                       ls="--", label="_nolegend_")
+    then = f"{earlier.ca * 1e3:.3g} mM" if earlier is not None else ""
+    if earlier is not None and "Ca2+" in earlier.conc:
+        b = earlier.conc_3d("Ca2+")
+        conc.plot(earlier.z, np.where(b > 0, b, np.nan),
+                  color=ION_COLOURS["Ca2+"], lw=0.8, alpha=0.6,
+                  label=f"Ca2+ at {then}")
     conc.set_yscale("log")
     conc.set_ylabel("c (M), ● bath")
     drop.plot(f.z, f.drop_3d, color="#8a8f99", lw=1.0, ls="--",
@@ -71,6 +82,10 @@ def draw_reversal(canvas, rev, s, beside=None) -> str:
     if occ is not None:
         drop.plot(f.z, occ, color="#d7dbe3", lw=1.2, ls=":",
                   label="site occupancy θ (plane mean)")
+    occ_then = None if earlier is None else earlier.occupancy_3d()
+    if occ_then is not None:
+        drop.plot(earlier.z, occ_then, color="#8a8f99", lw=1.0, ls=":",
+                  label=f"θ at {then}")
     drop.set_ylabel("ion drop" if occ is None else "ion drop, θ")
     drop.set_ylim(-0.02, 1.02)
     drop.set_xlabel("z along the four-fold axis (Å; luminal ← → cytosolic)")
@@ -92,6 +107,13 @@ def draw_reversal(canvas, rev, s, beside=None) -> str:
         lines.append(f"Beside the deposit's own wall ({beside.reading}, dashed):"
                      f" V_rev {rev.v * 1e3:+.2f} against {beside.v * 1e3:+.2f} "
                      f"mV; peaks {peaks}.")
+    if earlier is not None:
+        held = (f"; the site holds {rev.held:.2f} Ca2+ against "
+                f"{earlier.held:.2f}" if np.isfinite(rev.held)
+                and np.isfinite(earlier.held) else "")
+        lines.append(f"Beside the same reading at {then} luminal CaCl2 (thin):"
+                     f" V_rev {rev.v * 1e3:+.2f} against {earlier.v * 1e3:+.2f}"
+                     f" mV{held}.")
     for c in s.constrictions.values():
         shares = ", ".join(f"{ion} {rev.drop_across(ion, c.z, w):.0%}"
                            for ion in rev.species)

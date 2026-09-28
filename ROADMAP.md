@@ -5,10 +5,10 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.29 (science): the mole-fraction prediction, i.e.
-P_Ca:P_K and the K⁺ current against luminal Ca²⁺ (0.1–100 mM) through
-7.27's crossing site, and the site's band narrowed to the depth that keeps
-15.2 (7.27's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.31 (science): Vais's i_Ca sits 8× below GHK
+independence while the crossing site leaves it there (7.29's emergent
+item): a site slow to release Ca²⁺, or a second high-affinity one.
+**Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -927,10 +927,8 @@ item carried over from round n; it stays listed there too.
   Vais's pair needs occupancy that blocks K⁺ and a site neutral as it
   fills: the anomalous-mole-fraction mechanism.
   Emergent:
-  - [ ] The mole-fraction prediction: P_Ca:P_K and the K⁺ current
-    against luminal Ca²⁺ (0.1–100 mM) through the crossing site, the
-    curve an experiment could test; and the site's band narrowed (filter
-    to gate, the vestibule) at the depth that keeps 15.2.
+  - [x] (Round 7.29) The mole-fraction prediction, and the site's band
+    narrowed (filter, gate, filter to gate, the vestibule).
 
 - [x] **7.28 GUI: the Ca²⁺ site on the structure**
   (`physics/wall_candidates.py`, `physics/lumen_reversal.py`). Round 7.27's
@@ -945,6 +943,43 @@ item carried over from round n; it stays listed there too.
   drop is steepest inside the occupied band (z −86 Å), and Ca²⁺'s at the
   band's cytosolic edge (z −55 Å). One occupancy resists the two ions in
   different places.
+
+- [x] **7.29 Science: the mole-fraction prediction**
+  (`python -m ip3r molefrac`, `physics/mole_fraction.py`,
+  `docs/SCIENCE_CASITE.md`). Luminal CaCl₂ is swept from 0.1 to 100 mM in
+  Vais's 140 mM KCl through 7.27's crossing site (each deposit's own
+  depth), beside the same site without its block and the uncharged pore.
+  At each c: V_rev → P_Ca:P_K, i_Ca at 0 mV, and i_K at −40 mV over the
+  Ca²⁺-free pore's. Calibrated on a tube (a 10 mM point = 7.27's reversal;
+  without a site, the dilute limit and i_Ca linear in c; only the block
+  stops K⁺) and pinned on 8TKF (15.2 at 10 mM). **Found** (8TKF / 7T3T):
+  P_Ca:P_K peaks near 10 mM (15.1) and falls on either side (1 mM
+  11.8 / 12.5; 100 mM 9.0 / 12.0). Without the block it falls
+  monotonically (to 2.9 / 5.1). i_K halves at 6.0 / 16.2 mM. The total
+  current has no minimum. i_Ca's slope (0.28 / 0.26 pA/mM against 0.30)
+  agrees only through the K⁺ shortfall: the model sits at 0.87 / 0.97 of
+  GHK independence and the measurement at 0.13. Narrowed bands never reach
+  15.2 (full-site plateaus 0.6–9.7), so the block must cover the span.
+  Emergent:
+  - [ ] Vais's i_Ca is 8× below GHK independence at 545 pS and 15.2. The
+    site leaves i_Ca at independence because at 0.16–1.1 mM it is at most
+    a fifth full. What would put i_Ca below independence while keeping
+    the reversal: a site slow to release Ca²⁺ (an exit rate rather than
+    the equilibrium binding assumed here), or a second, higher-affinity
+    site?
+
+- [x] **7.30 GUI: luminal Ca²⁺ in the lumen box**
+  (`ui/lumen_view.py`, `physics/lumen_reversal.py`). The Ca²⁺ experiment's
+  luminal CaCl₂ is chosen from Round 7.29's sweep points (Vais's 10 mM the
+  default, IP3R only); the reading last drawn at another level is plotted
+  beside it. Each level reverses at the sweep's own V (8TKF site: +2.87 /
+  +18.15 / +34.38 mV at 1 / 10 / 100 mM; 100 mM pinned in
+  `test_lumen_calcium` and the smoke test). **Seen:** the site holds
+  0.54 / 2.01 / 3.01 Ca²⁺, and K⁺'s block rises from 0.28 to 3.8 kT. It
+  fills in place: Ca²⁺ gathers at z −97 Å at every level, and the two
+  ions' steepest drops stay at z −85 Å (K⁺) and −55 Å (Ca²⁺). The ions
+  held at reversal are fewer than the sweep's at −40 mV (3.01 against
+  3.73 at 100 mM), because occupancy depends on the voltage too.
 
 ## Round 6 — ryanodine receptors
 
