@@ -142,3 +142,26 @@ constriction covers too little of the path. The 4 sites, the block f = 1
 and the band are hypotheses, each a registered parameter. The finding is
 that the pair is reachable once Ca²⁺ and K⁺ interact through occupancy,
 and not before.
+
+## On the structure (Round 7.28)
+
+The lumen box draws the site. In Steady state, "at reversal, candidate
+wall: compensated Ca2+ site blocking K+" solves the compensated, blocking
+site over the span at `casite.gui_depth` (4.41 kT, 8TKF's crossing
+rounded) at the Ca²⁺ experiment's reversal, with the same coupling as
+`casite`. The surface can be coloured by the site's occupancy θ (0–1)
+or by K⁺'s block energy −ln(1 − fθ) (fixed 0–`display.lumen_block_range`
+kT). The plot adds θ's plane mean to the drop row.
+
+On 8TKF (`data/casite/gui_site_8tkf.out`) it reverses at +18.15 mV (the
+root's +18.17 at 4.4128 kT) and holds 2.01 Ca²⁺. The mean θ over the band
+is 0.50, and θ reaches 0.89 where Ca²⁺ gathers (peak 0.262 M at z −98 Å).
+K⁺'s block reaches 2.2 kT. The two resistances separate. **K⁺'s drop is
+steepest at z −86 Å, inside the occupied band, so the block is where K⁺
+is resisted. Ca²⁺'s drop is steepest at the band's cytosolic edge
+(z −55 Å)**, the same as 7.26's well: Ca²⁺ is resisted where it leaves
+the site. The two ions are resisted at different places, and the same
+occupancy sets both. That is the anomalous-mole-fraction mechanism, seen
+on the structure. The Cl⁻ experiment holds no Ca²⁺, so the site is empty
+there and the reading has no occupancy (V_rev −23.9 mV, the uncharged
+pore's).

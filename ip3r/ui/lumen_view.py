@@ -121,6 +121,9 @@ class LumenControls(QWidget):
             "that well with the deposit's charge, or the opposite-charge C4 "
             "ring pair with the highest B (its search adds two minutes the "
             "first time); point ions under Poisson, as the search read them. "
+            "Round 7.28 adds Round 7.27's compensated Ca2+ site that blocks "
+            "K+, over the span at casite.gui_depth kT (where it gives 15.2 on "
+            "8TKF), solved with its occupancy-dependent energies. "
             "The plot sets the deposit's own reading of the same experiment "
             "beside a candidate when one was drawn before it.")
         self.reversal_box.currentIndexChanged.connect(self._charge)
@@ -153,7 +156,9 @@ class LumenControls(QWidget):
             "or its electrochemical drop 0 lumen to 1 cytosol (where it "
             "rises steeply is where that ion's resistance lies); grey unless "
             "a reversal is drawn and its experiment carries the ion. Wall, "
-            "K+ energy and image are grey at reversal.")
+            "K+ energy and image are grey at reversal. Site occupancy (0-1) "
+            "and K+ block (0 to display.lumen_block_range kT): the Ca2+ site "
+            "candidate at the Ca2+ experiment's reversal, grey otherwise.")
         self.colour.currentIndexChanged.connect(lambda _: self.colour_changed.emit())
         row.addWidget(self.colour, 1)
         lay.addLayout(row)

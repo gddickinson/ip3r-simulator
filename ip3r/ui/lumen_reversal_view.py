@@ -12,6 +12,9 @@ Three rows on S0's window, the reversal grid's lumen:
 Round 7.26: with a candidate wall, the deposit's own reading of the same
 experiment (``beside``) is drawn dashed on both ion rows, and the text sets
 the two reversal potentials and each ion's peak side by side.
+
+Round 7.28: with a Ca²⁺ site, its plane-mean occupancy θ is drawn on the
+drop row (the same 0–1 scale), dotted.
 """
 
 from __future__ import annotations
@@ -64,7 +67,11 @@ def draw_reversal(canvas, rev, s, beside=None) -> str:
     conc.set_ylabel("c (M), ● bath")
     drop.plot(f.z, f.drop_3d, color="#8a8f99", lw=1.0, ls="--",
               label="neutral pore (Laplace)")
-    drop.set_ylabel("ion drop")
+    occ = rev.occupancy_3d()
+    if occ is not None:
+        drop.plot(f.z, occ, color="#d7dbe3", lw=1.2, ls=":",
+                  label="site occupancy θ (plane mean)")
+    drop.set_ylabel("ion drop" if occ is None else "ion drop, θ")
     drop.set_ylim(-0.02, 1.02)
     drop.set_xlabel("z along the four-fold axis (Å; luminal ← → cytosolic)")
     w = _P.value("lumen.constriction_half_width")

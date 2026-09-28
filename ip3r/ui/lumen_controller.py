@@ -21,7 +21,8 @@ lumen (the reversal grid's electrostatic volume) and surface, each ion's
 concentration and drop; any change to it solves again from scratch.
 Round 7.26: one of Round 7.25's candidate walls is read the same way, and
 the deposit's own reading of the same experiment last drawn (``own``) is
-plotted beside it.
+plotted beside it. Round 7.28: the Ca²⁺ site candidate also colours by its
+occupancy and K⁺'s block energy.
 """
 
 from __future__ import annotations
@@ -32,8 +33,9 @@ from ..physics.dielectric3d import DIELECTRIC
 from ..physics.lumen_charge import charged_lumen
 from ..physics.lumen_field import lumen_field
 from ..physics.lumen_reversal import reversal_lumen
-from ..render.lumen_mesh import (conc_colors, image_colors, lumen_mesh,
-                                 reversal_key, wall_colors)
+from ..render.lumen_mesh import (SITE_COLOURINGS, block_colors, conc_colors,
+                                 image_colors, lumen_mesh, reversal_key,
+                                 wall_colors)
 from ..render.colormaps import ramp
 from .workers import run_async
 
@@ -178,6 +180,11 @@ class LumenController:
         if self.mesh is None:
             return None
         grey = np.full(len(self.mesh.positions), np.nan)
+        if self.box.colouring in SITE_COLOURINGS:   # grey unless a site's
+            rev = self.reversal
+            grid = None if rev is None else (rev.occupancy if self.box.colouring
+                                             == "occupancy" else rev.k_block)
+            return grey if grid is None else self.mesh.sample(grid)
         rk = reversal_key(self.box.colouring)
         if rk is not None:                    # grey unless drawn and carried
             kind, ion = rk
@@ -208,7 +215,7 @@ class LumenController:
         rk = reversal_key(self.box.colouring)
         paint = (conc_colors if rk and rk[0] == "conc" else
                  {"wall": wall_colors, "energy": wall_colors,
-                  "image": image_colors}.get(self.box.colouring, ramp))
+                  "image": image_colors, "block": block_colors}.get(self.box.colouring, ramp))
         self.mesh.colors = paint(v)
         self.scene.show_lumen(self.mesh)
 

@@ -23,6 +23,11 @@ its concentration on a fixed log ramp from ``display.lumen_conc_min`` to
 ``display.lumen_conc_max`` (M), and its electrochemical drop on the 0–1
 ramp. Both are grey outside a reversal reading, or for an ion the
 experiment does not carry.
+
+Round 7.28 adds a Ca²⁺ site's reading (:mod:`ip3r.physics.ca_site`): its
+occupancy θ on the 0–1 ramp, and K⁺'s block energy −ln(1 − fθ) on a fixed
+0 – ``display.lumen_block_range`` kT ramp; grey without a site at the Ca²⁺
+experiment's reversal.
 """
 
 from __future__ import annotations
@@ -34,8 +39,8 @@ from ..parameters import PARAMETERS as _P
 from .colormaps import ramp
 
 __all__ = ["LumenMesh", "lumen_mesh", "drawn_mask", "wall_colors",
-           "image_colors", "conc_colors", "COLOURINGS", "REVERSAL_IONS",
-           "reversal_key"]
+           "image_colors", "conc_colors", "block_colors", "COLOURINGS",
+           "REVERSAL_IONS", "SITE_COLOURINGS", "reversal_key"]
 
 #: What the surface can be coloured by: key -> label.
 COLOURINGS = {"drop": "voltage drop (0 lumen, 1 cytosol)",
@@ -50,6 +55,12 @@ for _ion in REVERSAL_IONS:
 for _ion in REVERSAL_IONS:
     COLOURINGS[f"rdrop:{_ion}"] = (f"at reversal: {_ion} electrochemical drop "
                                    "(0 lumen, 1 cytosol)")
+
+#: A Ca2+ site's readings at reversal (Round 7.28).
+SITE_COLOURINGS = {"occupancy": "at reversal: Ca2+ site occupancy θ (0-1)",
+                   "block": "at reversal: K+ block by the site, "
+                            "-ln(1 - fθ) (kT)"}
+COLOURINGS.update(SITE_COLOURINGS)
 
 
 def reversal_key(key: str) -> tuple[str, str] | None:
@@ -127,6 +138,13 @@ def image_colors(w: np.ndarray, top: float | None = None) -> np.ndarray:
     at the top colour; NaN (not solved) grey."""
     top = _P.value("display.lumen_image_range") if top is None else top
     return ramp(np.clip(np.asarray(w, float) / top, 0.0, 1.0))
+
+
+def block_colors(e: np.ndarray, top: float | None = None) -> np.ndarray:
+    """K+'s block energy (kT) on a fixed ramp: 0 blue to ``top`` red,
+    higher at the top colour; NaN grey."""
+    top = _P.value("display.lumen_block_range") if top is None else top
+    return ramp(np.clip(np.asarray(e, float) / top, 0.0, 1.0))
 
 
 def conc_colors(c: np.ndarray, lo: float | None = None,

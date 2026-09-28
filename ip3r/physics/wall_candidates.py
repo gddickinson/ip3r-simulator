@@ -14,7 +14,12 @@ which a candidate replaces). The candidates:
 * ``ring pair``: no deposit charge, and the opposite-charge C4 ring pair of
   :func:`.wall_search.ring_search` with the highest B, the parallel-path
   route round the series bound (its search is two minutes of linear
-  response, memoised per deposit and grid until a parameter changes).
+  response, memoised per deposit and grid until a parameter changes);
+* ``Ca2+ site`` (Round 7.28): no charge, and Round 7.27's compensated,
+  K⁺-blocking saturable site over the span at ``casite.gui_depth`` kT (the
+  depth at which it gives Vais's 15.2 on 8TKF). Its energies depend on the
+  Ca²⁺ it holds, so it is a :mod:`.pnp3d` coupling, not a fixed excess:
+  :meth:`CandidateWall.coupling` builds it on the reversal's domain.
 """
 
 from __future__ import annotations
@@ -30,11 +35,12 @@ from .selectivity_bound import band_mask
 __all__ = ["CANDIDATES", "CANDIDATE_LABELS", "CandidateWall",
            "candidate_wall", "best_ring"]
 
-CANDIDATES = ("span well", "span well + charge", "ring pair")
+CANDIDATES = ("span well", "span well + charge", "ring pair", "Ca2+ site")
 CANDIDATE_LABELS = {
     "span well": "Ca2+-only well over the span, uncharged (7.25's best)",
     "span well + charge": "that well + the deposit's charge",
     "ring pair": "opposite C4 ring pair at the highest B (7.25)",
+    "Ca2+ site": "compensated Ca2+ site blocking K+, at 15.2 (7.27)",
 }
 
 
@@ -44,6 +50,18 @@ class CandidateWall:
     fixed: np.ndarray = field(repr=False)          # mol/m³ on pore.elec
     well: np.ndarray | None = field(repr=False)    # Ca2+ energy, kT; None
     description: str = ""
+    site: object | None = None                     # ca_site.Site; None
+    mask: np.ndarray | None = field(default=None, repr=False)  # its band
+
+    def coupling(self, dom):
+        """Round 7.27's :class:`.ca_site.SiteCoupling` on ``dom`` (None for
+        a wall without a site)."""
+        if self.site is None:
+            return None
+        from .ca_site import SiteCoupling, site_density
+        density = site_density(self.mask, dom.elec.spacing,
+                               _P.value("casite.sites"))
+        return SiteCoupling(dom, self.site, self.mask, density)
 
     @property
     def excess(self) -> dict[str, np.ndarray] | None:
@@ -87,8 +105,16 @@ def candidate_wall(pore, name: str, deposit_fixed: np.ndarray) -> CandidateWall:
         return CandidateWall(name, fixed, None,
                              f"opposite C4 rings at z {r.z:+.1f} Å, ±{r.charge:g} "
                              f"e per site (linear-response B {r.bound:.2f})")
-    d = _P.value("wallsearch.gui_well_depth")
     lo, hi = regions(pore.summary)["span"]
+    if name == "Ca2+ site":
+        from .ca_site import Site
+        site = Site(_P.value("casite.gui_depth"), True,
+                    _P.value("casite.block"), "span")
+        return CandidateWall(name, zero, None,
+                             f"{site.label} (z {lo:+.1f} to {hi:+.1f} Å, "
+                             f"{_P.value('casite.sites'):g} sites), uncharged",
+                             site, band_mask(pore, lo, hi))
+    d = _P.value("wallsearch.gui_well_depth")
     well = -d * band_mask(pore, lo, hi)
     charged = name.endswith("charge")
     return CandidateWall(name, deposit_fixed if charged else zero, well,

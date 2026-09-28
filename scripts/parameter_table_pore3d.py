@@ -133,6 +133,12 @@ PORE3D = [
        "auto-ranged: on the surface of 8TKF, 7T3T and 9HEO W's median is "
        "1.9-2.0 kT and its 90th percentile 4.8-5.3 kT, so a tenth or less "
        "saturates and deposits compare by colour", 1.0, 30.0),
+    _p("display.lumen_block_range", "Lumen K+ block colour scale", 3.0,
+       "kT", "convention", "display", "convention", "Round 7.28: the K+ "
+       "block energy -ln(1 - f theta) of a Ca2+ site is drawn on a fixed "
+       "ramp from 0 (blue) to this value (red); higher at the top colour.",
+       "Fixed, never auto-ranged: 3 kT is theta 0.95 at f = 1, and the "
+       "crossing site on 8TKF is half full (ln 2 = 0.69 kT)", 0.5, 30.0),
     _p("display.lumen_conc_min", "Lumen concentration scale, low end",
        1e-3, "M", "convention", "display", "convention", "Round 7.24: an "
        "ion's concentration at reversal is drawn on a fixed log ramp from "

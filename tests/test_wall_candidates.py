@@ -103,3 +103,62 @@ def test_8tkf_span_well_at_reversal_is_round_725s():
     hi = regions(s)["span"][1]
     assert abs(r.steepest_z("Ca2+") - hi) < 3.0
     assert "span well (Ca2+-only well of" in r.summary()
+
+
+def test_ca_site_is_round_727s_crossing_site(pore_8tkf):
+    """Round 7.28: the site candidate is uncharged, carries no fixed excess,
+    and is 7.27's compensated blocking site over exactly the span's lumen
+    at the drawn depth; its coupling spreads casite.sites over that band."""
+    from ip3r.physics.ca_site import SiteCoupling, site_density
+    from ip3r.physics.pnp3d import domain
+    pore, fixed = pore_8tkf
+    w = wc.candidate_wall(pore, "Ca2+ site", fixed)
+    assert not np.any(w.fixed) and w.excess is None
+    assert w.site.compensated and w.site.region == "span"
+    assert w.site.depth == _P.value("casite.gui_depth")
+    assert w.site.block == _P.value("casite.block")
+    lo, hi = regions(pore.summary)["span"]
+    zs = pore.elec.zs[None, None, :]
+    assert np.array_equal(w.mask, pore.elec.mask & (zs >= lo) & (zs <= hi))
+    c = w.coupling(domain(pore.elec, pore.vols))
+    assert isinstance(c, SiteCoupling)
+    assert c.s == site_density(w.mask, pore.spacing, _P.value("casite.sites"))
+    assert wc.candidate_wall(pore, "span well", fixed).coupling(None) is None
+    assert "compensated site" in w.description
+
+
+def test_block_colours_are_fixed_and_grey_where_missing():
+    from ip3r.render.colormaps import ramp
+    from ip3r.render.lumen_mesh import block_colors
+    top = _P.value("display.lumen_block_range")
+    e = np.array([0.0, top / 2, top, 5 * top, np.nan])
+    assert np.allclose(block_colors(e), ramp(np.array([0.0, 0.5, 1.0, 1.0,
+                                                       np.nan])))
+
+
+@needs_structure("8TKF")
+def test_8tkf_site_at_reversal_is_round_727s():
+    """The drawn site reverses where Round 7.27's root put it (+18.17 mV at
+    4.4128 kT; +18.15 at the drawn 4.41), 2.01 Ca2+ held; θ is zero outside
+    the span and at most 1; K+'s block is −ln(1 − fθ) voxel by voxel; the
+    Cl− experiment carries no site reading (it holds no Ca2+). Six minutes."""
+    from ip3r.io import loader
+    from ip3r.physics.lumen_reversal import reversal_lumen
+    from ip3r.structure.channel import measure_channel
+    st = loader.load("8TKF")
+    s = measure_channel(st)
+    r = reversal_lumen(st, "Ca2+ site", "Ca2+", s)
+    assert r.candidate and r.converged
+    assert r.v * 1e3 == pytest.approx(18.15, abs=0.02)
+    assert r.held == pytest.approx(2.01, abs=0.02)
+    lo, hi = regions(s)["span"]
+    zs = r.lumen.volume.zs[None, None, :]
+    th = r.occupancy
+    outside = np.isfinite(th) & ((zs < lo) | (zs > hi))
+    assert np.all(th[outside] == 0.0) and np.nanmax(th) <= 1.0
+    f = _P.value("casite.block")
+    on = np.isfinite(th)
+    assert np.allclose(r.k_block[on], -np.log1p(-f * th[on]))
+    assert "the site holds 2.0" in r.summary()
+    cl = reversal_lumen(st, "Ca2+ site", "Cl-", s)
+    assert cl.occupancy is None and np.isnan(cl.held)

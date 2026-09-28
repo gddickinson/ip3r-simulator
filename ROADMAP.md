@@ -5,9 +5,10 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.28 (GUI): the Ca²⁺ site on the structure: the
-compensated blocking site at its crossing depth drawn at reversal in the
-lumen box, coloured by occupancy and by K⁺'s block energy. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.29 (science): the mole-fraction prediction, i.e.
+P_Ca:P_K and the K⁺ current against luminal Ca²⁺ (0.1–100 mM) through
+7.27's crossing site, and the site's band narrowed to the depth that keeps
+15.2 (7.27's emergent item). **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -930,6 +931,20 @@ item carried over from round n; it stays listed there too.
     against luminal Ca²⁺ (0.1–100 mM) through the crossing site, the
     curve an experiment could test; and the site's band narrowed (filter
     to gate, the vestibule) at the depth that keeps 15.2.
+
+- [x] **7.28 GUI: the Ca²⁺ site on the structure**
+  (`physics/wall_candidates.py`, `physics/lumen_reversal.py`). Round 7.27's
+  compensated, K⁺-blocking site is the last candidate wall in the lumen
+  box. It sits over the span at `casite.gui_depth` (4.41 kT, 8TKF's
+  crossing) and is solved at reversal with its coupling. The surface is
+  coloured by occupancy θ (0–1) or by K⁺'s block energy −ln(1 − fθ)
+  (fixed 0–`display.lumen_block_range` kT), and the plot shows θ's plane
+  mean. The 8TKF reading is pinned in the tests: +18.15 mV (the root's
+  +18.17 at 4.4128 kT), 2.01 Ca²⁺ held. **Seen:** mean θ 0.50, rising to
+  0.89 where Ca²⁺ gathers (z −98 Å), and K⁺'s block up to 2.2 kT. K⁺'s
+  drop is steepest inside the occupied band (z −86 Å), and Ca²⁺'s at the
+  band's cytosolic edge (z −55 Å). One occupancy resists the two ions in
+  different places.
 
 ## Round 6 — ryanodine receptors
 

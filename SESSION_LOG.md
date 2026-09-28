@@ -3336,3 +3336,44 @@ P_Ca:P_K depends on luminal Ca²⁺ (the emergent item).
 beyond the Analyses entry (`test_gui_extras` passes).
 
 **Next.** Round 7.28 (GUI): the site drawn on the lumen at reversal.
+
+## 2026-09-27 (43) — Round 7.28: the Ca²⁺ site on the structure
+
+**Why.** This was the Next item. Round 7.27 found the one wall that reaches
+Vais's pair: a compensated Ca²⁺ site whose occupancy blocks K⁺. Until now
+it existed only as numbers from the `casite` command. This round draws it
+where the other candidate walls are drawn, so its occupancy and K⁺'s block
+can be seen on the lumen.
+
+**What.**
+- `wall_candidates` gains a `Ca2+ site` candidate: uncharged, the site
+  over the span at `casite.gui_depth` (4.41 kT, 8TKF's crossing rounded),
+  with a `coupling(dom)` that builds 7.27's `SiteCoupling`.
+- `reversal_lumen` passes the coupling to the reversal and reads θ, K⁺'s
+  block energy and the ions held on the grid (`occupancy`, `k_block`,
+  `held`, `occupancy_3d`).
+- The lumen box colours by occupancy (0–1) or by K⁺ block (fixed
+  0–`display.lumen_block_range` kT). Both are grey for any other reading.
+  The plot adds θ's plane mean on the drop row.
+- Two parameters, the guide, and a smoke step (group `reversal`,
+  `gui_lumen_site.png`).
+
+**Calibrated.** On 8TKF (`data/casite/gui_site_8tkf.out`), the drawn site
+reverses at +18.15 mV. The root gave +18.17 at 4.4128 kT, and the parameter
+rounds that. It holds 2.01 Ca²⁺ with Ca²⁺ peaking at 0.262 M, as 7.27
+found. Both are pinned in `test_wall_candidates`. The solve takes six
+minutes, so the smoke step holds the panel to those pinned values instead
+of solving a second time headless. The Cl⁻ experiment carries no site
+reading (V −23.9 mV, the uncharged pore's).
+
+**Seen.** Mean θ is 0.50 over the band and reaches 0.89 where Ca²⁺ gathers
+(z −98 Å). K⁺'s block reaches 2.2 kT. K⁺'s drop is steepest inside the
+occupied band (z −86 Å), and Ca²⁺'s at the band's cytosolic edge (z −55 Å,
+as 7.26's well). One occupancy resists the two ions in different places.
+
+**Checks.** `make test`: 731 passed (42 min). Lint and sizes are clean.
+Smoke group `reversal` passes (below). `make sync-check` was clean and no
+verdict moved.
+
+**Next.** Round 7.29 (science): the mole-fraction prediction against
+luminal Ca²⁺, and the site's band narrowed.

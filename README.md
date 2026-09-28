@@ -376,6 +376,14 @@ P_Cl:P_K still the uncharged pore's 0.29 / 0.37. The measured pair needs
 Ca²⁺ occupancy that blocks K⁺, the anomalous-mole-fraction mechanism
 (`docs/SCIENCE_CASITE.md`).
 
+The site can be drawn (Round 7.28). The last candidate wall in the lumen
+box is the compensated, blocking site at 8TKF's crossing depth, coloured
+by its occupancy θ or by K⁺'s block energy. On 8TKF it holds 2.0 Ca²⁺
+(θ up to 0.89). K⁺'s drop is steepest inside the occupied band, and
+Ca²⁺'s at the band's cytosolic edge, where it leaves the site.
+
+![8TKF's Ca²⁺ site at reversal, coloured by its occupancy](docs/img/gui_lumen_site.png)
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,

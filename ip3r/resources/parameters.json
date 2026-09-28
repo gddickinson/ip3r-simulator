@@ -4559,6 +4559,19 @@
    "maximum": 30.0
   },
   {
+   "key": "display.lumen_block_range",
+   "name": "Lumen K+ block colour scale",
+   "value": 3.0,
+   "unit": "kT",
+   "kind": "convention",
+   "category": "display",
+   "citation": "convention",
+   "description": "Round 7.28: the K+ block energy -ln(1 - f theta) of a Ca2+ site is drawn on a fixed ramp from 0 (blue) to this value (red); higher at the top colour.",
+   "source_note": "Fixed, never auto-ranged: 3 kT is theta 0.95 at f = 1, and the crossing site on 8TKF is half full (ln 2 = 0.69 kT)",
+   "minimum": 0.5,
+   "maximum": 30.0
+  },
+  {
    "key": "display.lumen_conc_min",
    "name": "Lumen concentration scale, low end",
    "value": 0.001,
@@ -5220,6 +5233,19 @@
    "source_note": "0.02 kT moves P_Ca:P_K by < 1 % on the grid's steepest step",
    "minimum": 0.001,
    "maximum": 1.0
+  },
+  {
+   "key": "casite.gui_depth",
+   "name": "Drawn Ca2+ site depth",
+   "value": 4.41,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.28: the depth of the compensated, blocking Ca2+ site over the span that the lumen box draws at reversal.",
+   "source_note": "Round 7.27: the depth at which that site gives Vais's P_Ca:P_K 15.2 on 8TKF (4.41 kT, K_d 3.3 mM); 7T3T crosses at 3.98 kT",
+   "minimum": 0.5,
+   "maximum": 15.0
   }
  ]
 }

@@ -120,7 +120,14 @@ Ca<sup>2+</sup>-only well of wallsearch.gui_well_depth kT over the span,
 that well with the deposit's charge, or the opposite-charge C4 ring pair
 with the highest B (two minutes more the first time, for its search). Draw
 the deposit's own reading first: the plot then sets it dashed beside the
-candidate, with both reversal potentials and peaks in the text.</p>""",
+candidate, with both reversal potentials and peaks in the text.</p>
+<p>The last candidate is Round 7.27's <b>Ca<sup>2+</sup> site</b> (Round
+7.28): four saturable sites over the span at casite.gui_depth kT,
+compensated as they fill, whose occupancy blocks K<sup>+</sup> (the depth
+at which it gives Vais's 15.2 on 8TKF). Colour it by the site's
+<b>occupancy θ</b> (0–1) or by <b>K<sup>+</sup> block</b> −ln(1 − fθ)
+(0–display.lumen_block_range kT); both are grey for any other reading.
+The plot adds θ's plane mean, dotted, on the drop row.</p>""",
 
     "Analyses menu": """
 <p>Analyses runs the command-line science in its own process, the same

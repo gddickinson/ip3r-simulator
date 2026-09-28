@@ -3,7 +3,10 @@ at the Ca²⁺ experiment's reversal under ``pb + csc``, coloured by Ca²⁺'s
 concentration and then Cl⁻'s drop, equal to the headless reading; the
 equilibrium colourings grey there; then (Round 7.26) Round 7.25's span well
 drawn in its place, equal to the headless candidate, with the deposit's own
-reading dashed beside it; then everything switched off.
+reading dashed beside it; then (Round 7.28) Round 7.27's Ca²⁺ site,
+coloured by its occupancy and K⁺'s block, at the headless reading's V and
+ions held (pinned in ``test_wall_candidates``);
+then everything switched off.
 """
 
 from __future__ import annotations
@@ -11,12 +14,12 @@ from __future__ import annotations
 import numpy as np
 
 from ip3r.render.colormaps import ramp
-from ip3r.render.lumen_mesh import conc_colors
+from ip3r.render.lumen_mesh import block_colors, conc_colors
 
 __all__ = ["STEPS"]
 
 _READING, _EXPERIMENT = "pb + csc", "Ca2+"
-_CANDIDATE = "span well"
+_CANDIDATE, _SITE = "span well", "Ca2+ site"
 
 
 def _pick(combo, value) -> None:
@@ -106,6 +109,38 @@ def _candidate(win, app, out) -> bool:
     app.processEvents()
     win.grab().save(str(out / "gui_lumen_candidate.png"))
     box = win.channel.lumen_box
+    _pick(box.colour, "occupancy")            # grey: the well has no site
+    if not np.allclose(lc.mesh.colors, ramp(np.array([np.nan]))):
+        raise RuntimeError("the occupancy colouring is not grey without a site")
+    _pick(box.reversal_box, _SITE)
+    return False
+
+
+def _site(win, app, out) -> bool:
+    lc, sc = win.lumen, win.scene
+    if lc.message.startswith("lumen not built"):
+        raise RuntimeError(lc.message)
+    if lc.busy:
+        return True
+    rev = lc.reversal
+    if rev is None or rev.reading != _SITE or rev.occupancy is None:
+        raise RuntimeError(f"the Ca2+ site was not drawn: {lc.message}")
+    if not np.allclose(lc.mesh.colors, ramp(lc.mesh.sample(rev.occupancy))):
+        raise RuntimeError("the site is not coloured by its occupancy")
+    labels = [ln.get_label() for ln in win.channel.canvas.axes[2, 0].get_lines()]
+    if not any("occupancy" in t for t in labels):
+        raise RuntimeError(f"the site's occupancy is not plotted: {labels}")
+    # the headless solve is six minutes; test_wall_candidates pins it at
+    # +18.15 mV and 2.01 held (Round 7.27's crossing), so hold the panel to that
+    if abs(rev.v * 1e3 - 18.15) > 0.05 or abs(rev.held - 2.01) > 0.02 \
+            or "the site holds" not in win.channel.lumen_info.text():
+        raise RuntimeError(f"the panel's site is not Round 7.27's: {lc.message}")
+    app.processEvents()
+    win.grab().save(str(out / "gui_lumen_site.png"))
+    box = win.channel.lumen_box
+    _pick(box.colour, "block")
+    if not np.allclose(lc.mesh.colors, block_colors(lc.mesh.sample(rev.k_block))):
+        raise RuntimeError("the site is not coloured by K+'s block")
     win.channel.show_lumen.setChecked(False)  # first: no re-solve behind us
     _pick(box.reversal_box, "equilibrium")
     _pick(box.colour, "drop")
@@ -114,4 +149,4 @@ def _candidate(win, app, out) -> bool:
     return False
 
 
-STEPS = (_reversal_start, _reversal, _candidate)
+STEPS = (_reversal_start, _reversal, _candidate, _site)

@@ -107,4 +107,10 @@ REV3D = [
        "method", "pore3d", "method_choice", "Round 7.27: the depth at which "
        "P_Ca:P_K crosses the measured value is found to this.", "0.02 kT "
        "moves P_Ca:P_K by < 1 % on the grid's steepest step", 1e-3, 1.0),
+    _p("casite.gui_depth", "Drawn Ca2+ site depth", 4.41, "kT", "method",
+       "pore3d", "method_choice", "Round 7.28: the depth of the compensated, "
+       "blocking Ca2+ site over the span that the lumen box draws at "
+       "reversal.", "Round 7.27: the depth at which that site gives Vais's "
+       "P_Ca:P_K 15.2 on 8TKF (4.41 kT, K_d 3.3 mM); 7T3T crosses at 3.98 kT",
+       0.5, 15.0),
 ]

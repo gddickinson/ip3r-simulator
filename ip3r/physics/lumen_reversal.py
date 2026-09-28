@@ -26,6 +26,11 @@ lumen; the panel says so. Plane means over S0's window give the plot.
 Round 7.26: ``reading`` may instead name one of Round 7.25's candidate walls
 (:data:`.wall_candidates.CANDIDATES`), solved as the search solved it: point
 ions under Poisson with that wall's charge and Ca²⁺-only energy.
+
+Round 7.28: the ``Ca2+ site`` candidate is Round 7.27's compensated,
+K⁺-blocking site, solved with its coupling; the reading then also carries
+the site's occupancy θ and K⁺'s block energy −ln(1 − fθ) on the grid
+(zero outside the band, NaN off the lumen), and the Ca²⁺ ions it holds.
 """
 
 from __future__ import annotations
@@ -68,6 +73,11 @@ class ReversalLumen:
     converged: bool = True
     solves: int = 0
     wall: str = ""                          # a candidate wall's description
+    #: Round 7.28, a site's reading: θ and K+'s block energy (kT) on the
+    #: grid, and the Ca2+ ions held; None / nan without a site or Ca2+.
+    occupancy: np.ndarray | None = field(default=None, repr=False)
+    k_block: np.ndarray | None = field(default=None, repr=False)
+    held: float = float("nan")
 
     @property
     def candidate(self) -> bool:
@@ -135,7 +145,15 @@ class ReversalLumen:
             c, z = self.peak(name)
             text += (f"; {name} peaks at {c:.3g} M (z {z:+.1f} Å), its drop "
                      f"steepest at z {self.steepest_z(name):+.1f} Å")
+        if self.occupancy is not None:
+            text += (f"; the site holds {self.held:.2f} Ca2+ (θ up to "
+                     f"{np.nanmax(self.occupancy):.2f}), K+'s block up to "
+                     f"{np.nanmax(self.k_block):.2f} kT")
         return text
+
+    def occupancy_3d(self) -> np.ndarray | None:
+        """Plane-mean θ over the window's lumen (None without a site)."""
+        return None if self.occupancy is None else self._means(self.occupancy)
 
 
 def ion_grids(dom, steady, species, excess=None):
@@ -188,19 +206,37 @@ def reversal_lumen(st: Structure, reading: str = "pb + csc",
                          "to solve")
     dom = domain(pore.elec, pore.vols)
     w = wall(pore)
-    note = ""
+    note, site = "", {}
     if reading in CANDIDATES:
         cw = candidate_wall(pore, reading, w.fixed)
         names = {s.name for s in exp.species()}
         excess = {k: e for k, e in (cw.excess or {}).items() if k in names} or None
+        coupling = cw.coupling(dom)
         v, steady, n = reversal(dom, exp.species(), cw.fixed, excess,
-                                _impermeant(pore, exp))
+                                _impermeant(pore, exp), coupling=coupling)
         ok, note = steady.converged, cw.description
+        if coupling is not None and "Ca2+" in names:
+            site = _site_grids(dom, steady, coupling, pore.elec.mask)
     else:
         v, steady, excess, ok, n = steady_at_reversal(pore, dom, w, reading,
                                                       exp, **fluid_kw)
     conc, drop, baths = ion_grids(dom, steady, exp.species(), excess)
     return ReversalLumen(f, reading, experiment, float(v), conc, drop,
                          dict(steady.currents), baths,
-                         bool(ok and f.converged), n, note)
+                         bool(ok and f.converged), n, note, **site)
+
+
+def _site_grids(dom, steady, coupling, mask) -> dict:
+    """θ, K+'s block energy (NaN off the lumen) and the ions held, from the
+    solved state as :func:`.ca_site.read` takes them."""
+    from .ca_site import N_AVOGADRO
+    psi = steady.v / thermal_voltage() * dom.phi0 + steady.u
+    c_free = coupling.free(psi, steady.n["Ca2+"])
+    theta = coupling.occupancy(c_free)
+    visible, _ = coupling.energies(c_free)
+    block = visible.get("K+", np.zeros(mask.shape))
+    held = float(theta[coupling.mask].sum() * coupling.s
+                 * (dom.elec.spacing * 1e-10) ** 3 * N_AVOGADRO)
+    return {"occupancy": np.where(mask, theta, np.nan),
+            "k_block": np.where(mask, block, np.nan), "held": held}
 
