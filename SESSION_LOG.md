@@ -3434,3 +3434,13 @@ at reversal.
 in 8TKF (5.34 Å in 7T3T), and the filter is 4.27–5.08 Å in all eight. It is
 ip3r_genes' Figure S29.5 (`9bd9e26`), with a FINDINGS paragraph and the
 thesis's figure count at 117. All three builds pass.
+
+**Follow-up (user request): the state panel in ip3r_genes' thesis.**
+ip3r_genes (`a3a7cf8`) redrew it in its own style and terms. S0's pore
+steps became `measure_pore`, and `s29_state_pores.py` measures 6DQN plus
+S11's six states with them (waters removed: 8TKG models them in the pore).
+Figure 11.x sits in §11.3, with T85–T90. Its numbers agree with
+`scripts/figure_states.py` within 0.03 Å except 8TLA's filter (4.30 Å on S0's
+centroid axis, 4.66 Å on our superposition axis; 8TLA's subunits resolve
+unequal residue counts). `LEDGER.claims` confirms 289 / 251 / 715 from the
+README.

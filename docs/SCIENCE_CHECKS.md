@@ -318,7 +318,7 @@ stratification, not a call. It is a statement of how far the strata carry.
 | `P1.record_chase` | rederived | confirmed | 64 plant + 35 fungal records: 47 real, 52 fragments |
 | `P1.bait_margin` | recomputed | confirmed | pairwise, from the sequences: 31/31 calls, gap 0.582, iplA +0.048 inside ±0.10 |
 | `P1.benchmark_counts` | rederived | confirmed | every control's score rebuilt; recall 24/25, specificity 31/31, RyR 6/6 |
-| `LEDGER.claims` | read | confirmed | the README's counts (289 + 245 + 715 after S29) read, and the ledgers' rows all ok |
+| `LEDGER.claims` | read | confirmed | the README's counts (289 + 251 + 715 after S29) read, and the ledgers' rows all ok |
 
 ## What the findings checks establish
 
