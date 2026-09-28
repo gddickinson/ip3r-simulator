@@ -20,6 +20,11 @@ headless (CLI, tests, notebooks).
 | `ip3r/` | the application package |
 | `scripts/` | maintenance: parameter build, ip3r_genes import, GUI smoke test |
 | `tests/` | pytest suite; real-data tests skip when data is absent |
+| `README.md` | the front page: background (the biology, the publication, the RyR control, a glossary), what the simulator does (captioned figures 1–8), the findings in brief, installing, running |
+| `CONTRIBUTING.md` | for changing the code: the layers and layout, the test commands, the project rules, the session protocol |
+| `docs/USER_GUIDE.md` | the app and the command line: window, mouse and keys, selection, Structure panel (superpose, AlphaFold), each tab with captioned figures, Analyses menu, parameters, sessions, every command by topic, environment variables, common problems |
+| `docs/RESULTS.md` | the conductance and selectivity results in plain language (Rounds 7.x and RyR1's pore), figures R1–R12 |
+| `docs/RESULTS_DYNAMICS.md` | the gating, puff and spark results in plain language, figures D1–D7 |
 | `docs/SCIENCE.md` | the models, their equations and sources; what each check establishes |
 | `docs/SCIENCE_CHECKS.md` | the findings checks paper by paper: how each re-derives its numbers (modules, shells and their FEL rates, the tree and its `--bnni` re-search, the genome grid, presence/absence, the family-call benchmark, VUS strata) and what agreement establishes |
 | `docs/SCIENCE_PUFF_DOMAIN.md` | the park/drive cluster in Cao's microdomain with fluo-4: IPIs vs h42 recovery, amplitude vs N, and the sustained-open question under five clamps |

@@ -1,762 +1,490 @@
 # IP3R Structural Simulator
 
-An interactive 3-D model of the **IP3 receptor** — the endoplasmic
-reticulum's IP3- and Ca²⁺-gated Ca²⁺-release channel — driven by models with
-a citable basis rather than by animation, and an instrument that
-**illustrates, demonstrates and independently re-derives the results of the
+An interactive, physics-based 3-D model of the **inositol 1,4,5-trisphosphate
+receptor (IP3R)**, the channel that releases calcium from the cell's internal
+store. It is also an independent checking instrument for the
 [`ip3r_genes`](https://github.com/gddickinson/ip3r_genes) publication
-project**. It is the IP3R counterpart of the
-[PIEZO1 simulator](https://github.com/gddickinson/piezo1-simulator), whose
-renderer, reader and conventions it reuses.
+project: it re-derives that project's published results from their original
+inputs and shows them on the receptor's structure.
 
-![6DQN coloured by functional element, IP3 contacts highlighted](docs/img/gui_element.png)
+The simulator loads experimentally determined structures of the receptor,
+measures them, moves them, and runs models of how the channel opens, how
+ions pass through it and how clusters of channels produce calcium signals.
+Every number a calculation uses is a registered, cited parameter, so each
+result can be traced to its source.
 
-*Human ITPR3 with IP3 bound (PDB 6DQN), cytosolic cap up. Blue/cyan/green:
-the IP3-binding β-trefoil, MIR and RIH domains; violet: the pore domain;
-gold spheres: the ten residues within 4.5 Å of IP3 at each of the four
-sites.*
+<p align="center">
+  <img src="docs/img/gui_element.png" alt="The simulator's main window showing human ITPR3 with IP3 bound" width="900">
+</p>
 
-## What it does
+**Figure 1. The main window shows human IP3 receptor type 3 (PDB 6DQN) with
+IP3 bound.** The left panel chooses the structure and how it is drawn, the
+centre is the 3-D view, and the right panel holds the analysis tabs. The
+receptor is drawn side-on with the cytosolic side at the top and the
+membrane-embedded pore at the bottom. The colours mark functional regions:
+blue, cyan and green for the IP3-binding β-trefoil, MIR and RIH domains at
+the top, and violet for the pore domain at the bottom. The gold spheres are
+the ten amino acids that touch each bound IP3 molecule, one site on each of
+the four subunits. The scale bar and the axis marker ("cyt" points to the
+cytosol) sit in the corner of the 3-D view.
 
-**See the channel.** Nine curated depositions — every ITPR reference and
-gating-state structure `ip3r_genes` S11 selected, plus 6DQN — drawn as
-cartoon, tube, spheres or sticks, coloured by functional element, subunit,
-secondary structure, B-factor or **per-residue conservation** (the S17
-tables, four layers, on a fixed scale with unscored residues grey). Residue
-annotation is painted only when the deposit is verified to be in that
-paralog's human numbering (rat 7LHF is not, and is left grey). Beside
-them, under **More IP3R deposits**, 17 more: every other full-length EM
-tetramer of a human ITPR or rat ITPR1 in the PDB at ≤ 4 Å, wild type,
-chosen by stated rules (`scripts/curate_ip3r.py`, `make extended`). They
-include ITPR2's resting and preactivated states (9YKY, 9YLI), ITPR3's
-pre-active B/C, inactive and Ca²⁺ classes, and rat ITPR1 in a nanodisc and
-under Ca²⁺/IP3/ATP. They can be viewed, measured, superposed and morphed,
-but no panel or check uses them, so no publication number depends on them.
+## The contents list links to each section below.
 
-**Work in it.** A click selects a residue (gold); shift-click adds one. The
-right-click menu selects the same residue on every subunit, a chain,
-centres on an atom or starts a distance (Ctrl+M measures: two clicks, a
-rod labelled in Å). A HUD carries the deposit, a scale bar exact at the
-pivot and a gnomon with the four-fold axis's cytosolic end. An amber line
-shows whenever AlphaFold residues are drawn. View → Sequence shows each
-chain's whole construct in the deposit's numbering, unresolved residues
-dimmed. It is tracked by element, deep JSD or resolution, with the sites
-underlined, and a drag there selects on the model. The **Analyses** menu
-runs the command-line science (selectivity, protonation, the 3-D wall, the
-salt bridge, the image cost, charge–space, shortfall, …) in its own
-process, stamped with the deposit and the parameter set. Panels are
-movable docks (View → Reset layout). **Full screen** (F11, View → Full
-screen or the right-click menu; Esc leaves) keeps only the 3-D view and
-its HUD, and puts every panel back as it was. Help → Guide (F1) explains
-all of it.
+1. [This section explains the biology behind the project.](#this-section-explains-the-biology-behind-the-project)
+2. [The simulator lets you see, measure, move and test the receptor.](#the-simulator-lets-you-see-measure-move-and-test-the-receptor)
+3. [The models have produced several findings so far.](#the-models-have-produced-several-findings-so-far)
+4. [You can install the simulator with conda in a few steps.](#you-can-install-the-simulator-with-conda-in-a-few-steps)
+5. [You can run the simulator as a desktop app or from the command line.](#you-can-run-the-simulator-as-a-desktop-app-or-from-the-command-line)
+6. [The repository is organised into layers, and every module is mapped.](#the-repository-is-organised-into-layers-and-every-module-is-mapped)
+7. [Licence, citation and references are listed at the end.](#licence-citation-and-references-are-listed-at-the-end)
 
-![8TKF in full screen](docs/img/gui_fullscreen.png)
+## This section explains the biology behind the project.
 
-![A selection on 8TKF, measured, with the sequence window](docs/img/gui_selection_window.png)
+### Calcium is one of the cell's most widely used signals.
 
-**Measure it.** The four-fold axis is found by superposing each subunit on
-its neighbour; the pore profile, the selectivity filter (GGGVGD) and the gate
-are located; every bound IP3 is found and its contacts listed.
-`python -m ip3r states` measures the whole ITPR3 state panel the same way —
-and shows the gating transition at the pore:
+Almost every cell uses short rises in calcium concentration to switch
+processes on: muscle contraction, hormone and neurotransmitter release,
+fertilisation, gene expression and cell death. At rest the calcium level in
+the cytosol (the fluid inside the cell) is kept very low, about 0.1
+micromolar (µM). Much higher levels are stored inside the endoplasmic
+reticulum (ER), a membrane-bound compartment that acts as the cell's calcium
+store. A signal is produced when channels in the ER membrane open and let
+calcium flow out into the cytosol.
 
-| PDB | state | gate radius (Å) |
+### The IP3 receptor is the main channel that releases calcium from the store.
+
+When a hormone or neurotransmitter binds to the cell surface, the cell makes
+a small messenger molecule called **IP3** (inositol 1,4,5-trisphosphate).
+IP3 diffuses to the ER and binds to the IP3 receptor. The receptor also
+senses calcium itself. A little cytosolic calcium helps it open, while a lot
+shuts it again. This produces a bell-shaped relationship between calcium
+concentration and the chance that the channel is open. That self-reinforcing
+then self-limiting behaviour lets one open channel trigger its neighbours.
+The result is local bursts of release called **puffs**, and at higher IP3
+levels, waves and repeating oscillations that sweep across the whole cell.
+
+Humans have three versions (paralogs) of the receptor, encoded by the genes
+**ITPR1**, **ITPR2** and **ITPR3**. Each receptor is built from four
+identical subunits of about 2,700 amino acids each. The four subunits are
+arranged around a central four-fold axis (C4 symmetry), and the axis runs
+through the ion-conducting pore. Each subunit has three main parts:
+
+- an **IP3-binding core** at the cytosolic end, where IP3 binds about 70 Å
+  from the pore axis;
+- large **regulatory domains** (the MIR and RIH domains) that pass the
+  binding signal down to the pore;
+- a **pore domain** in the membrane. Its **selectivity filter** (the amino
+  acid sequence GGGVGD) faces the ER lumen and helps decide which ions pass.
+  Its **gate** is a ring of side chains near the cytosolic side that blocks
+  the pore when the channel is shut.
+
+### Cryo-electron microscopy has captured the receptor in several states.
+
+Cryo-electron microscopy (cryo-EM) produces atomic models of large proteins,
+which are deposited in the Protein Data Bank (PDB) under four-character
+codes such as 6DQN. For human ITPR3 there are models of the receptor with no
+ligand, with IP3 bound, in resting and inhibited forms, and in an activated,
+open form (8TKF). Comparing these states shows how the protein changes shape
+when it opens. The simulator measures all of them the same way.
+
+### The ip3r_genes project made claims that this simulator re-derives.
+
+[`ip3r_genes`](https://github.com/gddickinson/ip3r_genes) is a series of six
+papers about the receptor family. The papers cover where in the tree of life
+the receptor is found, how the three paralogs evolved, where the gene has
+been lost, which parts of the protein are most conserved, how disease
+variants are distributed, and how the ligand-binding and pore regions
+differ. This simulator does not share code with that project. It reads the
+same input tables and structures and recomputes the published numbers by its
+own route. When the two disagree, the simulator's checker is suspected
+first. Genuine disagreements are reported back to the publication project,
+which has corrected both of the two found so far.
+
+### The ryanodine receptor is used as a control.
+
+The **ryanodine receptor (RyR)** is the IP3 receptor's larger relative. It
+releases calcium in muscle and has been studied more thoroughly: its open
+pore's conductance, the effects of charge-changing mutations, and its
+calcium "sparks" have all been measured in detail. The simulator runs the
+same models on rabbit RyR1. If a model fails on RyR1 as well, the failure
+lies in the model rather than in the IP3 receptor structure.
+
+### A short glossary explains the terms used throughout.
+
+| Term | Meaning |
+|---|---|
+| **Deposit** | One atomic model in the PDB, named by its code (for example 8TKF). |
+| **Paralog** | One of the three human receptor genes, ITPR1, ITPR2 or ITPR3. |
+| **Lumen** | The inside of the ER, which holds the calcium store. The pore's luminal end faces it. |
+| **Pore profile** | The pore's radius measured at each height along the four-fold axis. |
+| **Conductance** | How easily ions flow through one open channel, in picosiemens (pS). |
+| **P_Ca:P_K** | How much more readily the channel passes calcium than potassium. The measured value for IP3R is 15.2. |
+| **Elastic network model** | A model that treats the protein as beads joined by springs, used to find its natural large-scale motions ("modes"). |
+| **A, B, E modes** | Motions classified by symmetry. In an A mode all four subunits move alike, which is the only kind that can open a four-fold pore symmetrically. |
+| **Puff / spark** | A local burst of calcium release from a cluster of IP3 receptors (puff) or ryanodine receptors (spark). |
+| **JSD conservation** | A per-residue score of how little an amino acid position varies across species. A higher score means the position is more conserved. |
+| **VUS** | A "variant of uncertain significance": a human DNA change that has not been classified as harmful or harmless. |
+
+## The simulator lets you see, measure, move and test the receptor.
+
+### The viewer draws each structure and colours it by what is known about it.
+
+The viewer draws the nine curated IP3R structures that the publication uses,
+one control structure (7T3T), 17 further full-length IP3R structures and six
+RyR1 structures. Each can be shown as a cartoon, tube, spheres or sticks.
+It can be coloured by functional region, subunit, secondary structure,
+crystallographic B-factor, conservation, distance to IP3, or disease
+variant. Information tied to residue numbers is only painted when the
+simulator has confirmed that the structure uses the same human numbering.
+The rat structure 7LHF does not, so it is shown grey rather than guessed.
+You can click residues to select them, measure distances, open a sequence
+window, superpose two states and fill unresolved parts of the structure from
+an AlphaFold prediction.
+
+![6DQN coloured by conservation](docs/img/gui_conservation.png)
+
+**Figure 2. Conservation is painted on the structure on a fixed scale.**
+The same 6DQN structure is coloured by how conserved each position is across
+roughly 250 species (the "deep" layer), from blue (variable) to red (highly
+conserved). The scale is fixed at 0.50–0.95 so that colours mean the same on
+every structure, and positions without a score are grey. The translucent
+blue tube down the centre is the pore, drawn at its measured radius; it
+pinches shut where the gate closes it.
+
+### Measuring the pore shows that only the activated structure is open.
+
+The simulator finds the four-fold axis by superposing each subunit onto its
+neighbour. It then measures the pore radius along the axis, locates the
+filter and the gate, and lists every contact with bound IP3. Applied to every
+ITPR3 structure, it shows the opening at the gate:
+
+| PDB | State | Gate radius (Å) |
 |---|---|---|
 | 8TKH | labile resting | 1.95 |
 | 8TLA | higher-order inhibited | 2.44 |
 | 7T3P | preactivated | 2.53 |
 | 6DQN | IP3-bound | 2.55 |
-| 6DQJ | apo | 2.69 |
+| 6DQJ | apo (no ligand) | 2.69 |
 | 8TKG | resting | 2.73 |
 | **8TKF** | **activated** | **5.85** |
 
-`states --extended` adds the 11 more ITPR3 deposits: every one is shut
-(gate 1.57–2.59 Å; inactive 7T3U the narrowest), so 8TKF (and the 7T3T
-control) remain the only open IP3R pores in the PDB.
+The 11 other full-length ITPR3 structures in the PDB are all shut (gate
+radius 1.57–2.59 Å). So 8TKF and the independent control 7T3T are the only
+open IP3R pores that have been deposited.
 
-**Move it.** An elastic-network model of the tetramer gives its collective
-modes, each labelled by its C4 irreducible representation: **A** (all four
-subunits alike — the only kind that can couple to IP3 binding at all four
-sites and to a symmetric pore opening), **B**, or the degenerate **E** pair.
+![Pore radius of every ITPR3 state](docs/img/state_panel_pore.png)
 
-**Watch it open.** The Transition tab (and `python -m ip3r transition`)
-puts two states of one paralog on a residue-matched basis — 2,194 residues
-on each of the four subunits of resting 8TKG and activated 8TKF — superposes
-them on the pore domain, and morphs between them with peptide Cα–Cα
-distances restrained (an interpolation, labelled as one). Side chains are
-interpolated too, atom by atom, so the last frame is 8TKF itself and the gate
-plotted along the path (2.73 → 5.85 Å, half-way at 0.42) is the gate on
-screen; the rigid-side-chain shortcut, drawn dashed, ends 0.7 Å short. Each residue is
-coloured by how far it moves, on a fixed 0–25 Å scale: the cytosolic RIH
-and MIR domains move 17–22 Å on average, while the pore domain moves 2.5 Å
-and the filter 0.8 Å. The tab then asks whether the resting
-state's elastic network points towards the activated one. It does: the
-collective A modes together overlap the observed displacement at 0.67,
-where a random direction of the same symmetry scores 0.04 over all 20 modes.
-No single mode is the answer. The lowest A mode (#5) gives 0.39 and #10
-gives 0.50, and how the move splits among them depends on the 15 Å cutoff
-(from 12 to 21.6 Å the lowest falls 0.48 → 0.24 while the A modes together
-hold at 0.66–0.68; `transition --cutoff-scan`). So the tab's headline plot
-is the A subspace: the collective A modes added lowest first, beside the
-same-symmetry null and the √(A share) ceiling. The displacement is 100 %
-A-symmetric, but that is inherited from C4-imposed reconstruction and is not
-a finding. The network keeps every second Cα: at every third, the strand
-after the unresolved 77–85 loop (residue 86) hangs on too few springs and
-produces five spurious local modes. Any low-collectivity mode that remains is
-named where it sits (the Modes tab and the report say so).
+**Figure 3. The gate widens only in the activated structures.** Panel (a)
+overlays the pore radius of every ITPR3 state, aligned so that the selectivity
+filter sits at zero. The lumen is to the left and the cytosol to the right.
+All states share the same narrow filter at zero, but only activated 8TKF
+(thick red) and the control 7T3T (dashed grey) stay wide through the gate
+region 10–20 Å cytosolic of it. Panel (b) plots the radius at the gate
+(orange) and at the filter (blue) for each state. The filter barely changes,
+while the gate more than doubles in the active states.
 
-![The transition tab](docs/img/gui_transition.png)
+### The morph shows how the receptor moves from resting to open.
 
-**Gate it.** The De Young–Keizer receptor as reduced by Li & Rinzel: the
-bell-shaped Ca²⁺ dependence of open probability, IP3 relieving Ca²⁺
-inhibition, whole-cell Ca²⁺ oscillations (measured window 0.36–0.63 µM
-IP3), and stochastic clusters in which Ca²⁺ coupling turns independent blips
-into cooperative openings. The Gating panel also offers the Hill-type model
-Mak, McBride & Foskett (1998) fitted to single IP3R-1 channels, in which IP3
-tunes Ca²⁺ inhibition alone. From 33 nM to 10 µM IP3 it moves the
-half-inhibition point 6.2× and half-activation 1.016×; De Young–Keizer moves
-them 2.8× and 2.0× (`python -m ip3r gating --model mak`). The park/drive
-receptor's stationary bell is there too (`--model pd`). It moves them 43×
-and 1.09×, so it passes the same test. "The three models side by side"
-draws all three bells at 33 nM and at 10 µM IP3.
+The Transition tab matches the same 2,194 residues on each of the four
+subunits of resting 8TKG and activated 8TKF. It aligns the two structures on
+their pore domain and interpolates between them, keeping neighbouring
+backbone atoms at their correct spacing. The result is a plausible path, not
+a simulated trajectory. The large cytosolic domains move 17–22 Å on average,
+while the pore domain moves about 2.5 Å.
 
-![The three IP3R gating models](docs/img/gui_gating_compare.png)
+The tab then asks whether the resting structure's natural motions (from the
+elastic network model) point towards the open state. They do: the symmetric
+A motions together account for 0.67 of the observed movement, whereas a
+random direction with the same symmetry accounts for 0.04. No single mode
+explains it on its own.
 
-![The Mak 1998 gating model](docs/img/gui_gating_mak.png)
+![The Transition tab](docs/img/gui_transition.png)
 
-The Puffs panel can fill the same cluster with park/drive receptors
-(Siekmann et al. 2012, with the gating variables of Cao et al. 2013; every
-constant read from the authors' code). Nearly all of these are parked at
-rest, so the cluster stays quiet until one receptor enters drive mode. Then
-its Ca²⁺ pulls the others in. Both receptors are measured with one ruler.
-Over 30 s at 0.2 µM IP3, the De Young–Keizer cluster reaches half its
-channels in at most 1 event at any coupling from 0 to 2 µM per open channel.
-The park/drive cluster does so 10–17 times at 0.09–0.32 µM (Fano 2.8, against
-≤ 1.32), and its event sizes split into blips and puffs with a valley
-between (`python -m ip3r puffs --scan`).
+**Figure 4. The resting structure's natural motions point towards the open
+state.** The structure is 8TKG coloured by how far each residue moves on the
+way to 8TKF, on a fixed 0–25 Å scale from blue (still) to red (moves most).
+The cytosolic cap moves most and the membrane pore least. The upper plot
+adds the symmetric A modes one at a time, lowest first: together they
+capture 0.67 of the movement (white line), far above the 0.04 expected by
+chance (dotted line). The lower plot follows the gate radius along the path,
+from 2.73 to 5.85 Å. It is halfway open at 0.42 of the way along. The dashed
+line shows that keeping side chains rigid would leave the gate 0.7 Å short.
+
+### The gating models reproduce the receptor's bell-shaped calcium response.
+
+The Dynamics tab runs three published models of how calcium and IP3 control
+opening. They are the De Young–Keizer model (as simplified by Li and
+Rinzel), the model Mak, McBride and Foskett (1998) fitted to single
+channels, and the park/drive model of Siekmann and Cao. Each gives the
+bell-shaped curve and can be compared at the same IP3 levels. The same tab
+simulates whole-cell calcium oscillations and stochastic clusters of
+channels.
+
+![The three gating models](docs/img/gui_gating_compare.png)
+
+**Figure 5. Three published gating models are compared on one set of
+axes.** Each curve is the probability that a channel is open (vertical)
+against cytosolic calcium on a log scale (horizontal), at a low (33 nM) and
+a high (10 µM) IP3 concentration. Each curve is scaled to its own peak so
+that the shapes can be compared. In the measurements, raising IP3 mainly
+shifts the point where high calcium shuts the channel (the right-hand side of
+the bell). The Mak and park/drive models reproduce this; De Young–Keizer
+also moves the left-hand side.
 
 ![Park/drive puffs](docs/img/gui_puffs_pd.png)
 
-`python -m ip3r microdomain` puts the park/drive cluster in Cao et al.'s
-microdomain: Ca²⁺ pools that fill and drain, fluo-4, and a store that can
-deplete. Puffs are then read from F/F0. As the h42 recovery rate rises from 0.1 to
-5 s⁻¹, the puff rate rises 5.5× and the inter-puff-interval CV climbs from
-0.79 toward 1, as in Cao 2013. With the release set so that the mean blip
-matches Cao's, fluorescence amplitude bends at about 12 receptors while
-Ca²⁺ bends less, because the dye saturates. The mean-field cluster's
-sustained 9 % open state survives the microdomain's kinetics, and depleting
-the store makes it more active, not less. That state belongs to the receptor
-model (`docs/SCIENCE_PUFF_DOMAIN.md`). In the Puffs panel, the park/drive
-receptor has a "Simulate in the microdomain" box. It draws F/F0 with the
-puffs marked, the number open, and the inter-puff intervals against
-Thurley's refractory density and an exponential with the same mean.
-
-![The microdomain cluster](docs/img/gui_puffs_domain.png)
-
-The Channel tab turns each ITPR3 deposit's pore into a K+ conductance by
-drift-diffusion (ported from PIEZO1), with and without the charges of the
-side chains that line it. Only activated 8TKF conducts. It gives 65 pS
-uncharged (25–150 pS over the unmeasured diffusivity and ion radius)
-against 358–545 pS measured, so the continuum model falls 2.4× short even
-at its most generous. Its own lining charges lower the conductance rather
-than raising it. Cancelling the salt-bridged ones (the filter's D2478 is
-paired with R2471 of the next subunit) lowers it further, to 23 pS
-(`python -m ip3r unitary`).
-
-Most of that 2.4× is the model's geometry (`python -m ip3r shortfall`).
-The 1-D model reduces each slice to its inscribed circle. The same
-electrolyte in the voxelised lumen, solved in 3-D, conducts 1.3–2.0× more,
-because the circle leaves out the lumen's corners. It is not a substate:
-Schmitz et al. 2022's independent active-state deposit 7T3T reads the same
-as 8TKF (85 against 106 pS). Nor is it the exit window, which moves the
-answer by 2 %. At bulk diffusivity and a 1 Å K+ exclusion, RyR1's open
-deposit gives 787 pS against 801 measured, and ITPR3 gives 261–278 pS
-against 358–545.
-
-The corners change how much current flows, but not where the voltage
-falls (`python -m ip3r lumen`; Channel panel → "Draw the lumen"). In 8TKF,
-7T3T and RyR1's 9HEO, the 3-D potential puts the half-drop point within
-1.3 Å of the 1-D model's, and the filter's share within 4 points (8TKF: 32 %
-against 35 %). The viewer draws the lumen coloured by that potential, and
-the panel plots both curves.
-
-![8TKF's lumen coloured by the potential, and where the voltage falls](docs/img/gui_lumen.png)
-
-The lining charges' effect does not survive the move to 3-D
-(`python -m ip3r wall3d`). Solved in the lumen's real shape (the ions'
-equilibrium, then one Laplace solve per species), 8TKF's full wall changes
-g by ×0.80, ×1.24 or ×3.1, depending on whether the charge fills the cross-section, sits
-at each group's own centre, or is screened by Poisson–Boltzmann. The 1-D model's ×0.46 holds
-only in a cylinder, and one unmeasured smoothing width moves the 3-D
-reading 0.4–5.7×. With the filter's D2478 salt bridges paired, the wall
-lowers g under every closure at the registered width (×0.45–0.59). RyR1's charge mutants cannot tell the
-closures apart: all of them miss D4899Q (×0.20 measured) by 4×.
-
-The viewer draws that charge on the lumen (Channel panel → "Wall charge",
-"Colour by"): the equilibrium wall potential on a fixed ±5 kT/e scale, or
-where K+'s drop falls through the charged pore. The charge moves the drop,
-not only its size. 8TKF's filter holds 32 % of the neutral drop, but only
-1–18 % with its full wall, because the D2478 ring is a cation well that
-carries almost none of it. With D2478's salt bridges paired the filter
-takes 23–38 % again. So where the voltage falls in the filter depends on
-the same open question as the conductance: whether D2478 is charged.
-
-That question is now answered (`python -m ip3r bridge`,
-`docs/SCIENCE_BRIDGE.md`). D2478 is ionised by both pKa routes (network
-pKa 2.0–2.2 with its R2471′ partner counted, 4.0–4.8 without it; PROPKA
-5.2), and the arginine never titrates. So the pair is two charges, a radial
-dipole behind the filter wall, and neither the full wall nor the paired one
-is a physical state. A new closure solves Poisson–Boltzmann over the whole
-box with the protein at ε 4 and every charged group at its own centre. It
-puts 8TKF's wall at ×3.18: between the partner omitted (×5.30) and the pair
-omitted (×1.79), and raising g in every reading once the rest of the
-protein's charge is counted (7T3T ×3.47). The protein's permittivity
-(2–20) moves this < 3 %. RyR1's D4899Q is still missed (×0.79 against
-×0.20), so no placement of point charges explains it.
-
-![8TKF's lumen coloured by the paired wall's potential](docs/img/gui_lumen_charged.png)
-
-The lumen box offers that closure too ("dielectric"; `python -m ip3r lumen
-8TKF --charge dielectric [--paired]`). Unticked, "salt bridges paired" is
-the dipole; ticked, the pair omitted. It takes two or three minutes. In
-8TKF the dipole gives the same K+ conductance as the full wall under PB
-(×5.07), but not the same profile. The full wall moves the steepest drop
-25 Å cytosolic and leaves the filter 18 %. The dipole keeps it at the
-filter, with 26 % there (neutral 32 %, pair omitted 41 %). A conductance
-cannot tell these readings apart; the drawn drop can
-(`docs/SCIENCE_BRIDGE.md` §4).
-
-![8TKF's lumen under the dielectric closure, the salt bridge a dipole](docs/img/gui_lumen_dielectric.png)
-
-The one electrostatic term every closure left out was the image force: an
-ion near a wall of lower permittivity than the water is pushed away by its
-own polarisation (`python -m ip3r born`, `docs/SCIENCE_BORN.md`). Its cost,
-solved voxel by voxel on the deposit, is about 1 kT on the axis at the
-filter (8TKF 1.19, 7T3T 1.54, 9HEO 0.77; four times that for Ca²⁺). It cuts
-a *neutral* pore's K+ conductance to ×0.20–0.28. It costs the charged ITPR3
-pore nothing (the dipole ×3.38 → ×3.42 in 8TKF): where the wall charge
-dominates, neutrality pins the counter-ion density and the potential pays
-the cost. RyR1's wall does not pin it everywhere, so 9HEO falls ×3.86 →
-×2.18. It moves D4899Q from ×0.79 to ×0.48, but it moves D4938N further
-(×0.74 → ×0.28 against ×0.65 measured), so the mutants' summed error is
-unchanged. The image cost is not what singles out D4899. Ion size at the
-crowded filter is the candidate left.
-
-That candidate is charge–space competition: ions with size, in a
-crowded, charged fluid that screens a divalent best (hard spheres + the
-mean spherical approximation, as in Nonner 2000 and Gillespie 2008;
-`python -m ip3r csc`, `docs/SCIENCE_CSC.md`). RyR1's filter now binds
-Ca²⁺ as Gillespie's model does: at 150 mM K⁺ and 1 mM Ca²⁺ it holds 10 M
-Ca²⁺ against 0.9 M K⁺, with a screening advantage of 4.2 kT and an
-excluded-volume advantage of 0.9 kT (his ~4 and ~0.5–1). But P_Ca:P_K
-only rises from 0.46 to 0.64, against 7.0. The uncharged gate stretch is
-in series with the filter and holds 72 % of Ca²⁺'s resistance, and on its
-own it reads 0.54 by hand (the diffusivity × area ratio). D4899Q stays
-mild (×0.85 against ×0.14). What the model lacks is the field at the gate,
-not the filter's physics.
-
-In 3-D that field is there (`python -m ip3r sel3d`,
-`docs/SCIENCE_SEL3D.md`). P_Ca:P_K is read from the charged lumen's linear
-response, P = D × a Boltzmann-weighted Laplace conductance, with the csc
-fluid in every voxel. Under Poisson the wall's field reaches the gate, and
-the filter still binds Ca²⁺ (8.6 M against 1.2 M K⁺ in 9HEO). But the
-ratio reaches only 1.08 in RyR1 (7.0 measured; 1-D 0.87), and 1.39 / 1.79
-in ITPR3's 8TKF / 7T3T (15.2 measured; 1-D 0.34 / 0.63). 9HEO's gate
-still holds over half of Ca²⁺'s resistance. The one constant that moves it
-is how far each charge is spread toward the gate (smoothing 6 Å: 2.7).
-Xu's mutants still do not single out D4899Q (×0.85 under `pb + csc`
-against ×0.14; D4938N ×0.83 against ×0.47).
-
-The lumen box counts it too (dielectric → "+ image"; `python -m ip3r lumen
-8TKF --charge dielectric --image`), on a 1 Å grid, from the cache in about
-20 s. The surface can be coloured by W itself. With W, a cation's well is
-u + W. The potential u alone deepens to −16 kT/e at the wall, but K⁺'s
-well gets shallower (8TKF −6.2 → −5.1 kT). The image moves ITPR3's K⁺ drop
-back to the filter: 8TKF's dipole leaves it 29 % (24 % without W), near
-the neutral pore's 30 %. RyR1 9HEO's gate carries the drop with or without
-it (`docs/SCIENCE_BORN.md` §4).
-
-![8TKF's lumen coloured by the image cost](docs/img/gui_lumen_image.png)
-
-"Colour by → K+ energy" paints u + W, the energy a cation actually feels,
-on the wall potential's fixed ± scale (u alone without the image). That is
-the well the summary names.
-
-![8TKF's lumen coloured by the K+ energy u + W](docs/img/gui_lumen_energy.png)
-
-Selectivity is a ratio, so it does not depend on the unmeasured diffusivity
-and tests the wall charge directly. Vais et al. 2010's own solutions were
-run through the same pore (`python -m ip3r selectivity`). No reading of
-8TKF's wall comes near the measured P_Ca:P_K of 15.2: 0.17 uncharged, 0.00
-with its lining charges, 0.69 with only the acidic rings. The model's i_Ca
-is at most 0.046 against 0.30 pA/mM. Under a local Donnan partition, the
-lining lysines act as Ca²⁺ barriers. The calibration shows that charge in
-discrete rings cannot make a continuum pore Ca²⁺-selective; a charged
-tract can (`docs/SCIENCE_PERM.md`). Solving Poisson–Boltzmann across each
-slice instead of assuming local Donnan (`selectivity --closure radial`)
-screens the vestibule's K2529 ring, but lifts the charged reading only to
-0.04 (0.01–0.16 over ε 80–10), so the closure is not the Ca²⁺ barrier.
-
-Nor is protonation (`python -m ip3r protonation [8TKF|9HEO] [--corners]`).
-Two independent pKa routes, a Tanford–Kirkwood network titrated by Monte
-Carlo and PROPKA 3, both keep every lining group of 8TKF charged at Vais's
-pH 7.3. The lysine rings stay charged even at a protein-like permittivity
-of 4, where the acid rings lose up to half their charge. No combination of
-rings formal or neutral exceeds P_Ca:P_K 0.69, and with the lysines charged
-none exceeds 0.05. RyR1's open deposit, run through Xu et al. 2006's own
-protocol as the control, fails the same way: 0.46 against 7.0 under every
-pKa reading. The model also misses the order of Xu's charge mutants. The
-missing piece is therefore the continuum model, not the IP3R wall. Xu's
-E4900N also shows that PROPKA wrongly buries E4900 (pKa 8).
-
-![Unitary conductance](docs/img/gui_unitary.png)
-
-**The gate is not the cap (Round 7.21).** `python -m ip3r gate` widens a
-deposit's gate by up to 4 Å (a radial, C4-preserving move, calibrated on
-synthetic atoms) and reads the pore again. On 9HEO the gate's share of
-Ca²⁺'s resistance falls from 53 % to 6 %, yet P_Ca:P_K moves only from
-1.08 to 1.27 against 7.0. On 8TKF it moves from 1.39 to 1.50 against 15.2,
-and on 7T3T it falls. K⁺ conductance gains at most 24 %. Neither the
-conductance shortfall nor the selectivity gap is the gate's shape
-(`docs/SCIENCE_GATE.md`).
-
-**Nor is the protocol (Round 7.23).** `python -m ip3r reversal` runs Xu's
-and Vais's bi-ionic experiments through the 3-D charged lumen: steady
-Poisson–Nernst–Planck on the voxels (Gummel), the reversal found as the
-root of the net current. It is calibrated on Planck's junction,
-Teorell–Meyer–Sievers and an excluded NMDG⁺'s Donnan jump. At reversal,
-P_Ca:P_K lies within 15 % of the linear-response reading: 9HEO 0.90
-against 7.0, 8TKF 1.15 and 7T3T 1.54 against 15.2. Meanwhile the charged
-wall shuts out Cl⁻ (P_Cl:P_K 0.003 against Vais's 0.27). Scaling 8TKF's
-wall charge from 0 to 2× never gives both measured ratios: P_Cl:P_K halves
-by a twentieth of the charge, and P_Ca:P_K never reaches 1
-(`docs/SCIENCE_REVERSAL.md`).
-
-The viewer shows that state (Round 7.24; lumen box → Steady state → "at
-reversal", or `python -m ip3r reversal 8TKF --lumen`). The lumen is
-coloured by each ion's concentration or electrochemical drop at the
-experiment's reversal, Cl⁻ included. Under pb + csc the wall gathers Ca²⁺
-to 6–8 M just luminal of the filter. That well carries only 3–7 % of
-Ca²⁺'s drop. Its resistance lies in the uncharged stretch cytosolic of it:
-60 % at 9HEO's gate, 31 % at 8TKF's.
-
-![8TKF's lumen at the Ca²⁺ experiment's reversal, coloured by Ca²⁺](docs/img/gui_lumen_reversal.png)
-
-**No mean-field wall gives both ratios (Round 7.25).** `python -m ip3r
-wallsearch` scores wall models on P_Cl:P_K and P_Ca:P_K together. Take
-each ratio over the uncharged pore's. For point ions in series, Hölder's
-inequality then gives (P_Cl:P_K)(P_Ca:P_K)² ≤ 1 for any potential
-profile. Vais's pair needs about 3,200. The two exits open to a charged
-wall are small. The reversal's non-linearity reaches 1.2. Opposite-charge
-ring pairs reach 1.01 in 8TKF's lumen and 7.9 only in 7T3T's wide gate,
-and that gain is in Cl⁻. A Ca²⁺-only well leaves Cl⁻ untouched, but it
-peaks at P_Ca:P_K 4.5 (8TKF) / 6.9 (7T3T) at reversal, spanning the whole
-membrane at 4 kT. Deeper wells fill with Ca²⁺ and repel. The measured pair
-needs an interaction this continuum does not carry, such as Ca²⁺
-occupancy blocking K⁺ (`docs/SCIENCE_WALLSEARCH.md`).
-
-The candidates can be drawn (Round 7.26). In the lumen box, Steady state →
-"at reversal, candidate wall" offers the span well, that well with the
-deposit's charge, and the best ring pair. Each is coloured by each ion's
-concentration at reversal. The deposit's own reading, if drawn first, is
-plotted dashed beside it. Inside the well, Ca²⁺'s resistance is at the
-well's edge, where it has to climb out. 7T3T's ring pair keeps some of its
-parallel-path gain at reversal (B ≈ 4.6), but that gain is Cl⁻'s.
-
-![8TKF's span well at reversal, the deposit's own wall dashed beside it](docs/img/gui_lumen_candidate.png)
-
-**A Ca²⁺ site that blocks K⁺ reaches the pair (Round 7.27).** `python -m
-ip3r casite` adds a saturable Ca²⁺ site over the span, four sites deep d.
-It can be compensated (−2e fixed per bound Ca²⁺) and can let its
-occupancy block K⁺. Read at Vais's reversal, affinity alone falls short.
-Uncompensated sites peak near 5 / 7 (8TKF / 7T3T), and compensated ones
-plateau at 9.1 / 13.3 when full. Compensated and blocking, the site
-crosses 15.2 at d = 4.4 / 4.0 kT (K_d 3–6 mM, 8TKF's half occupied), with
-P_Cl:P_K still the uncharged pore's 0.29 / 0.37. The measured pair needs
-Ca²⁺ occupancy that blocks K⁺, the anomalous-mole-fraction mechanism
-(`docs/SCIENCE_CASITE.md`).
-
-The site can be drawn (Round 7.28). The last candidate wall in the lumen
-box is the compensated, blocking site at 8TKF's crossing depth, coloured
-by its occupancy θ or by K⁺'s block energy. On 8TKF it holds 2.0 Ca²⁺
-(θ up to 0.89). K⁺'s drop is steepest inside the occupied band, and
-Ca²⁺'s at the band's cytosolic edge, where it leaves the site.
-
-![8TKF's Ca²⁺ site at reversal, coloured by its occupancy](docs/img/gui_lumen_site.png)
-
-**The site makes a prediction (Round 7.29).** `python -m ip3r molefrac`
-sweeps luminal CaCl₂ from 0.1 to 100 mM through the crossing site. P_Ca:P_K
-peaks near Vais's 10 mM (15.1) and falls on either side: 11.8 / 12.5 at
-1 mM and 9.0 / 12.0 at 100 mM (8TKF / 7T3T). Without the block it falls
-monotonically. The K⁺ current at −40 mV halves at 6 / 16 mM luminal Ca²⁺.
-These are the curves an experiment could test. The site's i_Ca at 0 mV
-(0.28 pA/mM) lands near the measured 0.30, but only because the pore's K⁺
-conductance is 7–9× short: relative to its own conductance the model
-follows GHK independence, which the measurement does not. Narrowed to the
-filter, the gate, filter-to-gate or the vestibule, the site never reaches
-15.2, so its block has to cover the span.
-
-![P_Ca:P_K, the K⁺ current and the site's occupancy against luminal Ca²⁺](docs/img/molefrac.png)
-
-The lumen box can draw the site at any of the sweep's luminal CaCl₂
-levels (Round 7.30), with the previous level's reading set beside it. On
-8TKF the site holds 0.5, 2.0 and 3.0 Ca²⁺ at 1, 10 and 100 mM, and K⁺'s
-block rises from 0.3 to 3.8 kT. The site fills in place: each ion's
-resistance stays where it was.
-
-![8TKF's Ca²⁺ site at 100 mM luminal CaCl₂, coloured by K⁺'s block](docs/img/gui_lumen_site_100mm.png)
-
-**Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
-chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
-wild type, activators only, ≤ 4 Å, best per stated state), one each closed,
-primed, open, inactivated and closed-inactivated, plus a primed deposit from
-the open state's own paper for the morph (9R8O → 9HEO). They go through the
-same measurement: every one is in P11716 numbering, the shut states gate at
-I4937, and only open 9HEO widens (5.05 Å). Its modelled K+ conductance is
-136 pS neutral and 180 pS charged, against 801 pS measured (Xu et al. 2006),
-so the continuum model is short on both receptors. RyR1 also allows a
-stronger test than one number. Five charge-neutralising mutants were
-measured, and the model makes each one on the structure
-(`python -m ip3r mutants`). It gets the direction right for all four lining
-residues and no effect for E4955Q, which does not line the pore. It misses
-the largest effect: D4899Q cuts the conductance to 0.20× but the model
-predicts 0.90×. And D4899, like ITPR3's homologous D2478, is salt-bridged,
-so cancelling ion pairs predicts no effect at all. The bridge does not
-neutralise that charge.
-
-![RyR1 charge mutants](docs/img/gui_ryr_mutants.png)
-
-**RyR1 gating and sparks.** Dynamics → Gating → "RyR1" draws Stern et al.
-1997's two-gate scheme against Murayama et al. 2015's measured rabbit-RyR1
-bell. The scheme activates where RyR1 does (3.9 vs 4.4 µM) but inactivates
-6.7× too readily (48 vs 320 µM). Puffs → "RyR1 sparks" runs a 30-channel
-cluster with the Ca²⁺ coupling derived from one channel's current at 30 nm.
-Uncoupled it gives only blips. Coupled it gives 1.5 sparks per second that
-recruit nearly the whole cluster, read with the same ruler as IP3R puffs.
-With a single cluster Ca²⁺ the sparks last ~120 ms, against ~6 ms
-measured. "RyR1 sparks in the cleft" puts the same channels in Stern's
-junctional cleft (two rows, 60 × 15 nm, edges leaking), where each channel
-sees its own Ca²⁺ from a steady diffusion solve. Sparks there end by local
-inactivation after ~20 ms: six times shorter, still 3× the measurement, and
-no geometric uncertainty closes the gap. The Gating tab also draws the
-scheme fitted to both measured flanks (dashed: Ka 4.9, Ki 249 µM), and
-"RyR1 in the cleft, gating fitted to Murayama 2015" runs it. Once a spark
-starts, it never ends. With inactivation made as weak as the measured bell
-says, the tens of µM in the cleft cannot shut the array at any
-inactivation rate. So what ends a real spark is missing from a Ca²⁺-only
-scheme.
-Adding the fibre's 1 mM free Mg²⁺ (`spark-mg`; in the GUI, Puffs → Mg²⁺
-and "Triggered sparks vs Mg²⁺", and the dash-dot bell in Gating), from open
-sources, supplies it. Competing at the activation site, Mg²⁺ shuts
-triggered sparks with no channel inactivated: the array's feedback falls
-below one. How fast depends on the site's Mg²⁺ affinity. Meissner et al.
-1997 measured it in the assay behind the fitted bell. Carried into that
-assay's 0.17 M NaCl, where Na⁺ already holds the same site, it gives
-K_Mg,A ≈ 770 µM (range 345–1,600 µM), and the activation site alone ends a
-triggered spark in 32 ms at best (435 ms at the central value), against
-6.3 ms measured. With Mg²⁺ also at the inhibitory site, which holds ~80 %
-of channels shut before any trigger, sparks end in 6 ms under every
-reading.
-The V channels, the half of the couplon opposite the voltage sensors, are
-now simulated (`ec`; Rios 1993's allosteric model, Stern's rates). With
-Stern's constants the couplon reproduces his release under voltage clamp:
-a peak, a plateau, and a stop when the membrane repolarises. With the
-C channels fitted to the measured bell, no Mg²⁺ arrangement gives a peak.
-Either release goes on after repolarisation, or the C channels hardly
-open. Emptying the SR (`ec --depletion`) restores a peak only by releasing
-more of the store than a fibre loses. Nor does a two-site inactivation
-gate fitted to the bell's slope (`ec --two-site`) help. It inactivates
-less at cleft Ca²⁺ than the one-site gate, and control is lost further.
-
-![RyR1 sparks](docs/img/gui_sparks.png)
-![RyR1 sparks in the cleft](docs/img/gui_sparks_cleft.png)
-![RyR1 in the cleft, fitted to the measured bell](docs/img/gui_sparks_fitted.png)
-![Triggered sparks against free Mg²⁺](docs/img/gui_sparks_mg.png)
-
-**Check the publication.** The Findings tab re-derives 45 results from the
-six `ip3r_genes` papers and its structural baseline, by three routes of
-different strength: `recomputed` from coordinates with code the two projects
-do not share, `rederived` from the publication's input tables with this
-project's arithmetic, and `read` (the table read, the prose tested).
-
-![The findings panel](docs/img/gui_findings.png)
-
-Residue-keyed findings can be drawn on any structure in human numbering.
-Paper 6's two modules, for example, are shown as Cα traces: the ligand core
-in green and the pore module less the luminal loop in magenta.
-
-![Paper 6's modules on 6DQN](docs/img/gui_modules.png)
-
-**Colour by distance to IP3.** "Distance to IP3 (S22 shells)" paints every
-residue by its all-atom distance to the IP3 bound on its own subunit, in
-S22's four shells (contact < 4.5 Å, then 8, 11.5 and 15 Å). Residues beyond
-15 Å, and subunits with no IP3, are grey. The shell checks' exhibit plots
-conservation against that distance for all three paralogs.
-
-![Ligand shells and conservation against distance](docs/img/gui_shells.png)
-
-**Read the tree.** The Tree tab draws Paper 2's RyR-rooted maximum-likelihood
-tree (134 proteins) from the committed `rooted.nwk`, parsed by this
-project's reader. Each paralog's whole clade is boxed with its size and
-SH-aLRT/UFBoot support, and so is the RyR outgroup. Hagfish and lamprey tips
-are yellow diamonds, labelled with the support of their clade and of the
-node where it joins. A white dot marks each node that clears both support
-bars (80/95). "Vertebrates" zooms to the 57 vertebrate tips with their
-labels. "Show" on any tree check opens this tab. "Beside --bnni" draws the
-model-violation re-search next to it, both rooted on RyR, and lists what the
-guard did to each clade claim: 9 of 10 held, and the ITPR1 core (never well
-supported) fell from 47.8/95 to 47.5/73.
-
-![Paper 2's tree](docs/img/gui_tree.png)
-
-![The reported tree beside the --bnni re-search](docs/img/gui_tree_bnni.png)
-
-**See every genome.** The Genomes tab draws Papers 3 and 4 as a grid: a row
-for each of the 309 assemblies in the retention sweep and a column for each
-cell (ITPR1–3 and the RyR control). Each row sits beside a contig-N50 strip
-on a fixed log scale. You can colour the cells by what the sweep found, by
-the known genes it missed, by the S15a evidence state, by how a protein
-search could reach the gene, or by lesions: whether the cell carries more
-frameshifts and stops than its own genome's identity-matched siblings
-(S15b §8, rebuilt from the per-locus table). Rows sort by N50 (the contiguity bar is drawn),
-by class, or by name, and can be filtered to a class or to assemblies above
-the bar. Clicking a row names the genome and lists its four cells. "Show" on
-a P3 or P4 check opens this tab on the right layer. `P3.lesion_strata`
-opens it on the birds, where ITPR3's excess (25 genomes to 2) sits mostly
-below the bar.
-
-![Misses against contiguity](docs/img/gui_genomes.png)
-
-![ITPR3's lesion excess in the birds](docs/img/gui_genomes_lesion.png)
-
-**See where the receptor is.** The Range tab draws Paper 1 as one bar per
-clade of the 6,928-proteome sweep. Each bar shows the fraction of swept
-proteomes carrying an IP3 receptor call, on a fixed 0–1 scale, coloured by
-supergroup; archaea and bacteria are collapsed to one row each. A red cross
-marks a clade whose absence held in controlled genome assemblies (a small
-one where it held for a class inside the clade). You can hide small clades
-or expand the prokaryotes. Clicking a row lists its genome-level absences.
-Double-clicking a clade (or View → "Genomes (S23)") draws its S23 genome
-assemblies one by one: each genome's control verdict, what the copy ledger
-found, whether its contig N50 reaches its own contiguity bar, and its
-complete gene models on a fixed 0–20 scale. "Show" on any P1 check opens
-this tab.
-
-![Paper 1's range](docs/img/gui_range.png)
-
-![One clade's S23 genomes](docs/img/gui_range_genomes.png)
-
-**See the variants, and where the uncertain ones sit.** The Variants tab lists
-the S17 harvest for one paralog and class. "Draw on structure" puts a sphere
-on every variant residue of that class on all visible subunits: P/LP red,
-B/LB blue, conflicting violet, VUS amber. It draws only on a deposit in that
-paralog's human numbering; on any other it says why and draws nothing. Choose
-a layer under "VUS by layer" and each VUS is placed against its own gene's
-labelled medians on that layer, as in Paper 5 §8. A VUS at or above the P/LP
-median is *pathogenic-like* (pale red), one at or below the B/LB median is
-*benign-like* (pale blue), and an unscored one is grey. The table gains a
-stratum column and the plot shows the three classes with both medians. This
-is a stratification, not a call.
-
-Each median is itself uncertain, so the plot shades its exact 95 % interval
-(a distribution-free interval from order statistics). A VUS that a
-threshold inside an interval could move is drawn hollow and marked "near
-the P/LP (or B/LB) median" in the table. A class with five positions or
-fewer cannot bound its median: ITPR2's P/LP median is one position and
-ITPR3's is five. The panel says so, and no VUS of theirs counts as firmly
-pathogenic-like.
-
-![Variants and the VUS stratification](docs/img/gui_variants.png)
-
-![ITPR2's thresholds, one of them unbounded](docs/img/gui_variants_bands.png)
-
-**See what the map leaves out, as a prediction.** Representation →
-Completeness adds the AlphaFold model's residues where a deposit has none.
-"+ AlphaFold gaps" fills the internal stretches, each fitted on resolved
-residues on both sides. "+ gaps and ends" also adds the termini, which have
-one side to fit on. The fill is drawn in AlphaFold's own pLDDT colours
-whatever the deposit is coloured by. Each seam is a bond from the deposit to
-the fill: pale where it closes, red where it does not. The fill follows a
-morph or mode frame. It is only drawn: every measurement in the application
-still runs on the deposit. The model is chosen by measuring which downloaded
-prediction is in the deposit's numbering, or failing that, which one is the
-same protein through an alignment of the deposit's construct. So rat 7LHF is
-filled from rat ITPR1 isoform 8. The two splice segments the isoform lacks
-are left empty, and the panel says so. 9YKK (ITPR2) has no model and is
-refused, and the panel shows why.
-On 8TKG, 1,592 residues are filled over the four subunits, at a mean pLDDT
-of 38. AlphaFold is least sure exactly where the map is empty. Filling 16
-stretches that 8TKG does resolve (but another deposit does not) lands at a
-median 1.1 Å, against 5.5 Å for a straight line (`python -m ip3r graft 8TKG --calibrate`).
-Length does not break a fill, but low confidence does
-(`python -m ip3r graft 8TKH --long`). Hidden 60-residue windows fill to
-1.5 Å where AlphaFold is confident. The one resolved stretch below pLDDT 50,
-8TKH 926–943, was placed 58 Å off, further than a straight line. So the
-summary counts the residues below pLDDT 50 (1,308 of 8TKG's 1,592) and says
-they are not positions.
-
-![AlphaFold fills with their seams](docs/img/gui_alphafold.png)
-
-**Compare two states by eye.** Representation → Superpose draws another
-deposit of the same paralog on the one shown, in orange. It uses the
-Transition tab's residue-matched fit (on the pore domain, or global), with
-no morph built. Every atom of the second deposit is moved by that fit's
-transform, so side chains and IP3 are its own. Its subunits are relabelled
-to the ones they were matched to, so the Subunits toggles hide the pair
-together. 8TKF on 8TKG: 3.14 Å over the pore, 16.11 Å overall, the
-cytosolic cap swinging while the membrane domain stays put. A session
-keeps the choice and refits it on restore.
-
-![8TKF (orange) superposed on 8TKG](docs/img/gui_superpose.png)
-
-## The checks, as of ip3r_genes S29
-
-52 checks, all confirmed. The two discrepancies they found were genuine, and
-ip3r_genes measured and corrected both in its S29 (2026-09-28,
-`../ip3r_genes/docs/s29_simulator_review.md`):
-
-- **`P6.contacts_heavy_atom`.** S22's positive control (S0's ten IP3
-  contacts recovered in all six IP3-bound depositions) holds under S22's rule,
-  which counts hydrogens. Under S0's heavy-atom definition, Arg503 is 4.78 Å
-  (8TKG) and 4.83 Å (8TKH) from IP3. ip3r_genes re-measured this with its own
-  reader (`contact_rule.tsv`), and its ligand paper and manuscript now state
-  it. The check compares every distance with that table and still reads the
-  pre-S29 claim as a discrepancy when the table is absent.
-- **`P5.report_both_metrics`.** The S17 report and the thesis said the gate
-  and filter are the most constrained elements "on both metrics and in all
-  three paralogs". On the JSD, the ITPR1 top two are RIH-associated and the
-  gate, and the filter is fourth in ITPR1 and ITPR2. Both now state the
-  papers' narrower version. The check reads the report's sentence and tests
-  whichever version it states, rank by rank.
-
-![The heavy-atom contact distances](docs/img/check_contacts_heavy_atom.png)
-
-The table of every check, its kind and what it re-derived is in
-`docs/SCIENCE_CHECKS.md`.
-
-Every check is calibrated: `tests/test_checks_calibration.py` runs each one on
-a copy of only the tables it declares, then plants a change and requires the
-verdict to flip.
-
-## Installing
-
-```
-bash scripts/create_env.sh          # or: conda create -n ip3r_sim --clone piezo1
+**Figure 6. Calcium coupling turns scattered single openings into
+coordinated puffs.** A cluster of 20 park/drive receptors is simulated for
+5 seconds at 0.2 µM IP3, twice with the same random numbers. In the upper
+trace (coupled) each open channel raises the calcium its neighbours see, so
+openings bunch into puffs in which many channels open together. In the
+middle trace (uncoupled) channels open independently and never more than a
+few at once. The histogram shows that the coupled cluster produces a separate
+population of large events. The high Fano factor (3.22) measures this
+bunching.
+
+### The permeation models turn each pore's shape into a predicted current.
+
+The Channel tab and several command-line analyses estimate how fast ions flow
+through each open pore. They start from a one-dimensional drift-diffusion
+model and go on to three-dimensional solutions in the real shape of the
+lumen. The models include the charges on the pore wall, the image force from
+the low-permittivity protein, ion size and crowding, and the bi-ionic
+experiments used to measure selectivity. The results so far are summarised
+[below](#the-models-have-produced-several-findings-so-far). The full account,
+with every figure, is in [`docs/RESULTS.md`](docs/RESULTS.md).
+
+![8TKF's lumen coloured by the potential](docs/img/gui_lumen.png)
+
+**Figure 7. The simulator draws the open pore's lumen and shows where the
+voltage falls.** The coloured surface inside activated 8TKF is the space
+available to a potassium ion, coloured by the electric potential from the
+lumen (blue) to the cytosol (red). The upper plot compares the lumen's
+cross-sectional area in 3-D (blue) with the simpler 1-D model (green), which
+keeps only the largest inscribed circle. The lower plot shows how much of the
+applied voltage has been dropped at each height. The two models agree on
+where the voltage falls: 32 % across the filter in 3-D and 35 % in 1-D.
+
+### The Findings tab re-derives 52 results from the publication.
+
+The Findings tab runs 52 checks against the `ip3r_genes` papers and their
+structural baseline. Each check is labelled by how independent it is:
+
+- **recomputed** (9 checks): measured again from the atomic coordinates with
+  code the two projects do not share;
+- **rederived** (39 checks): computed again from the publication's input
+  tables with this project's own arithmetic;
+- **read** (4 checks): the publication's table is read and its prose is
+  tested against it.
+
+All 52 are confirmed as of `ip3r_genes` supplement S29. Every check is
+calibrated: a test plants a change in one of its input tables and requires the
+verdict to flip. Details of each check are in
+[`docs/SCIENCE_CHECKS.md`](docs/SCIENCE_CHECKS.md).
+
+![The Findings tab](docs/img/gui_findings.png)
+
+**Figure 8. Each finding shows the claim, the method, the verdict and a
+plot.** The list at the top groups the checks by paper, each with its
+verdict (green means confirmed) and kind. The selected check,
+`S0.pore_profile`, compares the published pore radius of 6DQN with the one
+measured here. The text states the claim, how it was re-derived, the source
+files, and the rule for agreement. The plot below overlays the published
+profile (orange) and the recomputed one (dashed blue). They coincide, with
+99.3 % of points within 0.05 Å.
+
+### Further tabs present the publication's evolutionary and genetic results.
+
+- **Tree** draws the receptor family's evolutionary tree (134 proteins,
+  rooted on the ryanodine receptors) with each paralog's clade boxed.
+- **Genomes** shows 309 genome assemblies as a grid of which receptor genes
+  were found, missed or damaged, beside each assembly's quality.
+- **Range** shows what fraction of 6,928 proteomes carry a receptor, clade by
+  clade across the tree of life.
+- **Variants** puts human disease variants on the structure and places each
+  VUS relative to the known harmful and harmless variants.
+
+Each of these tabs is described, with figures, in
+[`docs/USER_GUIDE.md`](docs/USER_GUIDE.md).
+
+## The models have produced several findings so far.
+
+These are the main results. The evidence behind each, and the figures, are in
+[`docs/RESULTS.md`](docs/RESULTS.md).
+
+1. **Only the activated structure conducts, and it conducts too little.** The
+   simple model predicts 65 pS for 8TKF, against 358–545 pS measured. Solving
+   in the lumen's real 3-D shape raises the prediction 1.3–2.0×. The same
+   method gives RyR1's measured conductance almost exactly (787 against 801
+   pS), so the remaining IP3R shortfall is real.
+2. **The charged wall alone cannot explain calcium selectivity.** No reading
+   of the wall's charges, protonation states, electrostatic treatments, image
+   forces or ion crowding lifts P_Ca:P_K above about 2, against 15.2 measured. RyR1 fails
+   in the same way, which points to the model's treatment of ions rather than
+   to the IP3R structure.
+3. **The gate's shape and the measuring protocol are not the problem.**
+   Widening the gate by up to 4 Å moves P_Ca:P_K by less than 20 %, and
+   simulating the full bi-ionic reversal experiment moves it by 15 % or less.
+4. **A mathematical bound rules out every smooth potential.** For point ions
+   passing in single file, the product of the two measured ratios cannot
+   exceed 1 relative to an uncharged pore. The measured pair needs about 3,200.
+5. **A calcium-binding site that blocks potassium reproduces both measured
+   ratios.** A saturable calcium site spanning the pore, compensated by fixed
+   charge and blocking K⁺ when occupied, reaches 15.2 at a binding energy of
+   about 4 kT (dissociation constant 3–6 mM). This is the
+   "anomalous mole-fraction" mechanism known from calcium channels.
+6. **That site makes a testable prediction.** Sweeping luminal calcium from
+   0.1 to 100 mM, P_Ca:P_K should peak near 10 mM, and the K⁺ current should
+   halve at 6–16 mM luminal calcium.
+7. **Ryanodine receptor sparks need magnesium to end.** A calcium-only gating
+   scheme fitted to RyR1's measured calcium response never ends a spark.
+   Adding the muscle fibre's 1 mM free magnesium ends it in about 6 ms, as
+   measured.
+
+## You can install the simulator with conda in a few steps.
+
+### The simulator needs Python 3.11 and a machine with OpenGL 4.1.
+
+- **Operating system:** developed on macOS; Linux should work. The viewer
+  needs OpenGL 4.1.
+- **Python:** 3.11 or later, with NumPy, SciPy and Matplotlib. The viewer
+  also needs PyQt6 and moderngl, and the protonation analysis uses PROPKA
+  3.5.1.
+- **Disk:** about 90 MB for the downloaded structures and AlphaFold models.
+- **Optional:** a copy of [`ip3r_genes`](https://github.com/gddickinson/ip3r_genes)
+  for the Findings tab and the publication tabs. Everything else runs without
+  it.
+
+### The installation takes four commands.
+
+```bash
+git clone https://github.com/gddickinson/ip3r-simulator.git
+cd ip3r-simulator
+bash scripts/create_env.sh     # creates the "ip3r_sim" conda environment (or: make env)
 conda activate ip3r_sim
-make fetch                          # the registry's 16 mmCIF files, ~46 MB, into ref/
+make fetch                     # downloads the 33 structures (~86 MB) and AlphaFold models into ref/
 ```
 
-Clone `ip3r_genes` beside this repository (or set `IP3R_GENES_DIR`) for the
-findings checks; everything else runs without it.
+If you prefer pip, `pip install -e ".[all]"` installs the package with the
+viewer and developer tools (then add `pip install propka==3.5.1`).
 
-## Running
+To enable the publication checks, clone `ip3r_genes` next to this repository
+(so that `../ip3r_genes` exists) or point to it with an environment variable:
 
-```
-./run_app.command                   # the GUI (activates ip3r_sim; double-click in Finder)
-python -m ip3r                      # the GUI, from an activated environment
-python -m ip3r --session view.json  # the GUI, reopened on a saved session
-python -m ip3r checks [--paper constraint] [--figures out/]
-python -m ip3r states               # the ITPR3 gating states at the pore
-python -m ip3r states --extended    # ... and every other full-length ITPR3 deposit
-python -m ip3r unitary              # their K+ conductance, vs 358/545 pS
-python -m ip3r shortfall [--scan]   # every open deposit in 1-D and 3-D vs the measurement
-python -m ip3r lumen [8TKF ...] [--charge dielectric [--paired] [--image]]  # where the voltage falls: 3-D vs 1-D, neutral or charged
-python -m ip3r wall3d [--scan] [--mutants]  # the lining charges in 3-D: three closures, RyR1 mutants
-python -m ip3r bridge [PDB] [--scan] [--mutants]  # the lining salt bridge: pKas, then its field with the protein in it
-python -m ip3r born [PDB] [--scan] [--mutants]    # the image cost of the low-eps wall on K+ g and Xu's mutants
-python -m ip3r csc [PDB] [--scan]                 # charge-space competition: filter binding, Xu's six P_Ca:P_K, Vais's ratios
-python -m ip3r reversal PDB --lumen [READING ...] [--experiment Ca2+|Cl-]  # each ion on the lumen at reversal
-python -m ip3r sel3d [PDB] [--mutants]            # P_Ca:P_K from the 3-D charged lumen, point ions and with the csc fluid
-python -m ip3r selectivity          # 8TKF's P_Cl:P_K, P_Ca:P_K, i_Ca vs Vais 2010
-python -m ip3r protonation [9HEO] [--corners]  # lining pKas (network, PROPKA) and selectivity under each
-python -m ip3r states --paralog RYR1   # the curated RyR1 states (also unitary)
-python -m ip3r mutants              # RyR1 charge mutants: model vs Xu 2006
-python -m ip3r transition 9R8O 9HEO # RyR1 primed -> open
-python -m ip3r ryr-gating | sparks --scan   # RyR1 bells; sparks over the coupling band
-python -m ip3r sparks --cleft      # sparks with each channel's own Ca2+ in the cleft
-python -m ip3r sparks --cleft --fit  # the same with Ka, Ki fitted to Murayama's bell
-python -m ip3r spark-termination --scan fit|ki|rate|use|ratio|fraction|low-activity|speed  # what ends a cleft spark
-python -m ip3r spark-mg [--scan] [--reading measured|selectivity|meissner]  # Mg2+ ends a triggered spark
-python -m ip3r ec [--scan] [--reading R] [--use]  # the couplon under voltage clamp (V + C channels)
-python -m ip3r ec --two-site       # ... with a two-site inactivation gate fitted to the bell's slope
-python -m ip3r ec --depletion [--pool-scan]  # ... with the SR emptying (Stern's Fig. 20 pool)
-python -m ip3r info 8TKF            # one deposit, measured
-python -m ip3r modes 6DQN           # normal modes with C4 irreps
-python -m ip3r transition 8TKG 8TKF # morph, displacement, mode overlap (--gate: pore per frame;
-                                    #  --cutoff-scan, --stride-check: the network against itself)
-python -m ip3r graft 8TKG --calibrate   # AlphaFold fills, seams, and how good they are
-python -m ip3r graft 8TKH --long        # ... on long windows and islands; 7LHF by alignment
-python -m ip3r gating | oscillate --window | puffs --ip3 0.2
-python -m ip3r puffs --model park-drive | puffs --scan   # the two receptors
-make help
+```bash
+export IP3R_GENES_DIR=/path/to/ip3r_genes
 ```
 
-Mouse: left-drag rotate, shift-drag pan, wheel zoom, click to identify a
-residue (element and conservation shown). `Ctrl+1` side view, `Ctrl+2` down
-the pore, `Ctrl+3` one IP3 site (its 15 Å pocket, the tetramer in front of
-it clipped away), `Ctrl+0` fit to view, `Space` spin. Until you move the
-camera, the view keeps the molecule filling the viewport as the window or
-the visible subunits change. "Show on structure" for the IP3-contact and
-ligand-shell checks opens the site view. The deposition list is grouped by
-family, with RyR1 collapsed.
+If you already have the structure files, `IP3R_STRUCTURE_MIRROR=/path/to/dir`
+makes `make fetch` copy them rather than download them.
 
-**Changing a parameter.** Help → Parameters… (`Ctrl+Shift+P`) lists every
-registered number with its default, bounds and source; double-click a value
-to change it (out-of-range values are clamped, and the clamp is reported).
-While anything differs from its default an amber banner runs across the top
-of the window, and the findings checks report *not run* rather than confirm.
-Nothing typed is remembered after you quit. "Export…" writes the set as
-JSON, which `IP3R_PARAMETERS=file.json python -m ip3r …` reproduces headless.
-A control whose starting value is a parameter (the Puffs cluster size and
-coupling, the microdomain run length) follows an edit unless you have typed
-your own value there. Drawings nobody asked for (the Gating plot, the
-displacement and ligand-shell colours and their legend) are redrawn.
-Results you ran (a puff simulation, a channel measurement, modes, a
-transition) keep the values they were computed with until you run them again.
+## You can run the simulator as a desktop app or from the command line.
 
-![Parameter editor](docs/img/gui_parameters.png)
+### The desktop app opens with a single command.
 
-**Saving where you were.** File → Save session… (`Ctrl+Shift+S`) writes the
-view as JSON: the deposit, style, colouring, layer, subunits, marked sites,
-pore, camera, open tab, any transition built (end, fit, method, frame), the
-normal mode animating and its amplitude, the Dynamics settings (gating model,
-oscillation, puffs, microdomain) and the Variants view (paralog, class, layer,
-drawn). A mode animation is recomputed and restarted; a simulation is not
-re-run, only its settings come back. File → Open session… (`Ctrl+O`) or `--session` puts it back. A session holds
-no coordinates and no results: it is re-derived from the same inputs on
-opening. It does record the parameter overrides in force when it was saved.
-If they differ from the current set, you are asked whether to apply them
-(the deposit is then re-measured) or keep your own.
+```bash
+python -m ip3r                        # opens the app on 6DQN
+./run_app.command                     # the same, activating the environment first (double-click in Finder)
+python -m ip3r --session view.json    # reopens a saved view
+```
 
-## How it is built, and how it checks itself
+Drag with the left mouse button to rotate, shift-drag to pan and use the
+scroll wheel to zoom. Click a residue to select it and right-click for a
+menu of actions. **Ctrl+1** gives the side view, **Ctrl+2** looks down the
+pore and **Ctrl+3** centres on an IP3 binding site. **F11** switches to full
+screen and **F1** opens the built-in guide. The full list of controls,
+panels, the parameter editor and saved sessions is in
+[`docs/USER_GUIDE.md`](docs/USER_GUIDE.md).
 
-See [`INTERFACE.md`](INTERFACE.md) for the module map and
-[`docs/SCIENCE.md`](docs/SCIENCE.md) for the models (the ryanodine
-receptor in [`docs/SCIENCE_RYR.md`](docs/SCIENCE_RYR.md), and the couplon in
-[`docs/SCIENCE_EC.md`](docs/SCIENCE_EC.md)). Every number a
-calculation uses is a registered parameter with a unit, bounds and a source
-(`python -m ip3r params`); curated data imported from `ip3r_genes` records
-the SHA-256 of its source tables (`make sync-check`). Files stay under 500
-lines. What is next is in [`ROADMAP.md`](ROADMAP.md).
+### Every analysis can also be run from the command line.
 
-The GUI is tested by driving the real application (`make screenshots`),
-which also writes the screenshots here. Its steps are in named groups, so a
-change can be checked by the groups it touches: `make screenshots
-STEPS=lumen,extras`, and `make screenshot-groups` lists them. `make
-screenshots-full` also runs every findings check in the GUI first.
+The science runs without the viewer, which suits scripts and remote
+machines. The most useful commands are:
 
-## References
+```bash
+python -m ip3r info 8TKF          # measure one structure: axis, numbering, pore, filter, gate, IP3 contacts
+python -m ip3r states             # gate and filter radius of every ITPR3 state
+python -m ip3r checks             # re-derive the ip3r_genes findings (needs ip3r_genes)
+python -m ip3r transition 8TKG 8TKF   # morph resting -> open and compare it with the normal modes
+python -m ip3r unitary            # predicted K+ conductance of each state against the measurements
+python -m ip3r gating --model mak # the Mak 1998 gating model's bell-shaped curve
+python -m ip3r puffs --model park-drive   # a stochastic cluster of park/drive receptors
+python -m ip3r params             # every registered parameter with its unit, bounds and source
+make help                         # every maintenance task
+```
+
+The complete list of commands and their options is in
+[`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#every-command-line-analysis-is-listed-here-by-topic).
+The desktop app's **Analyses** menu runs the same commands in their own
+window.
+
+### Any parameter can be changed, and the change is always visible.
+
+Every constant is listed in the parameter editor (Help → Parameters, or
+**Ctrl+Shift+P**) with its default, bounds and source. When anything differs
+from its default, an amber banner appears and the findings checks report
+*not run* rather than *confirmed*. An edited set can be exported and replayed
+headless with `IP3R_PARAMETERS=file.json python -m ip3r …`.
+
+## The repository is organised into layers, and every module is mapped.
+
+The code is split into layers that depend in one direction:
+`io → core → structure → physics → analysis`, with the renderer (`render`)
+and the desktop app (`ui`) consuming them. The science never imports the
+viewer, so it runs headless in the command line, tests and notebooks.
+[`INTERFACE.md`](INTERFACE.md) maps every module, class and function, and
+[`CONTRIBUTING.md`](CONTRIBUTING.md) describes the layout, the tests and the
+project rules for anyone changing the code.
+
+The tests run with `make test` (about 740 tests; those needing missing data
+are skipped). `make screenshots` drives the real app through every panel,
+fails on a broken one, and rewrites the screenshots in `docs/img/`.
+
+The documents in `docs/` explain the models:
+
+| Document | Subject |
+|---|---|
+| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | using the app and the command line, with the tab-by-tab figures |
+| [`docs/RESULTS.md`](docs/RESULTS.md) | the conductance and selectivity results in plain language, IP3R and RyR1 |
+| [`docs/RESULTS_DYNAMICS.md`](docs/RESULTS_DYNAMICS.md) | the gating, puff and spark results in plain language |
+| [`docs/SCIENCE.md`](docs/SCIENCE.md) | the models, their equations and sources |
+| [`docs/SCIENCE_CHECKS.md`](docs/SCIENCE_CHECKS.md) | every findings check, paper by paper |
+| [`docs/SCIENCE_PERM.md`](docs/SCIENCE_PERM.md) | the pore permeation model and selectivity |
+| [`docs/SCIENCE_RYR.md`](docs/SCIENCE_RYR.md), [`docs/SCIENCE_EC.md`](docs/SCIENCE_EC.md) | the ryanodine receptor, sparks and excitation–contraction coupling |
+| `docs/SCIENCE_*.md` (others) | one document per modelling round: image forces, salt bridges, ion crowding, 3-D selectivity, the gate, reversal, the wall search, the calcium site |
+| [`ROADMAP.md`](ROADMAP.md), [`SESSION_LOG.md`](SESSION_LOG.md) | what is planned and what was done, with the reasons |
+
+## Licence, citation and references are listed at the end.
+
+### The code is released under the MIT licence.
+
+The licence is declared in [`pyproject.toml`](pyproject.toml). Structures come
+from the [RCSB Protein Data Bank](https://www.rcsb.org) and predicted models
+from the [AlphaFold Protein Structure Database](https://alphafold.ebi.ac.uk);
+please cite the original depositors and AlphaFold when you use them. The
+renderer, file reader, camera and parameter registry are ported from the
+[PIEZO1 simulator](https://github.com/gddickinson/piezo1-simulator).
+
+### Please cite the simulator and the publication project together.
+
+If you use this software, please cite this repository
+(`https://github.com/gddickinson/ip3r-simulator`) and the `ip3r_genes`
+project whose results it re-derives.
+
+### The main modelling sources are listed here.
 
 De Young & Keizer 1992 (PNAS 89:9895); Li & Rinzel 1994 (J Theor Biol
 166:461); Bezprozvanny, Watras & Ehrlich 1991 (Nature 351:751); Mak, McBride
 & Foskett 1998 (PNAS 95:15821); Swillens et al. 1999 (PNAS 96:13750); Shuai &
 Jung 2002 (Biophys J 83:87); Siekmann et al. 2012 (Biophys J 103:658); Cao et
 al. 2013 (Biophys J 105:1133); Cao et al. 2014 (PLoS Comput Biol
-10:e1003783); Smith & Parker 2009 (PNAS 106:6404); Paknejad &
-Hite 2018 (NSMB 25:660); Atilgan et al. 2001 (Biophys J 80:505); Yang, Song &
-Jernigan 2009 (PNAS 106:12347); Tama & Sanejouand 2001 (Protein Eng 14:1);
-Brüschweiler 1995 (J Chem Phys 102:3396); Kabsch 1976 (Acta Cryst A32:922); Hanley &
-McNeil 1982 (Radiology 143:29); Barlow & Thornton 1983 (J Mol Biol
-168:867); Xu et al. 2006 (Biophys J 90:443); Stern, Pizarro & Ríos 1997
-(J Gen Physiol 110:415); Murayama et al. 2015 (PLoS One 10:e0130606); Ríos
-et al. 1999 (J Gen Physiol 114:31). Full entries: `ip3r/resources/references.json`.
+10:e1003783); Smith & Parker 2009 (PNAS 106:6404); Paknejad & Hite 2018
+(NSMB 25:660); Atilgan et al. 2001 (Biophys J 80:505); Yang, Song & Jernigan
+2009 (PNAS 106:12347); Tama & Sanejouand 2001 (Protein Eng 14:1);
+Brüschweiler 1995 (J Chem Phys 102:3396); Kabsch 1976 (Acta Cryst A32:922);
+Hanley & McNeil 1982 (Radiology 143:29); Barlow & Thornton 1983 (J Mol Biol
+168:867); Vais et al. 2010 (J Gen Physiol 136:687); Xu et al. 2006 (Biophys J
+90:443); Stern, Pizarro & Ríos 1997 (J Gen Physiol 110:415); Murayama et al.
+2015 (PLoS One 10:e0130606); Ríos et al. 1999 (J Gen Physiol 114:31).
+Every reference, with the parameters that rely on it, is in
+`ip3r/resources/references.json`.

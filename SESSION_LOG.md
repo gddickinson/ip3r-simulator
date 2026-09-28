@@ -3543,3 +3543,36 @@ STEPS=reversal,session` passed (reversal 930 s); new screenshot
 
 **Next.** Round 7.31 (science): Vais's i_Ca is 8× below independence. Try
 a site slow to release Ca²⁺, or a second high-affinity site.
+
+## 2026-09-28 — README rewritten for readers outside the project
+
+**Why.** The user asked for a comprehensive README: a detailed background,
+plain-English explanations, section titles that are complete sentences,
+a title and caption for every figure, and the install and usage details a
+GitHub repository needs. The old README (762 lines) had grown round by round
+into a changelog of findings, dense with shorthand ("closure", "×0.80",
+"pb + csc") that assumed the reader had followed every round. It also said
+45 checks in one place and 52 in another, and gave the fetch size as 16
+files and ~46 MB (it is 33 structures and ~86 MB).
+
+**What.** The README is now a front page (490 lines, under the 500-line
+rule): the biology (calcium signalling, the receptor's parts, cryo-EM
+states, what `ip3r_genes` claims, why RyR1 is the control, a glossary),
+what the simulator does with eight captioned figures, the findings as seven
+plain statements, requirements, installation, running, the layers and the
+documents. The detail moved into four new files so that each stays under
+500 lines: `docs/USER_GUIDE.md` (controls, every tab with its figures,
+parameters, sessions, every command, environment variables, common
+problems), `docs/RESULTS.md` (conductance and selectivity, R1–R12),
+`docs/RESULTS_DYNAMICS.md` (gating, puffs, sparks, D1–D7) and
+`CONTRIBUTING.md` (layout, tests, rules, the session protocol). Every
+heading is a sentence, and every figure has a numbered title and a caption
+saying what it shows. All 39 images of the old README are still used, and
+`casite_ratio`, `state_panel_pore`, `gui_conservation`, `gui_ryr_gating`
+and `gui_analysis` are added.
+
+**Checked.** Every figure was looked at before its caption was written; the
+counts (33 structures, 52 checks: 39 rederived / 9 recomputed / 4 read) were
+read from the code; every `python -m ip3r` line in the README and user guide
+was parsed against `cli.build_parser()`, options included; every relative
+link and image resolves. No code changed, so no tests were run.
