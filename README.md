@@ -587,22 +587,27 @@ keeps the choice and refits it on restore.
 
 ![8TKF (orange) superposed on 8TKG](docs/img/gui_superpose.png)
 
-## The checks, as of Round 7.7
+## The checks, as of ip3r_genes S29
 
-52 checks: 50 confirmed, 2 discrepancies. Both discrepancies are genuine, and neither
-touches a published paper's headline:
+52 checks, all confirmed. The two discrepancies they found were genuine, and
+ip3r_genes measured and corrected both in its S29 (2026-09-28,
+`../ip3r_genes/docs/s29_simulator_review.md`):
 
-- **`P6.contacts_heavy_atom`.** S22's positive control — S0's ten IP3 contacts
-  recovered in all six IP3-bound depositions — is reproduced exactly with
-  S22's rule, which counts hydrogens. Under S0's own heavy-atom definition,
-  Arg503 is 4.78 Å (8TKG) and 4.83 Å (8TKH) from IP3, so the control holds
-  in 4 of 6 depositions, and in the other two only through a hydrogen.
-- **`P5.report_both_metrics`.** The S17 report says the gate and filter are
-  the most constrained elements "on both metrics and in all three
-  paralogs". On the JSD the ITPR1 top two are RIH-associated and gate, and
-  the ITPR2 top two are gate and the β-trefoil. The paper's own Results
-  state the narrower, correct version, which `P5.gate_filter_most_conserved`
-  confirms.
+- **`P6.contacts_heavy_atom`.** S22's positive control (S0's ten IP3
+  contacts recovered in all six IP3-bound depositions) holds under S22's rule,
+  which counts hydrogens. Under S0's heavy-atom definition, Arg503 is 4.78 Å
+  (8TKG) and 4.83 Å (8TKH) from IP3. ip3r_genes re-measured this with its own
+  reader (`contact_rule.tsv`), and its ligand paper and manuscript now state
+  it. The check compares every distance with that table and still reads the
+  pre-S29 claim as a discrepancy when the table is absent.
+- **`P5.report_both_metrics`.** The S17 report and the thesis said the gate
+  and filter are the most constrained elements "on both metrics and in all
+  three paralogs". On the JSD, the ITPR1 top two are RIH-associated and the
+  gate, and the filter is fourth in ITPR1 and ITPR2. Both now state the
+  papers' narrower version. The check reads the report's sentence and tests
+  whichever version it states, rank by rank.
+
+![The heavy-atom contact distances](docs/img/check_contacts_heavy_atom.png)
 
 The table of every check, its kind and what it re-derived is in
 `docs/SCIENCE_CHECKS.md`.

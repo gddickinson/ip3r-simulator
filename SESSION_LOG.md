@@ -3377,3 +3377,53 @@ verdict moved.
 
 **Next.** Round 7.29 (science): the mole-fraction prediction against
 luminal Ca²⁺, and the site's band narrowed.
+
+## 2026-09-28 (44) — Review of ip3r_genes, and its S29
+
+**Why.** The user asked whether this project proves or disproves the
+ip3r_genes findings, and to update that project where needed (explicitly
+overriding, for this task, the rule that we never edit it from here), with
+figures from the app.
+
+**Review.** `python -m ip3r checks` against ip3r_genes `be01abf` gave 50
+confirmed and 2 discrepancies, unchanged since Round 7.7. A survey of its
+text found no permeation or selectivity claim in any paper or the
+manuscript. One plain-language passage (FINDINGS 2026-08-18, echoed in the
+S0 review) reads "not a precision filter" off the filter's width, which
+Rounds 7.23–7.27 qualify. 8TKF's uncharged pore gives P_Ca:P_K 0.26 against
+15.2 measured.
+
+**ip3r_genes S29** (`707e99e`; its SESSION_LOG and
+`docs/s29_simulator_review.md` hold the detail):
+- The contact control was re-measured with its own reader
+  (`s29_contact_rule.py` → `contact_rule.tsv`, refusing unless it
+  reproduces `shell_agreement.tsv`). Arg503 is 4.778 / 4.833 Å by heavy
+  atoms in 8TKG / 8TKH, which matches our 4.78 / 4.83. The ligand paper and
+  the manuscript now say so.
+- "On both metrics" was corrected in the thesis §11.10 and the S17 and S22
+  reports. The papers already had it right.
+- A dated FINDINGS entry, and four of our figures in `docs/figures/s29/`.
+  All three builds pass (715 / 245 / 289 claims). The thesis's production
+  counts had been stale since the S26 follow-up and are now current.
+
+**Here.**
+- `P6.contacts_heavy_atom` now compares each distance with
+  `contact_rule.tsv`.
+- `P5.report_both_metrics` reads the report's sentence and tests the
+  version it states, rank by rank.
+- `LEDGER.claims` reads the counts the README states instead of
+  hard-coding 287/245/713. That check moved first: the ledgers gained two
+  claims each.
+- `test_checks_s29` pins that the pre-S29 text still reads as a
+  discrepancy.
+- New exhibits for the two checks, and `dark()` so `checks --figures`
+  output is legible.
+- `scripts/figure_casite.py` draws the site-search figure.
+
+**Verdicts moved.** 52/52 confirmed (was 50 + 2 discrepancies). These are
+findings about the publication, reported to the user.
+
+**Other figures worth adding there** (not done; they lie outside the six
+papers' questions): the ITPR3 state panel's pore radii (the S0 review shows
+only 6DQN), measured vs modelled conductance per open deposit, and the lumen
+at reversal.

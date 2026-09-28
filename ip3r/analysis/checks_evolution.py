@@ -9,8 +9,10 @@ this project's own Newick reader.
 
 from __future__ import annotations
 
+import re
+
 from ..core import genes_data as G
-from .checks import agree, register
+from .checks import agree, not_run, register
 from .newick import mrca, leaves, parse
 
 TREE = "phylogeny/rooted.nwk"
@@ -149,19 +151,28 @@ def unreachable():
                  f"({genome_only / len(rows):.1%})")
 
 
+_LEDGERS = (("manuscript", "../manuscript/claims_check.tsv"),
+            ("thesis", "../thesis/claims_check.tsv"),
+            ("papers", "../papers/claims_check.tsv"))
+_STATED = re.compile(r"(\d+) for the manuscript, (\d+) for the thesis and "
+                     r"(\d+) for the\s+paper series")
+
+
 @register("LEDGER.claims", "ledger",
-          "Every load-bearing number in the manuscript (287), the thesis (245) "
-          "and the paper series (713) re-verified against its source table.",
-          "The three claims_check.tsv ledgers read and their verdicts counted.",
-          "read", ("../manuscript/claims_check.tsv", "../thesis/claims_check.tsv",
-                   "../papers/claims_check.tsv"))
+          "Every load-bearing number in the manuscript, the thesis and the "
+          "paper series is re-verified against its source table, as many as "
+          "the README states (289, 245 and 715 after S29).",
+          "The README's three counts read; the three claims_check.tsv "
+          "ledgers read and their verdicts counted.",
+          "read", ("../README.md",) + tuple(rel for _, rel in _LEDGERS))
 def ledgers():
+    m = _STATED.search(" ".join(G.read_text("../README.md").split()))
+    if m is None:
+        return not_run("the README states no ledger counts")
     parts, ok = [], True
-    for rel, want in (("../manuscript/claims_check.tsv", 287),
-                      ("../thesis/claims_check.tsv", 245),
-                      ("../papers/claims_check.tsv", 713)):
+    for (name, rel), want in zip(_LEDGERS, map(int, m.groups())):
         rows = G.read_tsv(rel)
         bad = [r["id"] for r in rows if r["verdict"] != "ok"]
         ok &= len(rows) == want and not bad
-        parts.append(f"{rel.split('/')[1]} {len(rows) - len(bad)}/{len(rows)} ok")
-    return agree(ok, "287, 245 and 713, all ok", "; ".join(parts))
+        parts.append(f"{name} {len(rows) - len(bad)}/{len(rows)} ok")
+    return agree(ok, f"{', '.join(m.groups())}, all ok", "; ".join(parts))

@@ -273,10 +273,10 @@ stratification, not a call. It is a statement of how far the strata carry.
 | `S0.pore_profile` | recomputed | confirmed | 99.3 % of 144 points within 0.05 Å |
 | `S0.ip3_contacts` | recomputed | confirmed | the same ten residues at all four sites |
 | `P6.shell_agreement` | recomputed | confirmed | all six depositions, counts and extras identical |
-| `P6.contacts_heavy_atom` | recomputed | **discrepancy** | R503 outside 4.5 Å by heavy atoms in 8TKG, 8TKH |
+| `P6.contacts_heavy_atom` | recomputed | confirmed (S29) | R503 outside 4.5 Å by heavy atoms in 8TKG, 8TKH, as `contact_rule.tsv` now states; every distance within 0.02 Å. Before S29: discrepancy (the publication claimed 10/10) |
 | `P5.element_means` | rederived | confirmed | 27 element means, largest Δ 0.0000 |
 | `P5.gate_filter_most_conserved` | rederived | confirmed | as the paper states, both metrics |
-| `P5.report_both_metrics` | rederived | **discrepancy** | report sentence overstates the JSD ranking |
+| `P5.report_both_metrics` | rederived | confirmed (S29) | the report's sentence read and tested rank by rank; S29 replaced the overstated "both metrics" version, which still reads as a discrepancy |
 | `P5.luminal_loop_least` | rederived | confirmed | last in all three |
 | `P5.gate_identical` | rederived | confirmed | FGVII in all three |
 | `P5.variant_auc` | rederived | confirmed | all AUCs and position counts |
@@ -318,7 +318,7 @@ stratification, not a call. It is a statement of how far the strata carry.
 | `P1.record_chase` | rederived | confirmed | 64 plant + 35 fungal records: 47 real, 52 fragments |
 | `P1.bait_margin` | recomputed | confirmed | pairwise, from the sequences: 31/31 calls, gap 0.582, iplA +0.048 inside ±0.10 |
 | `P1.benchmark_counts` | rederived | confirmed | every control's score rebuilt; recall 24/25, specificity 31/31, RyR 6/6 |
-| `LEDGER.claims` | read | confirmed | 287 + 245 + 713 ledger rows all ok |
+| `LEDGER.claims` | read | confirmed | the README's counts (289 + 245 + 715 after S29) read, and the ledgers' rows all ok |
 
 ## What the findings checks establish
 

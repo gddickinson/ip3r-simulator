@@ -19,7 +19,7 @@ from ..config import PARALOG_ACC
 from ..core import genes_data as G
 from ..core.annotations import residue_elements
 from ..parameters import PARAMETERS as _P
-from .checks import agree, register
+from .checks import agree, not_run, register
 from .stats import auc
 
 BY_ELEMENT = "constraint/constraint_by_element.tsv"
@@ -129,31 +129,55 @@ def gate_filter_top():
     return agree(ok, "as stated", "; ".join(lines))
 
 
+REPORT = "constraint/report.md"
+_OLD = "on both metrics and in all three"
+_NEW = "On the modal-residue fraction the gate and the selectivity filter"
+#: The corrected sentence (S29), rank by rank: (gene, metric, element) ->
+#: the ranks it states, inclusive.
+_STATED = {**{(g, "deep_frac_modal", el): (1, 2) for g in PARALOG_ACC
+              for el in ("gate", "selectivity_filter")},
+           ("ITPR1", "deep_jsd", "gate"): (2, 2),
+           ("ITPR2", "deep_jsd", "gate"): (1, 1),
+           ("ITPR3", "deep_jsd", "gate"): (1, 1),
+           **{(g, "deep_jsd", "selectivity_filter"): (2, 4) for g in PARALOG_ACC}}
+
+
 @register("P5.report_both_metrics", "constraint",
-          "S17 report §5: \"The gate and the selectivity filter are the most "
-          "constrained elements of the protein, on both metrics and in all "
-          "three paralogs.\"",
-          "The same rankings, read for the stronger statement: gate and "
-          "filter the top two on JSD as well as on the modal fraction, in "
-          "every paralog.",
-          "rederived", (BY_ELEMENT, "constraint/constraint_*.tsv"))
+          "S17 report §5, as corrected in S29: on the modal-residue fraction "
+          "the gate and the filter are the two most constrained elements in "
+          "all three paralogs; on the JSD the gate ranks first in ITPR2 and "
+          "ITPR3 and second in ITPR1, and the filter second to fourth. (Before "
+          "S29 it said: top on both metrics in all three.)",
+          "The report's sentence read, and whichever version it states tested "
+          "rank by rank against the rankings rederived from the tables.",
+          "rederived", (BY_ELEMENT, "constraint/constraint_*.tsv", REPORT))
 def report_both_metrics():
-    lines, ok = [], True
+    text = G.read_text(REPORT)
+    old = _OLD in text
+    if not old and _NEW not in text:
+        return not_run("the report states neither version of §5's sentence")
+    lines, ok, ranks = [], True, {}
     for gene in PARALOG_ACC:
         for metric in ("deep_frac_modal", "deep_jsd"):
-            top = {el for el, _ in _ranking(gene, metric)[:2]}
-            hit = top == {"gate", "selectivity_filter"}
-            if metric == "deep_frac_modal" and not hit:
-                r = _rank_of(_ranking(gene, metric), "selectivity_filter")
-                hit = r[0] <= 2 and _rank_of(_ranking(gene, metric), "gate")[0] <= 2
-            ok &= hit
-            if not hit:
-                lines.append(f"{gene} {metric.replace('deep_', '')}: top two "
-                             f"{', '.join(el for el, _ in _ranking(gene, metric)[:2])}")
-    return agree(ok, "top two on both metrics everywhere",
-                 "; ".join(lines) or "holds",
-                 "The paper's Results state the narrower version, which "
-                 "P5.gate_filter_most_conserved checks.")
+            ranked = _ranking(gene, metric)
+            ranks[(gene, metric)] = {el: _rank_of(ranked, el)
+                                     for el in ("gate", "selectivity_filter")}
+            for el, (best, worst) in ranks[(gene, metric)].items():
+                lo, hi = (1, 2) if old else _STATED[(gene, metric, el)]
+                # a stated rank holds when it can be the element's rank
+                hit = best <= hi and worst >= lo
+                ok &= hit
+                if not hit:
+                    lines.append(f"{gene} {metric.replace('deep_', '')}: "
+                                 f"{el} ranks {best}"
+                                 + (f"-{worst}" if worst > best else ""))
+    stated = ("top two on both metrics everywhere" if old else
+              "gate and filter top two on the modal fraction; on the JSD "
+              "gate 2nd (ITPR1) / 1st, filter 2nd-4th")
+    return agree(ok, stated, "; ".join(lines) or "every stated rank holds",
+                 "The report still states the pre-S29 sentence." if old else
+                 "The corrected sentence, which the paper's Results also "
+                 "state (P5.gate_filter_most_conserved).", ranks=ranks)
 
 
 @register("P5.luminal_loop_least", "constraint",

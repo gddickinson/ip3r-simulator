@@ -197,24 +197,67 @@ def shell_agreement():
     return agree(ok, "six depositions, all 10/10", "; ".join(lines))
 
 
+RULE = "ligand_site/contact_rule.tsv"
+#: How far our distance may sit from the publication's (Å): two readers of
+#: the same coordinates, rounded to 3 decimals there.
+_RULE_TOL = 0.02
+
+
 @register("P6.contacts_heavy_atom", "ligand",
-          "The positive control holds under S0's own contact definition: "
-          "the ten contacts are within 4.5 Å by heavy atoms in all six "
-          "IP3-bound depositions.",
-          "The S22 recomputation repeated with hydrogens excluded, the "
-          "convention S0 defined the ten contacts with.",
-          "recomputed", (SHELLS, META), ("6DQN", "8TKG", "8TKF", "8TKH", "7T3P", "8TLA"))
+          "S29: by heavy atoms (S0's rule) the ten contacts are within 4.5 Å "
+          "in every IP3-bound deposition except Arg503 in 8TKG (4.78 Å) and "
+          "8TKH (4.83 Å), where the all-atom control holds through a "
+          "hydrogen (contact_rule.tsv). Before S29 the publication said "
+          "10/10 in all six, which is tested when the table is absent.",
+          "The S22 recomputation repeated with hydrogens and without; each "
+          "distance and contact call compared with contact_rule.tsv.",
+          "recomputed", (SHELLS, META, RULE),
+          ("6DQN", "8TKG", "8TKF", "8TKH", "7T3P", "8TLA"))
 def contacts_heavy_atom():
     s0 = _s0_numbers()
-    lines, ok = [], True
+    cut = _P.value("ligand.contact_cutoff")
+    lines, ok, dist = [], True, {}
     for row in G.read_tsv(SHELLS):
-        got, best = _shell_contacts(row["pdb_id"], heavy_only=True)
-        miss = {r: round(best.get(r, np.inf), 2) for r in s0 if r not in got}
-        ok &= not miss
-        lines.append(f"{row['pdb_id']}: {10 - len(miss)}/10"
-                     + (f" (missing {', '.join(f'{r} at {d} Å' for r, d in miss.items())})"
-                        if miss else ""))
-    return agree(ok, "10/10 in all six", "; ".join(lines),
-                 "S22's all-atom rule counts hydrogens; this is the heavy-atom "
-                 "reading of the same structures. A miss here means the "
-                 "positive control passes only through a hydrogen contact.")
+        _, best = _shell_contacts(row["pdb_id"], heavy_only=True)
+        _, every = _shell_contacts(row["pdb_id"], heavy_only=False)
+        dist[row["pdb_id"]] = {r: (every.get(r, np.inf), best.get(r, np.inf))
+                               for r in s0}
+    data = dict(distances=dist, cutoff=cut)
+    if not G.available(RULE):                 # the pre-S29 claim: 10/10 by heavy atoms
+        for pdb, d in dist.items():
+            miss = {r: round(h, 2) for r, (_, h) in d.items() if h > cut}
+            ok &= not miss
+            lines.append(f"{pdb}: {10 - len(miss)}/10" + (
+                f" (missing {', '.join(f'{r} at {v} Å' for r, v in miss.items())})"
+                if miss else ""))
+        return agree(ok, "10/10 in all six", "; ".join(lines),
+                     "S22's all-atom rule counts hydrogens; a miss here means "
+                     "the control passes only through a hydrogen contact.",
+                     **data)
+    rows = {(r["pdb_id"], int(r["resi"])): r for r in G.read_tsv(RULE)}
+    outside = []
+    for pdb, d in dist.items():
+        for resi, (a, h) in d.items():
+            pub = rows.get((pdb, resi))
+            if pub is None:
+                ok = False
+                lines.append(f"{pdb} {resi}: not in the table")
+                continue
+            pa, ph = float(pub["d_all_atoms_A"]), float(pub["d_heavy_atoms_A"])
+            flags = (G.as_bool(pub["contact_all_atoms"]),
+                     G.as_bool(pub["contact_heavy_atoms"]))
+            same = (abs(a - pa) <= _RULE_TOL and abs(h - ph) <= _RULE_TOL
+                    and flags == (a <= cut, h <= cut))
+            ok &= same
+            if not same:
+                lines.append(f"{pdb} {resi}: {a:.2f}/{h:.2f} Å against "
+                             f"{pa:.2f}/{ph:.2f}")
+            if h > cut:
+                outside.append(f"{pdb} {resi} at {h:.2f} Å")
+    found = ("; ".join(lines) if lines else
+             "every distance within 0.02 Å; outside by heavy atoms: "
+             + (", ".join(outside) or "none"))
+    return agree(ok, "Arg503 outside in 8TKG (4.78) and 8TKH (4.83), "
+                 "all else inside", found,
+                 "All-atom distance / heavy-atom distance, ours against the "
+                 "publication's own measurement.", **data)

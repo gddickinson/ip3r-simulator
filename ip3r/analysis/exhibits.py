@@ -10,9 +10,22 @@ from __future__ import annotations
 
 import numpy as np
 
-__all__ = ["EXHIBITS", "has_exhibit", "draw"]
+__all__ = ["EXHIBITS", "has_exhibit", "draw", "dark"]
 
 _C = ["#5b9ef2", "#f28c4d", "#72cc80", "#cc80e6", "#f2cc4d", "#66d9d9"]
+_BG, _FG = "#12151c", "#d7dbe3"
+
+
+def dark(fig, ax) -> None:
+    """The findings panel's colours, for an exhibit saved outside the GUI
+    (the exhibits' legends and labels are drawn for its dark background)."""
+    fig.set_facecolor(_BG)
+    ax.set_facecolor(_BG)
+    for sp in ax.spines.values():
+        sp.set_color("#4a505c")
+    ax.tick_params(colors=_FG, labelsize=8)
+    for t in (ax.xaxis.label, ax.yaxis.label, ax.title):
+        t.set_color(_FG)
 
 
 def _pore(ax, d):
@@ -174,7 +187,53 @@ def _vus(ax, d):
     draw_fractions(ax, d)
 
 
-EXHIBITS = {"P5.vus_stratification": _vus, "S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
+def _heavy_atom(ax, d):
+    """Each of the ten contacts' distance to IP3 per deposition, with
+    hydrogens (open) and heavy atoms only (filled), against the cutoff."""
+    pdbs = list(d["distances"])
+    cut = d["cutoff"]
+    for i, pdb in enumerate(pdbs):
+        for resi, (every, heavy) in d["distances"][pdb].items():
+            out = heavy > cut
+            ax.plot([i - 0.12], [every], "o", mfc="none", ms=5, color=_C[0])
+            ax.plot([i + 0.12], [heavy], "o", ms=5,
+                    color=_C[1] if out else _C[2])
+            if out:
+                ax.annotate(f"R{resi}\n{heavy:.2f} Å", (i + 0.12, heavy),
+                            xytext=(6, 0), textcoords="offset points",
+                            color=_C[1], fontsize=7, va="center")
+    ax.axhline(cut, color="#8a8f99", lw=0.8, ls=":")
+    ax.set_xticks(range(len(pdbs)), pdbs)
+    ax.set_xlim(-0.5, len(pdbs) - 0.2)
+    ax.set_ylabel("distance to IP3 (Å)")
+    ax.set_xlabel("○ hydrogens counted (S22's rule)   ● heavy atoms only (S0's)")
+
+
+def _both_metrics(ax, d):
+    """The gate's and the filter's rank per paralog on each metric; the
+    report's claim needs both in the top two everywhere."""
+    keys = list(d["ranks"])
+    x = np.arange(len(keys))
+    for j, (el, col) in enumerate((("gate", _C[0]), ("selectivity_filter", _C[1]))):
+        best = [d["ranks"][k][el][0] for k in keys]
+        worst = [d["ranks"][k][el][1] for k in keys]
+        ax.bar(x + (j - 0.5) * 0.36, best, 0.34, color=col,
+               label=el.replace("_", " "))
+        for xi, b, w in zip(x + (j - 0.5) * 0.36, best, worst):
+            if w > b:
+                ax.plot([xi, xi], [b, w], color=col, lw=2, alpha=0.5)
+    ax.axhline(2.5, color="#8a8f99", lw=0.8, ls=":")
+    ax.set_xticks(x, [f"{g}\n{m.replace('deep_', '').replace('_', ' ')}"
+                      for g, m in keys], fontsize=7)
+    ax.set_ylabel("rank (1 = most constrained)")
+    top = max(r[1] for v in d["ranks"].values() for r in v.values())
+    ax.set_yticks(range(1, top + 1))
+    ax.set_ylim(top + 0.3, 0)
+    ax.legend(fontsize=7, frameon=False, labelcolor="#d7dbe3")
+
+
+EXHIBITS = {"P6.contacts_heavy_atom": _heavy_atom,
+            "P5.report_both_metrics": _both_metrics, "P5.vus_stratification": _vus, "S0.pore_profile": _pore, "P5.deep_ranks_third": _aucs,
             "P2.teleost_itpr1": _shares, "P3.no_absent_cells": _states,
             "S0.ip3_contacts": _contacts, "P6.module_contrast": _modules,
             "P6.loop_reverses": _modules, "P6.shell_trend": _shell_trend,

@@ -96,8 +96,10 @@ def _figures(results, out: Path) -> None:
     for r in results:
         fig, ax = plt.subplots(figsize=(5, 3.2))
         if exhibits.draw(ax, r.check.id, r.outcome):
+            exhibits.dark(fig, ax)
             fig.tight_layout()
-            fig.savefig(out / f"{r.check.id}.png", dpi=150)
+            fig.savefig(out / f"{r.check.id}.png", dpi=150,
+                        facecolor=fig.get_facecolor())
         plt.close(fig)
 
 

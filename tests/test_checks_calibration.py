@@ -81,13 +81,6 @@ def _swap_tips(d: Path, a: str, b: str) -> None:
     p.write_text(t.replace(a, "\0").replace(b, a).replace("\0", b))
 
 
-def _gate_filter_boost(d: Path):
-    for g, a in (("ITPR1", "Q14643"), ("ITPR2", "Q14571"), ("ITPR3", "Q14573")):
-        _edit(d / f"results/constraint/constraint_{g}_{a}.tsv",
-              lambda r: r if r["element"] not in ("gate", "selectivity_filter")
-              else {**r, "deep_jsd": "0.99", "deep_frac_modal": "1.0"})
-
-
 def _pore_to_reference(d: Path, gene: str) -> None:
     """Rewrite one deep alignment so every tip matches the reference over
     the whole channel domain (loop included)."""
@@ -192,7 +185,10 @@ PLANTS = {
     "P5.gate_filter_most_conserved": lambda d: _edit(
         d / CON3, lambda r: {**r, "deep_jsd": "0.1", "deep_frac_modal": "0.1"}
         if r["element"] == "gate" else r),
-    "P5.report_both_metrics": _gate_filter_boost,
+    # the corrected sentence says the gate is second in ITPR1 on the JSD
+    "P5.report_both_metrics": lambda d: _edit(
+        d / "results/constraint/constraint_ITPR1_Q14643.tsv",
+        lambda r: {**r, "deep_jsd": "0.99"} if r["element"] == "gate" else r),
     "P5.luminal_loop_least": lambda d: _edit(
         d / CON1, lambda r: {**r, "deep_jsd": "0.99"} if r["element"] == "luminal_loop" else r),
     "P5.gate_identical": lambda d: _edit(
@@ -293,9 +289,11 @@ PLANTS = {
     # An input plant: every ITPR3 tip given the reference's pore, so the
     # core no longer leads with the loop counted in.
     "P6.loop_reverses": lambda d: _pore_to_reference(d, "ITPR3"),
-    # The real verdict is a discrepancy; the flip is a looser cutoff that
-    # takes R503 in, run with the modified registry explicitly allowed.
-    "P6.contacts_heavy_atom": ("param", "ligand.contact_cutoff", 5.0),
+    # S29's table: 8TKG's Arg503 moved inside the cutoff by heavy atoms
+    "P6.contacts_heavy_atom": lambda d: _edit(
+        d / R / "ligand_site/contact_rule.tsv",
+        lambda r: {**r, "d_heavy_atoms_A": "4.40", "contact_heavy_atoms": "True"}
+        if (r["pdb_id"], r["resi"]) == ("8TKG", "503") else r),
     "P6.shell_distances": lambda d: _edit(d / R / "ligand_site/ligand_shells.tsv",
                                           _first({"shell": "third"}, shell="second")),
     "P6.shell_constraint": lambda d: _edit(d / R / "ligand_site/shell_constraint.tsv",
