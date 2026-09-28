@@ -365,6 +365,17 @@ parallel-path gain at reversal (B ≈ 4.6), but that gain is Cl⁻'s.
 
 ![8TKF's span well at reversal, the deposit's own wall dashed beside it](docs/img/gui_lumen_candidate.png)
 
+**A Ca²⁺ site that blocks K⁺ reaches the pair (Round 7.27).** `python -m
+ip3r casite` adds a saturable Ca²⁺ site over the span, four sites deep d.
+It can be compensated (−2e fixed per bound Ca²⁺) and can let its
+occupancy block K⁺. Read at Vais's reversal, affinity alone falls short.
+Uncompensated sites peak near 5 / 7 (8TKF / 7T3T), and compensated ones
+plateau at 9.1 / 13.3 when full. Compensated and blocking, the site
+crosses 15.2 at d = 4.4 / 4.0 kT (K_d 3–6 mM, 8TKF's half occupied), with
+P_Cl:P_K still the uncharged pore's 0.29 / 0.37. The measured pair needs
+Ca²⁺ occupancy that blocks K⁺, the anomalous-mole-fraction mechanism
+(`docs/SCIENCE_CASITE.md`).
+
 **Ryanodine receptors.** Rabbit RyR1 loads beside the IP3Rs: six deposits
 chosen from the PDB by stated rules (`scripts/curate_ryr.py`: full-length,
 wild type, activators only, ≤ 4 Å, best per stated state), one each closed,

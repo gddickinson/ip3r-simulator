@@ -33,6 +33,13 @@ At v = 0 between identical baths every n_i is uniform and the solve is
 Round 7.11's ``pb`` equilibrium exactly (tested). A small v then gives
 Round 7.19's linear-response conductances (tested).
 
+**Round 7.27** adds two kinds of energy. ``hidden`` energies act on
+transport but not on Poisson: a Ca²⁺ site whose −2e is fixed per bound
+Ca²⁺ (compensated), so what it gathers carries no net charge. A
+``coupling`` returns energies that depend on the state itself (a saturable
+site's, K⁺ blocked by the Ca²⁺ it holds). They are recomputed from each
+Gummel iterate's n and ψ, damped, and must settle with u.
+
 Frame and signs follow :mod:`.selectivity`: the lumen is the ``bottom``
 bath, v = V_cyt − V_lumen, and current is positive from lumen to cytosol
 for a cation.
@@ -104,6 +111,15 @@ class Steady:
     phi: dict[str, np.ndarray]          # each species' solve, per own voxel
     converged: bool
     iterations: int
+    # Round 7.27: the coupling's energies at the end, (visible, hidden)
+    coupled: tuple = field(default=({}, {}), repr=False)
+
+    def energy(self, name: str, hidden: bool = True):
+        """The coupling's energy on species ``name`` (kT grid, or 0):
+        what Poisson sees, plus the hidden part when ``hidden``."""
+        vis, hid = self.coupled
+        e = vis.get(name, 0.0)
+        return e + hid.get(name, 0.0) if hidden else e
 
     @property
     def currents(self) -> dict[str, float]:
@@ -139,6 +155,15 @@ def _transport(dom: Domain, s, psi, excess, vhat, initial):
     return n, flux, lap.potential, lap.converged
 
 
+def _merge(*dicts) -> dict:
+    """Energies per species summed over several dicts (None skipped)."""
+    out: dict = {}
+    for d in dicts:
+        for k, v in (d or {}).items():
+            out[k] = out[k] + v if k in out else v
+    return out
+
+
 def _offsets(dom, species, n, excess, vhat, impermeant):
     """Poisson's offset per species: ψ's applied part, the excess and
     −ln(n / c_ref), so that c = c_ref e^{−z u − offset} = n e^{−E}."""
@@ -162,40 +187,67 @@ def _offsets(dom, species, n, excess, vhat, impermeant):
 def steady_state(dom: Domain, species, v: float, fixed: np.ndarray,
                  excess: dict[str, np.ndarray] | None = None,
                  impermeant=(), initial: Steady | None = None,
-                 permittivity: float | None = None) -> Steady:
+                 permittivity: float | None = None,
+                 hidden: dict[str, np.ndarray] | None = None,
+                 coupling=None) -> Steady:
     """The steady state at applied voltage ``v`` (V) between the baths the
     species carry (``concentration`` = lumen, ``right`` = cytosol).
     ``fixed`` is the wall's charge (mol/m³ on the grid), ``excess`` each
     species' held excess chemical potential (kT on the grid, 0 = the
-    reference bath's), ``initial`` a previous solution to start from."""
+    reference bath's), ``initial`` a previous solution to start from.
+    ``hidden``: energies transport sees and Poisson does not. ``coupling``:
+    ``f(psi, n) -> (visible, hidden)``, energies recomputed each iteration,
+    starting from ``coupling.start()``."""
     vhat = v / thermal_voltage()
     u = (np.zeros(dom.elec.mask.shape) if initial is None
          else initial.u.copy())
     phis = {} if initial is None else dict(initial.phi)
+    vis, hid = ({}, {}) if coupling is None else (
+        initial.coupled if initial is not None else coupling.start())
     tol = _P.value("pnp3d.gummel_tolerance")
     damping = _P.value("pnp3d.gummel_damping")
     ok, used = False, 0
     for used in range(1, int(_P.value("pnp3d.gummel_max_iterations")) + 1):  # noqa: B007
         psi = vhat * dom.phi0 + u
+        seen = _merge(excess, vis)
+        moved = _merge(seen, hidden, hid)
         n, flux, inner = {}, {}, True
         for s in species:
-            ex = None if not excess else excess.get(s.name)
             n[s.name], flux[s.name], phis[s.name], c_ok = _transport(
-                dom, s, psi, ex, vhat, phis.get(s.name))
+                dom, s, psi, moved.get(s.name), vhat, phis.get(s.name))
             inner &= c_ok
-        offset, refs = _offsets(dom, species, n, excess, vhat, impermeant)
+        offset, refs = _offsets(dom, species, n, seen, vhat, impermeant)
         new, p_ok, _ = poisson_boltzmann(dom.elec, fixed, refs,
                                          permittivity=permittivity,
                                          initial=u, offset=offset)
         change = float(np.max(np.abs(new - u)))
         u = u + damping * (new - u)
+        if coupling is not None:
+            vis, hid, moved_c = _relax(coupling(vhat * dom.phi0 + u, n),
+                                       (vis, hid))
+            change = max(change, moved_c)
         if change < tol and inner and p_ok:
             ok = True
             break
     psi = vhat * dom.phi0 + u
+    moved = _merge(excess, vis, hidden, hid)
     for s in species:                     # the currents in the final field
-        ex = None if not excess else excess.get(s.name)
         n[s.name], flux[s.name], phis[s.name], _ = _transport(
-            dom, s, psi, ex, vhat, phis.get(s.name))
-    return Steady(v, u, n, flux, phis, ok, used,
-                  {s.name: s.valence for s in species})
+            dom, s, psi, moved.get(s.name), vhat, phis.get(s.name))
+    return Steady(v, u, n, flux, phis, ok, used, coupled=(vis, hid),
+                  _z={s.name: s.valence for s in species})
+
+
+def _relax(new: tuple, old: tuple) -> tuple:
+    """The coupling's energies moved ``pnp3d.coupling_damping`` of the way
+    to their new values; and the largest move (kT) on the lumen."""
+    w = _P.value("pnp3d.coupling_damping")
+    out, most = [], 0.0
+    for fresh, prev in zip(new, old):
+        d = {}
+        for k, e in fresh.items():
+            p = prev.get(k, 0.0)
+            d[k] = p + w * (e - p)
+            most = max(most, float(np.max(np.abs(d[k] - p))))
+        out.append(d)
+    return out[0], out[1], most

@@ -3295,3 +3295,44 @@ Parallel paths favour the anion here.
 
 **Next.** Round 7.27 (science): the compensated Ca²⁺ site and
 occupancy-dependent K⁺ block.
+
+## 2026-09-27 (42) — Round 7.27: a Ca²⁺ site that blocks K⁺
+
+**Why.** This was the Next item, Round 7.25's emergent one. No mean-field
+wall gives Vais's pair, because B ≤ 1 for point ions in series. The
+Ca²⁺-only well peaked at 4.5, held back by its own uncompensated charge.
+Two interactions were untested: a site compensated as it fills, and K⁺
+blocked by the Ca²⁺ it holds.
+
+**What.** `pnp3d.steady_state` gains `hidden` energies (felt by transport
+and not by Poisson) and a `coupling` (energies recomputed from each Gummel
+iterate, damped by `pnp3d.coupling_damping`, required to settle with u).
+`reversal` and `concentration` pass these through. `physics/ca_site.py`
+adds four saturable sites spread over the span. Depth d is the empty
+site's pull, and K_d = s/(e^d − 1). Ca²⁺'s energy is
+−ln(1 + s/(c_f + K_d)), hidden when compensated. K⁺'s energy is
+−ln(1 − fθ) over the band. There is a `casite` command, an Analyses entry,
+and 6 parameters (`casite.*`, `pnp3d.coupling_damping`).
+
+**Calibrated.** On a tube: the hidden energy leaves u unmoved (1e-12); the
+Langmuir total and θ agree by hand; a dilute site equals 7.25's well
+(1e-5); the solved energies are the coupling's fixed point; the Cl⁻
+experiment is bit-identical; compensation and block each raise the ratio.
+One pinned 8TKF read is in the tests.
+
+**Found.** (Raw output: `data/casite/`.) 8TKF / 7T3T, span, d 2–12 kT.
+Uncompensated sites peak at 6 kT (4.97 / 7.04) and fall. Compensated ones
+plateau at 9.07 / 13.28 when full. That is 35× / 26× the uncharged pore,
+at 7.25's linear ceiling, so affinity alone cannot reach 15.2. The block
+on an uncompensated site adds 20–30 %. Compensated and blocking, the site
+crosses 15.2 at d = 4.41 / 3.98 kT: K_d 3.3 / 5.7 mM, θ 0.50 / 0.34, V_Ca
++18.2 / +17.5 mV, with P_Cl:P_K the uncharged pore's (0.29 / 0.37). The
+pair needs Ca²⁺ occupancy that blocks K⁺ on a site that stays neutral as
+it fills, which is the anomalous-mole-fraction mechanism. It predicts that
+P_Ca:P_K depends on luminal Ca²⁺ (the emergent item).
+
+**Checks.** `make test`: 727 passed before the pinned 8TKF test was added;
+`test_ca_site` (9) passes with it. Lint and sizes are clean. No UI change
+beyond the Analyses entry (`test_gui_extras` passes).
+
+**Next.** Round 7.28 (GUI): the site drawn on the lumen at reversal.

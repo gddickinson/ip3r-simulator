@@ -5142,6 +5142,84 @@
    "source_note": "Round 7.25: the best uncharged well on both 8TKF (score 1.30) and 7T3T (1.10); 6 kT is within 2 % on 8TKF, 8 kT past the peak",
    "minimum": 0.5,
    "maximum": 15.0
+  },
+  {
+   "key": "pnp3d.coupling_damping",
+   "name": "Coupled energy damping",
+   "value": 0.5,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.27: each Gummel iteration moves a state-dependent energy (the site's) this share of the way to its new value.",
+   "source_note": "Half steps settle the saturable site in < 60 iterations on 8TKF; full steps oscillate once the site fills",
+   "minimum": 0.05,
+   "maximum": 1.0
+  },
+  {
+   "key": "casite.sites",
+   "name": "Ca2+ sites in the band",
+   "value": 4.0,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.27: how many Ca2+ sites the band holds, spread evenly over its lumen voxels.",
+   "source_note": "One per subunit, the fewest a C4 site can have; a hypothesis, not a measurement: no IP3R Ca2+ permeation site has been located",
+   "minimum": 1.0,
+   "maximum": 32.0
+  },
+  {
+   "key": "casite.block",
+   "name": "K+ block by an occupied site",
+   "value": 1.0,
+   "unit": "",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.27: the probability that a K+ meeting an occupied site is stopped (energy -ln(1 - f theta) on K+).",
+   "source_note": "1 = single file, the anomalous-mole-fraction limit; the round also reads 0 (no block)",
+   "minimum": 0.0,
+   "maximum": 1.0
+  },
+  {
+   "key": "casite.depth_step",
+   "name": "Site depth step",
+   "value": 2.0,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.27: the empty site's pull on Ca2+ is tried at this step up to the maximum.",
+   "source_note": "As Round 7.25's well grid (wallsearch.depth_step)",
+   "minimum": 0.25,
+   "maximum": 10.0
+  },
+  {
+   "key": "casite.depth_max",
+   "name": "Deepest site",
+   "value": 12.0,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.27: the deepest site tried.",
+   "source_note": "A saturable site holds at most casite.sites ions, so, unlike 7.25's well, depth cannot flood the lumen; 12 kT is K_d ~ 2 uM at 4 sites over 8TKF's span",
+   "minimum": 2.0,
+   "maximum": 30.0
+  },
+  {
+   "key": "casite.depth_tolerance",
+   "name": "Required depth tolerance",
+   "value": 0.02,
+   "unit": "kT",
+   "kind": "method",
+   "category": "pore3d",
+   "citation": "method_choice",
+   "description": "Round 7.27: the depth at which P_Ca:P_K crosses the measured value is found to this.",
+   "source_note": "0.02 kT moves P_Ca:P_K by < 1 % on the grid's steepest step",
+   "minimum": 0.001,
+   "maximum": 1.0
   }
  ]
 }

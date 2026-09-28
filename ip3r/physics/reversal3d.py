@@ -120,10 +120,12 @@ def _impermeant(pore: Pore, exp: Experiment) -> list[Impermeant]:
 
 
 def reversal(dom: Domain, species, fixed, excess=None, impermeant=(),
-             bracket: float | None = None) -> tuple[float, Steady, int]:
+             bracket: float | None = None, **steady_kw
+             ) -> tuple[float, Steady, int]:
     """The voltage (V) at which the steady net current is zero; the steady
     state there; and how many steady states it took. Each solve starts
-    from the nearest one already found."""
+    from the nearest one already found. ``steady_kw`` (``hidden``,
+    ``coupling``) pass to :func:`.pnp3d.steady_state`."""
     bracket = _P.value("reversal3d.bracket") if bracket is None else bracket
     tol = _P.value("reversal3d.voltage_tolerance")
     done: dict[float, Steady] = {}
@@ -132,7 +134,7 @@ def reversal(dom: Domain, species, fixed, excess=None, impermeant=(),
         if v not in done:
             near = min(done, key=lambda w: abs(w - v)) if done else None
             done[v] = steady_state(dom, species, v, fixed, excess, impermeant,
-                                   initial=done.get(near))
+                                   initial=done.get(near), **steady_kw)
         return done[v].current
 
     probe = 0.01
@@ -205,12 +207,15 @@ def steady_at_reversal(pore: Pore, dom: Domain, w: Wall, label: str,
 
 
 def concentration(dom: Domain, st: Steady, name: str, valence: int,
-                  excess=None) -> np.ndarray:
+                  excess=None, hidden=None) -> np.ndarray:
     """A species' concentration (mol/m³) on the grid in the steady state
-    ``st``: c = n e^{−(zψ + μ)}, the charge Poisson counts; 0 off the
-    electrostatic volume."""
+    ``st``: c = n e^{−(zψ + μ)}; 0 off the electrostatic volume. μ holds
+    ``excess``, the state's coupled energies and ``hidden`` (Round 7.27:
+    a compensated site's Ca²⁺ counts here, not in Poisson)."""
     psi = st.v / thermal_voltage() * dom.phi0 + st.u
     e = valence * psi + (excess[name] if excess and name in excess else 0.0)
+    e = e + st.energy(name) + (hidden[name] if hidden and name in hidden
+                               else 0.0)
     c = st.n[name] * np.exp(-np.clip(e, -40, 40))
     return np.where(dom.elec.mask, c, 0.0)
 

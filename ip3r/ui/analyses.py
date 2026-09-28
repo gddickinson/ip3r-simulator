@@ -91,6 +91,12 @@ ANALYSES = (
              "The series bound (P_Cl:P_K)(P_Ca:P_K)^2 <= 1 and the ways around it: how far "
              "a Ca2+-only well can lift P_Ca:P_K, and opposite-charge rings (Round 7.25; "
              "drop --no-reversal for the 45-minute search at reversal)."),
+    Analysis("casite", "Permeation", "A Ca2+ site that blocks K+",
+             ("casite", "{pdb}", "--kind", "compensated + block",
+              "--no-required"), "ten minutes or so",
+             "A saturable Ca2+ site over the span, compensated (-2e per bound Ca2+), "
+             "whose occupancy blocks K+, at Vais's reversal by depth (Round 7.27; "
+             "drop --kind for all four kinds and the depth giving 15.2)."),
     Analysis("gating", "Gating and puffs", "Gating bells, three models",
              ("gating", "--model", "pd"), "seconds",
              "Park/drive open probability against Ca2+ at four IP3 levels."),

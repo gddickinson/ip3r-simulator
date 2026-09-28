@@ -350,6 +350,8 @@ def build_parser() -> argparse.ArgumentParser:
     _register_graft(sub)
     from .cli_wallsearch import register as _register_wallsearch
     _register_wallsearch(sub)
+    from .cli_casite import register as _register_casite
+    _register_casite(sub)
     p = sub.add_parser("modes")
     p.add_argument("pdb")
     p.add_argument("-n", type=int, default=None)

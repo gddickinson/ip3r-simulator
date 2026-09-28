@@ -5,9 +5,9 @@ test (`make test`, `make screenshots` if the UI changed), update the docs,
 commit, push. `[ ]` planned, `[x]` done (with what it measured). The
 completed Round 1 is recorded in `SESSION_LOG.md`.
 
-**Next:** Round 7.27 (science): a compensated Ca²⁺ site and
-occupancy-dependent K⁺ block at reversal (Round 7.25's emergent item). Can
-either reach P_Ca:P_K 15.2 with Cl⁻ at 0.27? **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
+**Next:** Round 7.28 (GUI): the Ca²⁺ site on the structure: the
+compensated blocking site at its crossing depth drawn at reversal in the
+lumen box, coloured by occupancy and by K⁺'s block energy. **Priorities changed 2026-09-25 (user):** the RyR work (Round 6,
 `ROADMAP_RYR.md`) is parked after 6.13, and its next item (6.14, the C/V
 flux ratio) waits there. Rounds 7.x alternate IP3R science with GUI
 upgrades, drawing on the open IP3R items of Rounds 2-5.
@@ -887,7 +887,7 @@ item carried over from round n; it stays listed there too.
   lumen. It needs Ca²⁺ occupancy that blocks K⁺, or a site compensated
   as it fills.
   Emergent:
-  - [ ] A compensated Ca²⁺ site (−2e fixed per bound Ca²⁺, so filling
+  - [x] (Round 7.27) A compensated Ca²⁺ site (−2e fixed per bound Ca²⁺, so filling
     costs no field), and occupancy-dependent K⁺ block at reversal: can
     either reach 15.2 with Cl⁻ at 0.27?
 
@@ -907,6 +907,29 @@ item carried over from round n; it stays listed there too.
   B 7.9 in linear response) keeps B ≈ 4.6, but the gain is Cl⁻'s
   (P_Cl:P_K 1.29, P_Ca:P_K 0.60; score 4.81 against 3.69 uncharged). 8TKF's
   ring gives B 1.29. The parallel-path route helps the wrong ion.
+
+- [x] **7.27 Science: a Ca²⁺ site that blocks K⁺** (`python -m ip3r
+  casite`, `physics/ca_site.py`, `docs/SCIENCE_CASITE.md`). Four saturable
+  Ca²⁺ sites over the span (depth d = the empty site's pull, K_d =
+  s/(e^d − 1)); compensated (−2e per bound Ca²⁺: a `hidden` energy, felt
+  by transport and not by Poisson) or not; K⁺ stopped by an occupied site
+  (−ln(1 − fθ), f = 1). The saturable energies are a `pnp3d` coupling,
+  recomputed per Gummel iterate. Calibrated on a tube: the hidden energy
+  leaves Poisson exact, the Langmuir total and θ by hand, a dilute site =
+  7.25's well, the Cl⁻ experiment bit-identical. **Found** (8TKF / 7T3T,
+  1 Å, d 2–12 kT): uncompensated sites still peak (4.97 / 7.04) and fall;
+  compensated ones plateau at 9.07 / 13.28 when full, near 7.25's linear
+  ceiling, so affinity alone cannot reach 15.2. Compensated and blocking,
+  the site crosses 15.2 at d = 4.41 / 3.98 kT (K_d 3.3 / 5.7 mM; 8TKF
+  half occupied, 2.0 of 4 sites; 7T3T θ 0.34) with P_Cl:P_K the uncharged pore's
+  (0.29 / 0.37): best grid scores 0.36 / 0.31 against 7.25's 1.30 / 0.90.
+  Vais's pair needs occupancy that blocks K⁺ and a site neutral as it
+  fills: the anomalous-mole-fraction mechanism.
+  Emergent:
+  - [ ] The mole-fraction prediction: P_Ca:P_K and the K⁺ current
+    against luminal Ca²⁺ (0.1–100 mM) through the crossing site, the
+    curve an experiment could test; and the site's band narrowed (filter
+    to gate, the vestibule) at the depth that keeps 15.2.
 
 ## Round 6 — ryanodine receptors
 

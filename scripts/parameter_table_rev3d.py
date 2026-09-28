@@ -77,4 +77,34 @@ REV3D = [
        "Round 7.25: the best uncharged well on both 8TKF (score 1.30) and "
        "7T3T (1.10); 6 kT is within 2 % on 8TKF, 8 kT past the peak", 0.5,
        15.0),
+    # Round 7.27: the saturable Ca2+ site and its K+ block (physics/ca_site.py)
+    _p("pnp3d.coupling_damping", "Coupled energy damping", 0.5, "", "method",
+       "pore3d", "method_choice", "Round 7.27: each Gummel iteration moves "
+       "a state-dependent energy (the site's) this share of the way to its "
+       "new value.", "Half steps settle the saturable site in < 60 "
+       "iterations on 8TKF; full steps oscillate once the site fills", 0.05,
+       1.0),
+    _p("casite.sites", "Ca2+ sites in the band", 4.0, "", "method",
+       "pore3d", "method_choice", "Round 7.27: how many Ca2+ sites the band "
+       "holds, spread evenly over its lumen voxels.", "One per subunit, the "
+       "fewest a C4 site can have; a hypothesis, not a measurement: no "
+       "IP3R Ca2+ permeation site has been located", 1.0, 32.0),
+    _p("casite.block", "K+ block by an occupied site", 1.0, "", "method",
+       "pore3d", "method_choice", "Round 7.27: the probability that a K+ "
+       "meeting an occupied site is stopped (energy -ln(1 - f theta) on K+).",
+       "1 = single file, the anomalous-mole-fraction limit; the round "
+       "also reads 0 (no block)", 0.0, 1.0),
+    _p("casite.depth_step", "Site depth step", 2.0, "kT", "method",
+       "pore3d", "method_choice", "Round 7.27: the empty site's pull on "
+       "Ca2+ is tried at this step up to the maximum.", "As Round 7.25's "
+       "well grid (wallsearch.depth_step)", 0.25, 10.0),
+    _p("casite.depth_max", "Deepest site", 12.0, "kT", "method", "pore3d",
+       "method_choice", "Round 7.27: the deepest site tried.", "A saturable "
+       "site holds at most casite.sites ions, so, unlike 7.25's well, depth "
+       "cannot flood the lumen; 12 kT is K_d ~ 2 uM at 4 sites over 8TKF's "
+       "span", 2.0, 30.0),
+    _p("casite.depth_tolerance", "Required depth tolerance", 0.02, "kT",
+       "method", "pore3d", "method_choice", "Round 7.27: the depth at which "
+       "P_Ca:P_K crosses the measured value is found to this.", "0.02 kT "
+       "moves P_Ca:P_K by < 1 % on the grid's steepest step", 1e-3, 1.0),
 ]
