@@ -2767,7 +2767,7 @@ unchanged (1.91 → 1.92), so the image term does not single out D4899. Robust (
 
 **Not changed.** `make sync-check` clean; no verdict moved (no check reads
 the pore). No GUI change, so no screenshots. `make test` 621 passed; lint and
-sizes clean.
+sizes clean. `make test`: 762 passed. `make screenshots STEPS=extras` passed.
 
 **Next:** Round 7.16 (GUI): the image cost in the lumen box.
 
@@ -3576,3 +3576,47 @@ counts (33 structures, 52 checks: 39 rederived / 9 recomputed / 4 read) were
 read from the code; every `python -m ip3r` line in the README and user guide
 was parsed against `cli.build_parser()`, options included; every relative
 link and image resolves. No code changed, so no tests were run.
+
+## 2026-09-28 — Movies of the 3-D view, and references in the README
+
+**Why.** The user asked for references in the README, for the GUI to
+record movies and GIFs, and for movies in the README showing the structure's
+dynamics. The README named its sources in one run-on paragraph with no
+identifiers, and the viewer's motion (turntable, morph, modes) could only be
+seen live.
+
+**References.** The README now cites numbered sources in its text [1–28],
+each listed in full with a DOI link: the background reviews (Berridge 2000,
+2003; Foskett 2007), the structure papers behind 6DQN, 7T3P/7T3T, 8TK*, 9HEO
+(their primary citations read from RCSB, not recalled), and the models and
+measurements the findings rest on. Every entry was checked against Crossref
+(authors, year, volume, pages, title); all 28 agree.
+
+**What (movies).** File → Record movie… (`ui/movie_dialog.py`) records a
+turntable, the animating normal mode or the built transition as GIF, animated
+WebP or MP4. The frames come from a fixed plan (`ui/movie_model.py`, Qt-free),
+not the live animation's clock, so a busy machine cannot drop one; the
+recorder (`ui/movie_recorder.py`) renders one frame per event-loop turn, sets
+the camera exactly, labels the HUD with what moves (the morph's frame and
+gate radius, or the mode's number and symmetry), restores the view, and
+encodes on a worker. Defaults are the new `movie.*` parameters.
+
+**Found while building it.** (1) Pillow merges identical consecutive GIF
+frames, so a transition's held ends are stored once and the frame count is
+not the plan's; the check is the total duration (pinned in a test). (2) GIF
+holds delays in centiseconds, so 15 frames/s played at 16.7; the default is
+20 (exact). (3) The morph drew frame 0 as a cartoon and the rest as tubes;
+the recorder now switches to tubes first. (4) A turntable's middle frame of a
+C4 tetramer is its first frame again, so "the movie moves" compares the first
+frame with the one an eighth of the way in. (5) Full screen on a Retina
+display shrank the HUD text five-fold; the README movies are recorded in a
+compact 720 × 450 pt viewport instead. (6) GIFs of the dense backbone were
+4–6 MB; animated WebP at quality 75 is 0.8–1.7 MB in full colour, so the
+README uses WebP.
+
+**Checked.** `tests/test_movie_model.py` (15 tests). `make screenshots
+STEPS=movies` (new group, ~3 min) records the four README movies through the
+real window and checks each: its plan's exact duration, motion, width, and the
+camera, morph frame and mode put back; and that the dialog offers the mode
+and greys the transition (with its reason) when no morph is built. Lint and
+sizes clean. `make test`: 762 passed. `make screenshots STEPS=extras` passed.

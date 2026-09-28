@@ -37,11 +37,11 @@ are drawn, so predicted atoms are never mistaken for measured ones.
 | Ctrl+0 | fit the visible subunits and resume automatic fitting |
 | Ctrl+M | measure a distance: click two atoms |
 | Ctrl+Shift+Q | open the sequence window |
-| Ctrl+S | save a screenshot, including the HUD |
+| Ctrl+S | save a screenshot, including the HUD (File → Record movie… records a movie) |
 | Ctrl+Shift+S / Ctrl+O | save / open a session |
 | Ctrl+Shift+P | open the parameter editor |
 | F11 | full screen (Esc leaves) |
-| Esc | clear the selection and stop measuring |
+| Esc | cancel a recording; otherwise leave full screen, or clear the selection and stop measuring |
 | F1 | the built-in guide |
 | Space, R, O, + / − | spin, frame everything, switch orthographic / perspective, change atom size (with the 3-D view focused) |
 
@@ -86,6 +86,16 @@ sticks), a colouring, and which subunits to show. The "Measured sites" boxes
 highlight the IP3 contacts, the filter and gate lining and the Paper 6
 modules. They are drawn only on a structure in human numbering.
 
+![6DQN coloured by conservation](img/gui_conservation.png)
+
+**Figure U3. Conservation is painted on the structure on a fixed scale.**
+6DQN is coloured by how conserved each position is across roughly 250
+species (the "deep" layer), from blue (variable) to red (highly conserved).
+The scale is fixed at 0.50–0.95 so that colours mean the same on every
+structure, and positions without a score are grey. The translucent blue tube
+down the centre is the pore, drawn at its measured radius; it pinches shut
+where the gate closes it.
+
 ### Superposing draws a second state on top of the first.
 
 Representation → Superpose draws another structure of the same paralog in
@@ -95,7 +105,7 @@ subunits are relabelled to match, so hiding a subunit hides both copies.
 
 ![8TKF superposed on 8TKG](img/gui_superpose.png)
 
-**Figure U3. Superposing the open state on the resting state shows the
+**Figure U4. Superposing the open state on the resting state shows the
 cytosolic cap swinging while the membrane stays put.** Activated 8TKF
 (orange) is fitted on resting 8TKG using the pore domain. The fit is 3.14 Å
 over the pore but 16.11 Å overall, because the large cytosolic domains move
@@ -123,7 +133,7 @@ counts residues below pLDDT 50 and says they are not positions
 
 ![AlphaFold fills](img/gui_alphafold.png)
 
-**Figure U4. AlphaFold fills are drawn in confidence colours, with their
+**Figure U5. AlphaFold fills are drawn in confidence colours, with their
 joins marked.** The deposited structure is drawn as usual and the predicted
 residues in AlphaFold's pLDDT colours, from blue (confident) through yellow
 to orange (very uncertain). Most fills are low-confidence loops, because AlphaFold is least sure
@@ -143,13 +153,13 @@ confirming.
 
 ![Paper 6's modules on 6DQN](img/gui_modules.png)
 
-**Figure U5. Paper 6's two modules are drawn as backbone traces.** The ligand
+**Figure U6. Paper 6's two modules are drawn as backbone traces.** The ligand
 core is green and the pore module (without its luminal loop) is magenta, on
 6DQN.
 
 ![Distance to IP3](img/gui_shells.png)
 
-**Figure U6. Colouring by distance to IP3 shows the ligand's four shells.**
+**Figure U7. Colouring by distance to IP3 shows the ligand's four shells.**
 Every residue is coloured by its distance to the IP3 bound on its own subunit,
 in four shells: contact (under 4.5 Å), then 8, 11.5 and 15 Å. Residues
 further away, and subunits without IP3, are grey. The plot shows conservation
@@ -157,7 +167,7 @@ against distance for all three paralogs.
 
 ![The heavy-atom contact check](img/check_contacts_heavy_atom.png)
 
-**Figure U7. One IP3 contact depends on whether hydrogens are counted.** This
+**Figure U8. One IP3 contact depends on whether hydrogens are counted.** This
 check's plot shows each contact's distance to IP3 with and without hydrogen
 atoms. Arg503 is within the 4.5 Å contact cut-off only when hydrogens are
 included (4.78 and 4.83 Å without them, in 8TKG and 8TKH). The publication
@@ -189,7 +199,7 @@ The Modes tab computes the elastic network's normal modes, labels each by
 symmetry (A, B or E) and by how many residues take part, and animates any mode.
 The Transition tab morphs between two states of one paralog, colours residues
 by how far they move, plots the gate along the path, and compares the
-movement with the normal modes (Figure 4 of the README).
+movement with the normal modes (Figure 3 of the README).
 
 ### The Dynamics tab runs the gating, oscillation and puff models.
 
@@ -209,7 +219,7 @@ to it and lists what happened to each clade claim: 9 of 10 held.
 
 ![Paper 2's tree](img/gui_tree.png)
 
-**Figure U8. Each paralog forms its own well-supported clade.** The tree is
+**Figure U9. Each paralog forms its own well-supported clade.** The tree is
 drawn with branch length in substitutions per site. Coloured boxes mark the
 ITPR1 (19 proteins), ITPR2 (13) and ITPR3 (19) clades and the RyR outgroup,
 each with its size and support values. Yellow diamonds mark hagfish and
@@ -219,7 +229,7 @@ joins. Small white dots mark nodes that clear both support thresholds (80 and
 
 ![The tree beside the --bnni re-search](img/gui_tree_bnni.png)
 
-**Figure U9. The published tree and the model-violation re-search agree on
+**Figure U10. The published tree and the model-violation re-search agree on
 nearly every claim.** The two trees are drawn side by side. The only change
 is the ITPR1 core, which was never well supported: its support falls from
 47.8/95 to 47.5/73.
@@ -234,7 +244,7 @@ Rows can be sorted by assembly quality (contig N50), class or name.
 
 ![Missed genes against assembly quality](img/gui_genomes.png)
 
-**Figure U10. Missed genes cluster in poorly assembled genomes.** Each row is
+**Figure U11. Missed genes cluster in poorly assembled genomes.** Each row is
 a genome, sorted by contig N50 (a measure of assembly quality; the strip on
 the left runs from dark for poor to yellow for good, on a log scale). Blue
 cells are genes found and red cells are genes known to be present but
@@ -243,7 +253,7 @@ that they reflect assembly quality rather than real gene loss.
 
 ![ITPR3's lesion excess in birds](img/gui_genomes_lesion.png)
 
-**Figure U11. Bird ITPR3 genes carry more damaging mutations than their
+**Figure U12. Bird ITPR3 genes carry more damaging mutations than their
 genome's other genes.** The grid is coloured by whether each gene carries
 more frameshifts and stop codons than similar genes in the same genome, and
 filtered to birds. ITPR3's excess (25 genomes against 2) sits mostly in
@@ -259,7 +269,7 @@ one.
 
 ![Paper 1's range](img/gui_range.png)
 
-**Figure U12. The receptor is found across eukaryotes but lost repeatedly.**
+**Figure U13. The receptor is found across eukaryotes but lost repeatedly.**
 Each bar is one clade, showing the fraction of its proteomes that carry an
 IP3 receptor. Colours mark eukaryotic supergroups, and archaea and bacteria
 are collapsed to one row each. Red crosses mark absences confirmed in
@@ -267,7 +277,7 @@ genome assemblies.
 
 ![One clade's genomes](img/gui_range_genomes.png)
 
-**Figure U13. A clade's genomes are shown one by one.** For each genome the
+**Figure U14. A clade's genomes are shown one by one.** For each genome the
 cells show the control verdict, what the copy ledger found, whether the
 assembly reaches its own contiguity threshold, and how many complete gene
 models it has (on a fixed 0–20 scale).
@@ -283,13 +293,13 @@ is a grouping, not a diagnosis.
 
 ![Variants on the structure](img/gui_variants.png)
 
-**Figure U14. Variants are drawn on every visible subunit.** Each variant
+**Figure U15. Variants are drawn on every visible subunit.** Each variant
 residue of the chosen class is marked with a sphere on the structure, and
 the table lists each variant's change, class, element and conservation.
 
 ![ITPR2's thresholds](img/gui_variants_bands.png)
 
-**Figure U15. With too few harmful variants, a threshold cannot be trusted.**
+**Figure U16. With too few harmful variants, a threshold cannot be trusted.**
 ITPR2's VUS (centre column) are plotted by conservation, beside the known
 harmful (left) and harmless (right) variants. Dashed lines mark the two
 medians and the shaded bands their 95 % intervals. ITPR2 has only one P/LP
@@ -307,11 +317,37 @@ parameters are the defaults. Any edited parameters are passed to the command.
 
 ![An analysis window](img/gui_analysis.png)
 
-**Figure U16. An analysis window runs one command and records its context.**
+**Figure U17. An analysis window runs one command and records its context.**
 "Measure this deposit" runs `python -m ip3r info 8TKF`. The output lists the
 symmetry, numbering, pore span, filter and gate radii with the residues that
 line them, and the eleven IP3 contacts on each subunit. The second line
 records the structure on screen and the parameter set used.
+
+## Movies record the 3-D view as it turns, morphs or flexes.
+
+File → **Record movie…** opens a dialog with these choices:
+
+- **Show**: a *turntable* (the camera turns once about the screen's vertical
+  axis), the *normal mode* animating in the Modes tab (one cycle), or the
+  *transition* built in the Transition tab (its solved frames there and back,
+  each end held). A choice that is not available yet is greyed out, and its
+  tooltip says what to do first.
+- **Frames** and **Rate**: frames per turn or per cycle (a transition uses its
+  own frames) and frames per second.
+- **Turn the camera once while it plays**: adds a turn to a mode or transition.
+- **Include the HUD**: the title, scale bar and axis marker, plus a line
+  naming what moves (the morph's frame and gate radius, or the mode's number
+  and symmetry).
+- **Size** and **Format**: the largest width in pixels, and GIF (plays
+  everywhere), animated WebP (full colour, about a third of a GIF's size) or
+  MP4 (needs the imageio-ffmpeg package).
+
+After you choose a file name, the frames are rendered one by one from a
+fixed plan, so the movie has exactly the frames asked for however busy the
+machine is. The status bar counts them, Esc cancels, and the view is put back
+as it was when recording ends. Encoding then runs in the background. The
+defaults are the `movie.*` parameters. The movies in the README were
+recorded this way by `make screenshots STEPS=movies`.
 
 ## Parameters can be edited, exported and replayed.
 
@@ -331,7 +367,7 @@ run them again.
 
 ![The parameter editor](img/gui_parameters.png)
 
-**Figure U17. The parameter editor lists every number with its source.**
+**Figure U18. The parameter editor lists every number with its source.**
 Each row shows a parameter's key, value, unit, bounds and citation. The filter
 box finds parameters by name, and "modified only" shows what has been
 changed.

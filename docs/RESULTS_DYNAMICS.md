@@ -43,6 +43,28 @@ while the left-hand (activating) side stays in place. The right plot shows
 why: IP3 raises only the inhibition constant K_inh, which levels off above
 about 0.1 µM IP3.
 
+The Puffs panel fills a cluster with either receptor and measures both with
+one ruler. Nearly every park/drive receptor is parked at rest, so the
+cluster stays quiet until one receptor enters drive mode; then its calcium
+pulls the others in. Over 30 seconds at 0.2 µM IP3, the De Young–Keizer
+cluster reaches half its channels in at most one event at any coupling from 0
+to 2 µM per open channel. The park/drive cluster does so 10–17 times at
+0.09–0.32 µM (Fano factor 2.8, against at most 1.32), and its event sizes
+split into small blips and large puffs with a gap between
+(`python -m ip3r puffs --scan`).
+
+![Park/drive puffs](img/gui_puffs_pd.png)
+
+**Figure D2. Calcium coupling turns scattered single openings into
+coordinated puffs.** A cluster of 20 park/drive receptors is simulated for
+5 seconds at 0.2 µM IP3, twice with the same random numbers. In the upper
+trace (coupled) each open channel raises the calcium its neighbours see, so
+openings bunch into puffs in which many channels open together. In the
+middle trace (uncoupled) channels open independently and never more than a
+few at once. The histogram shows that the coupled cluster produces a separate
+population of large events; the high Fano factor (3.22) measures this
+bunching.
+
 `python -m ip3r microdomain` places the park/drive cluster in Cao et al.
 (2014)'s microdomain, in which calcium pools fill and drain, the fluorescent
 dye fluo-4 reports calcium, and the store can empty (see
@@ -57,7 +79,7 @@ active, not less, so that state belongs to the receptor model itself.
 
 ![The microdomain cluster](img/gui_puffs_domain.png)
 
-**Figure D2. Puffs read from simulated fluorescence behave like measured
+**Figure D3. Puffs read from simulated fluorescence behave like measured
 puffs.** A park/drive cluster is simulated in Cao's microdomain. The top trace
 is the fluorescence relative to rest (F/F0), with detected puffs marked. The
 middle trace is the number of open channels. The histogram compares the
@@ -76,7 +98,7 @@ it shuts 6.7 times too readily (half-inhibition 48 against 320 µM).
 
 ![RyR1 gating models](img/gui_ryr_gating.png)
 
-**Figure D3. Stern's scheme activates correctly but inactivates too
+**Figure D4. Stern's scheme activates correctly but inactivates too
 early.** The left plot shows RyR1 activity against cytosolic calcium, each
 curve scaled to its own peak. The blue line is Stern's 1997 scheme and the
 orange line Murayama's measured response. The dashed blue line is the scheme
@@ -98,7 +120,7 @@ So a calcium-only scheme lacks whatever ends a real spark.
 
 ![RyR1 sparks with one shared calcium level](img/gui_sparks.png)
 
-**Figure D4. Calcium coupling turns single RyR1 openings into sparks.** A
+**Figure D5. Calcium coupling turns single RyR1 openings into sparks.** A
 30-channel cluster using Stern's scheme is run for 10 seconds with and
 without coupling, using the same random numbers. In the coupled trace (blue)
 19 events recruit at least half the cluster, then settle at about five open
@@ -108,14 +130,14 @@ of event sizes shows the coupled cluster's large events at the right.
 
 ![RyR1 sparks in the junctional cleft](img/gui_sparks_cleft.png)
 
-**Figure D5. In the junctional cleft, sparks end sooner because each channel
+**Figure D6. In the junctional cleft, sparks end sooner because each channel
 sees its own calcium.** The same cluster is placed in Stern's cleft geometry.
 Sparks end by local inactivation after about 20 ms. This is shorter than with
 one shared calcium level but still about three times the measured duration.
 
 ![RyR1 in the cleft with gating fitted to the measured bell](img/gui_sparks_fitted.png)
 
-**Figure D6. With gating fitted to the measured calcium response, sparks
+**Figure D7. With gating fitted to the measured calcium response, sparks
 never end.** With inactivation as weak as the measured response requires, the
 tens of micromolar calcium in the cleft cannot shut the array, and once a
 spark starts it continues to the end of the simulation.
@@ -136,7 +158,7 @@ trigger, sparks end in about 6 ms under every reading.
 
 ![Triggered sparks against free magnesium](img/gui_sparks_mg.png)
 
-**Figure D7. More magnesium means shorter sparks and fewer available
+**Figure D8. More magnesium means shorter sparks and fewer available
 channels.** All 30 channels in the cleft are opened at time zero and timed
 until every one has shut, at free magnesium levels from 10 to 1,000 µM (log
 scale). Top: the median spark duration. Below about 60 µM some sparks never

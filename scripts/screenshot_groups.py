@@ -18,6 +18,7 @@ from dataclasses import dataclass
 import screenshot_core as core
 import screenshot_extras as se
 import screenshot_ip3r as si
+import screenshot_movies as sm
 import screenshot_reversal as sr
 import screenshot_sparks as sk
 import screenshot_superpose as ss
@@ -89,6 +90,9 @@ GROUPS = (
           "Analyses menu, full screen", _plain(se._STEPS)),
     Group("superpose", "8TKF drawn on 8TKG, then 8TKG on 8TKF (Round 7.20)",
           _plain(ss.STEPS)),
+    Group("movies", "File -> Record movie: 6DQN turntable, the 8TKG -> 8TKF morph "
+          "(whole and at the pore) and 8TKG's lowest A mode, written as the "
+          "README's GIFs", _plain(sm.STEPS)),
 )
 
 _BY_NAME = {g.name: g for g in GROUPS}

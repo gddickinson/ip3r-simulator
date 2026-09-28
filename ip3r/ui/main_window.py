@@ -33,6 +33,7 @@ from .findings_panel import FindingsPanel
 from .genomes_panel import GenomesPanel
 from .gl_widget import ViewportWidget
 from .modes_panel import ModesPanel
+from .movie_recorder import MovieRecorder
 from .params_banner import ParametersBanner
 from .params_dialog import ParametersDialog
 from .range_panel import RangePanel
@@ -115,6 +116,7 @@ class MainWindow(WindowExtras, QMainWindow):
         self._pending_check: str | None = None
         self._pending_transition: tuple | None = None
         self.morph = TransitionController(self.scene)
+        self.movies = MovieRecorder(self)
         self.sessions = SessionController(self)
         self.hud = self.viewport.hud
         self.scene.hud = self.hud

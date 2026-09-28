@@ -23,7 +23,8 @@ SHORTCUTS = (
     ("F11", "full screen: only the 3-D view and its HUD (also the "
             "platform's own full-screen key)"),
     ("Ctrl+M", "measure distances: click two atoms"),
-    ("Esc", "leave full screen; otherwise clear the selection and stop measuring"),
+    ("Esc", "stop a recording; else leave full screen; else clear the selection "
+            "and stop measuring"),
     ("Ctrl+Shift+P", "the parameter editor"),
     ("F1", "this guide"),
     ("Space", "spin on / off (viewport focused)"),
@@ -68,6 +69,16 @@ centres on an atom, or starts a distance.</p>
 a rod labelled in Å. Selections and distances follow a morph or mode
 frame, and are dropped on a new deposit: a residue number means nothing on
 another structure.</p>""",
+
+    "Movies": """
+<p>File → Record movie… records the 3-D view as a GIF or an MP4: a
+<b>turntable</b> (the camera turns once), the <b>normal mode</b> that is
+animating (one cycle), or the <b>transition</b> built in the Transition tab
+(its solved frames there and back, each end held). A mode or a transition
+can also turn the camera once while it plays. Frames are rendered one by
+one from a fixed plan, so a busy machine never drops one; the window stays
+live, and Esc cancels. Afterwards the view is put back as it was. The
+defaults are the <code>movie.*</code> parameters.</p>""",
 
     "Sequence window": """
 <p>View → Sequence shows one chain's <i>construct</i>, every residue the
@@ -156,6 +167,9 @@ was saved under, never a result: opening it re-measures.</p>""",
 #: Shipped documents Help can open: (menu label, path from the project root).
 DOCS = (
     ("README", "README.md"),
+    ("User guide", "docs/USER_GUIDE.md"),
+    ("Results: conductance and selectivity", "docs/RESULTS.md"),
+    ("Results: gating, puffs and sparks", "docs/RESULTS_DYNAMICS.md"),
     ("Navigation map (INTERFACE.md)", "INTERFACE.md"),
     ("The science", "docs/SCIENCE.md"),
     ("The findings checks", "docs/SCIENCE_CHECKS.md"),

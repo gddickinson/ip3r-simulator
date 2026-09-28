@@ -31,8 +31,11 @@ class WindowExtras:
         self.sequence_window.show_residue(chain, residue)
 
     def escape(self) -> None:
-        """Esc: out of full screen if in it, else clear the selection."""
-        if self.presentation.active:
+        """Esc: stop a recording; else out of full screen if in it; else
+        clear the selection."""
+        if self.movies.busy:
+            self.movies.cancel()
+        elif self.presentation.active:
             self.presentation.leave()
         else:
             self.clear_selection()

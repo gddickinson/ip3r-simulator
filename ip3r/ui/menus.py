@@ -16,6 +16,7 @@ from ..config import genes_results
 from .analyses import ANALYSES, GROUPS
 from .help_content import DOCS
 from .help_dialog import open_document
+from .movie_dialog import record_movie
 
 __all__ = ["build_menus", "add_action", "leaf_actions", "HUD_LABELS"]
 
@@ -69,6 +70,9 @@ def _file(win, f) -> None:
                tip="The viewport as shown, HUD included.")
     add_action(win, f, "Save screenshot without the HUD…",
                lambda: save_screenshot(win, hud=False))
+    add_action(win, f, "Record movie…", lambda: record_movie(win),
+               tip="A turntable, the animating mode or the built transition, "
+                   "as a GIF or MP4.")
     f.addSeparator()
     add_action(win, f, "Quit", win.close, QKeySequence.StandardKey.Quit)
 

@@ -73,7 +73,7 @@ The corners change how much current flows but not where the voltage drops
 7T3T and RyR1's 9HEO, the 3-D and 1-D models put the halfway point of the
 voltage drop within 1.3 Å of each other. The filter's share of the drop agrees
 within 4 percentage points (8TKF: 32 % in 3-D against 35 % in 1-D). This is
-Figure 7 of the README.
+Figure 5 of the README.
 
 ## The pore wall's charges matter in ways that depend on how they are modelled.
 

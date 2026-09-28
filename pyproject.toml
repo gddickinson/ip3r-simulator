@@ -13,10 +13,10 @@ keywords = ["IP3 receptor", "ITPR", "calcium signalling", "ion channel",
             "elastic network model", "cryo-EM"]
 
 # The engine runs headless; the GUI extra adds the viewer.
-dependencies = ["numpy>=1.26", "scipy>=1.11", "matplotlib>=3.8"]
+dependencies = ["numpy>=1.26", "scipy>=1.11", "matplotlib>=3.8", "pillow>=10"]
 
 [project.optional-dependencies]
-gui = ["PyQt6>=6.6", "moderngl>=5.10"]
+gui = ["PyQt6>=6.6", "moderngl>=5.10", "imageio-ffmpeg>=0.4"]
 dev = ["pytest>=8.0", "ruff>=0.5"]
 all = ["ip3r-simulator[gui,dev]"]
 
