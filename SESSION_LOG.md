@@ -3427,3 +3427,10 @@ findings about the publication, reported to the user.
 papers' questions): the ITPR3 state panel's pore radii (the S0 review shows
 only 6DQN), measured vs modelled conductance per open deposit, and the lumen
 at reversal.
+
+**Follow-up (user request): the state panel's pore radii in ip3r_genes.**
+`scripts/figure_states.py` draws every deposit of S11's ITPR3 panel (and
+7T3T) from `state_panel`: the gate is 1.95–2.73 Å in six states and 5.85 Å
+in 8TKF (5.34 Å in 7T3T), and the filter is 4.27–5.08 Å in all eight. It is
+ip3r_genes' Figure S29.5 (`9bd9e26`), with a FINDINGS paragraph and the
+thesis's figure count at 117. All three builds pass.

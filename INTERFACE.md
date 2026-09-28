@@ -297,6 +297,7 @@ hand in Round 7.6 from its RCSB entry, hash and reason recorded).
 | `screenshot_superpose.py` | its Round 7.20 steps (`STEPS`, group `superpose`): 8TKF on 8TKG equal to the headless superposition, legend and session, a hidden subunit followed; on 8TKF the choice dropped, 8TKG fitted the other way (global), cleared |
 | `screenshot_sparks.py` | its RyR1 spark steps (`spark_step`, `SPARK_STEPS`): mean-field, cleft, fitted, fitted under 1 mM Mg²⁺ (silent), the triggered Mg²⁺ scan |
 | `figure_casite.py` | Round 7.27's site search as one figure from `casite`'s own output (`data/casite/cs_*.out`): P_Ca:P_K vs depth per kind of site, the uncharged pore and the measured 15.2 → `docs/img/casite_ratio.png` (also ip3r_genes S29's Figure S29.3) |
+| `figure_states.py` | ip3r_genes S11's ITPR3 state panel (+ the 7T3T control) at the pore: (a) every `state_panel` profile aligned on its filter, (b) gate and filter radius per state → `docs/img/state_panel_pore.png` (ip3r_genes' Figure S29.5) |
 | `create_env.sh` | the `ip3r_sim` conda env (PyQt6, moderngl, propka) |
 
 ## `tests/`
