@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "IP3 receptor structural simulator: 3-D viewer, elastic-network modes, gating and Ca2+ dynamics, and a re-derivation of the ip3r_genes findings"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 keywords = ["IP3 receptor", "ITPR", "calcium signalling", "ion channel",
             "elastic network model", "cryo-EM"]
 

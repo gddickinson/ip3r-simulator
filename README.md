@@ -443,8 +443,8 @@ the screenshots and movies in `docs/img/`.
 
 ## Licence and citation are described here.
 
-The code is released under the MIT licence, as declared in
-[`pyproject.toml`](pyproject.toml). If you use it, please cite this repository
+The code is released under the MIT licence; see [`LICENSE`](LICENSE). If you
+use it, please cite this repository
 (`https://github.com/gddickinson/ip3r-simulator`) together with the
 `ip3r_genes` project whose results it re-derives. Structures come from the
 [RCSB Protein Data Bank](https://www.rcsb.org) [6] and predicted models from
