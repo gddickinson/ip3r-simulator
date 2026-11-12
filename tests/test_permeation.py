@@ -135,3 +135,29 @@ def test_only_the_activated_state_conducts_and_falls_short_of_the_measurement():
     # with or without its salt bridges.
     ceiling = max(u.sweep[k][1] for k in ("neutral", "charged", "paired"))
     assert ceiling < min(published().values())
+
+
+def test_sweep_leaves_out_a_corner_whose_solve_is_singular(monkeypatch):
+    """A shut pore at the large-ion corner can make the Nernst-Planck matrix
+    singular (8TKG, paired wall, ion radius 1 Å, on the shared venv's numpy):
+    ``sensitivity`` promises to leave out a corner that did not converge, so
+    a singular solve must be left out too, not end the whole panel."""
+    from types import SimpleNamespace
+
+    from ip3r.physics import unitary
+
+    calls = []
+
+    def fake(z, radius, species=None, fixed_charge=None):
+        calls.append(fixed_charge)
+        if fixed_charge == "paired":
+            raise np.linalg.LinAlgError("Singular matrix")
+        return SimpleNamespace(converged=True, conductance_pS=10.0 * len(calls))
+
+    monkeypatch.setattr(unitary, "solve_pnp", fake)
+    u = SimpleNamespace(profile=SimpleNamespace(z=np.arange(3.0), r_free=np.ones(3)), bath=None,
+                        charge=SimpleNamespace(density="charged"),
+                        paired_charge=SimpleNamespace(density="paired"))
+    out = unitary.sensitivity(u)
+    assert np.isnan(out["paired"][0]) and np.isnan(out["paired"][1])
+    assert out["neutral"][0] < out["neutral"][1] and out["charged"][0] > 0

@@ -165,7 +165,10 @@ def sensitivity(u: Unitary) -> dict[str, tuple[float, float]]:
                                    ion_radius=ion)
             for key, fixed in (("neutral", None), ("charged", u.charge.density),
                                ("paired", u.paired_charge.density)):
-                r = solve_pnp(u.profile.z, radius, species=sp, fixed_charge=fixed)
+                try:
+                    r = solve_pnp(u.profile.z, radius, species=sp, fixed_charge=fixed)
+                except np.linalg.LinAlgError:
+                    continue            # a singular solve (shut pore) did not converge either
                 if r.converged:
                     out[key].append(r.conductance_pS)
     nan = float("nan")
