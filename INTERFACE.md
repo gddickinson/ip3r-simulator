@@ -289,6 +289,23 @@ ip3r_genes, each with the source paths, SHA-256 and ip3r_genes commit);
 (`scripts/curate_ip3r.py`); `ip3r_controls.json` (7T3T, curated by
 hand in Round 7.6 from its RCSB entry, hash and reason recorded).
 
+## `ip3r/web/` — the web interface (FastAPI + static ES modules; GitHub Pages)
+
+Consumes everything below it; nothing imports it.
+
+| File | Purpose |
+|---|---|
+| `app.py` | FastAPI app: `/api/info`, `/deposits`, `/palette`, `/structure/{pdb}`, `/modes/{pdb}`, `/transition`, `/states` (served from `precomputed/`), `/gating` and `/anm-parameters` (from the registry at request time); `DEPOSITS`, `MODE_DEPOSITS`, `PRECOMPUTED`, `STATIC_ENDPOINTS` (what `scripts/build_static.py` exports) |
+| `codec.py` | int16/base64 encodings: `encode_coords`/`decode_coords` (0.01 Å), `encode_i16`/`decode_i16` |
+| `export_structures.py` | `structure_record(pdb)` (C-alpha trace per subunit in the axis frame, element/JSD only in a passing numbering, B-factors, `measure_channel` summary, IP3 atoms, source SHA-256), `palette_record`, `VIEWER_DEPOSITS` |
+| `export_dynamics.py` | `modes_record(pdb)` (the registered ANM, vectors in the frame, unit peak), `transition_record` (basis, restrained morph every other frame, `gate_path`, `transition_overlap`), `states_record` (`state_panel` + 7T3T, profiles on the filter) |
+| `gating_api.py` | `MODELS`, `model_constants` (values + registry meta), `reference_bells` (Python `measure_bell`), `gating_record` |
+| `reduced_anm.py` | `reduced_sites`, `reduced_modes` (the repo's `ANM` on the browser's sites), `FIXTURE_CASES` |
+| `precomputed/` | the committed JSON written by `scripts/make_web_data.py` |
+| `static/` | `index.html`, `core.js`/`style.css` (shared kit), `main.js`, `static_api.js`; engines `anm_engine.js` (Hessian, Cholesky + Lanczos with rigid-body deflation, C4 labels, κ), `gating_engine.js` (DYK, Mak, park/drive, bell) with `*.test.mjs`; `gl_view.js` (WebGL point-sprite viewer), `mol.js` (beads, bonds, colour rules), `plot.js`, `anm_worker.js`; pages `home`, `viewer`, `pore`, `transition`, `modes`, `gating`, `about` |
+
+Scripts: `scripts/make_web_data.py` (rebuild `precomputed/`, needs `ref/`), `scripts/make_anm_fixture.py` (`tests/fixtures/anm_reduced.json`, `gating_curves.json`), `scripts/build_static.py` (the Pages site), `scripts/screenshots.py` (browser smoke test, `docs/img/web_*.png`); `run_web.py` (port 8194), `requirements-web.txt`, `.github/workflows/pages.yml`. Tests: `tests/test_web.py` (every endpoint, the static build, the node tests), `tests/test_web_data.py` (fixtures current, files decode, the README's numbers, painted only in numbering, current against `ref/` when present, size budget).
+
 ## `scripts/`
 
 | File | Purpose |

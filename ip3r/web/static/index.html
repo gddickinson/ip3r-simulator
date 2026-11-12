@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IP3R Structural Simulator</title>
+<meta name="description" content="Interactive 3-D model of the IP3 receptor: cryo-EM structures in a WebGL viewer, the pore of every ITPR3 gating state, the resting-to-open morph, elastic-network modes with C4 symmetry, and three published gating models.">
+<link rel="icon" href="static/icon.svg">
+<link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="static/style_app.css">
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<header class="top">
+  <a class="brand" href="#/"><span class="mark"></span>IP3R Simulator</a>
+  <nav class="groups">
+    <a href="#/viewer" data-nav="viewer">Structure</a>
+    <a href="#/pore" data-nav="pore">Pore</a>
+    <a href="#/transition" data-nav="transition">Transition</a>
+    <a href="#/modes" data-nav="modes">Modes</a>
+    <a href="#/gating" data-nav="gating">Gating</a>
+    <a href="#/about" data-nav="about">About</a>
+  </nav>
+  <div class="right"><a class="small mute" href="https://github.com/gddickinson/ip3r-simulator" target="_blank" rel="noopener">GitHub</a></div>
+</header>
+<main id="app" tabindex="-1"></main>
+<footer class="foot">IP3R Structural Simulator · <a href="https://github.com/gddickinson/ip3r-simulator">source on GitHub</a> · coordinates from wwPDB entries 6DQN, 6DQJ, 7T3P, 7T3T, 8TKF, 8TKG, 8TKH, 8TLA (CC0) · <span id="mode"></span></footer>
+<script type="module" src="static/main.js"></script>
+</body>
+</html>

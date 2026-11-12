@@ -1,0 +1,35 @@
+/* IP3R Simulator accents: Ca2+ magenta, IP3 gold, ER cyan, on the shared neon theme. Page styles below. */
+:root { --accent:#ff5fa2; --accent2:#ffb547; --accent3:#5fe3ff; --glow:rgba(255,95,162,.13); }
+button, .btn, .seg button.on { color:#1a0310; }
+.mark { border-color:var(--accent2); }
+.viewer { position:relative; background:#05080f; border:1px solid var(--line); border-radius:6px; overflow:hidden; min-width:0; }
+.viewer canvas { display:block; width:100%; height:min(64vh, 580px); outline:none; }
+.viewer canvas:focus-visible { box-shadow:inset 0 0 0 2px var(--accent3); }
+.hero-view canvas { height:min(52vh, 440px); }
+.viewer .hud { position:absolute; left:10px; bottom:8px; font:12px var(--mono); color:var(--mute); pointer-events:none; }
+.viewer .hud b { color:var(--ink); }
+.fig { margin:0; min-width:0; } .fig figcaption { margin-top:6px; }
+.side > * { min-width:0; }
+.ctlpanel { margin-top:0; } .ctlpanel label:first-child { margin-top:0; }
+.ctlpanel button { margin-top:10px; }
+.legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; margin:8px 0; }
+.legend span { display:inline-flex; align-items:center; gap:6px; }
+.legend i { width:11px; height:11px; border-radius:50%; display:inline-block; flex:none; }
+.kv { display:grid; grid-template-columns:max-content minmax(0, 1fr); gap:3px 14px; font-size:14px; margin:0; }
+.kv dt { color:var(--mute); } .kv dd { margin:0; min-width:0; overflow-wrap:anywhere; }
+.num { font:600 14px var(--mono); }
+.plot { width:100%; height:260px; display:block; background:rgba(3,5,10,.6); border:1px solid var(--line); border-radius:4px; }
+.plot.tall { height:340px; }
+.chk { display:flex; flex-wrap:wrap; gap:2px 12px; font:13px var(--mono); }
+.chk label { display:inline-flex; gap:5px; align-items:center; margin:0; color:var(--ink); }
+table.modes td, table.modes th { padding:4px 8px; font-size:13px; }
+tr.sel td { background:color-mix(in srgb, var(--accent) 12%, transparent); }
+.bar { display:block; height:10px; border-radius:2px; }
+details.panel summary { cursor:pointer; color:var(--mute); font:13px var(--mono); }
+.door b { color:var(--accent); }
+.hero.two { align-items:center; }
+@media (max-width:760px) {
+  .viewer canvas { height:56vh; } .hero-view canvas { height:44vh; }
+  .plot.tall { height:280px; }
+  .seg button { padding:6px 9px; font-size:11px; }
+}

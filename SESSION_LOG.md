@@ -3620,3 +3620,37 @@ real window and checks each: its plan's exact duration, motion, width, and the
 camera, morph frame and mode put back; and that the dialog offers the mode
 and greys the transition (with its reason) when no morph is built. Lint and
 sizes clean. `make test`: 762 passed. `make screenshots STEPS=extras` passed.
+
+## 2026-11-12 — Web interface and GitHub Pages site
+
+**What.** `ip3r/web/`: a FastAPI app (`run_web.py`, port 8194) and a static
+site for GitHub Pages (`scripts/build_static.py`, `.github/workflows/pages.yml`),
+in the house web style. Seven pages: home, structure viewer (own WebGL, C-alpha
+beads, no library or CDN), pore (state panel), transition (8TKG → 8TKF),
+modes, gating, about. **Why this subset:** it is what can be shown faithfully
+in a browser; everything else is listed as left out on the About page.
+
+**How the numbers stay the code's.** Heavy results are precomputed by the
+repo's own functions (`scripts/make_web_data.py` → `ip3r/web/precomputed/`,
+4.3 MB): `measure_channel`, the registered ANM, `prepare_transition` +
+`morph` + `gate_path` + `transition_overlap`, `state_panel`. They reproduce the
+README (gate radii 1.95–2.73 Å shut, 5.85 Å 8TKF, 5.34 Å 7T3T; A subspace 0.67
+vs null 0.04; half-open at 0.42), pinned in `tests/test_web_data.py`. Two
+engines are ported to JS and node-tested against Python fixtures: the gating
+models (841 checks, P_open to 1e-9) and a reduced ANM (dense Cholesky +
+shift-invert Lanczos with the rigid-body motions deflated; eigenvalues to 1e-6,
+irreps exact, on 8TKG stride 16 / 25 Å and 8TKF stride 20 / 30 Å). The reduced
+network needs a longer cutoff to stay in one piece (8TKG at stride 16: 109
+pieces at the registered 15 Å); its defaults are the page's choice, stated as
+such, and the page says the published modes are the full ones.
+
+**Found.** (1) `unitary.sensitivity` crashed with a singular matrix at one
+corner of 8TKG's sweep instead of leaving it out as documented (fixed, separate
+commit, regression test). (2) ARPACK's shift-invert does not converge on 8TKG at
+stride 8, 15 Å (a connected but floppy network) — not on any default path; the
+web uses its own solver. (3) In the shared web venv `test_lumen_calcium` fails importing
+PyQt6's QtSvg against PySide6's QtCore — an environment clash, not the code.
+
+**Checked.** `pytest tests/test_web.py tests/test_web_data.py` pass; node tests
+pass; `screenshots.py --static` and `--base` all ok, no overflow at 390 px.
+Structures fetched into `ref/` for the precompute (git-ignored, not committed).

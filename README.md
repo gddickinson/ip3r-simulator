@@ -36,9 +36,10 @@ cytosol) sit in the corner of the 3-D view.
 3. [The models have produced several findings so far.](#the-models-have-produced-several-findings-so-far)
 4. [You can install the simulator with conda in a few steps.](#you-can-install-the-simulator-with-conda-in-a-few-steps)
 5. [You can run the simulator as a desktop app or from the command line.](#you-can-run-the-simulator-as-a-desktop-app-or-from-the-command-line)
-6. [The repository is organised into layers, and every module is mapped.](#the-repository-is-organised-into-layers-and-every-module-is-mapped)
-7. [Licence and citation are described here.](#licence-and-citation-are-described-here)
-8. [The references cited in this README are listed here.](#the-references-cited-in-this-readme-are-listed-here)
+6. [A web version runs in the browser.](#a-web-version-runs-in-the-browser)
+7. [The repository is organised into layers, and every module is mapped.](#the-repository-is-organised-into-layers-and-every-module-is-mapped)
+8. [Licence and citation are described here.](#licence-and-citation-are-described-here)
+9. [The references cited in this README are listed here.](#the-references-cited-in-this-readme-are-listed-here)
 
 ## This section explains the biology behind the project.
 
@@ -419,6 +420,45 @@ make help                         # every maintenance task
 The complete list of commands is in
 [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#every-command-line-analysis-is-listed-here-by-topic),
 and the app's **Analyses** menu runs the same commands in their own window.
+
+## A web version runs in the browser.
+
+A subset of the simulator also runs as a web page: a static site on GitHub
+Pages (<https://gddickinson.github.io/ip3r-simulator/>, published from `main`)
+and a local web app. It shows the eight ITPR3 deposits of the state panel
+(PDB 6DQN, 6DQJ, 7T3P, 8TKG, 8TKH, 8TLA, 8TKF and the control 7T3T) as
+C-alpha models in a small WebGL viewer, coloured by region, subunit,
+conservation or B-factor under the same rules as the desktop app; the pore
+profile of every state; the 8TKG → 8TKF morph with the gate along it and the
+mode overlap; the elastic-network modes; and the three gating models.
+
+- **Computed in the browser:** the gating curves and their bell measurements
+  (`gating_engine.js`) and a reduced elastic network on any of the eight
+  deposits (`anm_engine.js`). Node tests hold both to the Python code
+  (`tests/fixtures/`, `scripts/make_anm_fixture.py`): eigenvalues to 10⁻⁶
+  and irreps exactly, P_open to 10⁻⁹. The reduced network illustrates the
+  method; the published modes are the full ones.
+- **Precomputed by the Python code:** the structures and their channel
+  measurements, the full network, the transition and the state panel
+  (`python scripts/make_web_data.py`, which needs `ref/`; 4.3 MB of JSON in
+  `ip3r/web/precomputed/`), served by the API.
+- **Left out:** atomic representations, RyR1 and the extended deposits, the
+  findings checks, permeation and selectivity, oscillations, puffs and sparks,
+  fills, superposition, sessions and movies.
+
+```bash
+pip install -r requirements-web.txt
+python run_web.py                  # http://127.0.0.1:8194
+python -m pytest tests/test_web.py tests/test_web_data.py
+python scripts/build_static.py     # the static site into site/
+```
+
+<p align="center">
+  <img src="docs/img/web_viewer_6DQN.png" alt="The web viewer showing 6DQN coloured by functional region" width="49%">
+  <img src="docs/img/web_transition.png" alt="The web transition page: 8TKG coloured by displacement" width="49%">
+  <img src="docs/img/web_pore.png" alt="The web pore page: radius profiles of every ITPR3 state" width="49%">
+  <img src="docs/img/web_gating_compare.png" alt="The web gating page: three models compared" width="49%">
+</p>
 
 ## The repository is organised into layers, and every module is mapped.
 

@@ -19,3 +19,5 @@ dist/
 # ---- Outputs ----
 outputs/
 *.log
+# ---- Web: the built static site ----
+site/
